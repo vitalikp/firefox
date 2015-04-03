@@ -21,7 +21,7 @@
 #include "mozilla/Attributes.h"
 #include "mozilla/MemoryReporting.h"
 #include "mozilla/RangedArray.h"
-#include "nsILanguageAtomService.h"
+#include "nsLanguageAtomService.h"
 
 class CharMapHashKey : public PLDHashEntryHdr
 {
@@ -123,9 +123,6 @@ public:
                              nsTArray<nsString>& aListOfFonts);
 
     void UpdateFontList();
-
-    // Initialize the contained mLangService (for stylo, must be done in advance on main thread)
-    void InitLangService();
 
     virtual void ClearLangGroupPrefFonts();
 
@@ -400,8 +397,6 @@ protected:
 
     virtual void GetFontFamilyNames(nsTArray<nsString>& aFontFamilyNames);
 
-    nsILanguageAtomService* GetLangService();
-
     // helper function to map lang to lang group
     nsIAtom* GetLangGroup(nsIAtom* aLanguage);
 
@@ -513,7 +508,8 @@ protected:
 
     nsTHashtable<nsPtrHashKey<gfxUserFontSet> > mUserFontSetList;
 
-    nsCOMPtr<nsILanguageAtomService> mLangService;
+    nsLanguageAtomService* mLangService;
+
     nsTArray<uint32_t> mCJKPrefLangs;
     nsTArray<mozilla::FontFamilyType> mDefaultGenericsLangGroup;
 

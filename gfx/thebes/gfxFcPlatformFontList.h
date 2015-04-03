@@ -239,8 +239,6 @@ protected:
     virtual ~gfxFontconfigFont();
 };
 
-class nsILanguageAtomService;
-
 class gfxFcPlatformFontList : public gfxPlatformFontList {
 public:
     gfxFcPlatformFontList();
