@@ -3725,17 +3725,16 @@ HTMLMediaElement::Play(ErrorResult& aRv)
     return;
   }
 
-  nsresult rv = PlayInternal();
-  if (NS_FAILED(rv)) {
-    aRv.Throw(rv);
-  }
+  PlayInternal(aRv);
 
   UpdateCustomPolicyAfterPlayed();
 }
 
-nsresult
-HTMLMediaElement::PlayInternal()
+void
+HTMLMediaElement::PlayInternal(ErrorResult& aRv)
 {
+  MOZ_ASSERT(!aRv.Failed());
+
   if (!IsAllowedToPlay()) {
     // NOTE: for promise-based-play, will return a rejected promise here.
     return NS_OK;
@@ -3761,7 +3760,8 @@ HTMLMediaElement::PlayInternal()
     if (!mPausedForInactiveDocumentOrChannel) {
       nsresult rv = mDecoder->Play();
       if (NS_FAILED(rv)) {
-        return rv;
+        aRv.Throw(rv);
+        return;
       }
     }
   }
@@ -3801,7 +3801,7 @@ HTMLMediaElement::PlayInternal()
     }
   }
 
-  return NS_OK;
+  return;
 }
 
 void
@@ -3820,9 +3820,10 @@ NS_IMETHODIMP HTMLMediaElement::Play()
     return NS_OK;
   }
 
-  nsresult rv = PlayInternal();
-  if (NS_FAILED(rv)) {
-    return rv;
+  ErrorResult rv;
+  PlayInternal(rv);
+  if (rv.Failed()) {
+    return rv.StealNSResult();
   }
 
   UpdateCustomPolicyAfterPlayed();
