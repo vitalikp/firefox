@@ -108,7 +108,7 @@ BuildDisplayListForTopLayerFrame(nsDisplayListBuilder* aBuilder,
     clipState.SetClipForContainingBlockDescendants(
       &savedOutOfFlowData->mContainingBlockClip);
     clipState.SetScrollClipForContainingBlockDescendants(
-      aBuilder, savedOutOfFlowData->mContainingBlockScrollClip);
+      savedOutOfFlowData->mContainingBlockScrollClip);
   }
   nsDisplayList list;
   aFrame->BuildDisplayListForStackingContext(aBuilder, dirty, &list);
