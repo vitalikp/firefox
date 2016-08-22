@@ -4430,6 +4430,7 @@ nsIFrame::InlinePrefISizeData::DefaultAddInlinePrefISize(nscoord aISize)
   mCurrentLine = NSCoordSaturatingAdd(mCurrentLine, aISize);
   mTrailingWhitespace = 0;
   mSkipWhitespace = false;
+  mLineIsEmpty = false;
 }
 
 void
@@ -4519,6 +4520,7 @@ nsIFrame::InlinePrefISizeData::ForceBreak()
   mPrevLines = std::max(mPrevLines, mCurrentLine);
   mCurrentLine = mTrailingWhitespace = 0;
   mSkipWhitespace = true;
+  mLineIsEmpty = true;
 }
 
 static void

@@ -124,6 +124,7 @@ nsFirstLetterFrame::AddInlinePrefISize(nsRenderingContext *aRenderingContext,
                                        nsIFrame::InlinePrefISizeData *aData)
 {
   DoInlineIntrinsicISize(aRenderingContext, aData, nsLayoutUtils::PREF_ISIZE);
+  aData->mLineIsEmpty = false;
 }
 
 // Needed for floating first-letter frames.
