@@ -109,6 +109,24 @@ IsStyleCachePreservingAction(EditAction action)
          action == EditAction::insertQuotation;
 }
 
+static nsIAtom&
+ParagraphSeparatorElement(ParagraphSeparator separator)
+{
+  switch (separator) {
+    default:
+      MOZ_FALLTHROUGH_ASSERT("Unexpected paragraph separator!");
+
+    case ParagraphSeparator::div:
+      return *nsGkAtoms::div;
+
+    case ParagraphSeparator::p:
+      return *nsGkAtoms::p;
+
+    case ParagraphSeparator::br:
+      return *nsGkAtoms::br;
+  }
+}
+
 class TableCellAndListItemFunctor final : public BoolDomIterFunctor
 {
 public:
@@ -1516,15 +1534,52 @@ HTMLEditRules::WillInsertBreak(Selection& aSelection,
   nsCOMPtr<Element> blockParent = htmlEditor->GetBlock(node);
   NS_ENSURE_TRUE(blockParent, NS_ERROR_FAILURE);
 
-  // When there is an active editing host (the <body> if it's in designMode)
-  // and a block which becomes the parent of line breaker is in it, do the
-  // standard thing.
+  // If the active editing host is an inline element, or if the active editing
+  // host is the block parent itself and we're configured to use <br> as a
+  // paragraph separator, just append a <br>.
   nsCOMPtr<Element> host = htmlEditor->GetActiveEditingHost();
-  if (host && !EditorUtils::IsDescendantOf(blockParent, host)) {
+  if (NS_WARN_IF(!host)) {
+    return NS_ERROR_FAILURE;
+  }
+  ParagraphSeparator separator = mHTMLEditor->GetDefaultParagraphSeparator();
+  if (!IsBlockNode(*host) ||
+      // The nodes that can contain p and div are the same.  If the editing
+      // host is a <p> or similar, we have to just insert a newline.
+      (!mHTMLEditor->CanContainTag(*host, *nsGkAtoms::p) &&
+       // These can't contain <p> as a child, but can as a descendant, so we
+       // don't have to fall back to inserting a newline.
+       !host->IsAnyOfHTMLElements(nsGkAtoms::ol, nsGkAtoms::ul, nsGkAtoms::dl,
+                                  nsGkAtoms::table, nsGkAtoms::thead,
+                                  nsGkAtoms::tbody, nsGkAtoms::tfoot,
+                                  nsGkAtoms::tr)) ||
+      (host == blockParent && separator == ParagraphSeparator::br)) {
     nsresult rv = StandardBreakImpl(node, offset, aSelection);
     NS_ENSURE_SUCCESS(rv, rv);
     *aHandled = true;
     return NS_OK;
+  }
+  if (host == blockParent && separator != ParagraphSeparator::br) {
+    // Insert a new block first
+    MOZ_ASSERT(separator == ParagraphSeparator::div ||
+               separator == ParagraphSeparator::p);
+    nsresult rv = MakeBasicBlock(aSelection,
+                                 ParagraphSeparatorElement(separator));
+    // We warn on failure, but don't handle it, because it might be harmless.
+    // Instead we just check that a new block was actually created.
+    Unused << NS_WARN_IF(NS_FAILED(rv));
+    blockParent = mHTMLEditor->GetBlock(node);
+    if (NS_WARN_IF(!blockParent)) {
+      return NS_ERROR_UNEXPECTED;
+    }
+    if (NS_WARN_IF(blockParent == host)) {
+      // Didn't create a new block for some reason, fall back to <br>
+      rv = StandardBreakImpl(node, offset, aSelection);
+      if (NS_WARN_IF(NS_FAILED(rv))) {
+        return rv;
+      }
+      *aHandled = true;
+      return NS_OK;
+    }
   }
 
   // If block is empty, populate with br.  (For example, imagine a div that
@@ -3382,21 +3437,28 @@ HTMLEditRules::WillMakeBasicBlock(Selection& aSelection,
 {
   MOZ_ASSERT(aCancel && aHandled);
 
-  NS_ENSURE_STATE(mHTMLEditor);
-  RefPtr<HTMLEditor> htmlEditor(mHTMLEditor);
-
   OwningNonNull<nsIAtom> blockType = NS_Atomize(aBlockType);
 
   WillInsert(aSelection, aCancel);
   // We want to ignore result of WillInsert()
   *aCancel = false;
-  *aHandled = false;
+  *aHandled = true;
+
+  nsresult rv = MakeBasicBlock(aSelection, blockType);
+  Unused << NS_WARN_IF(NS_FAILED(rv));
+  return rv;
+}
+
+nsresult
+HTMLEditRules::MakeBasicBlock(Selection& aSelection, nsIAtom& blockType)
+{
+  NS_ENSURE_STATE(mHTMLEditor);
+  RefPtr<HTMLEditor> htmlEditor(mHTMLEditor);
 
   nsresult rv = NormalizeSelection(&aSelection);
   NS_ENSURE_SUCCESS(rv, rv);
   AutoSelectionRestorer selectionRestorer(&aSelection, htmlEditor);
   AutoTransactionsConserveSelection dontSpazMySelection(htmlEditor);
-  *aHandled = true;
 
   // Contruct a list of nodes to act on.
   nsTArray<OwningNonNull<nsINode>> arrayOfNodes;
@@ -3413,8 +3475,8 @@ HTMLEditRules::WillMakeBasicBlock(Selection& aSelection,
       *aSelection.GetRangeAt(0)->GetStartParent();
     int32_t offset = aSelection.GetRangeAt(0)->StartOffset();
 
-    if (blockType == nsGkAtoms::normal ||
-        blockType == nsGkAtoms::_empty) {
+    if (&blockType == nsGkAtoms::normal ||
+        &blockType == nsGkAtoms::_empty) {
       // We are removing blocks (going to "body text")
       NS_ENSURE_TRUE(htmlEditor->GetBlock(parent), NS_ERROR_NULL_POINTER);
       OwningNonNull<Element> curBlock = *htmlEditor->GetBlock(parent);
@@ -3437,7 +3499,6 @@ HTMLEditRules::WillMakeBasicBlock(Selection& aSelection,
         brNode = htmlEditor->CreateBR(curBlock->GetParentNode(), offset);
         NS_ENSURE_STATE(brNode);
         // Put selection at the split point
-        *aHandled = true;
         rv = aSelection.Collapse(curBlock->GetParentNode(), offset);
         // Don't restore the selection
         selectionRestorer.Abort();
@@ -3458,7 +3519,7 @@ HTMLEditRules::WillMakeBasicBlock(Selection& aSelection,
       rv = SplitAsNeeded(blockType, parent, offset);
       NS_ENSURE_SUCCESS(rv, rv);
       nsCOMPtr<Element> block =
-        htmlEditor->CreateNode(blockType, parent, offset);
+        htmlEditor->CreateNode(&blockType, parent, offset);
       NS_ENSURE_STATE(block);
       // Remember our new block for postprocessing
       mNewBlock = block;
@@ -3470,7 +3531,6 @@ HTMLEditRules::WillMakeBasicBlock(Selection& aSelection,
         arrayOfNodes.RemoveElementAt(0);
       }
       // Put selection in new block
-      *aHandled = true;
       rv = aSelection.Collapse(block, 0);
       // Don't restore the selection
       selectionRestorer.Abort();
@@ -3481,11 +3541,11 @@ HTMLEditRules::WillMakeBasicBlock(Selection& aSelection,
   // Okay, now go through all the nodes and make the right kind of blocks, or
   // whatever is approriate.  Woohoo!  Note: blockquote is handled a little
   // differently.
-  if (blockType == nsGkAtoms::blockquote) {
+  if (&blockType == nsGkAtoms::blockquote) {
     rv = MakeBlockquote(arrayOfNodes);
     NS_ENSURE_SUCCESS(rv, rv);
-  } else if (blockType == nsGkAtoms::normal ||
-             blockType == nsGkAtoms::_empty) {
+  } else if (&blockType == nsGkAtoms::normal ||
+             &blockType == nsGkAtoms::_empty) {
     rv = RemoveBlockStyle(arrayOfNodes);
     NS_ENSURE_SUCCESS(rv, rv);
   } else {
@@ -6854,6 +6914,11 @@ HTMLEditRules::ApplyBlockStyle(nsTArray<OwningNonNull<nsINode>>& aNodeArray,
         // Remember our new block for postprocessing
         mNewBlock = curBlock;
         // Note: doesn't matter if we set mNewBlock multiple times.
+      }
+
+      if (NS_WARN_IF(!curNode->GetParentNode())) {
+        // This is possible due to mutation events, let's not assert
+        return NS_ERROR_UNEXPECTED;
       }
 
       // XXX If curNode is a br, replace it with a return if going to <pre>
