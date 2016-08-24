@@ -1087,8 +1087,7 @@ protected:
 
   nsCOMPtr<nsILinkHandler> mLinkHandler;
 
-  // Default to br for compatibility with old Gecko behavior
-  ParagraphSeparator mDefaultParagraphSeparator = ParagraphSeparator::br;
+  ParagraphSeparator mDefaultParagraphSeparator = ParagraphSeparator::div;
 
 public:
   friend class HTMLEditorEventListener;
