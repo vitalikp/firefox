@@ -1549,7 +1549,7 @@ HTMLEditRules::WillInsertBreak(Selection& aSelection,
     ReturnInHeader(aSelection, *blockParent, node, offset);
     *aHandled = true;
     return NS_OK;
-  } else if (blockParent->IsHTMLElement(nsGkAtoms::p)) {
+  } else if (blockParent->IsAnyOfHTMLElements(nsGkAtoms::p, nsGkAtoms::div)) {
     // Paragraphs: special rules to look for <br>s
     nsresult rv =
       ReturnInParagraph(&aSelection, GetAsDOMNode(blockParent),
@@ -6255,6 +6255,9 @@ HTMLEditRules::ReturnInHeader(Selection& aSelection,
 
 /**
  * ReturnInParagraph() does the right thing for returns pressed in paragraphs.
+ * For our purposes, this means either <p> or <div>, which is not in keeping
+ * with the semantics of <div>, but is necessary for compatibility with other
+ * browsers.
  */
 nsresult
 HTMLEditRules::ReturnInParagraph(Selection* aSelection,
