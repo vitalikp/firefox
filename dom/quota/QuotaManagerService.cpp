@@ -60,6 +60,25 @@ TestingPrefChangedCallback(const char* aPrefName,
   gTestingMode = Preferences::GetBool(aPrefName);
 }
 
+nsresult
+CheckedPrincipalToPrincipalInfo(nsIPrincipal* aPrincipal,
+                                PrincipalInfo& aPrincipalInfo)
+{
+  MOZ_ASSERT(aPrincipal);
+
+  nsresult rv = PrincipalToPrincipalInfo(aPrincipal, &aPrincipalInfo);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  if (aPrincipalInfo.type() != PrincipalInfo::TContentPrincipalInfo &&
+      aPrincipalInfo.type() != PrincipalInfo::TSystemPrincipalInfo) {
+    return NS_ERROR_UNEXPECTED;
+  }
+
+  return NS_OK;
+}
+
 class AbortOperationsRunnable final
   : public Runnable
 {
@@ -561,16 +580,10 @@ QuotaManagerService::InitStoragesForPrincipal(
 
   InitOriginParams params;
 
-  PrincipalInfo& principalInfo = params.principalInfo();
-
-  nsresult rv = PrincipalToPrincipalInfo(aPrincipal, &principalInfo);
+  nsresult rv = CheckedPrincipalToPrincipalInfo(aPrincipal,
+                                                params.principalInfo());
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
-  }
-
-  if (principalInfo.type() != PrincipalInfo::TContentPrincipalInfo &&
-      principalInfo.type() != PrincipalInfo::TSystemPrincipalInfo) {
-    return NS_ERROR_UNEXPECTED;
   }
 
   Nullable<PersistenceType> persistenceType;
@@ -606,15 +619,10 @@ QuotaManagerService::GetUsageForPrincipal(nsIPrincipal* aPrincipal,
 
   OriginUsageParams params;
 
-  PrincipalInfo& principalInfo = params.principalInfo();
-  nsresult rv = PrincipalToPrincipalInfo(aPrincipal, &principalInfo);
+  nsresult rv = CheckedPrincipalToPrincipalInfo(aPrincipal,
+                                                params.principalInfo());
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
-  }
-
-  if (principalInfo.type() != PrincipalInfo::TContentPrincipalInfo &&
-      principalInfo.type() != PrincipalInfo::TSystemPrincipalInfo) {
-    return NS_ERROR_UNEXPECTED;
   }
 
   params.getGroupUsage() = aGetGroupUsage;
@@ -676,16 +684,10 @@ QuotaManagerService::ClearStoragesForPrincipal(nsIPrincipal* aPrincipal,
 
   ClearOriginParams params;
 
-  PrincipalInfo& principalInfo = params.principalInfo();
-
-  nsresult rv = PrincipalToPrincipalInfo(aPrincipal, &principalInfo);
+  nsresult rv = CheckedPrincipalToPrincipalInfo(aPrincipal,
+                                                params.principalInfo());
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
-  }
-
-  if (principalInfo.type() != PrincipalInfo::TContentPrincipalInfo &&
-      principalInfo.type() != PrincipalInfo::TSystemPrincipalInfo) {
-    return NS_ERROR_UNEXPECTED;
   }
 
   Nullable<PersistenceType> persistenceType;
@@ -730,6 +732,64 @@ QuotaManagerService::Reset(nsIQuotaRequest** _retval)
   nsAutoPtr<PendingRequestInfo> info(new RequestInfo(request, params));
 
   nsresult rv = InitiateRequest(info);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  request.forget(_retval);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+QuotaManagerService::Persisted(nsIPrincipal* aPrincipal,
+                               nsIQuotaRequest** _retval)
+{
+  MOZ_ASSERT(NS_IsMainThread());
+  MOZ_ASSERT(aPrincipal);
+  MOZ_ASSERT(_retval);
+
+  RefPtr<Request> request = new Request(aPrincipal);
+
+  PersistedParams params;
+
+  nsresult rv = CheckedPrincipalToPrincipalInfo(aPrincipal,
+                                                params.principalInfo());
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  nsAutoPtr<PendingRequestInfo> info(new RequestInfo(request, params));
+
+  rv = InitiateRequest(info);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  request.forget(_retval);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+QuotaManagerService::Persist(nsIPrincipal* aPrincipal,
+                             nsIQuotaRequest** _retval)
+{
+  MOZ_ASSERT(NS_IsMainThread());
+  MOZ_ASSERT(aPrincipal);
+  MOZ_ASSERT(_retval);
+
+  RefPtr<Request> request = new Request(aPrincipal);
+
+  PersistParams params;
+
+  nsresult rv = CheckedPrincipalToPrincipalInfo(aPrincipal,
+                                                params.principalInfo());
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  nsAutoPtr<PendingRequestInfo> info(new RequestInfo(request, params));
+
+  rv = InitiateRequest(info);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
