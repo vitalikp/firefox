@@ -11919,7 +11919,7 @@ nsDocument::PostVisibilityUpdateEvent()
 {
   nsCOMPtr<nsIRunnable> event =
     NewRunnableMethod(this, &nsDocument::UpdateVisibilityState);
-  NS_DispatchToMainThread(event);
+  Dispatch("UpdateVisibility", TaskCategory::Other, event.forget());
 }
 
 void
