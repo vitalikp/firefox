@@ -1027,6 +1027,7 @@ CompositorD3D11::BeginFrame(const nsIntRegion& aInvalidRegion,
   }
 
   if (clipRect.IsEmpty()) {
+    CancelFrame();
     *aRenderBoundsOut = IntRect();
     return;
   }
@@ -1178,6 +1179,15 @@ CompositorD3D11::EndFrame()
   Compositor::EndFrame();
 
   mCurrentRT = nullptr;
+}
+
+void
+CompositorD3D11::CancelFrame()
+{
+  ReadUnlockTextures();
+  // Flush the context, otherwise the driver might hold some resources alive
+  // until the next flush or present.
+  mContext->Flush();
 }
 
 void

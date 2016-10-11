@@ -157,6 +157,7 @@ LayerManagerComposite::Destroy()
     if (mRoot) {
       RootLayer()->Destroy();
     }
+    mCompositor->CancelFrame();
     mRoot = nullptr;
     mClonedLayerTreeProperties = nullptr;
     mDestroyed = true;
@@ -1231,6 +1232,9 @@ LayerManagerComposite::AutoAddMaskEffect::~AutoAddMaskEffect()
 void
 LayerManagerComposite::ChangeCompositor(Compositor* aNewCompositor)
 {
+  if (mCompositor) {
+    mCompositor->CancelFrame();
+  }
   mCompositor = aNewCompositor;
   mTextRenderer = new TextRenderer(aNewCompositor);
   mTwoPassTmpTarget = nullptr;
