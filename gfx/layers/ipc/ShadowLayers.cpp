@@ -1040,5 +1040,14 @@ ShadowLayerForwarder::GetCompositorBridgeChild()
   return mCompositorBridgeChild;
 }
 
+void
+ShadowLayerForwarder::SyncWithCompositor()
+{
+  auto compositorBridge = GetCompositorBridgeChild();
+  if (compositorBridge && compositorBridge->IPCOpen()) {
+    compositorBridge->SendSyncWithCompositor();
+  }
+}
+
 } // namespace layers
 } // namespace mozilla
