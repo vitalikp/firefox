@@ -4,12 +4,15 @@
 
 "use strict";
 
-const filters = require("./filters");
-const requests = require("./requests");
-const ui = require("./ui");
+const { SORT_BY } = require("../constants");
 
-Object.assign(exports,
-  filters,
-  requests,
-  ui
-);
+function sortBy(sortType) {
+  return {
+    type: SORT_BY,
+    sortType
+  };
+}
+
+module.exports = {
+  sortBy
+};

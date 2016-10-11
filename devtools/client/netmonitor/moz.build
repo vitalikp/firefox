@@ -6,8 +6,10 @@ DIRS += [
     'actions',
     'components',
     'har',
+    'middleware',
     'reducers',
-    'selectors'
+    'selectors',
+    'utils',
 ]
 
 DevToolsModules(
@@ -27,4 +29,5 @@ DevToolsModules(
     'sort-predicates.js',
     'store.js',
     'toolbar-view.js',
+    'waterfall-background.js',
 )

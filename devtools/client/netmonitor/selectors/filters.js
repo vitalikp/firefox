@@ -4,12 +4,10 @@
 
 "use strict";
 
-const filters = require("./filters");
-const requests = require("./requests");
-const ui = require("./ui");
+function getActiveFilters(state) {
+  return state.filters.types.toSeq().filter(checked => checked).keySeq().toArray();
+}
 
-Object.assign(exports,
-  filters,
-  requests,
-  ui
-);
+module.exports = {
+  getActiveFilters
+};
