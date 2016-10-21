@@ -9037,7 +9037,7 @@ nsRuleNode::ComputeContentData(void* aStartStruct,
       nsStyleContentData& data = content->ContentAt(count++);
       switch (unit) {
         case eCSSUnit_Image:
-          data.SetImage(CreateImageRequest(mPresContext, value));
+          data.SetImageRequest(CreateStyleImageRequest(mPresContext, value));
           break;
         case eCSSUnit_String:
         case eCSSUnit_Attr: {
@@ -9184,15 +9184,6 @@ nsRuleNode::ComputeContentData(void* aStartStruct,
 
   default:
     MOZ_ASSERT(false, "unexpected value unit");
-  }
-
-  // If we ended up with an image, track it.
-  for (uint32_t i = 0; i < content->ContentCount(); ++i) {
-    if (content->ContentAt(i).GetType() == eStyleContentType_Image &&
-        content->ContentAt(i).GetImage()) {
-      content->ContentAt(i).TrackImage(
-          aContext->PresContext()->Document()->ImageTracker());
-    }
   }
 
   COMPUTE_END_RESET(Content, content)
