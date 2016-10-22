@@ -6,7 +6,6 @@
 
 #include "Hal.h"
 #include "HalLog.h"
-#include "mozilla/AppProcessChecker.h"
 #include "mozilla/dom/ContentChild.h"
 #include "mozilla/dom/ContentParent.h"
 #include "mozilla/hal_sandbox/PHalChild.h"
@@ -535,9 +534,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvGetScreenEnabled(bool* aEnabled) override
   {
-    if (!AssertAppProcessPermission(this, "power")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     *aEnabled = hal::GetScreenEnabled();
     return IPC_OK();
   }
@@ -545,9 +541,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvSetScreenEnabled(const bool& aEnabled) override
   {
-    if (!AssertAppProcessPermission(this, "power")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     hal::SetScreenEnabled(aEnabled);
     return IPC_OK();
   }
@@ -555,9 +548,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvGetKeyLightEnabled(bool* aEnabled) override
   {
-    if (!AssertAppProcessPermission(this, "power")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     *aEnabled = hal::GetKeyLightEnabled();
     return IPC_OK();
   }
@@ -565,9 +555,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvSetKeyLightEnabled(const bool& aEnabled) override
   {
-    if (!AssertAppProcessPermission(this, "power")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     hal::SetKeyLightEnabled(aEnabled);
     return IPC_OK();
   }
@@ -575,9 +562,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvGetCpuSleepAllowed(bool* aAllowed) override
   {
-    if (!AssertAppProcessPermission(this, "power")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     *aAllowed = hal::GetCpuSleepAllowed();
     return IPC_OK();
   }
@@ -585,9 +569,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvSetCpuSleepAllowed(const bool& aAllowed) override
   {
-    if (!AssertAppProcessPermission(this, "power")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     hal::SetCpuSleepAllowed(aAllowed);
     return IPC_OK();
   }
@@ -595,9 +576,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvGetScreenBrightness(double* aBrightness) override
   {
-    if (!AssertAppProcessPermission(this, "power")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     *aBrightness = hal::GetScreenBrightness();
     return IPC_OK();
   }
@@ -605,9 +583,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvSetScreenBrightness(const double& aBrightness) override
   {
-    if (!AssertAppProcessPermission(this, "power")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     hal::SetScreenBrightness(aBrightness);
     return IPC_OK();
   }
@@ -615,9 +590,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvAdjustSystemClock(const int64_t &aDeltaMilliseconds) override
   {
-    if (!AssertAppProcessPermission(this, "time")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     hal::AdjustSystemClock(aDeltaMilliseconds);
     return IPC_OK();
   }
@@ -625,9 +597,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvSetTimezone(const nsCString& aTimezoneSpec) override
   {
-    if (!AssertAppProcessPermission(this, "time")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     hal::SetTimezone(aTimezoneSpec);
     return IPC_OK();
   }
@@ -635,9 +604,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvGetTimezone(nsCString *aTimezoneSpec) override
   {
-    if (!AssertAppProcessPermission(this, "time")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     *aTimezoneSpec = hal::GetTimezone();
     return IPC_OK();
   }
@@ -645,9 +611,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvGetTimezoneOffset(int32_t *aTimezoneOffset) override
   {
-    if (!AssertAppProcessPermission(this, "time")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
     *aTimezoneOffset = hal::GetTimezoneOffset();
     return IPC_OK();
   }
@@ -751,10 +714,6 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvFactoryReset(const nsString& aReason) override
   {
-    if (!AssertAppProcessPermission(this, "power")) {
-      return IPC_FAIL_NO_REASON(this);
-    }
-
     FactoryResetReason reason = FactoryResetReason::Normal;
     if (aReason.EqualsLiteral("normal")) {
       reason = FactoryResetReason::Normal;

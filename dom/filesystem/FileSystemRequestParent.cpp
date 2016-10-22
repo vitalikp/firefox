@@ -10,7 +10,6 @@
 #include "GetDirectoryListingTask.h"
 #include "GetFileOrDirectoryTask.h"
 
-#include "mozilla/AppProcessChecker.h"
 #include "mozilla/dom/ContentParent.h"
 #include "mozilla/dom/FileSystemBase.h"
 #include "mozilla/dom/FileSystemSecurity.h"

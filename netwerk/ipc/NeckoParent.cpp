@@ -34,7 +34,6 @@
 #include "mozilla/dom/network/UDPSocketParent.h"
 #include "mozilla/dom/workers/ServiceWorkerManager.h"
 #include "mozilla/LoadContext.h"
-#include "mozilla/AppProcessChecker.h"
 #include "nsPrintfCString.h"
 #include "nsHTMLDNSPrefetch.h"
 #include "nsEscape.h"
