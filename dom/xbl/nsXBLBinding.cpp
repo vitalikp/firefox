@@ -425,7 +425,6 @@ nsXBLBinding::GenerateAnonymousContent()
   nsIPresShell* presShell = mBoundElement->OwnerDoc()->GetShell();
   ServoStyleSet* servoSet = presShell->StyleSet()->GetAsServo();
   if (servoSet) {
-    mBoundElement->SetHasDirtyDescendantsForServo();
     servoSet->StyleNewChildren(mBoundElement);
   }
 }
