@@ -7,6 +7,9 @@ Components.utils.import("resource://gre/modules/DownloadUtils.jsm");
 Components.utils.import("resource://gre/modules/LoadContextInfo.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
+XPCOMUtils.defineLazyModuleGetter(this, "SiteDataManager",
+                                  "resource:///modules/SiteDataManager.jsm");
+
 const PREF_UPLOAD_ENABLED = "datareporting.healthreport.uploadEnabled";
 
 var gAdvancedPane = {
@@ -48,6 +51,11 @@ var gAdvancedPane = {
     this.updateCacheSizeInputField();
     this.updateActualCacheSize();
     this.updateActualAppCacheSize();
+
+    if (Services.prefs.getBoolPref("browser.storageManager.enabled")) {
+      SiteDataManager.updateSites();
+      this.updateTotalSiteDataSize();
+    }
 
     setEventListener("layers.acceleration.disabled", "change",
                      gAdvancedPane.updateHardwareAcceleration);
@@ -325,6 +333,18 @@ var gAdvancedPane = {
   showConnections: function()
   {
     gSubDialog.open("chrome://browser/content/preferences/connection.xul");
+  },
+
+  updateTotalSiteDataSize: function() {
+    SiteDataManager.getTotalUsage()
+      .then(usage => {
+        let size = DownloadUtils.convertByteUnits(usage);
+        let prefStrBundle = document.getElementById("bundlePreferences");
+        let totalSiteDataSizeLabel = document.getElementById("totalSiteDataSize");
+        totalSiteDataSizeLabel.textContent = prefStrBundle.getFormattedString("totalSiteDataSize", size);
+        let siteDataGroup = document.getElementById("siteDataGroup");
+        siteDataGroup.hidden = false;
+      });
   },
 
   // Retrieves the amount of space currently used by disk cache
