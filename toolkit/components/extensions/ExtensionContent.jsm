@@ -151,10 +151,18 @@ Script.prototype = {
       return false;
     }
 
-    if (this.match_about_blank && ["about:blank", "about:srcdoc"].includes(uri.spec)) {
-      // When matching about:blank/srcdoc documents, the checks below
+    if (this.match_about_blank) {
+      // When matching top-level about:blank documents,
+      // allow loading into any with a NullPrincipal.
+      if (uri.spec === "about:blank" && window === window.top && principal.isNullPrincipal) {
+        return true;
+      }
+
+      // When matching about:blank/srcdoc iframes, the checks below
       // need to be performed against the "owner" document's URI.
-      uri = principal.URI;
+      if (["about:blank", "about:srcdoc"].includes(uri.spec)) {
+        uri = principal.URI;
+      }
     }
 
     // Documents from data: URIs also inherit the principal.
@@ -640,7 +648,7 @@ DocumentManager = {
 
     if (!promises.length) {
       let details = {};
-      for (let key of ["all_frames", "frame_id", "matches_about_blank", "matchesHost"]) {
+      for (let key of ["all_frames", "frame_id", "match_about_blank", "matchesHost"]) {
         if (key in options) {
           details[key] = options[key];
         }
