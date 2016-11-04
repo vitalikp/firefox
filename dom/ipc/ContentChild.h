@@ -623,6 +623,9 @@ private:
 
   virtual void ProcessingError(Result aCode, const char* aReason) override;
 
+  virtual already_AddRefed<nsIEventTarget>
+  GetConstructedEventTarget(const Message& aMsg) override;
+
   InfallibleTArray<nsAutoPtr<AlertObserver> > mAlertObservers;
   RefPtr<ConsoleListener> mConsoleListener;
 

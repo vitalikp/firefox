@@ -68,6 +68,7 @@ class PluginWidgetChild;
 namespace dom {
 
 class TabChild;
+class TabGroup;
 class ClonedMessageData;
 class TabChildBase;
 
@@ -639,6 +640,8 @@ public:
     mIsFreshProcess = false;
     return wasFreshProcess;
   }
+
+  mozilla::dom::TabGroup* TabGroup();
 
 protected:
   virtual ~TabChild();
