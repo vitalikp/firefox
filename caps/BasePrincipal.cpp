@@ -631,15 +631,19 @@ BasePrincipal::GetUnknownAppId(bool* aUnknownAppId)
 bool
 BasePrincipal::AddonHasPermission(const nsAString& aPerm)
 {
-  if (mOriginAttributes.mAddonId.IsEmpty()) {
+  nsAutoString addonId;
+  NS_ENSURE_SUCCESS(GetAddonId(addonId), false);
+
+  if (addonId.IsEmpty()) {
     return false;
   }
+
   nsCOMPtr<nsIAddonPolicyService> aps =
     do_GetService("@mozilla.org/addons/policy-service;1");
   NS_ENSURE_TRUE(aps, false);
 
   bool retval = false;
-  nsresult rv = aps->AddonHasPermission(mOriginAttributes.mAddonId, aPerm, &retval);
+  nsresult rv = aps->AddonHasPermission(addonId, aPerm, &retval);
   NS_ENSURE_SUCCESS(rv, false);
   return retval;
 }
@@ -718,7 +722,10 @@ BasePrincipal::CloneStrippingUserContextIdAndFirstPartyDomain()
 bool
 BasePrincipal::AddonAllowsLoad(nsIURI* aURI, bool aExplicit /* = false */)
 {
-  if (mOriginAttributes.mAddonId.IsEmpty()) {
+  nsAutoString addonId;
+  NS_ENSURE_SUCCESS(GetAddonId(addonId), false);
+
+  if (addonId.IsEmpty()) {
     return false;
   }
 
@@ -726,7 +733,7 @@ BasePrincipal::AddonAllowsLoad(nsIURI* aURI, bool aExplicit /* = false */)
   NS_ENSURE_TRUE(aps, false);
 
   bool allowed = false;
-  nsresult rv = aps->AddonMayLoadURI(mOriginAttributes.mAddonId, aURI, aExplicit, &allowed);
+  nsresult rv = aps->AddonMayLoadURI(addonId, aURI, aExplicit, &allowed);
   return NS_SUCCEEDED(rv) && allowed;
 }
 
