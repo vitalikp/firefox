@@ -149,7 +149,8 @@ loader.lazyGetter(this, "eventListenerService", function () {
            .getService(Ci.nsIEventListenerService);
 });
 
-loader.lazyGetter(this, "CssLogic", () => require("devtools/server/css-logic").CssLogic);
+loader.lazyRequireGetter(this, "CssLogic", "devtools/server/css-logic", true);
+loader.lazyRequireGetter(this, "findCssSelector", "devtools/shared/inspector/css-logic", true);
 
 /**
  * We only send nodeValue up to a certain size by default.  This stuff
@@ -651,7 +652,7 @@ var NodeActor = exports.NodeActor = protocol.ActorClassWithSpec(nodeSpec, {
     if (Cu.isDeadWrapper(this.rawNode)) {
       return "";
     }
-    return CssLogic.findCssSelector(this.rawNode);
+    return findCssSelector(this.rawNode);
   },
 
   /**
