@@ -22,6 +22,7 @@
 #include "mozilla/AbstractThread.h"
 #include "nsClassHashtable.h"
 #include "nsISupportsImpl.h"
+#include "mozilla/MozPromise.h"
 
 template <class> struct already_AddRefed;
 
@@ -55,7 +56,8 @@ extern LogModule* GetGMPLog();
 
 namespace gmp {
 
-class GetGMPContentParentCallback;
+class GMPContentParent;
+typedef MozPromise<RefPtr<GMPContentParent>, nsresult, /* IsExclusive = */ true> GetGMPContentParentPromise;
 
 class GeckoMediaPluginService : public mozIGeckoMediaPluginService
                               , public nsIObserver
@@ -116,11 +118,12 @@ protected:
   virtual ~GeckoMediaPluginService();
 
   virtual void InitializePlugins(AbstractThread* aAbstractGMPThread) = 0;
-  virtual bool GetContentParentFrom(GMPCrashHelper* aHelper,
-                                    const nsACString& aNodeId,
-                                    const nsCString& aAPI,
-                                    const nsTArray<nsCString>& aTags,
-                                    UniquePtr<GetGMPContentParentCallback>&& aCallback) = 0;
+
+  virtual RefPtr<GetGMPContentParentPromise>
+  GetContentParent(GMPCrashHelper* aHelper,
+                   const nsACString& aNodeId,
+                   const nsCString& aAPI,
+                   const nsTArray<nsCString>& aTags) = 0;
 
   nsresult GMPDispatch(nsIRunnable* event, uint32_t flags = NS_DISPATCH_NORMAL);
   nsresult GMPDispatch(already_AddRefed<nsIRunnable> event, uint32_t flags = NS_DISPATCH_NORMAL);
