@@ -418,7 +418,6 @@ Finder.prototype = {
       return;
     }
 
-    let window = this._getWindow();
     this._currentFoundRange = this._fastFind.getFoundRange();
 
     let params = {
