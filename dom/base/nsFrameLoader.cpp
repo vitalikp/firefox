@@ -427,7 +427,7 @@ nsFrameLoader::AppendPartialSessionHistoryAndSwap(nsIFrameLoader* aOther)
   if (!ourBrowser || !otherBrowser) {
     return NS_ERROR_FAILURE;
   }
-  if (NS_FAILED(ourBrowser->SwapBrowsers(otherBrowser))) {
+  if (NS_FAILED(ourBrowser->SwapBrowsers(otherBrowser, nsIBrowser::SWAP_KEEP_PERMANENT_KEY))) {
     return NS_ERROR_FAILURE;
   }
   mGroupedSessionHistory.swap(otherLoader->mGroupedSessionHistory);
@@ -463,7 +463,7 @@ nsFrameLoader::RequestGroupedHistoryNavigation(uint32_t aGlobalIndex)
   if (!ourBrowser || !otherBrowser) {
     return NS_ERROR_FAILURE;
   }
-  if (NS_FAILED(ourBrowser->SwapBrowsers(otherBrowser))) {
+  if (NS_FAILED(ourBrowser->SwapBrowsers(otherBrowser, nsIBrowser::SWAP_KEEP_PERMANENT_KEY))) {
     return NS_ERROR_FAILURE;
   }
   mGroupedSessionHistory.swap(otherLoader->mGroupedSessionHistory);

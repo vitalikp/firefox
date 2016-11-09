@@ -2897,7 +2897,7 @@
                   this.mIsBusy = true;
               }
 
-              this._swapBrowserDocShells(aOurTab, otherBrowser, stateFlags);
+              this._swapBrowserDocShells(aOurTab, otherBrowser, Ci.nsIBrowser.SWAP_DEFAULT, stateFlags);
             }
 
             // Handle findbar data (if any)
@@ -2930,9 +2930,21 @@
         </body>
       </method>
 
+      <method name="swapBrowsers">
+        <parameter name="aOurTab"/>
+        <parameter name="aOtherBrowser"/>
+        <parameter name="aFlags"/>
+        <body>
+          <![CDATA[
+            this._swapBrowserDocShells(aOurTab, aOtherBrowser, aFlags);
+          ]]>
+        </body>
+      </method>
+
       <method name="_swapBrowserDocShells">
         <parameter name="aOurTab"/>
         <parameter name="aOtherBrowser"/>
+        <parameter name="aFlags"/>
         <parameter name="aStateFlags"/>
         <body>
           <![CDATA[
@@ -2975,15 +2987,17 @@
               remoteBrowser._outerWindowIDBrowserMap.set(aOtherBrowser.outerWindowID, aOtherBrowser);
             }
 
-            // Swap permanentKey properties.
-            let ourPermanentKey = ourBrowser.permanentKey;
-            ourBrowser.permanentKey = aOtherBrowser.permanentKey;
-            aOtherBrowser.permanentKey = ourPermanentKey;
-            aOurTab.permanentKey = ourBrowser.permanentKey;
-            if (remoteBrowser) {
-              let otherTab = remoteBrowser.getTabForBrowser(aOtherBrowser);
-              if (otherTab) {
-                otherTab.permanentKey = aOtherBrowser.permanentKey;
+            if (!(aFlags & Ci.nsIBrowser.SWAP_KEEP_PERMANENT_KEY)) {
+              // Swap permanentKey properties.
+              let ourPermanentKey = ourBrowser.permanentKey;
+              ourBrowser.permanentKey = aOtherBrowser.permanentKey;
+              aOtherBrowser.permanentKey = ourPermanentKey;
+              aOurTab.permanentKey = ourBrowser.permanentKey;
+              if (remoteBrowser) {
+                let otherTab = remoteBrowser.getTabForBrowser(aOtherBrowser);
+                if (otherTab) {
+                  otherTab.permanentKey = aOtherBrowser.permanentKey;
+                }
               }
             }
 
