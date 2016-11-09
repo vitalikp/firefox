@@ -475,7 +475,6 @@ LoadInfo::GetSandboxedLoadingPrincipal(nsIPrincipal** aPrincipal)
         nsNullPrincipal::CreateWithInheritedAttributes(mLoadingPrincipal);
     } else {
       OriginAttributes attrs(mOriginAttributes);
-      attrs.StripAttributes(OriginAttributes::STRIP_ADDON_ID);
       mSandboxedLoadingPrincipal = nsNullPrincipal::Create(attrs);
     }
   }

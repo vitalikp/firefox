@@ -2267,7 +2267,6 @@ nsHttpHandler::SpeculativeConnectInternal(nsIURI *aURI,
         originAttributes.Inherit(aPrincipal->OriginAttributesRef());
     } else if (loadContext) {
         loadContext->GetOriginAttributes(originAttributes);
-        originAttributes.StripAttributes(OriginAttributes::STRIP_ADDON_ID);
     }
 
     nsCOMPtr<nsIURI> clone;

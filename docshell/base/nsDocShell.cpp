@@ -12315,7 +12315,6 @@ nsDocShell::AddToSessionHistory(nsIURI* aURI, nsIChannel* aChannel,
             // get the OriginAttributes
             OriginAttributes attrs;
             loadInfo->GetOriginAttributes(&attrs);
-            attrs.StripAttributes(OriginAttributes::STRIP_ADDON_ID);
             principalToInherit = nsNullPrincipal::Create(attrs);
           }
         } else {
