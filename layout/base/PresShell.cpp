@@ -8189,12 +8189,16 @@ PresShell::HandleEventInternal(WidgetEvent* aEvent,
           // valid user input for triggering popup, fullscreen, and
           // pointer lock.
           isHandlingUserInput = true;
+          mPresContext->RecordInteractionTime(
+            nsPresContext::InteractionType::eKeyInteraction);
         }
         break;
       }
       case eMouseDown:
       case eMouseUp:
         isHandlingUserInput = true;
+        mPresContext->RecordInteractionTime(
+          nsPresContext::InteractionType::eClickInteraction);
         break;
 
       case eDrop: {
@@ -8238,6 +8242,9 @@ PresShell::HandleEventInternal(WidgetEvent* aEvent,
     if (aEvent->IsTrusted() && aEvent->mMessage == eMouseMove) {
       nsIPresShell::AllowMouseCapture(
         EventStateManager::GetActiveEventStateManager() == manager);
+
+      mPresContext->RecordInteractionTime(
+        nsPresContext::InteractionType::eMouseMoveInteraction);
     }
 
     nsAutoPopupStatePusher popupStatePusher(
@@ -9066,9 +9073,11 @@ PresShell::Freeze()
   }
 
   nsPresContext* presContext = GetPresContext();
-  if (presContext &&
-      presContext->RefreshDriver()->GetPresContext() == presContext) {
-    presContext->RefreshDriver()->Freeze();
+  if (presContext) {
+    presContext->DisableInteractionTimeRecording();
+    if (presContext->RefreshDriver()->GetPresContext() == presContext) {
+      presContext->RefreshDriver()->Freeze();
+    }
   }
 
   mFrozen = true;
