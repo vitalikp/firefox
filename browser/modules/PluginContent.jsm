@@ -139,7 +139,7 @@ PluginContent.prototype = {
           let location = this.content.document.location.href;
           this.global.content.pluginRequiresReload = true;
           this.global.sendAsyncMessage("PluginContent:ShowClickToPlayNotification",
-                                       { plugins: [... this.pluginData.values()],
+                                       { plugins: [...this.pluginData.values()],
                                          showNow: true,
                                          location: location,
                                        }, null, principal);
@@ -841,7 +841,7 @@ PluginContent.prototype = {
     this.haveShownNotification = true;
 
     this.global.sendAsyncMessage("PluginContent:ShowClickToPlayNotification", {
-      plugins: [... this.pluginData.values()],
+      plugins: [...this.pluginData.values()],
       showNow: showNow,
       location: location,
     }, null, principal);
@@ -924,7 +924,7 @@ PluginContent.prototype = {
     // plugins that need a notification bar.
     this.global.sendAsyncMessage("PluginContent:UpdateHiddenPluginUI", {
       haveInsecure: haveInsecure,
-      actions: [... actions.values()],
+      actions: [...actions.values()],
       location: location,
     }, null, principal);
   },
