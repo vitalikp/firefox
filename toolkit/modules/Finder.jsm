@@ -74,16 +74,16 @@ Finder.prototype = {
       this._highlighter = null;
   },
 
-  addResultListener: function (aListener) {
+  addResultListener: function(aListener) {
     if (this._listeners.indexOf(aListener) === -1)
       this._listeners.push(aListener);
   },
 
-  removeResultListener: function (aListener) {
+  removeResultListener: function(aListener) {
     this._listeners = this._listeners.filter(l => l != aListener);
   },
 
-  _notify: function (options) {
+  _notify: function(options) {
     if (typeof options.storeResult != "boolean")
       options.storeResult = true;
 
@@ -188,7 +188,7 @@ Finder.prototype = {
    * @param aLinksOnly Only consider nodes that are links for the search.
    * @param aDrawOutline Puts an outline around matched links.
    */
-  fastFind: function (aSearchString, aLinksOnly, aDrawOutline) {
+  fastFind: function(aSearchString, aLinksOnly, aDrawOutline) {
     this._lastFindResult = this._fastFind.find(aSearchString, aLinksOnly);
     let searchString = this._fastFind.searchString;
     this._notify({
@@ -210,7 +210,7 @@ Finder.prototype = {
    * @param aLinksOnly Only consider nodes that are links for the search.
    * @param aDrawOutline Puts an outline around matched links.
    */
-  findAgain: function (aFindBackwards, aLinksOnly, aDrawOutline) {
+  findAgain: function(aFindBackwards, aLinksOnly, aDrawOutline) {
     this._lastFindResult = this._fastFind.findAgain(aFindBackwards, aLinksOnly);
     let searchString = this._fastFind.searchString;
     this._notify({
@@ -352,7 +352,7 @@ Finder.prototype = {
       this._iterator.reset();
   },
 
-  keyPress: function (aEvent) {
+  keyPress: function(aEvent) {
     let controller = this._getSelectionController(this._getWindow());
 
     switch (aEvent.keyCode) {
@@ -476,7 +476,7 @@ Finder.prototype = {
     };
   },
 
-  _getWindow: function () {
+  _getWindow: function() {
     if (!this._docShell)
       return null;
     return this._docShell.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindow);
@@ -486,7 +486,7 @@ Finder.prototype = {
    * Get the bounding selection rect in CSS px relative to the origin of the
    * top-level content document.
    */
-  _getResultRect: function () {
+  _getResultRect: function() {
     let topWin = this._getWindow();
     let win = this._fastFind.currentWindow;
     if (!win)
@@ -533,7 +533,7 @@ Finder.prototype = {
     return rect.translate(scrollX.value, scrollY.value);
   },
 
-  _outlineLink: function (aDrawOutline) {
+  _outlineLink: function(aDrawOutline) {
     let foundLink = this._fastFind.foundLink;
 
     // Optimization: We are drawing outlines and we matched
@@ -560,7 +560,7 @@ Finder.prototype = {
     }
   },
 
-  _restoreOriginalOutline: function () {
+  _restoreOriginalOutline: function() {
     // Removes the outline around the last found link.
     if (this._previousLink) {
       this._previousLink.style.outline = this._tmpOutline;

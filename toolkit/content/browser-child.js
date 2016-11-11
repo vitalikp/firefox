@@ -44,7 +44,7 @@ var WebProgressListener = {
     this._filter = null;
   },
 
-  _requestSpec: function (aRequest, aPropertyName) {
+  _requestSpec: function(aRequest, aPropertyName) {
     if (!aRequest || !(aRequest instanceof Ci.nsIChannel))
       return null;
     return aRequest.QueryInterface(Ci.nsIChannel)[aPropertyName].spec;
@@ -343,7 +343,7 @@ var SecurityUI = {
 };
 
 var ControllerCommands = {
-  init: function () {
+  init: function() {
     addMessageListener("ControllerCommands:Do", this);
     addMessageListener("ControllerCommands:DoWithParams", this);
   },
@@ -377,7 +377,7 @@ var ControllerCommands = {
 
 ControllerCommands.init()
 
-addEventListener("DOMTitleChanged", function (aEvent) {
+addEventListener("DOMTitleChanged", function(aEvent) {
   let document = content.document;
   switch (aEvent.type) {
   case "DOMTitleChanged":
@@ -389,13 +389,13 @@ addEventListener("DOMTitleChanged", function (aEvent) {
   }
 }, false);
 
-addEventListener("DOMWindowClose", function (aEvent) {
+addEventListener("DOMWindowClose", function(aEvent) {
   if (!aEvent.isTrusted)
     return;
   sendAsyncMessage("DOMWindowClose");
 }, false);
 
-addEventListener("ImageContentLoaded", function (aEvent) {
+addEventListener("ImageContentLoaded", function(aEvent) {
   if (content.document instanceof Ci.nsIImageDocument) {
     let req = content.document.imageRequest;
     if (!req.image)
@@ -460,31 +460,31 @@ const ZoomManager = {
   }
 };
 
-addMessageListener("FullZoom", function (aMessage) {
+addMessageListener("FullZoom", function(aMessage) {
   ZoomManager.fullZoom = aMessage.data.value;
 });
 
-addMessageListener("TextZoom", function (aMessage) {
+addMessageListener("TextZoom", function(aMessage) {
   ZoomManager.textZoom = aMessage.data.value;
 });
 
-addEventListener("FullZoomChange", function () {
+addEventListener("FullZoomChange", function() {
   if (ZoomManager.refreshFullZoom()) {
     sendAsyncMessage("FullZoomChange", { value: ZoomManager.fullZoom });
   }
 }, false);
 
-addEventListener("TextZoomChange", function (aEvent) {
+addEventListener("TextZoomChange", function(aEvent) {
   if (ZoomManager.refreshTextZoom()) {
     sendAsyncMessage("TextZoomChange", { value: ZoomManager.textZoom });
   }
 }, false);
 
-addEventListener("ZoomChangeUsingMouseWheel", function () {
+addEventListener("ZoomChangeUsingMouseWheel", function() {
   sendAsyncMessage("ZoomChangeUsingMouseWheel", {});
 }, false);
 
-addMessageListener("UpdateCharacterSet", function (aMessage) {
+addMessageListener("UpdateCharacterSet", function(aMessage) {
   docShell.charset = aMessage.data.value;
   docShell.gatherCharsetMenuTelemetry();
 });
@@ -492,7 +492,7 @@ addMessageListener("UpdateCharacterSet", function (aMessage) {
 /**
  * Remote thumbnail request handler for PageThumbs thumbnails.
  */
-addMessageListener("Browser:Thumbnail:Request", function (aMessage) {
+addMessageListener("Browser:Thumbnail:Request", function(aMessage) {
   let snapshot;
   let args = aMessage.data.additionalArgs;
   let fullScale = args ? args.fullScale : false;
@@ -506,7 +506,7 @@ addMessageListener("Browser:Thumbnail:Request", function (aMessage) {
     PageThumbUtils.createSnapshotThumbnail(content, snapshot, args);
   }
 
-  snapshot.toBlob(function (aBlob) {
+  snapshot.toBlob(function(aBlob) {
     sendAsyncMessage("Browser:Thumbnail:Response", {
       thumbnail: aBlob,
       id: aMessage.data.id
@@ -517,7 +517,7 @@ addMessageListener("Browser:Thumbnail:Request", function (aMessage) {
 /**
  * Remote isSafeForCapture request handler for PageThumbs.
  */
-addMessageListener("Browser:Thumbnail:CheckState", function (aMessage) {
+addMessageListener("Browser:Thumbnail:CheckState", function(aMessage) {
   let result = PageThumbUtils.shouldStoreContentThumbnail(content, docShell);
   sendAsyncMessage("Browser:Thumbnail:CheckState:Response", {
     result: result
@@ -527,7 +527,7 @@ addMessageListener("Browser:Thumbnail:CheckState", function (aMessage) {
 /**
  * Remote GetOriginalURL request handler for PageThumbs.
  */
-addMessageListener("Browser:Thumbnail:GetOriginalURL", function (aMessage) {
+addMessageListener("Browser:Thumbnail:GetOriginalURL", function(aMessage) {
   let channel = docShell.currentDocumentChannel;
   let channelError = PageThumbUtils.isChannelErrorResponse(channel);
   let originalURL;

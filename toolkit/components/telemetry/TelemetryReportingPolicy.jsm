@@ -108,7 +108,7 @@ NotifyPolicyRequest.prototype = Object.freeze({
    * @param error
    *        (Error) Explains what went wrong.
    */
-  onUserNotifyFailed: function (error) {
+  onUserNotifyFailed: function(error) {
     this._log.error("onUserNotifyFailed - " + error);
   },
 });

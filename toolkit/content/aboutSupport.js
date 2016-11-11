@@ -20,7 +20,7 @@ XPCOMUtils.defineLazyModuleGetter(this, "PlacesDBUtils",
 window.addEventListener("load", function onload(event) {
   try {
   window.removeEventListener("load", onload, false);
-  Troubleshoot.snapshot(function (snapshot) {
+  Troubleshoot.snapshot(function(snapshot) {
     for (let prop in snapshotFormatters)
       snapshotFormatters[prop](snapshot[prop]);
   });
@@ -78,7 +78,7 @@ var snapshotFormatters = {
   },
 
   extensions: function extensions(data) {
-    $.append($("extensions-tbody"), data.map(function (extension) {
+    $.append($("extensions-tbody"), data.map(function(extension) {
       return $.new("tr", [
         $.new("td", extension.name),
         $.new("td", extension.version),
@@ -89,7 +89,7 @@ var snapshotFormatters = {
   },
 
   experiments: function experiments(data) {
-    $.append($("experiments-tbody"), data.map(function (experiment) {
+    $.append($("experiments-tbody"), data.map(function(experiment) {
       return $.new("tr", [
         $.new("td", experiment.name),
         $.new("td", experiment.id),
@@ -106,7 +106,7 @@ var snapshotFormatters = {
 
   modifiedPreferences: function modifiedPreferences(data) {
     $.append($("prefs-tbody"), sortedArrayFromObject(data).map(
-      function ([name, value]) {
+      function([name, value]) {
         return $.new("tr", [
           $.new("td", name, "pref-name"),
           // Very long preference values can cause users problems when they
@@ -120,7 +120,7 @@ var snapshotFormatters = {
 
   lockedPreferences: function lockedPreferences(data) {
     $.append($("locked-prefs-tbody"), sortedArrayFromObject(data).map(
-      function ([name, value]) {
+      function([name, value]) {
         return $.new("tr", [
           $.new("td", name, "pref-name"),
           $.new("td", String(value).substr(0, 120), "pref-value"),
@@ -160,7 +160,7 @@ var snapshotFormatters = {
 
     // Read APZ info out of data.info, stripping it out in the process.
     let apzInfo = [];
-    let formatApzInfo = function (info) {
+    let formatApzInfo = function(info) {
       let out = [];
       for (let type of ['Wheel', 'Touch', 'Drag']) {
         let key = 'Apz' + type + 'Input';
@@ -216,7 +216,7 @@ var snapshotFormatters = {
     if ("info" in data) {
       apzInfo = formatApzInfo(data.info);
 
-      let trs = sortedArrayFromObject(data.info).map(function ([prop, val]) {
+      let trs = sortedArrayFromObject(data.info).map(function([prop, val]) {
         return $.new("tr", [
           $.new("th", prop, "column"),
           $.new("td", String(val)),
@@ -269,7 +269,7 @@ var snapshotFormatters = {
       } else {
         $.append($("graphics-failures-tbody"),
           [$.new("tr", [$.new("th", "LogFailure", "column"),
-                        $.new("td", data.failures.map(function (val) {
+                        $.new("td", data.failures.map(function(val) {
                           return $.new("p", val);
                        }))])]);
       }
@@ -444,9 +444,9 @@ var snapshotFormatters = {
     if (crashGuards.length) {
       for (let guard of crashGuards) {
         let resetButton = $.new("button");
-        let onClickReset = (function (guard) {
+        let onClickReset = (function(guard) {
           // Note - need this wrapper until bug 449811 fixes |guard| scoping.
-          return function () {
+          return function() {
             Services.prefs.setIntPref(guard.prefName, 0);
             resetButton.removeEventListener("click", onClickReset);
             resetButton.disabled = true;
@@ -492,7 +492,7 @@ var snapshotFormatters = {
       ])
     ];
     sortedArrayFromObject(data).forEach(
-      function ([name, val]) {
+      function([name, val]) {
         trs.push($.new("tr", [
           $.new("td", name),
           $.new("td", val.minVersion),
@@ -598,7 +598,7 @@ function copyRawDataToClipboard(button) {
   if (button)
     button.disabled = true;
   try {
-    Troubleshoot.snapshot(function (snapshot) {
+    Troubleshoot.snapshot(function(snapshot) {
       if (button)
         button.disabled = false;
       let str = Cc["@mozilla.org/supports-string;1"].
@@ -696,7 +696,7 @@ function Serializer() {
 
 Serializer.prototype = {
 
-  serialize: function (rootElem) {
+  serialize: function(rootElem) {
     this._lines = [];
     this._startNewLine();
     this._serializeElement(rootElem);
@@ -715,7 +715,7 @@ Serializer.prototype = {
     return this._lines[this._lines.length - 1] = val;
   },
 
-  _serializeElement: function (elem) {
+  _serializeElement: function(elem) {
     if (this._ignoreElement(elem))
       return;
 
@@ -757,7 +757,7 @@ Serializer.prototype = {
     }
   },
 
-  _startNewLine: function (lines) {
+  _startNewLine: function(lines) {
     let currLine = this._currentLine;
     if (currLine) {
       // The current line is not empty.  Trim it.
@@ -769,15 +769,15 @@ Serializer.prototype = {
     this._lines.push("");
   },
 
-  _appendText: function (text, lines) {
+  _appendText: function(text, lines) {
     this._currentLine += text;
   },
 
-  _isHiddenSubHeading: function (th) {
+  _isHiddenSubHeading: function(th) {
     return th.parentNode.parentNode.style.display == "none";
   },
 
-  _serializeTable: function (table) {
+  _serializeTable: function(table) {
     // Collect the table's column headings if in fact there are any.  First
     // check thead.  If there's no thead, check the first tr.
     let colHeadings = {};
@@ -857,11 +857,11 @@ Serializer.prototype = {
     this._startNewLine();
   },
 
-  _ignoreElement: function (elem) {
+  _ignoreElement: function(elem) {
     return elem.classList.contains("no-copy");
   },
 
-  _nodeText: function (node) {
+  _nodeText: function(node) {
     return node.textContent.replace(/\s+/g, " ");
   },
 };
@@ -905,23 +905,23 @@ function safeModeRestart() {
  * Set up event listeners for buttons.
  */
 function setupEventListeners() {
-  $("show-update-history-button").addEventListener("click", function (event) {
+  $("show-update-history-button").addEventListener("click", function(event) {
     var prompter = Cc["@mozilla.org/updates/update-prompt;1"].createInstance(Ci.nsIUpdatePrompt);
       prompter.showUpdateHistory(window);
   });
-  $("reset-box-button").addEventListener("click", function (event) {
+  $("reset-box-button").addEventListener("click", function(event) {
     ResetProfile.openConfirmationDialog(window);
   });
-  $("copy-raw-data-to-clipboard").addEventListener("click", function (event) {
+  $("copy-raw-data-to-clipboard").addEventListener("click", function(event) {
     copyRawDataToClipboard(this);
   });
-  $("copy-to-clipboard").addEventListener("click", function (event) {
+  $("copy-to-clipboard").addEventListener("click", function(event) {
     copyContentsToClipboard();
   });
-  $("profile-dir-button").addEventListener("click", function (event) {
+  $("profile-dir-button").addEventListener("click", function(event) {
     openProfileDirectory();
   });
-  $("restart-in-safe-mode-button").addEventListener("click", function (event) {
+  $("restart-in-safe-mode-button").addEventListener("click", function(event) {
     if (Services.obs.enumerateObservers("restart-in-safe-mode").hasMoreElements()) {
       Services.obs.notifyObservers(null, "restart-in-safe-mode", "");
     }
@@ -929,7 +929,7 @@ function setupEventListeners() {
       safeModeRestart();
     }
   });
-  $("verify-place-integrity-button").addEventListener("click", function (event) {
+  $("verify-place-integrity-button").addEventListener("click", function(event) {
     PlacesDBUtils.checkAndFixDatabase(function(aLog) {
       let msg = aLog.join("\n");
       $("verify-place-result").style.display = "block";
