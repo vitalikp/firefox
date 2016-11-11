@@ -570,7 +570,7 @@ function eventMatchesKey(aEvent, aKey)
 }
 
 // Gather all descendent text under given document node.
-function gatherTextUnder ( root )
+function gatherTextUnder( root )
 {
   var text = "";
   var node = root.firstChild;

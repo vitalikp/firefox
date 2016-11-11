@@ -83,7 +83,7 @@ addEventListener("blur", function(event) {
   LoginManagerContent.onUsernameInput(event);
 });
 
-var handleContentContextMenu = function (event) {
+var handleContentContextMenu = function(event) {
   let defaultPrevented = event.defaultPrevented;
   if (!Services.prefs.getBoolPref("dom.event.contextmenu.enabled")) {
     let plugin = null;
@@ -372,7 +372,7 @@ var AboutNetAndCertErrorListener = {
     }
   },
 
-  changedCertPrefs: function () {
+  changedCertPrefs: function() {
     for (let prefName of PREF_SSL_IMPACT) {
       if (Services.prefs.prefHasUserValue(prefName)) {
         return true;
@@ -532,7 +532,7 @@ var ClickEventHandler = {
     }
   },
 
-  onCertError: function (targetElement, ownerDoc) {
+  onCertError: function(targetElement, ownerDoc) {
     let docShell = ownerDoc.defaultView.QueryInterface(Ci.nsIInterfaceRequestor)
                                        .getInterface(Ci.nsIWebNavigation)
                                        .QueryInterface(Ci.nsIDocShell);
@@ -544,7 +544,7 @@ var ClickEventHandler = {
     });
   },
 
-  onAboutBlocked: function (targetElement, ownerDoc) {
+  onAboutBlocked: function(targetElement, ownerDoc) {
     var reason = 'phishing';
     if (/e=malwareBlocked/.test(ownerDoc.documentURI)) {
       reason = 'malware';
@@ -559,7 +559,7 @@ var ClickEventHandler = {
     });
   },
 
-  onAboutNetError: function (event, documentURI) {
+  onAboutNetError: function(event, documentURI) {
     let elmId = event.originalTarget.getAttribute("id");
     if (elmId == "returnButton") {
       sendAsyncMessage("Browser:SSLErrorGoBack", {});
@@ -696,7 +696,7 @@ var PageMetadataMessenger = {
 }
 PageMetadataMessenger.init();
 
-addEventListener("ActivateSocialFeature", function (aEvent) {
+addEventListener("ActivateSocialFeature", function(aEvent) {
   let document = content.document;
   let dwu = content.QueryInterface(Ci.nsIInterfaceRequestor)
                    .getInterface(Ci.nsIDOMWindowUtils);
@@ -889,7 +889,7 @@ var LightWeightThemeWebInstallListener = {
     addEventListener("ResetBrowserThemePreview", this, false, true);
   },
 
-  handleEvent: function (event) {
+  handleEvent: function(event) {
     switch (event.type) {
       case "InstallBrowserTheme": {
         sendAsyncMessage("LightWeightThemeWebInstaller:Install", {
@@ -925,7 +925,7 @@ var LightWeightThemeWebInstallListener = {
     }
   },
 
-  _resetPreviewWindow: function () {
+  _resetPreviewWindow: function() {
     this._previewWindow.removeEventListener("pagehide", this, true);
     this._previewWindow = null;
   }

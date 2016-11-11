@@ -277,7 +277,7 @@ var FullScreen = {
     this.cleanup();
   },
 
-  toggle: function () {
+  toggle: function() {
     var enterFS = window.fullScreen;
 
     // Toggle the View:FullScreen command, which controls elements like the
@@ -347,7 +347,7 @@ var FullScreen = {
     document.exitFullscreen();
   },
 
-  handleEvent: function (event) {
+  handleEvent: function(event) {
     switch (event.type) {
       case "fullscreen":
         this.toggle();
@@ -457,7 +457,7 @@ var FullScreen = {
     window.addEventListener("activate", this);
   },
 
-  cleanup: function () {
+  cleanup: function() {
     if (!window.fullScreen) {
       MousePosTracker.removeListener(this);
       document.removeEventListener("keypress", this._keyToggleCallback, false);
@@ -466,7 +466,7 @@ var FullScreen = {
     }
   },
 
-  cleanupDomFullscreen: function () {
+  cleanupDomFullscreen: function() {
     window.messageManager
           .broadcastAsyncMessage("DOMFullscreen:CleanUp");
 
@@ -479,7 +479,7 @@ var FullScreen = {
     document.documentElement.removeAttribute("inDOMFullscreen");
   },
 
-  _isRemoteBrowser: function (aBrowser) {
+  _isRemoteBrowser: function(aBrowser) {
     return gMultiProcessBrowser && aBrowser.getAttribute("remote") == "true";
   },
 
@@ -517,7 +517,7 @@ var FullScreen = {
   // Checks whether we are allowed to collapse the chrome
   _isPopupOpen: false,
   _isChromeCollapsed: false,
-  _safeToCollapse: function () {
+  _safeToCollapse: function() {
     if (!gPrefService.getBoolPref("browser.fullscreen.autohide"))
       return false;
 
@@ -592,7 +592,7 @@ var FullScreen = {
     this._isChromeCollapsed = false;
   },
 
-  hideNavToolbox: function (aAnimate = false) {
+  hideNavToolbox: function(aAnimate = false) {
     if (this._isChromeCollapsed || !this._safeToCollapse())
       return;
 
@@ -616,7 +616,7 @@ var FullScreen = {
     MousePosTracker.removeListener(this);
   },
 
-  _updateToolbars: function (aEnterFS) {
+  _updateToolbars: function(aEnterFS) {
     for (let el of document.querySelectorAll("toolbar[fullscreentoolbar=true]")) {
       if (aEnterFS) {
         // Give the main nav bar and the tab bar the fullscreen context menu,

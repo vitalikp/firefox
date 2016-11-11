@@ -54,7 +54,7 @@ this.TabCrashHandler = {
     return this.prefs = Services.prefs.getBranch("browser.tabs.crashReporting.");
   },
 
-  init: function () {
+  init: function() {
     if (this.initialized)
       return;
     this.initialized = true;
@@ -73,7 +73,7 @@ this.TabCrashHandler = {
     this.pageListener.addMessageListener("restoreAll", this.receiveMessage.bind(this));
   },
 
-  observe: function (aSubject, aTopic, aData) {
+  observe: function(aSubject, aTopic, aData) {
     switch (aTopic) {
       case "ipc:content-shutdown": {
         aSubject.QueryInterface(Ci.nsIPropertyBag2);
@@ -348,7 +348,7 @@ this.TabCrashHandler = {
     }
   },
 
-  onAboutTabCrashedLoad: function (message) {
+  onAboutTabCrashedLoad: function(message) {
     this._crashedTabCount++;
 
     // Broadcast to all about:tabcrashed pages a count of
