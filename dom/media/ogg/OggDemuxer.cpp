@@ -1471,7 +1471,7 @@ OggTrackDemuxer::GetInfo() const
 }
 
 RefPtr<OggTrackDemuxer::SeekPromise>
-OggTrackDemuxer::Seek(TimeUnit aTime)
+OggTrackDemuxer::Seek(const TimeUnit& aTime)
 {
   // Seeks to aTime. Upon success, SeekPromise will be resolved with the
   // actual time seeked to. Typically the random access point time
@@ -1559,7 +1559,7 @@ OggTrackDemuxer::Reset()
 }
 
 RefPtr<OggTrackDemuxer::SkipAccessPointPromise>
-OggTrackDemuxer::SkipToNextRandomAccessPoint(TimeUnit aTimeThreshold)
+OggTrackDemuxer::SkipToNextRandomAccessPoint(const TimeUnit& aTimeThreshold)
 {
   uint32_t parsed = 0;
   bool found = false;
