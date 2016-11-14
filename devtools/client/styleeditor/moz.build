@@ -10,5 +10,4 @@ DevToolsModules(
     'StyleEditorUI.jsm',
     'StyleEditorUtil.jsm',
     'StyleSheetEditor.jsm',
-    'utils.js',
 )
