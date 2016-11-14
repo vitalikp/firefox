@@ -1325,7 +1325,7 @@ HttpBaseChannel::SetReferrerWithPolicy(nsIURI *referrer,
   if(NS_FAILED(rv)) {
     return rv;
   }
-  mReferrerPolicy = REFERRER_POLICY_NO_REFERRER_WHEN_DOWNGRADE;
+  mReferrerPolicy = referrerPolicy;
 
   if (!referrer) {
     return NS_OK;
@@ -1333,7 +1333,6 @@ HttpBaseChannel::SetReferrerWithPolicy(nsIURI *referrer,
 
   // Don't send referrer at all when the meta referrer setting is "no-referrer"
   if (referrerPolicy == REFERRER_POLICY_NO_REFERRER) {
-    mReferrerPolicy = REFERRER_POLICY_NO_REFERRER;
     return NS_OK;
   }
 
@@ -1618,7 +1617,6 @@ HttpBaseChannel::SetReferrerWithPolicy(nsIURI *referrer,
   if (NS_FAILED(rv)) return rv;
 
   mReferrer = clone;
-  mReferrerPolicy = referrerPolicy;
   return NS_OK;
 }
 

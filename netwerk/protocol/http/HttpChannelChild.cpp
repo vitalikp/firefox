@@ -1673,6 +1673,11 @@ HttpChannelChild::OnRedirectVerifyCallback(nsresult result)
   LOG(("HttpChannelChild::OnRedirectVerifyCallback [this=%p]\n", this));
   nsresult rv;
   OptionalURIParams redirectURI;
+
+  uint32_t referrerPolicy = REFERRER_POLICY_NO_REFERRER_WHEN_DOWNGRADE;
+  OptionalURIParams referrerURI;
+  SerializeURI(nullptr, referrerURI);
+
   nsCOMPtr<nsIHttpChannel> newHttpChannel =
       do_QueryInterface(mRedirectChannelChild);
 
@@ -1699,6 +1704,12 @@ HttpChannelChild::OnRedirectVerifyCallback(nsresult result)
       forceHSTSPriming = newLoadInfo->GetForceHSTSPriming();
       mixedContentWouldBlock = newLoadInfo->GetMixedContentWouldBlock();
     }
+
+    newHttpChannel->GetReferrerPolicy(&referrerPolicy);
+    nsCOMPtr<nsIURI> newChannelReferrerURI;
+    newHttpChannel->GetReferrer(getter_AddRefs(newChannelReferrerURI));
+
+    SerializeURI(newChannelReferrerURI, referrerURI);
   }
 
   if (mRedirectingForSubsequentSynthesizedResponse) {
@@ -1769,9 +1780,9 @@ HttpChannelChild::OnRedirectVerifyCallback(nsresult result)
   }
 
   if (mIPCOpen)
-    SendRedirect2Verify(result, *headerTuples, loadFlags, redirectURI,
-                        corsPreflightArgs, forceHSTSPriming,
-                        mixedContentWouldBlock, chooseAppcache);
+    SendRedirect2Verify(result, *headerTuples, loadFlags, referrerPolicy,
+                        referrerURI, redirectURI, corsPreflightArgs,
+                        forceHSTSPriming, mixedContentWouldBlock, chooseAppcache);
 
   return NS_OK;
 }
@@ -2140,6 +2151,25 @@ HttpChannelChild::ContinueAsyncOpen()
 // HttpChannelChild::nsIHttpChannel
 //-----------------------------------------------------------------------------
 
+NS_IMETHODIMP
+HttpChannelChild::SetReferrerWithPolicy(nsIURI *referrer,
+                                       uint32_t referrerPolicy)
+{
+  ENSURE_CALLED_BEFORE_CONNECT();
+
+  // remove old referrer if any, loop backwards
+  for (int i = mClientSetRequestHeaders.Length() - 1; i >= 0; --i) {
+    if (NS_LITERAL_CSTRING("Referer").Equals(mClientSetRequestHeaders[i].mHeader)) {
+      mClientSetRequestHeaders.RemoveElementAt(i);
+    }
+  }
+
+  nsresult rv = HttpBaseChannel::SetReferrerWithPolicy(referrer, referrerPolicy);
+  if (NS_FAILED(rv))
+    return rv;
+  return NS_OK;
+
+}
 NS_IMETHODIMP
 HttpChannelChild::SetRequestHeader(const nsACString& aHeader,
                                    const nsACString& aValue,
