@@ -261,7 +261,10 @@ public:
   bool Bind(Endpoint<PCompositorBridgeParent>&& aEndpoint);
 
   virtual bool RecvInitialize(const uint64_t& aRootLayerTreeId) override;
-  virtual bool RecvReset(nsTArray<LayersBackend>&& aBackendHints, bool* aResult, TextureFactoryIdentifier* aOutIdentifier) override;
+  virtual bool RecvReset(nsTArray<LayersBackend>&& aBackendHints,
+                         const uint64_t& aSeqNo,
+                         bool* aResult,
+                         TextureFactoryIdentifier* aOutIdentifier) override;
   virtual bool RecvGetFrameUniformity(FrameUniformityData* aOutData) override;
   virtual bool RecvRequestOverfill() override;
   virtual bool RecvWillClose() override;
@@ -348,6 +351,7 @@ public:
    * minimize the amount of time the main thread is blocked.
    */
   bool ResetCompositor(const nsTArray<LayersBackend>& aBackendHints,
+                       uint64_t aSeqNo,
                        TextureFactoryIdentifier* aOutIdentifier);
 
   /**
@@ -583,6 +587,7 @@ protected:
 
   RefPtr<Compositor> NewCompositor(const nsTArray<LayersBackend>& aBackendHints);
   void ResetCompositorTask(const nsTArray<LayersBackend>& aBackendHints,
+                           uint64_t aSeqNo,
                            Maybe<TextureFactoryIdentifier>* aOutNewIdentifier);
   Maybe<TextureFactoryIdentifier> ResetCompositorImpl(const nsTArray<LayersBackend>& aBackendHints);
 

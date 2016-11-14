@@ -338,14 +338,19 @@ CompositorBridgeChild::RecvInvalidateLayers(const uint64_t& aLayersId)
 
 bool
 CompositorBridgeChild::RecvCompositorUpdated(const uint64_t& aLayersId,
-                                             const TextureFactoryIdentifier& aNewIdentifier)
+                                             const TextureFactoryIdentifier& aNewIdentifier,
+                                             const uint64_t& aSeqNo)
 {
   if (mLayerManager) {
     // This case is handled directly by nsBaseWidget.
     MOZ_ASSERT(aLayersId == 0);
   } else if (aLayersId != 0) {
-    if (dom::TabChild* child = dom::TabChild::GetFrom(aLayersId)) {
-      child->CompositorUpdated(aNewIdentifier);
+    // Update gfxPlatform if this is the first time we're seeing this compositor
+    // update (we will get an update for each connected tab).
+    static uint64_t sLastSeqNo = 0;
+    if (sLastSeqNo != aSeqNo) {
+      gfxPlatform::GetPlatform()->CompositorUpdated();
+      sLastSeqNo = aSeqNo;
 
       // If we still get device reset here, something must wrong when creating
       // d3d11 devices.
@@ -353,6 +358,10 @@ CompositorBridgeChild::RecvCompositorUpdated(const uint64_t& aLayersId,
         gfxCriticalError() << "Unexpected reset device processing when \
                                updating compositor.";
       }
+    }
+
+    if (dom::TabChild* child = dom::TabChild::GetFrom(aLayersId)) {
+      child->CompositorUpdated(aNewIdentifier);
     }
     if (!mCanSend) {
       return true;
