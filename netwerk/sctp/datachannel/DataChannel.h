@@ -217,7 +217,7 @@ private:
   void HandleNotification(const union sctp_notification *notif, size_t n);
 
   // Exists solely for proxying release of the TransportFlow to the STS thread
-  static void ReleaseTransportFlow(RefPtr<TransportFlow> aFlow) {}
+  static void ReleaseTransportFlow(const RefPtr<TransportFlow>& aFlow) {}
 
   // Data:
   // NOTE: while this array will auto-expand, increases in the number of
