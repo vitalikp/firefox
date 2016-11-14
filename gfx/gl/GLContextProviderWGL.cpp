@@ -14,6 +14,7 @@
 
 #include "prenv.h"
 
+#include "mozilla/gfx/gfxVars.h"
 #include "mozilla/Preferences.h"
 #include "mozilla/StaticPtr.h"
 #include "mozilla/widget/CompositorWidget.h"
@@ -216,9 +217,7 @@ WGLLibrary::EnsureInitialized()
         mHasDXInterop = HasExtension(extString, "WGL_NV_DX_interop");
         mHasDXInterop2 = HasExtension(extString, "WGL_NV_DX_interop2");
 
-        nsCString blocklistId;
-        if (gfxUtils::IsFeatureBlacklisted(nullptr, nsIGfxInfo::FEATURE_DX_INTEROP2,
-                                           &blocklistId) &&
+        if (gfxVars::DXInterop2Blocked() &&
             !gfxPrefs::IgnoreDXInterop2Blacklist())
         {
             mHasDXInterop2 = false;
