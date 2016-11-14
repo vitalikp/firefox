@@ -568,7 +568,7 @@ private:
 
   void NotifyCompositorUpdated(RefPtr<layers::KnowsCompositor> aKnowsCompositor)
   {
-    mKnowsCompositor = aKnowsCompositor;
+    mKnowsCompositor = aKnowsCompositor.forget();
   }
 
   void DoAudioSeek();
