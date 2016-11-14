@@ -4075,13 +4075,13 @@ Parser<FullParseHandler>::checkDestructuringName(ParseNode* expr, Maybe<Declarat
 template <>
 bool
 Parser<FullParseHandler>::checkDestructuringPattern(ParseNode* pattern,
-                                                    Maybe<DeclarationKind> maybeDecl,
+                                                    const Maybe<DeclarationKind>& maybeDecl,
                                                     PossibleError* possibleError /* = nullptr */);
 
 template <>
 bool
 Parser<FullParseHandler>::checkDestructuringObject(ParseNode* objectPattern,
-                                                   Maybe<DeclarationKind> maybeDecl)
+                                                   const Maybe<DeclarationKind>& maybeDecl)
 {
     MOZ_ASSERT(objectPattern->isKind(PNK_OBJECT));
 
@@ -4116,7 +4116,7 @@ Parser<FullParseHandler>::checkDestructuringObject(ParseNode* objectPattern,
 template <>
 bool
 Parser<FullParseHandler>::checkDestructuringArray(ParseNode* arrayPattern,
-                                                  Maybe<DeclarationKind> maybeDecl)
+                                                  const Maybe<DeclarationKind>& maybeDecl)
 {
     MOZ_ASSERT(arrayPattern->isKind(PNK_ARRAY));
 
@@ -4186,7 +4186,7 @@ Parser<FullParseHandler>::checkDestructuringArray(ParseNode* arrayPattern,
 template <>
 bool
 Parser<FullParseHandler>::checkDestructuringPattern(ParseNode* pattern,
-                                                    Maybe<DeclarationKind> maybeDecl,
+                                                    const Maybe<DeclarationKind>& maybeDecl,
                                                     PossibleError* possibleError /* = nullptr */)
 {
     if (pattern->isKind(PNK_ARRAYCOMP)) {
@@ -4208,7 +4208,7 @@ Parser<FullParseHandler>::checkDestructuringPattern(ParseNode* pattern,
 template <>
 bool
 Parser<SyntaxParseHandler>::checkDestructuringPattern(Node pattern,
-                                                      Maybe<DeclarationKind> maybeDecl,
+                                                      const Maybe<DeclarationKind>& maybeDecl,
                                                       PossibleError* possibleError /* = nullptr */)
 {
     return abortIfSyntaxParser();
