@@ -699,6 +699,7 @@ private:
                                 ClipboardCapabilities* clipboardCaps,
                                 DomainPolicyClone* domainPolicy,
                                 StructuredCloneData* initialData,
+                                InfallibleTArray<FontFamilyListEntry>* fontFamilies,
                                 OptionalURIParams* aUserContentSheetURL) override;
 
   virtual bool

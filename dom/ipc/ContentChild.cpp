@@ -974,7 +974,7 @@ ContentChild::InitXPCOM()
                                 &isLangRTL, &haveBidiKeyboards,
                                 &mAvailableDictionaries,
                                 &clipboardCaps, &domainPolicy, &initialData,
-                                &userContentSheetURL);
+                                &mFontFamilies, &userContentSheetURL);
   RecvSetOffline(isOffline);
   RecvSetConnectivity(isConnected);
   RecvSetCaptivePortalState(captivePortalState);

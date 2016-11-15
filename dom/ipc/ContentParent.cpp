@@ -2478,6 +2478,7 @@ ContentParent::RecvGetXPCOMProcessAttributes(bool* aIsOffline,
                                              ClipboardCapabilities* clipboardCaps,
                                              DomainPolicyClone* domainPolicy,
                                              StructuredCloneData* aInitialData,
+                                             InfallibleTArray<FontFamilyListEntry>* fontFamilies,
                                              OptionalURIParams* aUserContentCSSURL)
 {
   nsCOMPtr<nsIIOService> io(do_GetIOService());
@@ -2540,6 +2541,9 @@ ContentParent::RecvGetXPCOMProcessAttributes(bool* aIsOffline,
       return IPC_FAIL_NO_REASON(this);
     }
   }
+
+  // This is only implemented (returns a non-empty list) by MacOSX at present.
+  gfxPlatform::GetPlatform()->GetSystemFontFamilyList(fontFamilies);
 
   // Content processes have no permission to access profile directory, so we
   // send the file URL instead.
