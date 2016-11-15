@@ -1749,10 +1749,7 @@ HTMLInputElement::SetWidth(uint32_t aWidth)
 NS_IMETHODIMP
 HTMLInputElement::GetValue(nsAString& aValue)
 {
-  nsresult rv = GetValueInternal(aValue);
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
+  GetValueInternal(aValue);
 
   // Don't return non-sanitized value for types that are experimental on mobile
   // or datetime types
@@ -1763,7 +1760,7 @@ HTMLInputElement::GetValue(nsAString& aValue)
   return NS_OK;
 }
 
-nsresult
+void
 HTMLInputElement::GetValueInternal(nsAString& aValue) const
 {
   switch (GetValueMode()) {
@@ -1771,9 +1768,9 @@ HTMLInputElement::GetValueInternal(nsAString& aValue) const
       if (IsSingleLineTextControl(false)) {
         mInputData.mState->GetValue(aValue, true);
       } else if (!aValue.Assign(mInputData.mValue, fallible)) {
-        return NS_ERROR_OUT_OF_MEMORY;
+        aValue.Truncate();
       }
-      return NS_OK;
+      return;
 
     case VALUE_MODE_FILENAME:
       if (nsContentUtils::LegacyIsCallerChromeOrNativeCode()) {
@@ -1787,23 +1784,20 @@ HTMLInputElement::GetValueInternal(nsAString& aValue) const
         }
       }
 
-      return NS_OK;
+      return;
 
     case VALUE_MODE_DEFAULT:
       // Treat defaultValue as value.
       GetAttr(kNameSpaceID_None, nsGkAtoms::value, aValue);
-      return NS_OK;
+      return;
 
     case VALUE_MODE_DEFAULT_ON:
       // Treat default value as value and returns "on" if no value.
       if (!GetAttr(kNameSpaceID_None, nsGkAtoms::value, aValue)) {
         aValue.AssignLiteral("on");
       }
-      return NS_OK;
+      return;
   }
-
-  // This return statement is required for some compilers.
-  return NS_OK;
 }
 
 bool
@@ -1935,15 +1929,6 @@ HTMLInputElement::GetValueAsDecimal() const
 
   return !ConvertStringToNumber(stringValue, decimalValue) ? Decimal::nan()
                                                            : decimalValue;
-}
-
-void
-HTMLInputElement::GetValue(nsAString& aValue, ErrorResult& aRv)
-{
-  nsresult rv = GetValue(aValue);
-  if (NS_FAILED(rv)) {
-    aRv.Throw(rv);
-  }
 }
 
 void
@@ -7537,7 +7522,7 @@ HTMLInputElement::HasTypeMismatch() const
   }
 
   nsAutoString value;
-  NS_ENSURE_SUCCESS(GetValueInternal(value), false);
+  GetValueInternal(value);
 
   if (value.IsEmpty()) {
     return false;
@@ -7580,7 +7565,7 @@ HTMLInputElement::HasPatternMismatch() const
   GetAttr(kNameSpaceID_None, nsGkAtoms::pattern, pattern);
 
   nsAutoString value;
-  NS_ENSURE_SUCCESS(GetValueInternal(value), false);
+  GetValueInternal(value);
 
   if (value.IsEmpty()) {
     return false;
@@ -7739,7 +7724,7 @@ HTMLInputElement::HasBadInput() const
     nsAutoString value;
     nsAutoCString unused;
     uint32_t unused2;
-    NS_ENSURE_SUCCESS(GetValueInternal(value), false);
+    GetValueInternal(value);
     HTMLSplitOnSpacesTokenizer tokenizer(value, ',');
     while (tokenizer.hasMoreTokens()) {
       if (!PunycodeEncodeEmailAddress(tokenizer.nextToken(), unused, &unused2)) {
