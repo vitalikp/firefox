@@ -95,11 +95,11 @@ typedef map<uint64_t, CompositorBridgeParent::LayerTreeState> LayerTreeMap;
 extern LayerTreeMap sIndirectLayerTrees;
 extern StaticAutoPtr<mozilla::Monitor> sIndirectLayerTreesLock;
 
-bool
+mozilla::ipc::IPCResult
 CrossProcessCompositorBridgeParent::RecvRequestNotifyAfterRemotePaint()
 {
   mNotifyAfterRemotePaint = true;
-  return true;
+  return IPC_OK();
 }
 
 void
@@ -161,20 +161,20 @@ CrossProcessCompositorBridgeParent::DeallocPLayerTransactionParent(PLayerTransac
   return true;
 }
 
-bool
+mozilla::ipc::IPCResult
 CrossProcessCompositorBridgeParent::RecvAsyncPanZoomEnabled(const uint64_t& aLayersId, bool* aHasAPZ)
 {
   // Check to see if this child process has access to this layer tree.
   if (!LayerTreeOwnerTracker::Get()->IsMapped(aLayersId, OtherPid())) {
     NS_ERROR("Unexpected layers id in RecvAsyncPanZoomEnabled; dropping message...");
-    return false;
+    return IPC_FAIL_NO_REASON(this);
   }
 
   MonitorAutoLock lock(*sIndirectLayerTreesLock);
   CompositorBridgeParent::LayerTreeState& state = sIndirectLayerTrees[aLayersId];
 
   *aHasAPZ = state.mParent ? state.mParent->AsyncPanZoomEnabled() : false;
-  return true;
+  return IPC_OK();
 }
 
 PAPZCTreeManagerParent*
@@ -243,7 +243,7 @@ CrossProcessCompositorBridgeParent::DeallocPAPZParent(PAPZParent* aActor)
   return true;
 }
 
-bool
+mozilla::ipc::IPCResult
 CrossProcessCompositorBridgeParent::RecvNotifyChildCreated(const uint64_t& child)
 {
   MonitorAutoLock lock(*sIndirectLayerTreesLock);
@@ -252,10 +252,10 @@ CrossProcessCompositorBridgeParent::RecvNotifyChildCreated(const uint64_t& child
     CompositorBridgeParent::LayerTreeState* lts = &it->second;
     if (lts->mParent && lts->mCrossProcessParent == this) {
       lts->mParent->NotifyChildCreated(child);
-      return true;
+      return IPC_OK();
     }
   }
-  return false;
+  return IPC_FAIL_NO_REASON(this);
 }
 
 void
@@ -458,7 +458,7 @@ CrossProcessCompositorBridgeParent::GetCompositionManager(LayerTransactionParent
   return state->mParent->GetCompositionManager(aLayerTree);
 }
 
-bool
+mozilla::ipc::IPCResult
 CrossProcessCompositorBridgeParent::RecvAcknowledgeCompositorUpdate(const uint64_t& aLayersId)
 {
   MonitorAutoLock lock(*sIndirectLayerTreesLock);
@@ -469,7 +469,7 @@ CrossProcessCompositorBridgeParent::RecvAcknowledgeCompositorUpdate(const uint64
   }
   MOZ_ASSERT(state.mPendingCompositorUpdates > 0);
   state.mPendingCompositorUpdates--;
-  return true;
+  return IPC_OK();
 }
 
 void
@@ -528,7 +528,7 @@ CrossProcessCompositorBridgeParent::IsSameProcess() const
   return OtherPid() == base::GetCurrentProcId();
 }
 
-bool
+mozilla::ipc::IPCResult
 CrossProcessCompositorBridgeParent::RecvClearApproximatelyVisibleRegions(const uint64_t& aLayersId,
                                                                          const uint32_t& aPresShellId)
 {
@@ -540,10 +540,10 @@ CrossProcessCompositorBridgeParent::RecvClearApproximatelyVisibleRegions(const u
   if (parent) {
     parent->ClearApproximatelyVisibleRegions(aLayersId, Some(aPresShellId));
   }
-  return true;
+  return IPC_OK();
 }
 
-bool
+mozilla::ipc::IPCResult
 CrossProcessCompositorBridgeParent::RecvNotifyApproximatelyVisibleRegion(const ScrollableLayerGuid& aGuid,
                                                                          const CSSIntRegion& aRegion)
 {
@@ -553,9 +553,12 @@ CrossProcessCompositorBridgeParent::RecvNotifyApproximatelyVisibleRegion(const S
     parent = sIndirectLayerTrees[aGuid.mLayersId].mParent;
   }
   if (parent) {
-    return parent->RecvNotifyApproximatelyVisibleRegion(aGuid, aRegion);
+    if (!parent->RecvNotifyApproximatelyVisibleRegion(aGuid, aRegion)) {
+      return IPC_FAIL_NO_REASON(this);
+    }
+    return IPC_OK();;
   }
-  return true;
+  return IPC_OK();
 }
 
 void

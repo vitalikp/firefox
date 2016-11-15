@@ -2136,6 +2136,11 @@ MessageChannel::MaybeHandleError(Result code, const Message& aMsg, const char* c
 
     PrintErrorMessage(mSide, channelName, reason);
 
+    // Error handled in mozilla::ipc::IPCResult.
+    if (code == MsgProcessingError) {
+        return false;
+    }
+
     mListener->ProcessingError(code, reason);
 
     return false;

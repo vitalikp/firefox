@@ -54,7 +54,7 @@ protected:
   }
 
 public:
-  bool
+  mozilla::ipc::IPCResult
   Recv__delete__(const nsCString& aTestArg) override;
 };
 
@@ -467,11 +467,11 @@ BackgroundChildImpl::DeallocPFileSystemRequestChild(PFileSystemRequestChild* aAc
 } // namespace ipc
 } // namespace mozilla
 
-bool
+mozilla::ipc::IPCResult
 TestChild::Recv__delete__(const nsCString& aTestArg)
 {
   MOZ_RELEASE_ASSERT(aTestArg == mTestArg,
                      "BackgroundTest message was corrupted!");
 
-  return true;
+  return IPC_OK();
 }

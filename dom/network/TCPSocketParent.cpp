@@ -114,7 +114,7 @@ NS_IMETHODIMP_(MozExternalRefCountType) TCPSocketParent::Release(void)
   return refcnt;
 }
 
-bool
+mozilla::ipc::IPCResult
 TCPSocketParent::RecvOpen(const nsString& aHost, const uint16_t& aPort, const bool& aUseSSL,
                           const bool& aUseArrayBuffers)
 {
@@ -123,7 +123,7 @@ TCPSocketParent::RecvOpen(const nsString& aHost, const uint16_t& aPort, const bo
   if (net::UsingNeckoIPCSecurity() &&
       !AssertAppProcessPermission(Manager()->Manager(), "tcp-socket")) {
     FireInteralError(this, __LINE__);
-    return true;
+    return IPC_OK();
   }
 
   // Obtain App ID
@@ -133,11 +133,11 @@ TCPSocketParent::RecvOpen(const nsString& aHost, const uint16_t& aPort, const bo
   mSocket = new TCPSocket(nullptr, aHost, aPort, aUseSSL, aUseArrayBuffers);
   mSocket->SetAppIdAndBrowser(appId, inIsolatedMozBrowser);
   mSocket->SetSocketBridgeParent(this);
-  NS_ENSURE_SUCCESS(mSocket->Init(), true);
-  return true;
+  NS_ENSURE_SUCCESS(mSocket->Init(), IPC_OK());
+  return IPC_OK();
 }
 
-bool
+mozilla::ipc::IPCResult
 TCPSocketParent::RecvOpenBind(const nsCString& aRemoteHost,
                               const uint16_t& aRemotePort,
                               const nsCString& aLocalAddr,
@@ -149,7 +149,7 @@ TCPSocketParent::RecvOpenBind(const nsCString& aRemoteHost,
   if (net::UsingNeckoIPCSecurity() &&
       !AssertAppProcessPermission(Manager()->Manager(), "tcp-socket")) {
     FireInteralError(this, __LINE__);
-    return true;
+    return IPC_OK();
   }
 
   nsresult rv;
@@ -157,7 +157,7 @@ TCPSocketParent::RecvOpenBind(const nsCString& aRemoteHost,
     do_GetService("@mozilla.org/network/socket-transport-service;1", &rv);
   if (NS_FAILED(rv)) {
     FireInteralError(this, __LINE__);
-    return true;
+    return IPC_OK();
   }
 
   nsCOMPtr<nsISocketTransport> socketTransport;
@@ -166,17 +166,17 @@ TCPSocketParent::RecvOpenBind(const nsCString& aRemoteHost,
                             nullptr, getter_AddRefs(socketTransport));
   if (NS_FAILED(rv)) {
     FireInteralError(this, __LINE__);
-    return true;
+    return IPC_OK();
   }
 
   PRNetAddr prAddr;
   if (PR_SUCCESS != PR_InitializeNetAddr(PR_IpAddrAny, aLocalPort, &prAddr)) {
     FireInteralError(this, __LINE__);
-    return true;
+    return IPC_OK();
   }
   if (PR_SUCCESS != PR_StringToNetAddr(aLocalAddr.BeginReading(), &prAddr)) {
     FireInteralError(this, __LINE__);
-    return true;
+    return IPC_OK();
   }
 
   mozilla::net::NetAddr addr;
@@ -184,7 +184,7 @@ TCPSocketParent::RecvOpenBind(const nsCString& aRemoteHost,
   rv = socketTransport->Bind(&addr);
   if (NS_FAILED(rv)) {
     FireInteralError(this, __LINE__);
-    return true;
+    return IPC_OK();
   }
 
   if (!aFilter.IsEmpty()) {
@@ -195,13 +195,13 @@ TCPSocketParent::RecvOpenBind(const nsCString& aRemoteHost,
     if (!filterHandler) {
       NS_ERROR("Content doesn't have a valid filter");
       FireInteralError(this, __LINE__);
-      return true;
+      return IPC_OK();
     }
     rv = filterHandler->NewFilter(getter_AddRefs(mFilter));
     if (NS_FAILED(rv)) {
       NS_ERROR("Cannot create filter that content specified");
       FireInteralError(this, __LINE__);
-      return true;
+      return IPC_OK();
     }
   }
 
@@ -216,45 +216,45 @@ TCPSocketParent::RecvOpenBind(const nsCString& aRemoteHost,
   mSocket->SetAppIdAndBrowser(nsIScriptSecurityManager::NO_APP_ID, inIsolatedMozBrowser);
   mSocket->SetSocketBridgeParent(this);
   rv = mSocket->InitWithUnconnectedTransport(socketTransport);
-  NS_ENSURE_SUCCESS(rv, true);
-  return true;
+  NS_ENSURE_SUCCESS(rv, IPC_OK());
+  return IPC_OK();
 }
 
-bool
+mozilla::ipc::IPCResult
 TCPSocketParent::RecvStartTLS()
 {
-  NS_ENSURE_TRUE(mSocket, true);
+  NS_ENSURE_TRUE(mSocket, IPC_OK());
   ErrorResult rv;
   mSocket->UpgradeToSecure(rv);
   if (NS_WARN_IF(rv.Failed())) {
     rv.SuppressException();
   }
 
-  return true;
+  return IPC_OK();
 }
 
-bool
+mozilla::ipc::IPCResult
 TCPSocketParent::RecvSuspend()
 {
-  NS_ENSURE_TRUE(mSocket, true);
+  NS_ENSURE_TRUE(mSocket, IPC_OK());
   mSocket->Suspend();
-  return true;
+  return IPC_OK();
 }
 
-bool
+mozilla::ipc::IPCResult
 TCPSocketParent::RecvResume()
 {
-  NS_ENSURE_TRUE(mSocket, true);
+  NS_ENSURE_TRUE(mSocket, IPC_OK());
   ErrorResult rv;
   mSocket->Resume(rv);
   if (NS_WARN_IF(rv.Failed())) {
     rv.SuppressException();
   }
 
-  return true;
+  return IPC_OK();
 }
 
-bool
+mozilla::ipc::IPCResult
 TCPSocketParent::RecvData(const SendableData& aData,
                           const uint32_t& aTrackingNumber)
 {
@@ -274,7 +274,7 @@ TCPSocketParent::RecvData(const SendableData& aData,
     // Reject sending of unallowed data
     if (NS_WARN_IF(NS_FAILED(nsrv)) || !allowed) {
       TCPSOCKET_LOG(("%s: Dropping outgoing TCP packet", __FUNCTION__));
-      return false;
+      return IPC_FAIL_NO_REASON(this);
     }
   }
 
@@ -284,7 +284,7 @@ TCPSocketParent::RecvData(const SendableData& aData,
       JS::Rooted<JS::Value> val(autoCx);
       const nsTArray<uint8_t>& buffer = aData.get_ArrayOfuint8_t();
       bool ok = IPC::DeserializeArrayBuffer(autoCx, buffer, &val);
-      NS_ENSURE_TRUE(ok, true);
+      NS_ENSURE_TRUE(ok, IPC_OK());
       RootedTypedArray<ArrayBuffer> data(autoCx);
       data.Init(&val.toObject());
       Optional<uint32_t> byteLength(buffer.Length());
@@ -301,16 +301,16 @@ TCPSocketParent::RecvData(const SendableData& aData,
     default:
       MOZ_CRASH("unexpected SendableData type");
   }
-  NS_ENSURE_SUCCESS(rv.StealNSResult(), true);
-  return true;
+  NS_ENSURE_SUCCESS(rv.StealNSResult(), IPC_OK());
+  return IPC_OK();
 }
 
-bool
+mozilla::ipc::IPCResult
 TCPSocketParent::RecvClose()
 {
-  NS_ENSURE_TRUE(mSocket, true);
+  NS_ENSURE_TRUE(mSocket, IPC_OK());
   mSocket->Close();
-  return true;
+  return IPC_OK();
 }
 
 void
@@ -405,11 +405,11 @@ TCPSocketParent::ActorDestroy(ActorDestroyReason why)
   mSocket = nullptr;
 }
 
-bool
+mozilla::ipc::IPCResult
 TCPSocketParent::RecvRequestDelete()
 {
   mozilla::Unused << Send__delete__(this);
-  return true;
+  return IPC_OK();
 }
 
 } // namespace dom

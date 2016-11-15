@@ -38,6 +38,16 @@ namespace mozilla {
 
 namespace ipc {
 
+IPCResult
+IPCResult::Fail(NotNull<IProtocol*> actor, const char* where, const char* why)
+{
+  // Calls top-level protocol to handle the error.
+  nsPrintfCString errorMsg("%s::%s %s\n", actor->ProtocolName(), where, why);
+  actor->GetIPCChannel()->Listener()->ProcessingError(
+    HasResultCodes::MsgProcessingError, errorMsg.get());
+  return IPCResult(false);
+}
+
 class ChannelOpened : public IPC::Message
 {
 public:

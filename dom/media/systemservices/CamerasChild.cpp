@@ -167,7 +167,7 @@ int CamerasChild::AddDeviceChangeCallback(DeviceChangeCallback* aCallback)
   return DeviceChangeCallback::AddDeviceChangeCallback(aCallback);
 }
 
-bool
+mozilla::ipc::IPCResult
 CamerasChild::RecvReplyFailure(void)
 {
   LOG((__PRETTY_FUNCTION__));
@@ -175,10 +175,10 @@ CamerasChild::RecvReplyFailure(void)
   mReceivedReply = true;
   mReplySuccess = false;
   monitor.Notify();
-  return true;
+  return IPC_OK();
 }
 
-bool
+mozilla::ipc::IPCResult
 CamerasChild::RecvReplySuccess(void)
 {
   LOG((__PRETTY_FUNCTION__));
@@ -186,10 +186,10 @@ CamerasChild::RecvReplySuccess(void)
   mReceivedReply = true;
   mReplySuccess = true;
   monitor.Notify();
-  return true;
+  return IPC_OK();
 }
 
-bool
+mozilla::ipc::IPCResult
 CamerasChild::RecvReplyNumberOfCapabilities(const int& numdev)
 {
   LOG((__PRETTY_FUNCTION__));
@@ -198,7 +198,7 @@ CamerasChild::RecvReplyNumberOfCapabilities(const int& numdev)
   mReplySuccess = true;
   mReplyInteger = numdev;
   monitor.Notify();
-  return true;
+  return IPC_OK();
 }
 
 // Helper function to dispatch calls to the IPC Thread and
@@ -308,7 +308,7 @@ CamerasChild::NumberOfCaptureDevices(CaptureEngine aCapEngine)
   return dispatcher.ReturnValue();
 }
 
-bool
+mozilla::ipc::IPCResult
 CamerasChild::RecvReplyNumberOfCaptureDevices(const int& numdev)
 {
   LOG((__PRETTY_FUNCTION__));
@@ -317,7 +317,7 @@ CamerasChild::RecvReplyNumberOfCaptureDevices(const int& numdev)
   mReplySuccess = true;
   mReplyInteger = numdev;
   monitor.Notify();
-  return true;
+  return IPC_OK();
 }
 
 int
@@ -352,7 +352,7 @@ CamerasChild::GetCaptureCapability(CaptureEngine aCapEngine,
   return dispatcher.ReturnValue();
 }
 
-bool
+mozilla::ipc::IPCResult
 CamerasChild::RecvReplyGetCaptureCapability(const CaptureCapability& ipcCapability)
 {
   LOG((__PRETTY_FUNCTION__));
@@ -367,7 +367,7 @@ CamerasChild::RecvReplyGetCaptureCapability(const CaptureCapability& ipcCapabili
   mReplyCapability.codecType = static_cast<webrtc::VideoCodecType>(ipcCapability.codecType());
   mReplyCapability.interlaced = ipcCapability.interlaced();
   monitor.Notify();
-  return true;
+  return IPC_OK();
 }
 
 int
@@ -395,7 +395,7 @@ CamerasChild::GetCaptureDevice(CaptureEngine aCapEngine,
   return dispatcher.ReturnValue();
 }
 
-bool
+mozilla::ipc::IPCResult
 CamerasChild::RecvReplyGetCaptureDevice(const nsCString& device_name,
                                         const nsCString& device_id,
                                         const bool& scary)
@@ -408,7 +408,7 @@ CamerasChild::RecvReplyGetCaptureDevice(const nsCString& device_name,
   mReplyDeviceID = device_id;
   mReplyScary = scary;
   monitor.Notify();
-  return true;
+  return IPC_OK();
 }
 
 int
@@ -434,7 +434,7 @@ CamerasChild::AllocateCaptureDevice(CaptureEngine aCapEngine,
 }
 
 
-bool
+mozilla::ipc::IPCResult
 CamerasChild::RecvReplyAllocateCaptureDevice(const int& numdev)
 {
   LOG((__PRETTY_FUNCTION__));
@@ -443,7 +443,7 @@ CamerasChild::RecvReplyAllocateCaptureDevice(const int& numdev)
   mReplySuccess = true;
   mReplyInteger = numdev;
   monitor.Notify();
-  return true;
+  return IPC_OK();
 }
 
 int
@@ -614,7 +614,7 @@ CamerasChild::ShutdownChild()
   CamerasSingleton::FakeDeviceChangeEventThread() = nullptr;
 }
 
-bool
+mozilla::ipc::IPCResult
 CamerasChild::RecvDeliverFrame(const CaptureEngine& capEngine,
                                const int& capId,
                                mozilla::ipc::Shmem&& shmem,
@@ -634,14 +634,14 @@ CamerasChild::RecvDeliverFrame(const CaptureEngine& capEngine,
     LOG(("DeliverFrame called with dead callback"));
   }
   SendReleaseFrame(shmem);
-  return true;
+  return IPC_OK();
 }
 
-bool
+mozilla::ipc::IPCResult
 CamerasChild::RecvDeviceChange()
 {
   this->OnDeviceChange();
-  return true;
+  return IPC_OK();
 }
 
 int
@@ -666,7 +666,7 @@ CamerasChild::SetFakeDeviceChangeEvents()
   return 0;
 }
 
-bool
+mozilla::ipc::IPCResult
 CamerasChild::RecvFrameSizeChange(const CaptureEngine& capEngine,
                                   const int& capId,
                                   const int& w, const int& h)
@@ -678,7 +678,7 @@ CamerasChild::RecvFrameSizeChange(const CaptureEngine& capEngine,
   } else {
     LOG(("Frame size change with dead callback"));
   }
-  return true;
+  return IPC_OK();
 }
 
 void

@@ -514,7 +514,7 @@ private:
   DirectoryLockFailed() override;
 
   // IPDL methods.
-  bool
+  mozilla::ipc::IPCResult
   Recv__delete__(const JS::AsmJSCacheResult& aResult) override
   {
     AssertIsOnOwningThread();
@@ -528,7 +528,7 @@ private:
 
     MOZ_ASSERT(mState == eFinished);
 
-    return true;
+    return IPC_OK();
   }
 
   void
@@ -555,7 +555,7 @@ private:
     MOZ_ASSERT(mState == eFinished);
   }
 
-  bool
+  mozilla::ipc::IPCResult
   RecvSelectCacheFileToRead(const uint32_t& aModuleIndex) override
   {
     AssertIsOnOwningThread();
@@ -568,17 +568,17 @@ private:
     mState = eReadyToOpenCacheFileForRead;
     DispatchToIOThread();
 
-    return true;
+    return IPC_OK();
   }
 
-  bool
+  mozilla::ipc::IPCResult
   RecvCacheMiss() override
   {
     AssertIsOnOwningThread();
 
     CacheMiss();
 
-    return true;
+    return IPC_OK();
   }
 
   nsCOMPtr<nsIEventTarget> mOwningThread;
@@ -1282,7 +1282,7 @@ private:
   }
 
   // IPDL methods.
-  bool
+  mozilla::ipc::IPCResult
   RecvOnOpenMetadataForRead(const Metadata& aMetadata) override
   {
     MOZ_ASSERT(NS_IsMainThread());
@@ -1290,13 +1290,19 @@ private:
 
     uint32_t moduleIndex;
     if (FindHashMatch(aMetadata, mReadParams, &moduleIndex)) {
-      return SendSelectCacheFileToRead(moduleIndex);
+      if (!SendSelectCacheFileToRead(moduleIndex)) {
+        return IPC_FAIL_NO_REASON(this);
+      }
+      return IPC_OK();
     }
 
-    return SendCacheMiss();
+    if (!SendCacheMiss()) {
+      return IPC_FAIL_NO_REASON(this);
+    }
+    return IPC_OK();
   }
 
-  bool
+  mozilla::ipc::IPCResult
   RecvOnOpenCacheFile(const int64_t& aFileSize,
                       const FileDescriptor& aFileDesc) override
   {
@@ -1308,22 +1314,22 @@ private:
     auto rawFD = aFileDesc.ClonePlatformHandle();
     mFileDesc = PR_ImportFile(PROsfd(rawFD.release()));
     if (!mFileDesc) {
-      return false;
+      return IPC_FAIL_NO_REASON(this);
     }
 
     mState = eOpened;
     Notify(JS::AsmJSCache_Success);
-    return true;
+    return IPC_OK();
   }
 
-  bool
+  mozilla::ipc::IPCResult
   Recv__delete__(const JS::AsmJSCacheResult& aResult) override
   {
     MOZ_ASSERT(NS_IsMainThread());
     MOZ_ASSERT(mState == eOpening);
 
     Fail(aResult);
-    return true;
+    return IPC_OK();
   }
 
   void
