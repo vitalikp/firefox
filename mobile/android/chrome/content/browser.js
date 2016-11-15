@@ -2504,7 +2504,6 @@ var NativeWindow = {
         return [];
       }
 
-      htmlMenu.QueryInterface(Components.interfaces.nsIHTMLMenu);
       htmlMenu.sendShowEvent();
 
       return this._getHTMLContextMenuItemsForMenu(htmlMenu, element);
