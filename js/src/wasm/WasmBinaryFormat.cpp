@@ -295,7 +295,7 @@ DecodeMemoryLimits(Decoder& d, bool hasMemory, Limits* memory)
 }
 
 static bool
-DecodeImport(Decoder& d, const SigWithIdVector& sigs, Uint32Vector* funcSigIndices,
+DecodeImport(Decoder& d, const SigWithIdVector& sigs, SigWithIdPtrVector* funcSigs,
              GlobalDescVector* globals, TableDescVector* tables, Maybe<Limits>* memory,
              ImportVector* imports)
 {
@@ -318,7 +318,7 @@ DecodeImport(Decoder& d, const SigWithIdVector& sigs, Uint32Vector* funcSigIndic
         uint32_t sigIndex;
         if (!DecodeSignatureIndex(d, sigs, &sigIndex))
             return false;
-        if (!funcSigIndices->append(sigIndex))
+        if (!funcSigs->append(&sigs[sigIndex]))
             return false;
         break;
       }
@@ -353,7 +353,7 @@ DecodeImport(Decoder& d, const SigWithIdVector& sigs, Uint32Vector* funcSigIndic
 }
 
 bool
-wasm::DecodeImportSection(Decoder& d, const SigWithIdVector& sigs, Uint32Vector* funcSigIndices,
+wasm::DecodeImportSection(Decoder& d, const SigWithIdVector& sigs, SigWithIdPtrVector* funcSigs,
                           GlobalDescVector* globals, TableDescVector* tables, Maybe<Limits>* memory,
                           ImportVector* imports)
 {
@@ -371,7 +371,7 @@ wasm::DecodeImportSection(Decoder& d, const SigWithIdVector& sigs, Uint32Vector*
         return d.fail("too many imports");
 
     for (uint32_t i = 0; i < numImports; i++) {
-        if (!DecodeImport(d, sigs, funcSigIndices, globals, tables, memory, imports))
+        if (!DecodeImport(d, sigs, funcSigs, globals, tables, memory, imports))
             return false;
     }
 
@@ -382,8 +382,7 @@ wasm::DecodeImportSection(Decoder& d, const SigWithIdVector& sigs, Uint32Vector*
 }
 
 bool
-wasm::DecodeFunctionSection(Decoder& d, const SigWithIdVector& sigs, size_t numImportedFunc,
-                            Uint32Vector* funcSigIndexes)
+wasm::DecodeFunctionSection(Decoder& d, const SigWithIdVector& sigs, SigWithIdPtrVector* funcSigs)
 {
     uint32_t sectionStart, sectionSize;
     if (!d.startSection(SectionId::Function, &sectionStart, &sectionSize, "function"))
@@ -395,18 +394,18 @@ wasm::DecodeFunctionSection(Decoder& d, const SigWithIdVector& sigs, size_t numI
     if (!d.readVarU32(&numDefs))
         return d.fail("expected number of function definitions");
 
-    uint32_t numFuncs = numImportedFunc + numDefs;
+    uint32_t numFuncs = funcSigs->length() + numDefs;
     if (numFuncs > MaxFuncs)
         return d.fail("too many functions");
 
-    if (!funcSigIndexes->reserve(numDefs))
+    if (!funcSigs->reserve(numFuncs))
         return false;
 
     for (uint32_t i = 0; i < numDefs; i++) {
         uint32_t sigIndex;
         if (!DecodeSignatureIndex(d, sigs, &sigIndex))
             return false;
-        funcSigIndexes->infallibleAppend(sigIndex);
+        funcSigs->infallibleAppend(&sigs[sigIndex]);
     }
 
     if (!d.finishSection(sectionStart, sectionSize, "function"))
@@ -619,6 +618,38 @@ wasm::DecodeExportSection(Decoder& d, size_t numFuncs, size_t numTables, bool us
     }
 
     if (!d.finishSection(sectionStart, sectionSize, "export"))
+        return false;
+
+    return true;
+}
+
+bool
+wasm::DecodeStartSection(Decoder& d, const SigWithIdPtrVector& funcSigs,
+                         Maybe<uint32_t>* startFuncIndex)
+{
+    uint32_t sectionStart, sectionSize;
+    if (!d.startSection(SectionId::Start, &sectionStart, &sectionSize, "start"))
+        return false;
+    if (sectionStart == Decoder::NotStarted)
+        return true;
+
+    uint32_t funcIndex;
+    if (!d.readVarU32(&funcIndex))
+        return d.fail("failed to read start func index");
+
+    if (funcIndex >= funcSigs.length())
+        return d.fail("unknown start function");
+
+    const Sig& sig = *funcSigs[funcIndex];
+    if (!IsVoid(sig.ret()))
+        return d.fail("start function must not return anything");
+
+    if (sig.args().length())
+        return d.fail("start function must be nullary");
+
+    *startFuncIndex = Some(funcIndex);
+
+    if (!d.finishSection(sectionStart, sectionSize, "start"))
         return false;
 
     return true;
