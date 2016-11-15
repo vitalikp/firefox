@@ -2206,8 +2206,7 @@ CanvasLayer::CanvasLayer(LayerManager* aManager, void* aImplData)
   , mDirty(false)
 {}
 
-CanvasLayer::~CanvasLayer()
-{}
+CanvasLayer::~CanvasLayer() = default;
 
 void
 CanvasLayer::PrintInfo(std::stringstream& aStream, const char* aPrefix)
