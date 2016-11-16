@@ -132,6 +132,13 @@ ToPrimitive(nsCSSKeyword aKeyword)
 static bool
 TransformFunctionsMatch(nsCSSKeyword func1, nsCSSKeyword func2)
 {
+  // Handle eCSSKeyword_accumulatematrix as different function to be calculated
+  // (decomposed and recomposed) them later.
+  if (func1 == eCSSKeyword_accumulatematrix ||
+      func2 == eCSSKeyword_accumulatematrix) {
+    return false;
+  }
+
   return ToPrimitive(func1) == ToPrimitive(func2);
 }
 
@@ -173,6 +180,7 @@ AppendFunction(nsCSSKeyword aTransformFunction)
       nargs = 4;
       break;
     case eCSSKeyword_interpolatematrix:
+    case eCSSKeyword_accumulatematrix:
     case eCSSKeyword_translate3d:
     case eCSSKeyword_scale3d:
       nargs = 3;
@@ -1023,7 +1031,8 @@ ComputeShapeDistance(nsCSSPropertyID aProperty,
 
 static nsCSSValueList*
 AddTransformLists(double aCoeff1, const nsCSSValueList* aList1,
-                  double aCoeff2, const nsCSSValueList* aList2);
+                  double aCoeff2, const nsCSSValueList* aList2,
+                  nsCSSKeyword aOperatorType = eCSSKeyword_interpolatematrix);
 
 static double
 ComputeTransform2DMatrixDistance(const Matrix& aMatrix1,
@@ -1274,6 +1283,7 @@ ComputeTransformDistance(nsCSSValue::Array* aArray1,
       break;
     }
     case eCSSKeyword_interpolatematrix:
+    case eCSSKeyword_accumulatematrix:
     default:
       MOZ_ASSERT_UNREACHABLE("Unsupported transform function");
       break;
@@ -2015,14 +2025,15 @@ StyleAnimationValue::AppendTransformFunction(nsCSSKeyword aTransformFunction,
 
 static nsCSSValueList*
 AddDifferentTransformLists(double aCoeff1, const nsCSSValueList* aList1,
-                           double aCoeff2, const nsCSSValueList* aList2)
+                           double aCoeff2, const nsCSSValueList* aList2,
+                           nsCSSKeyword aOperatorType)
 {
   nsAutoPtr<nsCSSValueList> result;
   nsCSSValueList **resultTail = getter_Transfers(result);
 
   RefPtr<nsCSSValue::Array> arr;
   arr =
-    StyleAnimationValue::AppendTransformFunction(eCSSKeyword_interpolatematrix,
+    StyleAnimationValue::AppendTransformFunction(aOperatorType,
                                                  resultTail);
 
   // FIXME: We should change the other transform code to also only
@@ -2448,7 +2459,8 @@ AddShapeFunction(nsCSSPropertyID aProperty,
 
 static nsCSSValueList*
 AddTransformLists(double aCoeff1, const nsCSSValueList* aList1,
-                  double aCoeff2, const nsCSSValueList* aList2)
+                  double aCoeff2, const nsCSSValueList* aList2,
+                  nsCSSKeyword aOperatorType)
 {
   nsAutoPtr<nsCSSValueList> result;
   nsCSSValueList **resultTail = getter_Transfers(result);
@@ -2600,10 +2612,14 @@ AddTransformLists(double aCoeff1, const nsCSSValueList* aList1,
 
         if (aList1 == aList2) {
           *resultTail =
-            AddDifferentTransformLists(aCoeff1, &tempList1, aCoeff2, &tempList1);
+            AddDifferentTransformLists(aCoeff1, &tempList1,
+                                       aCoeff2, &tempList1,
+                                       aOperatorType);
         } else {
           *resultTail =
-            AddDifferentTransformLists(aCoeff1, &tempList1, aCoeff2, &tempList2);
+            AddDifferentTransformLists(aCoeff1, &tempList1,
+                                       aCoeff2, &tempList2,
+                                       aOperatorType);
         }
 
         // Now advance resultTail to point to the new tail slot.
@@ -2614,7 +2630,8 @@ AddTransformLists(double aCoeff1, const nsCSSValueList* aList1,
         break;
       }
       default:
-        MOZ_ASSERT(false, "unknown transform function");
+        MOZ_ASSERT_UNREACHABLE(
+          "unknown transform function or accumulatematrix");
     }
 
     aList1 = aList1->mNext;
@@ -3123,7 +3140,9 @@ StyleAnimationValue::AddWeighted(nsCSSPropertyID aProperty,
         } else if (TransformFunctionListsMatch(list1, list2)) {
           result = AddTransformLists(aCoeff1, list1, aCoeff2, list2);
         } else {
-          result = AddDifferentTransformLists(aCoeff1, list1, aCoeff2, list2);
+          result = AddDifferentTransformLists(aCoeff1, list1,
+                                              aCoeff2, list2,
+                                              eCSSKeyword_interpolatematrix);
         }
       }
 
