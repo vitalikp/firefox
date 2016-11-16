@@ -370,6 +370,13 @@ MediaDrmCDMProxy::IsOnOwnerThread()
 }
 #endif
 
+const nsString&
+MediaDrmCDMProxy::GetMediaDrmStubId() const
+{
+  MOZ_ASSERT(mCDM);
+  return mCDM->GetMediaDrmStubId();
+}
+
 void
 MediaDrmCDMProxy::OnCDMCreated(uint32_t aPromiseId)
 {

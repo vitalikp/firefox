@@ -10,7 +10,6 @@
 #include <jni.h>
 #include "mozilla/jni/Types.h"
 #include "GeneratedJNINatives.h"
-
 #include "mozilla/CDMProxy.h"
 #include "mozilla/CDMCaps.h"
 #include "mozilla/dom/MediaKeys.h"
@@ -116,6 +115,8 @@ public:
 #ifdef DEBUG
   bool IsOnOwnerThread() override;
 #endif
+
+  const nsString& GetMediaDrmStubId() const;
 
 private:
   virtual ~MediaDrmCDMProxy();
