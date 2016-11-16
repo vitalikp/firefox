@@ -4,6 +4,8 @@
 
 "use strict";
 
+/* exported ProductAddonChecker */
+
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 const LOCAL_EME_SOURCES = [
@@ -53,10 +55,6 @@ var logger = Log.repository.getLogger("addons.productaddons");
  * that we fail cleanly in such case.
  */
 const TIMEOUT_DELAY_MS = 20000;
-// Chunk size for the incremental downloader
-const DOWNLOAD_CHUNK_BYTES_SIZE = 300000;
-// Incremental downloader interval
-const DOWNLOAD_INTERVAL  = 0;
 // How much of a file to read into memory at a time for hashing
 const HASH_CHUNK_SIZE = 8192;
 

@@ -2325,9 +2325,8 @@ this.XPIStates = {
       }
 
       // Anything left behind in oldState was removed from the file system.
-      for (let id in locState) {
+      if (Object.keys(locState).length) {
         changed = true;
-        break;
       }
       // If we found anything, add this location to our database.
       if (foundAddons.size != 0) {
@@ -2337,9 +2336,8 @@ this.XPIStates = {
 
     // If there's anything left in oldState, an install location that held add-ons
     // was removed from the browser configuration.
-    for (let location in oldState) {
+    if (Object.keys(oldState).length) {
       changed = true;
-      break;
     }
 
     logger.debug("getInstallState changed: ${rv}, state: ${state}",
@@ -4743,9 +4741,6 @@ this.XPIProvider = {
                                   addonId: aId,
                                   metadata: { addonID: aId, URI: uri } });
 
-    let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"].
-                 createInstance(Ci.mozIJSSubScriptLoader);
-
     try {
       // Copy the reason values from the global object into the bootstrap scope.
       for (let name in BOOTSTRAP_REASONS)
@@ -4767,7 +4762,7 @@ this.XPIProvider = {
       activeAddon.bootstrapScope.__SCRIPT_URI_SPEC__ = uri;
       Components.utils.evalInSandbox(
         "Components.classes['@mozilla.org/moz/jssubscript-loader;1'] \
-                   .createInstance(Components.interfaces.mozIJSSubScriptLoader) \
+                   .getService(Components.interfaces.mozIJSSubScriptLoader) \
                    .loadSubScript(__SCRIPT_URI_SPEC__);",
                    activeAddon.bootstrapScope, "ECMAv5");
     }
@@ -5584,8 +5579,6 @@ class AddonInstall {
         return Promise.reject([AddonManager.ERROR_CORRUPT_FILE,
                                "Multi-package XPI does not contain any packages to install"]);
       }
-
-      let addon = null;
 
       // Find the first file that is a valid install and use it for
       // the add-on that this AddonInstall instance will install.
@@ -8025,9 +8018,8 @@ PROP_LOCALE_SINGLE.forEach(function(aProp) {
       }
     }
 
-    let rest;
     if (result == null)
-      [result, ...rest] = chooseValue(addon, addon.selectedLocale, aProp);
+      [result] = chooseValue(addon, addon.selectedLocale, aProp);
 
     if (aProp == "creator")
       return result ? new AddonManagerPrivate.AddonAuthor(result) : null;
@@ -9003,9 +8995,6 @@ Object.assign(SystemAddonInstallLocation.prototype, {
       install.installLocation.releaseStagingDir();
       install.install();
     });
-
-    let addonSet = this._loadAddonSet();
-    let addonIDs = Object.keys(addonSet.addons);
 
     let blockers = installs.filter(
       install => AddonManagerPrivate.hasUpgradeListener(install.addon.id)

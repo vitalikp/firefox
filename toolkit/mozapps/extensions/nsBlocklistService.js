@@ -47,7 +47,6 @@ const PREF_APP_DISTRIBUTION_VERSION   = "distribution.version";
 const PREF_EM_LOGGING_ENABLED         = "extensions.logging.enabled";
 const XMLURI_BLOCKLIST                = "http://www.mozilla.org/2006/addons-blocklist";
 const XMLURI_PARSE_ERROR              = "http://www.mozilla.org/newlayout/xml/parsererror.xml"
-const UNKNOWN_XPCOM_ABI               = "unknownABI";
 const URI_BLOCKLIST_DIALOG            = "chrome://mozapps/content/extensions/blocklist.xul"
 const DEFAULT_SEVERITY                = 3;
 const DEFAULT_LEVEL                   = 2;
@@ -1097,7 +1096,7 @@ Blocklist.prototype = {
       return Ci.nsIBlocklistService.STATE_NOT_BLOCKED;
     }
 
-    let {entry: blockEntry, version: blockEntryVersion} = r;
+    let {version: blockEntryVersion} = r;
 
     if (blockEntryVersion.severity >= DEFAULT_LEVEL)
       return Ci.nsIBlocklistService.STATE_BLOCKED;
@@ -1121,7 +1120,7 @@ Blocklist.prototype = {
     if (!r) {
       return null;
     }
-    let {entry: blockEntry, version: blockEntryVersion} = r;
+    let {entry: blockEntry} = r;
     if (!blockEntry.blockID) {
       return null;
     }
@@ -1138,7 +1137,7 @@ Blocklist.prototype = {
     if (!r) {
       return null;
     }
-    let {entry: blockEntry, version: blockEntryVersion} = r;
+    let {entry: blockEntry} = r;
     if (!blockEntry.blockID) {
       return null;
     }
