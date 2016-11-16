@@ -204,8 +204,6 @@ public:
                      // Some IPC quirks
                      eSpecialType_Silverlight,
                      // Native widget quirks
-                     eSpecialType_RealPlayer,
-                     // Native widget quirks
                      eSpecialType_Unity };
   static SpecialType GetSpecialType(const nsACString & aMIMEType);
 

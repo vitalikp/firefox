@@ -130,9 +130,7 @@ public:
   nsPluginHost::SpecialType mPluginType;
 };
 
-static bool sInMessageDispatch = false;
 static bool sInPreviousMessageDispatch = false;
-static UINT sLastMsg = 0;
 
 static bool ProcessFlashMessageDelayed(nsPluginNativeWindowWin * aWin, nsNPAPIPluginInstance * aInst,
                                          HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -203,16 +201,6 @@ static LRESULT CALLBACK PluginWndProcInternal(HWND hWnd, UINT msg, WPARAM wParam
   RefPtr<nsNPAPIPluginInstance> inst;
   win->GetPluginInstance(inst);
 
-  // Real may go into a state where it recursivly dispatches the same event
-  // when subclassed. If this is Real, lets examine the event and drop it
-  // on the floor if we get into this recursive situation. See bug 192914.
-  if (win->mPluginType == nsPluginHost::eSpecialType_RealPlayer) {
-    if (sInMessageDispatch && msg == sLastMsg)
-      return true;
-    // Cache the last message sent
-    sLastMsg = msg;
-  }
-
   bool enablePopups = false;
 
   // Activate/deactivate mouse capture on the plugin widget
@@ -282,10 +270,6 @@ static LRESULT CALLBACK PluginWndProcInternal(HWND hWnd, UINT msg, WPARAM wParam
 
     case WM_SETFOCUS:
     case WM_KILLFOCUS: {
-      // RealPlayer can crash, don't process the message for those,
-      // see bug 328675.
-      if (win->mPluginType == nsPluginHost::eSpecialType_RealPlayer && msg == sLastMsg)
-        return TRUE;
       // Make sure setfocus and killfocus get through to the widget procedure
       // even if they are eaten by the plugin. Also make sure we aren't calling
       // recursively.
@@ -315,7 +299,6 @@ static LRESULT CALLBACK PluginWndProcInternal(HWND hWnd, UINT msg, WPARAM wParam
     }
   }
 
-  sInMessageDispatch = true;
   LRESULT res;
   WNDPROC proc = (WNDPROC)win->GetWindowProc();
   if (PluginWndProc == proc) {
@@ -325,7 +308,6 @@ static LRESULT CALLBACK PluginWndProcInternal(HWND hWnd, UINT msg, WPARAM wParam
   } else {
     res = CallWindowProc(proc, hWnd, msg, wParam, lParam);
   }
-  sInMessageDispatch = false;
 
   if (inst) {
     // Popups are enabled (were enabled before the call to
