@@ -4702,6 +4702,7 @@ pref("extensions.webExtensionsMinPlatformVersion", "42.0a1");
 // Other webextensions prefs
 pref("extensions.webextensions.keepStorageOnUninstall", false);
 pref("extensions.webextensions.keepUuidOnUninstall", false);
+pref("extensions.webextensions.remote", false);
 
 pref("network.buffer.cache.count", 24);
 pref("network.buffer.cache.size",  32768);
