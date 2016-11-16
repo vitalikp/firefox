@@ -751,8 +751,6 @@ DecreasePrivateDocShellCount()
   }
 }
 
-static uint64_t gDocshellIDCounter = 0;
-
 nsDocShell::nsDocShell()
   : nsDocLoader()
   , mDefaultScrollbarPref(Scrollbar_Auto, Scrollbar_Auto)
@@ -821,7 +819,9 @@ nsDocShell::nsDocShell()
   , mTouchEventsOverride(nsIDocShell::TOUCHEVENTS_OVERRIDE_NONE)
 {
   AssertOriginAttributesMatchPrivateBrowsing();
-  mHistoryID = ++gDocshellIDCounter;
+
+  nsContentUtils::GenerateUUIDInPlace(mHistoryID);
+
   if (gDocShellCount++ == 0) {
     NS_ASSERTION(sURIFixup == nullptr,
                  "Huh, sURIFixup not null in first nsDocShell ctor!");
@@ -835,11 +835,11 @@ nsDocShell::nsDocShell()
   // We're counting the number of |nsDocShells| to help find leaks
   ++gNumberOfDocShells;
   if (!PR_GetEnv("MOZ_QUIET")) {
-    printf_stderr("++DOCSHELL %p == %ld [pid = %d] [id = %llu]\n",
+    printf_stderr("++DOCSHELL %p == %ld [pid = %d] [id = %s]\n",
                   (void*)this,
                   gNumberOfDocShells,
                   getpid(),
-                  AssertedCast<unsigned long long>(mHistoryID));
+                  nsIDToCString(mHistoryID).get());
   }
 #endif
 }
@@ -870,11 +870,11 @@ nsDocShell::~nsDocShell()
   // We're counting the number of |nsDocShells| to help find leaks
   --gNumberOfDocShells;
   if (!PR_GetEnv("MOZ_QUIET")) {
-    printf_stderr("--DOCSHELL %p == %ld [pid = %d] [id = %llu]\n",
+    printf_stderr("--DOCSHELL %p == %ld [pid = %d] [id = %s]\n",
                   (void*)this,
                   gNumberOfDocShells,
                   getpid(),
-                  AssertedCast<unsigned long long>(mHistoryID));
+                  nsIDToCString(mHistoryID).get());
   }
 #endif
 }
@@ -4040,10 +4040,16 @@ nsDocShell::SetChildOffset(uint32_t aChildOffset)
 }
 
 NS_IMETHODIMP
-nsDocShell::GetHistoryID(uint64_t* aID)
+nsDocShell::GetHistoryID(nsID** aID)
 {
-  *aID = mHistoryID;
+  *aID = static_cast<nsID*>(nsMemory::Clone(&mHistoryID, sizeof(nsID)));
   return NS_OK;
+}
+
+const nsID
+nsDocShell::HistoryID()
+{
+  return mHistoryID;
 }
 
 NS_IMETHODIMP
@@ -4497,7 +4503,7 @@ nsDocShell::RemoveFromSessionHistory()
 
   int32_t index = 0;
   sessionHistory->GetIndex(&index);
-  AutoTArray<uint64_t, 16> ids({mHistoryID});
+  AutoTArray<nsID, 16> ids({mHistoryID});
   internalHistory->RemoveEntries(ids, index);
   return NS_OK;
 }
@@ -4587,14 +4593,12 @@ nsDocShell::ClearFrameHistory(nsISHEntry* aEntry)
 
   int32_t count = 0;
   shcontainer->GetChildCount(&count);
-  AutoTArray<uint64_t, 16> ids;
+  AutoTArray<nsID, 16> ids;
   for (int32_t i = 0; i < count; ++i) {
     nsCOMPtr<nsISHEntry> child;
     shcontainer->GetChildAt(i, getter_AddRefs(child));
     if (child) {
-      uint64_t id = 0;
-      child->GetDocshellID(&id);
-      ids.AppendElement(id);
+      ids.AppendElement(child->DocshellID());
     }
   }
   int32_t index = 0;
@@ -10620,7 +10624,7 @@ nsDocShell::InternalLoad(nsIURI* aURI,
   if (aSHEntry && (mLoadType & LOAD_CMD_HISTORY)) {
     // Make sure our history ID points to the same ID as
     // SHEntry's docshell ID.
-    aSHEntry->GetDocshellID(&mHistoryID);
+    mHistoryID = aSHEntry->DocshellID();
 
     // It's possible that the previous viewer of mContentViewer is the
     // viewer that will end up in aSHEntry when it gets closed.  If that's
