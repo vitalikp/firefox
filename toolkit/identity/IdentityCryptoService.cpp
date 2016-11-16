@@ -175,7 +175,7 @@ public:
   NS_DECL_THREADSAFE_ISUPPORTS
   NS_DECL_NSIIDENTITYCRYPTOSERVICE
 
-  IdentityCryptoService() { }
+  IdentityCryptoService() = default;
   nsresult Init()
   {
     nsresult rv;
@@ -193,7 +193,7 @@ public:
   }
 
 private:
-  ~IdentityCryptoService() { }
+  ~IdentityCryptoService() = default;
   IdentityCryptoService(const KeyPair &) = delete;
   void operator=(const IdentityCryptoService &) = delete;
 
