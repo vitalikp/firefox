@@ -6217,7 +6217,7 @@ class DownloadAddonInstall extends AddonInstall {
    * @param  options.permHandler
    *         A callback to present permissions to the user before installing.
    */
-  constructor(installLocation, url, options={}) {
+  constructor(installLocation, url, options = {}) {
     super(installLocation, url, options);
 
     this.browser = options.browser;
