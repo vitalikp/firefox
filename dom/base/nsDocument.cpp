@@ -56,6 +56,7 @@
 
 #include "nsIDOMStyleSheet.h"
 #include "mozilla/dom/Attr.h"
+#include "mozilla/dom/BindingDeclarations.h"
 #include "nsIDOMDOMImplementation.h"
 #include "nsIDOMDocumentXBL.h"
 #include "mozilla/dom/Element.h"
@@ -7163,9 +7164,10 @@ nsIDocument::GetURL(nsString& aURL) const
 }
 
 void
-nsIDocument::GetDocumentURIFromJS(nsString& aDocumentURI, ErrorResult& aRv) const
+nsIDocument::GetDocumentURIFromJS(nsString& aDocumentURI, CallerType aCallerType,
+                                  ErrorResult& aRv) const
 {
-  if (!mChromeXHRDocURI || !nsContentUtils::IsCallerChrome()) {
+  if (!mChromeXHRDocURI || aCallerType != CallerType::System) {
     aRv = GetDocumentURI(aDocumentURI);
     return;
   }
@@ -11082,15 +11084,14 @@ HasFullScreenSubDocument(nsIDocument* aDoc)
 static const char*
 GetFullscreenError(nsIDocument* aDoc, bool aCallerIsChrome)
 {
-  if (nsContentUtils::IsFullScreenApiEnabled() && aCallerIsChrome) {
+  bool apiEnabled = nsContentUtils::IsFullScreenApiEnabled();
+  if (apiEnabled && aCallerIsChrome) {
     // Chrome code can always use the full-screen API, provided it's not
-    // explicitly disabled. Note IsCallerChrome() returns true when running
-    // in a Runnable, so don't use GetMozFullScreenEnabled() from a
-    // Runnable!
+    // explicitly disabled.
     return nullptr;
   }
 
-  if (!nsContentUtils::IsFullScreenApiEnabled()) {
+  if (!apiEnabled) {
     return "FullscreenDeniedDisabled";
   }
 
@@ -11499,9 +11500,9 @@ nsDocument::GetFullscreenElement()
 }
 
 bool
-nsDocument::FullscreenEnabled()
+nsDocument::FullscreenEnabled(CallerType aCallerType)
 {
-  return !GetFullscreenError(this, nsContentUtils::IsCallerChrome());
+  return !GetFullscreenError(this, aCallerType == CallerType::System);
 }
 
 uint16_t
@@ -11722,7 +11723,7 @@ PointerLockRequest::Run()
 }
 
 void
-nsDocument::RequestPointerLock(Element* aElement)
+nsDocument::RequestPointerLock(Element* aElement, CallerType aCallerType)
 {
   NS_ASSERTION(aElement,
     "Must pass non-null element to nsDocument::RequestPointerLock");
@@ -11739,10 +11740,10 @@ nsDocument::RequestPointerLock(Element* aElement)
     return;
   }
 
-  bool userInputOrChromeCaller = EventStateManager::IsHandlingUserInput() ||
-                                 nsContentUtils::IsCallerChrome();
+  bool userInputOrSystemCaller = EventStateManager::IsHandlingUserInput() ||
+                                 aCallerType == CallerType::System;
   NS_DispatchToMainThread(new PointerLockRequest(aElement,
-                                                 userInputOrChromeCaller));
+                                                 userInputOrSystemCaller));
 }
 
 bool
