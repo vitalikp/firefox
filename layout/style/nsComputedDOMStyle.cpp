@@ -5047,7 +5047,7 @@ nsComputedDOMStyle::GetROCSSValueList(bool aCommaDelimited)
 }
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetOffsetWidthFor(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetOffsetWidthFor(mozilla::Side aSide)
 {
   const nsStyleDisplay* display = StyleDisplay();
 
@@ -5078,7 +5078,7 @@ nsComputedDOMStyle::GetOffsetWidthFor(mozilla::css::Side aSide)
 }
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetAbsoluteOffset(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetAbsoluteOffset(mozilla::Side aSide)
 {
   MOZ_ASSERT(mOuterFrame, "need a frame, so we can call GetContainingBlock()");
 
@@ -5136,10 +5136,10 @@ nsComputedDOMStyle::GetAbsoluteOffset(mozilla::css::Side aSide)
 static_assert(NS_SIDE_TOP == 0 && NS_SIDE_RIGHT == 1 &&
               NS_SIDE_BOTTOM == 2 && NS_SIDE_LEFT == 3,
               "box side constants not as expected for NS_OPPOSITE_SIDE");
-#define NS_OPPOSITE_SIDE(s_) mozilla::css::Side(((s_) + 2) & 3)
+#define NS_OPPOSITE_SIDE(s_) mozilla::Side(((s_) + 2) & 3)
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetRelativeOffset(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetRelativeOffset(mozilla::Side aSide)
 {
   RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
 
@@ -5169,7 +5169,7 @@ nsComputedDOMStyle::GetRelativeOffset(mozilla::css::Side aSide)
 }
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetStickyOffset(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetStickyOffset(mozilla::Side aSide)
 {
   RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
 
@@ -5199,7 +5199,7 @@ nsComputedDOMStyle::GetStickyOffset(mozilla::css::Side aSide)
 
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetStaticOffset(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetStaticOffset(mozilla::Side aSide)
 
 {
   RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
@@ -5208,7 +5208,7 @@ nsComputedDOMStyle::GetStaticOffset(mozilla::css::Side aSide)
 }
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetPaddingWidthFor(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetPaddingWidthFor(mozilla::Side aSide)
 {
   RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
 
@@ -5262,7 +5262,7 @@ nsComputedDOMStyle::GetLineHeightCoord(nscoord& aCoord)
 }
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetBorderColorsFor(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetBorderColorsFor(mozilla::Side aSide)
 {
   const nsStyleBorder *border = StyleBorder();
 
@@ -5290,7 +5290,7 @@ nsComputedDOMStyle::GetBorderColorsFor(mozilla::css::Side aSide)
 }
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetBorderWidthFor(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetBorderWidthFor(mozilla::Side aSide)
 {
   RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
 
@@ -5307,7 +5307,7 @@ nsComputedDOMStyle::GetBorderWidthFor(mozilla::css::Side aSide)
 }
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetBorderColorFor(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetBorderColorFor(mozilla::Side aSide)
 {
   RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
   SetValueFromComplexColor(val, StyleBorder()->mBorderColor[aSide]);
@@ -5315,7 +5315,7 @@ nsComputedDOMStyle::GetBorderColorFor(mozilla::css::Side aSide)
 }
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetMarginWidthFor(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetMarginWidthFor(mozilla::Side aSide)
 {
   RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
 
@@ -5336,7 +5336,7 @@ nsComputedDOMStyle::GetMarginWidthFor(mozilla::css::Side aSide)
 }
 
 already_AddRefed<CSSValue>
-nsComputedDOMStyle::GetBorderStyleFor(mozilla::css::Side aSide)
+nsComputedDOMStyle::GetBorderStyleFor(mozilla::Side aSide)
 {
   RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;
   val->SetIdent(
