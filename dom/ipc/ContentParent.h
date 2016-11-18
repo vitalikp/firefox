@@ -700,7 +700,8 @@ private:
                                 DomainPolicyClone* domainPolicy,
                                 StructuredCloneData* initialData,
                                 InfallibleTArray<FontFamilyListEntry>* fontFamilies,
-                                OptionalURIParams* aUserContentSheetURL) override;
+                                OptionalURIParams* aUserContentSheetURL,
+                                nsTArray<LookAndFeelInt>* aLookAndFeelIntCache) override;
 
   virtual bool
   DeallocPJavaScriptParent(mozilla::jsipc::PJavaScriptParent*) override;
@@ -932,8 +933,6 @@ private:
   virtual mozilla::ipc::IPCResult RecvAudioChannelServiceStatus(const bool& aTelephonyChannel,
                                                                 const bool& aContentOrNormalChannel,
                                                                 const bool& aAnyChannel) override;
-
-  virtual mozilla::ipc::IPCResult RecvGetLookAndFeelCache(nsTArray<LookAndFeelInt>* aLookAndFeelIntCache) override;
 
   virtual mozilla::ipc::IPCResult RecvKeywordToURI(const nsCString& aKeyword,
                                                    nsString* aProviderName,
