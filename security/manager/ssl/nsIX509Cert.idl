@@ -156,7 +156,7 @@ interface nsIX509Cert : nsISupports {
    *  A human readable identifier to label this certificate.
    */
   [must_use]
-  readonly attribute AString windowTitle;
+  readonly attribute AString displayName;
 
   /**
    *  Constants to classify the type of a certificate.
