@@ -5886,8 +5886,12 @@ var OfflineApps = {
                                                         warnQuotaKB / 1024 ]);
 
     let anchorID = "indexedDB-notification-icon";
+    let options = {
+      persistent: true,
+      hideClose: true,
+    };
     PopupNotifications.show(browser, "offline-app-usage", message,
-                            anchorID, mainAction, null, { persistent: true });
+                            anchorID, mainAction, null, options);
 
     // Now that we've warned once, prevent the warning from showing up
     // again.
@@ -5946,8 +5950,8 @@ var OfflineApps = {
       ]);
     } else {
       let mainAction = {
-        label: gNavigatorBundle.getString("offlineApps.allow"),
-        accessKey: gNavigatorBundle.getString("offlineApps.allowAccessKey"),
+        label: gNavigatorBundle.getString("offlineApps.allowStoring.label"),
+        accessKey: gNavigatorBundle.getString("offlineApps.allowStoring.accesskey"),
         callback: function() {
           for (let [ciBrowser, ciDocId, ciUri] of notification.options.controlledItems) {
             OfflineApps.allowSite(ciBrowser, ciDocId, ciUri);
@@ -5955,19 +5959,20 @@ var OfflineApps = {
         }
       };
       let secondaryActions = [{
-        label: gNavigatorBundle.getString("offlineApps.never"),
-        accessKey: gNavigatorBundle.getString("offlineApps.neverAccessKey"),
+        label: gNavigatorBundle.getString("offlineApps.dontAllow.label"),
+        accessKey: gNavigatorBundle.getString("offlineApps.dontAllow.accesskey"),
         callback: function() {
           for (let [, , ciUri] of notification.options.controlledItems) {
             OfflineApps.disallowSite(ciUri);
           }
         }
       }];
-      let message = gNavigatorBundle.getFormattedString("offlineApps.available",
+      let message = gNavigatorBundle.getFormattedString("offlineApps.available2",
                                                         [host]);
       let anchorID = "indexedDB-notification-icon";
       let options = {
         persistent: true,
+        hideClose: true,
         controlledItems : [[Cu.getWeakReference(browser), docId, uri]]
       };
       notification = PopupNotifications.show(browser, notificationID, message,
@@ -6049,12 +6054,13 @@ var IndexedDBPromptHelper = {
       return;
     }
 
-    var host = browser.currentURI.asciiHost;
+    // Get the host name if available or the file path otherwise.
+    var host = browser.currentURI.asciiHost || browser.currentURI.path;
 
     var message;
     var responseTopic;
     if (topic == this._permissionsPrompt) {
-      message = gNavigatorBundle.getFormattedString("offlineApps.available",
+      message = gNavigatorBundle.getFormattedString("offlineApps.available2",
                                                     [ host ]);
       responseTopic = this._permissionsResponse;
     }
@@ -6062,8 +6068,8 @@ var IndexedDBPromptHelper = {
     var observer = requestor.getInterface(Ci.nsIObserver);
 
     var mainAction = {
-      label: gNavigatorBundle.getString("offlineApps.allow"),
-      accessKey: gNavigatorBundle.getString("offlineApps.allowAccessKey"),
+      label: gNavigatorBundle.getString("offlineApps.allowStoring.label"),
+      accessKey: gNavigatorBundle.getString("offlineApps.allowStoring.accesskey"),
       callback: function() {
         observer.observe(null, responseTopic,
                          Ci.nsIPermissionManager.ALLOW_ACTION);
@@ -6072,8 +6078,8 @@ var IndexedDBPromptHelper = {
 
     var secondaryActions = [
       {
-        label: gNavigatorBundle.getString("offlineApps.never"),
-        accessKey: gNavigatorBundle.getString("offlineApps.neverAccessKey"),
+        label: gNavigatorBundle.getString("offlineApps.dontAllow.label"),
+        accessKey: gNavigatorBundle.getString("offlineApps.dontAllow.accesskey"),
         callback: function() {
           observer.observe(null, responseTopic,
                            Ci.nsIPermissionManager.DENY_ACTION);
@@ -6083,7 +6089,10 @@ var IndexedDBPromptHelper = {
 
     PopupNotifications.show(browser, topic, message,
                             this._notificationIcon, mainAction,
-                            secondaryActions, { persistent: true });
+                            secondaryActions, {
+                              persistent: true,
+                              hideClose: true,
+                            });
   }
 };
 
