@@ -121,7 +121,7 @@ class JS_PUBLIC_API(ProfilingFrameIterator)
         void* stackAddress;
         void* returnAddress;
         void* activation;
-        UniqueChars label;
+        const char* label;
     };
 
     bool isWasm() const;
