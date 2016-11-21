@@ -315,8 +315,6 @@ public:
   template<typename T>
   static T operate(const T& aOne, const T& aTwo, double aCoeff)
   {
-    MOZ_ASSERT(aCoeff >= 0.0 && aCoeff <= 1.0,
-               "Coefficient should be in the range [0.0, 1.0]");
     return aOne + (aTwo - aOne) * aCoeff;
   }
 
@@ -324,8 +322,6 @@ public:
                                        const Point4D& aTwo,
                                        double aCoeff)
   {
-    MOZ_ASSERT(aCoeff >= 0.0 && aCoeff <= 1.0,
-               "Coefficient should be in the range [0.0, 1.0]");
     return aOne + (aTwo - aOne) * aCoeff;
   }
 
@@ -333,8 +329,6 @@ public:
                                  const Point3D& aTwo,
                                  double aCoeff)
   {
-    MOZ_ASSERT(aCoeff >= 0.0 && aCoeff <= 1.0,
-               "Coefficient should be in the range [0.0, 1.0]");
     return aOne + (aTwo - aOne) * aCoeff;
   }
 
@@ -342,8 +336,6 @@ public:
                                     const gfxQuaternion& aTwo,
                                     double aCoeff)
   {
-    MOZ_ASSERT(aCoeff >= 0.0 && aCoeff <= 1.0,
-               "Coefficient should be in the range [0.0, 1.0]");
     return aOne.Slerp(aTwo, aCoeff).ToMatrix();
   }
 };
