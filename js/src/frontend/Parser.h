@@ -1341,7 +1341,7 @@ class Parser final : public ParserBase, private JS::AutoGCRooter
 #if !JS_HAS_FOR_EACH_IN
         return false;
 #else
-        return versionNumber() >= JSVERSION_1_6;
+        return options().forEachStatementOption && versionNumber() >= JSVERSION_1_6;
 #endif
     }
 

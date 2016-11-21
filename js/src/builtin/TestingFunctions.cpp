@@ -4216,6 +4216,24 @@ DisRegExp(JSContext* cx, unsigned argc, Value* vp)
 #endif // DEBUG
 
 static bool
+EnableForEach(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+    JS::ContextOptionsRef(cx).setForEachStatement(true);
+    args.rval().setUndefined();
+    return true;
+}
+
+static bool
+DisableForEach(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+    JS::ContextOptionsRef(cx).setForEachStatement(false);
+    args.rval().setUndefined();
+    return true;
+}
+
+static bool
 IsConstructor(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
@@ -4774,6 +4792,14 @@ gc::ZealModeHelpText),
     JS_FN_HELP("getModuleEnvironmentValue", GetModuleEnvironmentValue, 2, 0,
 "getModuleEnvironmentValue(module, name)",
 "  Get the value of a bound name in a module environment.\n"),
+
+    JS_FN_HELP("enableForEach", EnableForEach, 0, 0,
+"enableForEach()",
+"  Enables the deprecated, non-standard for-each.\n"),
+
+    JS_FN_HELP("disableForEach", DisableForEach, 0, 0,
+"disableForEach()",
+"  Disables the deprecated, non-standard for-each.\n"),
 
     JS_FN_HELP("isConstructor", IsConstructor, 1, 0,
 "isConstructor(value)",
