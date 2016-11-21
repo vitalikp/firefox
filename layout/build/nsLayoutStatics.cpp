@@ -7,6 +7,7 @@
 #include "nsLayoutStatics.h"
 #include "nscore.h"
 
+#include "DateTimeFormat.h"
 #include "nsAttrValue.h"
 #include "nsAutoCopyListener.h"
 #include "nsColorNames.h"
@@ -430,6 +431,8 @@ nsLayoutStatics::Shutdown()
 
   nsHyphenationManager::Shutdown();
   nsDOMMutationObserver::Shutdown();
+
+  DateTimeFormat::Shutdown();
 
   ContentParent::ShutDown();
 
