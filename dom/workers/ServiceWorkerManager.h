@@ -367,6 +367,9 @@ private:
   GetActiveWorkerInfoForDocument(nsIDocument* aDocument);
 
   void
+  TransitionServiceWorkerRegistrationWorker(ServiceWorkerRegistrationInfo* aRegistration,
+                                            WhichServiceWorker aWhichOne);
+  void
   InvalidateServiceWorkerRegistrationWorker(ServiceWorkerRegistrationInfo* aRegistration,
                                             WhichServiceWorker aWhichOnes);
 
