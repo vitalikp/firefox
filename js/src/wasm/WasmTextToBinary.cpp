@@ -427,7 +427,9 @@ IsWasmLetter(char16_t c)
 static bool
 IsNameAfterDollar(char16_t c)
 {
-    return IsWasmLetter(c) || IsWasmDigit(c) || c == '_' || c == '$' || c == '-' || c == '.';
+    return IsWasmLetter(c) ||
+           IsWasmDigit(c) ||
+           c == '_' || c == '$' || c == '-' || c == '.' || c == '>';
 }
 
 static bool
@@ -1796,6 +1798,28 @@ ParseBlockSignature(WasmParseContext& c, ExprType* type)
     return true;
 }
 
+static bool
+MaybeMatchName(WasmParseContext& c, const AstName& name)
+{
+    WasmToken tok;
+    if (c.ts.getIf(WasmToken::Name, &tok)) {
+        AstName otherName = tok.name();
+        if (otherName.empty())
+            return true;
+
+        if (name.empty()) {
+            c.ts.generateError(tok, "end name without a start name", c.error);
+            return false;
+        }
+
+        if (otherName != name) {
+            c.ts.generateError(tok, "start/end names don't match", c.error);
+            return false;
+        }
+    }
+    return true;
+}
+
 static AstBlock*
 ParseBlock(WasmParseContext& c, Op op, bool inParens)
 {
@@ -1823,6 +1847,8 @@ ParseBlock(WasmParseContext& c, Op op, bool inParens)
 
     if (!inParens) {
         if (!c.ts.match(WasmToken::End, c.error))
+            return nullptr;
+        if (!MaybeMatchName(c, name))
             return nullptr;
     }
 
@@ -2447,6 +2473,8 @@ ParseIf(WasmParseContext& c, bool inParens)
     AstExprVector elseExprs(c.lifo);
     if (!inParens || c.ts.getIf(WasmToken::OpenParen)) {
         if (c.ts.getIf(WasmToken::Else)) {
+            if (!MaybeMatchName(c, name))
+                return nullptr;
             if (!ParseExprList(c, &elseExprs))
                 return nullptr;
         } else if (inParens) {
@@ -2459,6 +2487,8 @@ ParseIf(WasmParseContext& c, bool inParens)
                 return nullptr;
         } else {
             if (!c.ts.match(WasmToken::End, c.error))
+                return nullptr;
+            if (!MaybeMatchName(c, name))
                 return nullptr;
         }
     }
