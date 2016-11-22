@@ -1384,9 +1384,10 @@ CSSStyleSheet::FindOwningWindowInnerID() const
   }
 
   if (windowID == 0 && mOwnerRule) {
-    RefPtr<CSSStyleSheet> sheet = static_cast<css::Rule*>(mOwnerRule)->GetStyleSheet();
+    RefPtr<StyleSheet> sheet =
+      static_cast<css::Rule*>(mOwnerRule)->GetStyleSheet();
     if (sheet) {
-      windowID = sheet->FindOwningWindowInnerID();
+      windowID = sheet->AsGecko()->FindOwningWindowInnerID();
     }
   }
 
