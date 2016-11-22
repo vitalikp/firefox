@@ -104,6 +104,7 @@ class MapObject : public NativeObject {
                   "key-and-value.");
 
     static const Class class_;
+    static const Class protoClass_;
 
     enum { NurseryKeysSlot, SlotCount };
 
@@ -210,6 +211,7 @@ class SetObject : public NativeObject {
                   "key-and-value.");
 
     static const Class class_;
+    static const Class protoClass_;
 
     enum { NurseryKeysSlot, SlotCount };
 
