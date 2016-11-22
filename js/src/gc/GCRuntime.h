@@ -943,6 +943,7 @@ class GCRuntime
     void collect(bool nonincrementalByAPI, SliceBudget budget, JS::gcreason::Reason reason) JS_HAZ_GC_CALL;
     MOZ_MUST_USE bool gcCycle(bool nonincrementalByAPI, SliceBudget& budget,
                               JS::gcreason::Reason reason);
+    bool shouldRepeatForDeadZone();
     void incrementalCollectSlice(SliceBudget& budget, JS::gcreason::Reason reason,
                                  AutoLockForExclusiveAccess& lock);
 
