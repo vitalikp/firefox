@@ -15,6 +15,7 @@ struct ServoCssRules;
 struct RawServoStyleSheet;
 struct RawServoStyleSet;
 struct RawServoDeclarationBlock;
+struct RawServoStyleRule;
 
 namespace mozilla {
   class ServoElementSnapshot;
@@ -78,6 +79,7 @@ DECL_ARC_REF_TYPE_FOR(ServoComputedValues)
 DECL_ARC_REF_TYPE_FOR(ServoCssRules)
 DECL_ARC_REF_TYPE_FOR(RawServoStyleSheet)
 DECL_ARC_REF_TYPE_FOR(RawServoDeclarationBlock)
+DECL_ARC_REF_TYPE_FOR(RawServoStyleRule)
 // This is a reference to a reference of RawServoDeclarationBlock, which
 // corresponds to Option<&Arc<RawServoDeclarationBlock>> in Servo side.
 DECL_NULLABLE_BORROWED_REF_TYPE_FOR(RawServoDeclarationBlockStrong)
@@ -131,6 +133,7 @@ DEFINE_REFPTR_TRAITS(CssRules, ServoCssRules)
 DEFINE_REFPTR_TRAITS(StyleSheet, RawServoStyleSheet)
 DEFINE_REFPTR_TRAITS(ComputedValues, ServoComputedValues)
 DEFINE_REFPTR_TRAITS(DeclarationBlock, RawServoDeclarationBlock)
+DEFINE_REFPTR_TRAITS(StyleRule, RawServoStyleRule)
 
 #undef DEFINE_REFPTR_TRAITS
 
