@@ -260,7 +260,7 @@ static const NotificationAndReportStringId sUnsupportedLibavcodec =
   { dom::DecoderDoctorNotificationType::Unsupported_libavcodec,
     "MediaUnsupportedLibavcodec" };
 
-static const NotificationAndReportStringId*
+static const NotificationAndReportStringId *const
 sAllNotificationsAndReportStringIds[] =
 {
   &sMediaWMFNeeded,
@@ -356,12 +356,6 @@ ReportAnalysis(nsIDocument* aDocument,
       aDocument->GetInnerWindow(), aNotification, aIsSolved, aParams);
   }
 }
-
-enum SilverlightPresence {
-  eNoSilverlight,
-  eSilverlightDisabled,
-  eSilverlightEnabled
-};
 
 static nsString
 CleanItemForFormatsList(const nsAString& aItem)
