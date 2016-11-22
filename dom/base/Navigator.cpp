@@ -1399,7 +1399,7 @@ Navigator::PublishServer(const nsAString& aName,
     return nullptr;
   }
 
-  mozPromise->Then(AbstractThread::MainThread(),
+  mozPromise->Then(global->AbstractMainThreadFor(TaskCategory::Other),
                    __func__,
                    [domPromise] (FlyWebPublishedServer* aServer) {
                      domPromise->MaybeResolve(aServer);
