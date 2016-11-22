@@ -6,6 +6,7 @@
 
 #include "vm/ObjectGroup.h"
 
+#include "jsexn.h"
 #include "jshashutil.h"
 #include "jsobj.h"
 
