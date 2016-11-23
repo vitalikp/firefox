@@ -2287,7 +2287,7 @@ DebugEnvironments::init()
 }
 
 void
-DebugEnvironments::mark(JSTracer* trc)
+DebugEnvironments::trace(JSTracer* trc)
 {
     proxiedEnvs.trace(trc);
 }
@@ -2816,7 +2816,7 @@ DebugEnvironments::forwardLiveFrame(JSContext* cx, AbstractFramePtr from, Abstra
 }
 
 /* static */ void
-DebugEnvironments::markLiveFrame(JSTracer* trc, AbstractFramePtr frame)
+DebugEnvironments::traceLiveFrame(JSTracer* trc, AbstractFramePtr frame)
 {
     for (MissingEnvironmentMap::Enum e(missingEnvs); !e.empty(); e.popFront()) {
         if (e.front().key().frame() == frame)

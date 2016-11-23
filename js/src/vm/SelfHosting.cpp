@@ -2746,7 +2746,7 @@ JSRuntime::finishSelfHosting()
 }
 
 void
-JSRuntime::markSelfHostingGlobal(JSTracer* trc)
+JSRuntime::traceSelfHostingGlobal(JSTracer* trc)
 {
     if (selfHostingGlobal_ && !parentRuntime)
         TraceRoot(trc, &selfHostingGlobal_, "self-hosting global");
