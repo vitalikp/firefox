@@ -26,6 +26,7 @@ union GfxPrefValue {
   int32_t;
   uint32_t;
   float;
+  nsCString;
 };
 
 struct GfxPrefSetting {
