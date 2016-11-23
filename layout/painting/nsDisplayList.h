@@ -4365,6 +4365,11 @@ class nsDisplayTransform: public nsDisplayItem
   };
 
 public:
+  enum PrerenderDecision {
+    NoPrerender,
+    FullPrerender
+  };
+
   /**
    * Returns a matrix (in pixels) for the current frame. The matrix should be relative to
    * the current frame's coordinate space.
@@ -4578,11 +4583,11 @@ public:
                                                uint32_t aFlags,
                                                const nsRect* aBoundsOverride = nullptr);
   /**
-   * Return true when we should try to prerender the entire contents of the
+   * Return FullPrerender when we should try to prerender the entire contents of the
    * transformed frame even when it's not completely visible (yet).
    */
-  static bool ShouldPrerenderTransformedContent(nsDisplayListBuilder* aBuilder,
-                                                nsIFrame* aFrame);
+  static PrerenderDecision ShouldPrerenderTransformedContent(nsDisplayListBuilder* aBuilder,
+                                                             nsIFrame* aFrame);
   bool CanUseAsyncAnimations(nsDisplayListBuilder* aBuilder) override;
 
   bool MayBeAnimated(nsDisplayListBuilder* aBuilder);
