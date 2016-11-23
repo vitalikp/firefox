@@ -4379,7 +4379,7 @@ public:
    */
   nsDisplayTransform(nsDisplayListBuilder* aBuilder, nsIFrame *aFrame,
                      nsDisplayList *aList, const nsRect& aChildrenVisibleRect,
-                     uint32_t aIndex = 0, bool aIsFullyVisible = false);
+                     uint32_t aIndex = 0, bool aAllowAsyncAnimation = false);
   nsDisplayTransform(nsDisplayListBuilder* aBuilder, nsIFrame *aFrame,
                      nsDisplayItem *aItem, const nsRect& aChildrenVisibleRect,
                      uint32_t aIndex = 0);
@@ -4682,9 +4682,8 @@ private:
   bool mIsTransformSeparator;
   // True if mTransformPreserves3D have been initialized.
   bool mTransformPreserves3DInited;
-  // True if the entire untransformed area has been treated as
-  // visible during display list construction.
-  bool mIsFullyVisible;
+  // True if async animation of the transform is allowed.
+  bool mAllowAsyncAnimation;
 };
 
 /* A display item that applies a perspective transformation to a single
