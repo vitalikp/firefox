@@ -409,6 +409,10 @@ public:
                                               const nsCString& name, const nsCString& UAName,
                                               const nsCString& ID, const nsCString& vendor) override;
 
+  virtual mozilla::ipc::IPCResult RecvRemoteType(const nsString& aRemoteType) override;
+
+  const nsAString& GetRemoteType() const;
+
   virtual mozilla::ipc::IPCResult
   RecvInitServiceWorkers(const ServiceWorkerConfiguration& aConfig) override;
 
@@ -635,6 +639,7 @@ private:
   AppInfo mAppInfo;
 
   bool mIsForBrowser;
+  nsString mRemoteType = NullString();
   bool mCanOverrideProcessName;
   bool mIsAlive;
   nsString mProcessName;
