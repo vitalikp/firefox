@@ -1829,7 +1829,10 @@ nsContextMenu.prototype = {
   },
 
   createContainerMenu: function(aEvent) {
-    return createUserContextMenu(aEvent, true,
-                                 gContextMenuContentData.userContextId);
+    let createMenuOptions = {
+      isContextMenu: true,
+      excludeUserContextId: gContextMenuContentData.userContextId,
+    };
+    return createUserContextMenu(aEvent, createMenuOptions);
   },
 };
