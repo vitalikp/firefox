@@ -4136,14 +4136,14 @@ var XULBrowserWindow = {
     this.onSecurityChange(null, null, securityUI.state, true);
   },
 
-  setJSStatus: function () {
+  setJSStatus: function() {
     // unsupported
   },
 
-  forceInitialBrowserRemote: function() {
+  forceInitialBrowserRemote: function(aRemoteType) {
     let initBrowser =
       document.getAnonymousElementByAttribute(gBrowser, "anonid", "initialBrowser");
-    return initBrowser.frameLoader.tabParent;
+    gBrowser.updateBrowserRemoteness(initBrowser, true, aRemoteType, null);
   },
 
   forceInitialBrowserNonRemote: function(aOpener) {
