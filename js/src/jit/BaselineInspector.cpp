@@ -1021,8 +1021,6 @@ BaselineInspector::expectedPropertyAccessInputType(jsbytecode* pc)
             // Either an object or magic arguments.
             return MIRType::Value;
 
-          case ICStub::GetProp_CallDOMProxyNative:
-          case ICStub::GetProp_CallDOMProxyWithGenerationNative:
           case ICStub::GetElem_NativeSlotName:
           case ICStub::GetElem_NativeSlotSymbol:
           case ICStub::GetElem_NativePrototypeSlotName:
