@@ -9,13 +9,11 @@
 
 #include "mozilla/dom/Timeout.h"
 
+class nsIEventTarget;
 class nsITimeoutHandler;
 class nsGlobalWindow;
 
 namespace mozilla {
-
-class ThrottledEventQueue;
-
 namespace dom {
 
 // This class manages the timeouts in a Window's setTimeout/setInterval pool.
@@ -120,7 +118,7 @@ private:
     nsresult ResetTimersForThrottleReduction(int32_t aPreviousThrottleDelayMS,
                                              int32_t aMinTimeoutValueMS,
                                              SortBy aSortBy,
-                                             mozilla::ThrottledEventQueue* aQueue);
+                                             nsIEventTarget* aQueue);
 
     const Timeout* GetFirst() const { return mTimeoutList.getFirst(); }
     Timeout* GetFirst() { return mTimeoutList.getFirst(); }
