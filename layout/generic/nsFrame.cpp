@@ -1749,9 +1749,7 @@ nsFrame::DisplaySelection(nsPresContext* aPresContext, bool isOkToTurnOn)
     result = selCon->GetDisplaySelection(&selType);
     if (NS_SUCCEEDED(result) && (selType != nsISelectionController::SELECTION_OFF)) {
       // Check whether style allows selection.
-      bool selectable;
-      IsSelectable(&selectable, nullptr);
-      if (!selectable) {
+      if (!IsSelectable(nullptr)) {
         selType = nsISelectionController::SELECTION_OFF;
         isOkToTurnOn = false;
       }
@@ -3190,11 +3188,10 @@ nsFrame::GetDataForTableSelection(const nsFrameSelection* aFrameSelection,
   return NS_OK;
 }
 
-nsresult
-nsIFrame::IsSelectable(bool* aSelectable, StyleUserSelect* aSelectStyle) const
+bool
+nsIFrame::IsSelectable(StyleUserSelect* aSelectStyle) const
 {
-  if (!aSelectable) //it's ok if aSelectStyle is null
-    return NS_ERROR_NULL_POINTER;
+  // it's ok if aSelectStyle is null
 
   // Like 'visibility', we must check all the parents: if a parent
   // is not selectable, none of its children is selectable.
@@ -3266,13 +3263,9 @@ nsIFrame::IsSelectable(bool* aSelectable, StyleUserSelect* aSelectStyle) const
     *aSelectStyle = selectStyle;
   }
 
-  if (mState & NS_FRAME_GENERATED_CONTENT) {
-    *aSelectable = false;
-  } else {
-    *aSelectable = allowSelection && (selectStyle != StyleUserSelect::None);
-  }
-
-  return NS_OK;
+  return !(mState & NS_FRAME_GENERATED_CONTENT) &&
+         allowSelection &&
+         selectStyle != StyleUserSelect::None;
 }
 
 /**
@@ -3299,7 +3292,6 @@ nsFrame::HandlePress(nsPresContext* aPresContext,
   if (!aPresContext->EventStateManager()->EventStatusOK(aEvent)) 
     return NS_OK;
 
-  nsresult rv;
   nsIPresShell *shell = aPresContext->GetPresShell();
   if (!shell)
     return NS_ERROR_FAILURE;
@@ -3329,14 +3321,11 @@ nsFrame::HandlePress(nsPresContext* aPresContext,
 
   // check whether style allows selection
   // if not, don't tell selection the mouse event even occurred.  
-  bool    selectable;
   StyleUserSelect selectStyle;
-  rv = IsSelectable(&selectable, &selectStyle);
-  if (NS_FAILED(rv)) return rv;
-  
   // check for select: none
-  if (!selectable)
+  if (!IsSelectable(&selectStyle)) {
     return NS_OK;
+  }
 
   // When implementing StyleUserSelect::Element, StyleUserSelect::Elements and
   // StyleUserSelect::Toggle, need to change this logic
@@ -3417,6 +3406,7 @@ nsFrame::HandlePress(nsPresContext* aPresContext,
   nsCOMPtr<nsIContent>parentContent;
   int32_t  contentOffset;
   int32_t target;
+  nsresult rv;
   rv = GetDataForTableSelection(frameselection, shell, mouseEvent,
                                 getter_AddRefs(parentContent), &contentOffset,
                                 &target);
@@ -7469,10 +7459,7 @@ nsFrame::GetNextPrevLineFromeBlockFrame(nsPresContext* aPresContext,
           aPos->mAttach = offsets.associate;
           if (offsets.content)
           {
-            bool selectable;
-            resultFrame->IsSelectable(&selectable, nullptr);
-            if (selectable)
-            {
+            if (resultFrame->IsSelectable(nullptr)) {
               found = true;
               break;
             }
@@ -7514,10 +7501,7 @@ nsFrame::GetNextPrevLineFromeBlockFrame(nsPresContext* aPresContext,
         aPos->mAttach = offsets.associate;
         if (offsets.content)
         {
-          bool selectable;
-          resultFrame->IsSelectable(&selectable, nullptr);
-          if (selectable)
-          {
+          if (resultFrame->IsSelectable(nullptr)) {
             found = true;
             if (resultFrame == farStoppingFrame)
               aPos->mAttach = CARET_ASSOCIATE_BEFORE;
@@ -8328,7 +8312,7 @@ nsIFrame::GetFrameFromDirection(nsDirection aDirection, bool aVisual,
       }
     }
 
-    traversedFrame->IsSelectable(&selectable, nullptr);
+    selectable = traversedFrame->IsSelectable(nullptr);
     if (!selectable) {
       *aOutMovedOverNonSelectableText = true;
     }

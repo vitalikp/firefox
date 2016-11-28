@@ -4533,9 +4533,7 @@ nsTextFrame::GetCursor(const nsPoint& aPoint,
 {
   FillCursorInformationFromStyle(StyleUserInterface(), aCursor);
   if (NS_STYLE_CURSOR_AUTO == aCursor.mCursor) {
-    bool selectable;
-    IsSelectable(&selectable, nullptr);
-    if (!selectable) {
+    if (!IsSelectable(nullptr)) {
       aCursor.mCursor = NS_STYLE_CURSOR_DEFAULT;
     } else {
       aCursor.mCursor = GetWritingMode().IsVertical()
@@ -7860,9 +7858,8 @@ nsTextFrame::PeekOffsetCharacter(bool aForward, int32_t* aOffset,
   int32_t contentLength = GetContentLength();
   NS_ASSERTION(aOffset && *aOffset <= contentLength, "aOffset out of range");
 
-  bool selectable;
   StyleUserSelect selectStyle;
-  IsSelectable(&selectable, &selectStyle);
+  IsSelectable(&selectStyle);
   if (selectStyle == StyleUserSelect::All)
     return CONTINUE_UNSELECTABLE;
 
@@ -8049,9 +8046,8 @@ nsTextFrame::PeekOffsetWord(bool aForward, bool aWordSelectEatSpace, bool aIsKey
   int32_t contentLength = GetContentLength();
   NS_ASSERTION (aOffset && *aOffset <= contentLength, "aOffset out of range");
 
-  bool selectable;
   StyleUserSelect selectStyle;
-  IsSelectable(&selectable, &selectStyle);
+  IsSelectable(&selectStyle);
   if (selectStyle == StyleUserSelect::All)
     return CONTINUE_UNSELECTABLE;
 

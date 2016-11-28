@@ -616,8 +616,7 @@ AccessibleCaretManager::SelectWordOrShortcut(const nsPoint& aPoint)
     return NS_OK;
   }
 
-  bool selectable = false;
-  ptFrame->IsSelectable(&selectable, nullptr);
+  bool selectable = ptFrame->IsSelectable(nullptr);
 
 #ifdef DEBUG_FRAME_DUMP
   AC_LOG("%s: %s %s selectable.", __FUNCTION__, ptFrame->ListTag().get(),
@@ -1213,9 +1212,7 @@ AccessibleCaretManager::DragCaretInternal(const nsPoint& aPoint)
     return NS_ERROR_FAILURE;
   }
 
-  bool selectable;
-  newFrame->IsSelectable(&selectable, nullptr);
-  if (!selectable) {
+  if (!newFrame->IsSelectable(nullptr)) {
     return NS_ERROR_FAILURE;
   }
 
