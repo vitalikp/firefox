@@ -31,7 +31,10 @@ static const uint32_t EncodingVersion    = 0x01;
 // transition of toolchain, accept both for a short period of time.
 static const uint32_t PrevEncodingVersion = 0x0d;
 
-enum class SectionId {
+static const char NameSectionName[]      = "name";
+
+enum class SectionId
+{
     UserDefined                          = 0,
     Type                                 = 1,
     Import                               = 2,
@@ -45,8 +48,6 @@ enum class SectionId {
     Code                                 = 10,
     Data                                 = 11
 };
-
-static const char NameSectionName[] = "name";
 
 enum class TypeCode
 {
