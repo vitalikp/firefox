@@ -986,7 +986,7 @@ js::FindBody(JSContext* cx, HandleFunction fun, HandleLinearString src, size_t* 
 JSString*
 js::FunctionToString(JSContext* cx, HandleFunction fun, bool prettyPrint)
 {
-    if (fun->isInterpretedLazy() && !fun->getOrCreateScript(cx))
+    if (fun->isInterpretedLazy() && !JSFunction::getOrCreateScript(cx, fun))
         return nullptr;
 
     if (IsAsmJSModule(fun))
@@ -1321,7 +1321,7 @@ JSFunction::isDerivedClassConstructor()
 JSFunction::getLength(JSContext* cx, HandleFunction fun, uint16_t* length)
 {
     MOZ_ASSERT(!fun->isBoundFunction());
-    if (fun->isInterpretedLazy() && !fun->getOrCreateScript(cx))
+    if (fun->isInterpretedLazy() && !getOrCreateScript(cx, fun))
         return false;
 
     *length = fun->hasScript() ? fun->nonLazyScript()->funLength()
