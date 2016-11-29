@@ -59,7 +59,6 @@ class VideoStreamTrack;
 } // namespace dom
 } // namespace mozilla
 
-class AutoNotifyAudioChannelAgent;
 class nsIChannel;
 class nsIHttpChannel;
 class nsILoadGroup;
@@ -85,8 +84,6 @@ class HTMLMediaElement : public nsGenericHTMLElement,
                          public PrincipalChangeObserver<DOMMediaStream>,
                          public SupportsWeakPtr<HTMLMediaElement>
 {
-  friend AutoNotifyAudioChannelAgent;
-
 public:
   typedef mozilla::TimeStamp TimeStamp;
   typedef mozilla::layers::ImageContainer ImageContainer;
