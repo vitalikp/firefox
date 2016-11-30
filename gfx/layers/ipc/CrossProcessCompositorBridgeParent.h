@@ -152,6 +152,8 @@ public:
 
   virtual void UpdatePaintTime(LayerTransactionParent* aLayerTree, const TimeDuration& aPaintTime) override;
 
+  void ObserveLayerUpdate(uint64_t aLayersId, uint64_t aEpoch, bool aActive) override;
+
 protected:
   void OnChannelConnected(int32_t pid) override {
     mCompositorThreadHolder = CompositorThreadHolder::GetSingleton();

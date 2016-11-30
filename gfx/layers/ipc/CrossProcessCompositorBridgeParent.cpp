@@ -529,5 +529,19 @@ CrossProcessCompositorBridgeParent::UpdatePaintTime(LayerTransactionParent* aLay
   state->mParent->UpdatePaintTime(aLayerTree, aPaintTime);
 }
 
+void
+CrossProcessCompositorBridgeParent::ObserveLayerUpdate(uint64_t aLayersId, uint64_t aEpoch, bool aActive)
+{
+  MOZ_ASSERT(aLayersId != 0);
+
+  CompositorBridgeParent::LayerTreeState* state =
+    CompositorBridgeParent::GetIndirectShadowTree(aLayersId);
+  if (!state || !state->mParent) {
+    return;
+  }
+
+  Unused << state->mParent->SendObserveLayerUpdate(aLayersId, aEpoch, aActive);
+}
+
 } // namespace layers
 } // namespace mozilla

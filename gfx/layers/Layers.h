@@ -672,6 +672,12 @@ public:
     return count;
   }
 
+  virtual void SetLayerObserverEpoch(uint64_t aLayerObserverEpoch) {}
+
+  virtual void DidComposite(uint64_t aTransactionId,
+                            const mozilla::TimeStamp& aCompositeStart,
+                            const mozilla::TimeStamp& aCompositeEnd) {}
+
   virtual uint64_t GetLastTransactionId() { return 0; }
 
 protected:
