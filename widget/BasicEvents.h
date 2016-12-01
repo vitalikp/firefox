@@ -584,6 +584,7 @@ public:
       case eMouseEventClass:
         mFlags.mComposed = mMessage == eMouseClick ||
                            mMessage == eMouseDoubleClick ||
+                           mMessage == eMouseAuxClick ||
                            mMessage == eMouseDown || mMessage == eMouseUp ||
                            mMessage == eMouseEnter || mMessage == eMouseLeave ||
                            mMessage == eMouseOver || mMessage == eMouseOut ||
