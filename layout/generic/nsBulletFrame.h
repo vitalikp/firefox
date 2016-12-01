@@ -57,6 +57,7 @@ public:
     : nsFrame(aContext)
     , mPadding(GetWritingMode())
     , mIntrinsicSize(GetWritingMode())
+    , mOrdinal(0)
     , mRequestRegistered(false)
     , mBlockingOnload(false)
   { }
