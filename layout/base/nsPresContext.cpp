@@ -77,6 +77,7 @@
 #include "nsLayoutStylesheetCache.h"
 #include "mozilla/StyleSheet.h"
 #include "mozilla/StyleSheetInlines.h"
+#include "mozilla/ServoRestyleManagerInlines.h"
 #include "mozilla/Telemetry.h"
 
 #if defined(MOZ_WIDGET_GTK)
