@@ -101,6 +101,7 @@ class nsIGlobalObject;
 struct nsCSSSelectorList;
 
 namespace mozilla {
+class AbstractThread;
 class CSSStyleSheet;
 class ErrorResult;
 class EventStates;
@@ -2848,6 +2849,9 @@ public:
 
   virtual nsIEventTarget*
   EventTargetFor(mozilla::dom::TaskCategory aCategory) const override;
+
+  virtual mozilla::AbstractThread*
+  AbstractMainThreadFor(mozilla::dom::TaskCategory aCategory) override;
 
   bool PrerenderHref(nsIURI* aHref);
 
