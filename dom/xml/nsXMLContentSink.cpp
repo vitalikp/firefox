@@ -1069,6 +1069,9 @@ nsXMLContentSink::HandleEndElement(const char16_t *aName,
                (debugNameSpaceID == kNameSpaceID_MathML &&
                 content->NodeInfo()->NamespaceID() == kNameSpaceID_disabled_MathML &&
                 content->NodeInfo()->Equals(debugTagAtom)) ||
+               (debugNameSpaceID == kNameSpaceID_SVG &&
+                content->NodeInfo()->NamespaceID() == kNameSpaceID_disabled_SVG &&
+                content->NodeInfo()->Equals(debugTagAtom)) ||
                isTemplateElement, "Wrong element being closed");
 #endif
 
