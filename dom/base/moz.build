@@ -63,7 +63,6 @@ EXPORTS += [
     'nsDocumentWarningList.h',
     'nsDOMAttributeMap.h',
     'nsDOMCID.h',
-    'nsDOMClassInfoClasses.h',
     'nsDOMClassInfoID.h',
     'nsDOMJSUtils.h',
     'nsDOMNavigationTiming.h',
