@@ -162,12 +162,6 @@ private:
   nsCOMPtr<nsIX509Cert> mClientCert;
 };
 
-enum StrongCipherStatus {
-  StrongCipherStatusUnknown,
-  StrongCiphersWorked,
-  StrongCiphersFailed
-};
-
 class nsSSLIOLayerHelpers
 {
 public:
@@ -194,7 +188,6 @@ private:
     uint16_t tolerant;
     uint16_t intolerant;
     PRErrorCode intoleranceReason;
-    StrongCipherStatus strongCipherStatus;
 
     void AssertInvariant() const
     {
@@ -213,12 +206,9 @@ public:
   bool rememberIntolerantAtVersion(const nsACString& hostname, int16_t port,
                                    uint16_t intolerant, uint16_t minVersion,
                                    PRErrorCode intoleranceReason);
-  bool rememberStrongCiphersFailed(const nsACString& hostName, int16_t port,
-                                   PRErrorCode intoleranceReason);
   void forgetIntolerance(const nsACString& hostname, int16_t port);
   void adjustForTLSIntolerance(const nsACString& hostname, int16_t port,
-                               /*in/out*/ SSLVersionRange& range,
-                               /*out*/ StrongCipherStatus& strongCipherStatus);
+                               /*in/out*/ SSLVersionRange& range);
   PRErrorCode getIntoleranceReason(const nsACString& hostname, int16_t port);
 
   void clearStoredData();
@@ -226,12 +216,10 @@ public:
   void setInsecureFallbackSites(const nsCString& str);
   void initInsecureFallbackSites();
   bool isPublic() const;
-  void addInsecureFallbackSite(const nsCString& hostname, bool temporary);
   void removeInsecureFallbackSite(const nsACString& hostname, uint16_t port);
   bool isInsecureFallbackSite(const nsACString& hostname);
 
   bool mFalseStartRequireNPN;
-  bool mUnrestrictedRC4Fallback;
   uint16_t mVersionFallbackLimit;
 private:
   mozilla::Mutex mutex;

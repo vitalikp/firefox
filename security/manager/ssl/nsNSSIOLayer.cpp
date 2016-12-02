@@ -767,14 +767,10 @@ nsSSLIOLayerHelpers::rememberTolerantAtVersion(const nsACString& hostName,
       entry.intolerant = entry.tolerant + 1;
       entry.intoleranceReason = 0; // lose the reason
     }
-    if (entry.strongCipherStatus == StrongCipherStatusUnknown) {
-      entry.strongCipherStatus = StrongCiphersWorked;
-    }
   } else {
     entry.tolerant = tolerant;
     entry.intolerant = 0;
     entry.intoleranceReason = 0;
-    entry.strongCipherStatus = StrongCiphersWorked;
   }
 
   entry.AssertInvariant();
@@ -797,9 +793,6 @@ nsSSLIOLayerHelpers::forgetIntolerance(const nsACString& hostName,
 
     entry.intolerant = 0;
     entry.intoleranceReason = 0;
-    if (entry.strongCipherStatus != StrongCiphersWorked) {
-      entry.strongCipherStatus = StrongCipherStatusUnknown;
-    }
 
     entry.AssertInvariant();
     mTLSIntoleranceInfo.Put(key, entry);
@@ -848,7 +841,6 @@ nsSSLIOLayerHelpers::rememberIntolerantAtVersion(const nsACString& hostName,
     }
   } else {
     entry.tolerant = 0;
-    entry.strongCipherStatus = StrongCipherStatusUnknown;
   }
 
   entry.intolerant = intolerant;
@@ -859,42 +851,10 @@ nsSSLIOLayerHelpers::rememberIntolerantAtVersion(const nsACString& hostName,
   return true;
 }
 
-// returns true if we should retry the handshake
-bool
-nsSSLIOLayerHelpers::rememberStrongCiphersFailed(const nsACString& hostName,
-                                                 int16_t port,
-                                                 PRErrorCode intoleranceReason)
-{
-  nsCString key;
-  getSiteKey(hostName, port, key);
-
-  MutexAutoLock lock(mutex);
-
-  IntoleranceEntry entry;
-  if (mTLSIntoleranceInfo.Get(key, &entry)) {
-    entry.AssertInvariant();
-    if (entry.strongCipherStatus != StrongCipherStatusUnknown) {
-      // We already know if the server supports a strong cipher.
-      return false;
-    }
-  } else {
-    entry.tolerant = 0;
-    entry.intolerant = 0;
-    entry.intoleranceReason = intoleranceReason;
-  }
-
-  entry.strongCipherStatus = StrongCiphersFailed;
-  entry.AssertInvariant();
-  mTLSIntoleranceInfo.Put(key, entry);
-
-  return true;
-}
-
 void
 nsSSLIOLayerHelpers::adjustForTLSIntolerance(const nsACString& hostName,
                                              int16_t port,
-                                             /*in/out*/ SSLVersionRange& range,
-                                             /*out*/ StrongCipherStatus& strongCipherStatus)
+                                             /*in/out*/ SSLVersionRange& range)
 {
   IntoleranceEntry entry;
 
@@ -917,7 +877,6 @@ nsSSLIOLayerHelpers::adjustForTLSIntolerance(const nsACString& hostName,
       range.max = entry.intolerant - 1;
     }
   }
-  strongCipherStatus = entry.strongCipherStatus;
 }
 
 PRErrorCode
@@ -1138,28 +1097,6 @@ retryDueToTLSIntolerance(PRErrorCode err, nsNSSSocketInfo* socketInfo)
                               socketInfo->GetPort());
 
     return false;
-  }
-
-  // Disallow PR_CONNECT_RESET_ERROR if fallback limit reached.
-  bool fallbackLimitReached =
-    helpers.fallbackLimitReached(socketInfo->GetHostName(), range.max);
-  if (err == PR_CONNECT_RESET_ERROR && fallbackLimitReached) {
-    return false;
-  }
-
-  if ((err == SSL_ERROR_NO_CYPHER_OVERLAP || err == PR_END_OF_FILE_ERROR ||
-       err == PR_CONNECT_RESET_ERROR) &&
-       nsNSSComponent::AreAnyWeakCiphersEnabled()) {
-    if (helpers.isInsecureFallbackSite(socketInfo->GetHostName()) ||
-        helpers.mUnrestrictedRC4Fallback) {
-      if (helpers.rememberStrongCiphersFailed(socketInfo->GetHostName(),
-                                              socketInfo->GetPort(), err)) {
-        Telemetry::Accumulate(Telemetry::SSL_WEAK_CIPHERS_FALLBACK,
-                              tlsIntoleranceTelemetryBucket(err));
-        return true;
-      }
-      Telemetry::Accumulate(Telemetry::SSL_WEAK_CIPHERS_FALLBACK, 0);
-    }
   }
 
   // When not using a proxy we'll see a connection reset error.
@@ -1409,7 +1346,6 @@ nsSSLIOLayerHelpers::nsSSLIOLayerHelpers()
   : mTreatUnsafeNegotiationAsBroken(false)
   , mTLSIntoleranceInfo()
   , mFalseStartRequireNPN(false)
-  , mUnrestrictedRC4Fallback(false)
   , mVersionFallbackLimit(SSL_LIBRARY_VERSION_TLS_1_0)
   , mutex("nsSSLIOLayerHelpers.mutex")
 {
@@ -1631,9 +1567,6 @@ PrefObserver::Observe(nsISupports* aSubject, const char* aTopic,
       if (mOwner->isPublic()) {
         mOwner->initInsecureFallbackSites();
       }
-    } else if (prefName.EqualsLiteral("security.tls.unrestricted_rc4_fallback")) {
-      mOwner->mUnrestrictedRC4Fallback =
-        Preferences::GetBool("security.tls.unrestricted_rc4_fallback", false);
     }
   }
   return NS_OK;
@@ -1670,8 +1603,6 @@ nsSSLIOLayerHelpers::~nsSSLIOLayerHelpers()
         "security.tls.version.fallback-limit");
     Preferences::RemoveObserver(mPrefObserver,
         "security.tls.insecure_fallback_hosts");
-    Preferences::RemoveObserver(mPrefObserver,
-        "security.tls.unrestricted_rc4_fallback");
   }
 }
 
@@ -1729,8 +1660,6 @@ nsSSLIOLayerHelpers::Init()
                          FALSE_START_REQUIRE_NPN_DEFAULT);
   loadVersionFallbackLimit();
   initInsecureFallbackSites();
-  mUnrestrictedRC4Fallback =
-    Preferences::GetBool("security.tls.unrestricted_rc4_fallback", false);
 
   mPrefObserver = new PrefObserver(this);
   Preferences::AddStrongObserver(mPrefObserver,
@@ -1741,8 +1670,6 @@ nsSSLIOLayerHelpers::Init()
                                  "security.tls.version.fallback-limit");
   Preferences::AddStrongObserver(mPrefObserver,
                                  "security.tls.insecure_fallback_hosts");
-  Preferences::AddStrongObserver(mPrefObserver,
-                                 "security.tls.unrestricted_rc4_fallback");
   return NS_OK;
 }
 
@@ -1806,30 +1733,6 @@ bool
 nsSSLIOLayerHelpers::isPublic() const
 {
   return this == &PublicSSLState()->IOLayerHelpers();
-}
-
-void
-nsSSLIOLayerHelpers::addInsecureFallbackSite(const nsCString& hostname,
-                                             bool temporary)
-{
-  MOZ_ASSERT(NS_IsMainThread());
-  {
-    MutexAutoLock lock(mutex);
-    if (mInsecureFallbackSites.Contains(hostname)) {
-      return;
-    }
-    mInsecureFallbackSites.PutEntry(hostname);
-  }
-  if (!isPublic() || temporary) {
-    return;
-  }
-  nsCString value;
-  Preferences::GetCString("security.tls.insecure_fallback_hosts", &value);
-  if (!value.IsEmpty()) {
-    value.Append(',');
-  }
-  value.Append(hostname);
-  Preferences::SetCString("security.tls.insecure_fallback_hosts", value);
 }
 
 class FallbackPrefRemover final : public Runnable
@@ -2540,24 +2443,18 @@ nsSSLIOLayerSetOptions(PRFileDesc* fd, bool forSTARTTLS,
   }
 
   uint16_t maxEnabledVersion = range.max;
-  StrongCipherStatus strongCiphersStatus = StrongCipherStatusUnknown;
   infoObject->SharedState().IOLayerHelpers()
     .adjustForTLSIntolerance(infoObject->GetHostName(), infoObject->GetPort(),
-                             range, strongCiphersStatus);
+                             range);
   MOZ_LOG(gPIPNSSLog, LogLevel::Debug,
-         ("[%p] nsSSLIOLayerSetOptions: using TLS version range (0x%04x,0x%04x)%s\n",
+         ("[%p] nsSSLIOLayerSetOptions: using TLS version range (0x%04x,0x%04x)\n",
           fd, static_cast<unsigned int>(range.min),
-              static_cast<unsigned int>(range.max),
-          strongCiphersStatus == StrongCiphersFailed ? " with weak ciphers" : ""));
+              static_cast<unsigned int>(range.max)));
 
   if (SSL_VersionRangeSet(fd, &range) != SECSuccess) {
     return NS_ERROR_FAILURE;
   }
   infoObject->SetTLSVersionRange(range);
-
-  if (strongCiphersStatus == StrongCiphersFailed) {
-    nsNSSComponent::UseWeakCiphersOnSocket(fd);
-  }
 
   // when adjustForTLSIntolerance tweaks the maximum version downward,
   // we tell the server using this SCSV so they can detect a downgrade attack
