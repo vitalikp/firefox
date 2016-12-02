@@ -3030,6 +3030,18 @@ MatchPart(const char** pattern, const char (&part)[N])
     return true;
 }
 
+static bool
+MatchSlash(JSContext* cx, const JSAutoByteString& pattern, const char** iter)
+{
+    if (MOZ_LIKELY(**iter == '/')) {
+        *iter += 1;
+        return true;
+    }
+
+    JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr, JSMSG_INVALID_KEY, pattern.ptr());
+    return false;
+}
+
 bool
 js::intl_ComputeDisplayNames(JSContext* cx, unsigned argc, Value* vp)
 {
@@ -3115,16 +3127,12 @@ js::intl_ComputeDisplayNames(JSContext* cx, unsigned argc, Value* vp)
             return false;
         }
 
-        if (!MatchPart(&pat, "/")) {
-            JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr, JSMSG_INVALID_KEY, pattern.ptr());
+        if (!MatchSlash(cx, pattern, &pat))
             return false;
-        }
 
         if (MatchPart(&pat, "fields")) {
-            if (!MatchPart(&pat, "/")) {
-                JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr, JSMSG_INVALID_KEY, pattern.ptr());
+            if (!MatchSlash(cx, pattern, &pat))
                 return false;
-            }
 
             UDateTimePatternField fieldType;
 
@@ -3161,19 +3169,15 @@ js::intl_ComputeDisplayNames(JSContext* cx, unsigned argc, Value* vp)
 
             wordVal.setString(word);
         } else if (MatchPart(&pat, "gregorian")) {
-            if (!MatchPart(&pat, "/")) {
-                JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr, JSMSG_INVALID_KEY, pattern.ptr());
+            if (!MatchSlash(cx, pattern, &pat))
                 return false;
-            }
 
             UDateFormatSymbolType symbolType;
             int32_t index;
 
             if (MatchPart(&pat, "months")) {
-                if (!MatchPart(&pat, "/")) {
-                    JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr, JSMSG_INVALID_KEY, pattern.ptr());
+                if (!MatchSlash(cx, pattern, &pat))
                     return false;
-                }
 
                 if (equal(style, "narrow")) {
                     symbolType = UDAT_STANDALONE_NARROW_MONTHS;
@@ -3213,10 +3217,8 @@ js::intl_ComputeDisplayNames(JSContext* cx, unsigned argc, Value* vp)
                     return false;
                 }
             } else if (MatchPart(&pat, "weekdays")) {
-                if (!MatchPart(&pat, "/")) {
-                    JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr, JSMSG_INVALID_KEY, pattern.ptr());
+                if (!MatchSlash(cx, pattern, &pat))
                     return false;
-                }
 
                 if (equal(style, "narrow")) {
                     symbolType = UDAT_STANDALONE_NARROW_WEEKDAYS;
@@ -3246,10 +3248,8 @@ js::intl_ComputeDisplayNames(JSContext* cx, unsigned argc, Value* vp)
                     return false;
                 }
             } else if (MatchPart(&pat, "dayperiods")) {
-                if (!MatchPart(&pat, "/")) {
-                    JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr, JSMSG_INVALID_KEY, pattern.ptr());
+                if (!MatchSlash(cx, pattern, &pat))
                     return false;
-                }
 
                 symbolType = UDAT_AM_PMS;
 
