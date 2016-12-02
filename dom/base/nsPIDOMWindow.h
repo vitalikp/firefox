@@ -49,6 +49,7 @@ class Element;
 class Performance;
 class ServiceWorkerRegistration;
 class Timeout;
+class TimeoutManager;
 class CustomElementRegistry;
 enum class CallerType : uint32_t;
 } // namespace dom
@@ -612,6 +613,8 @@ protected:
 
   // mPerformance is only used on inner windows.
   RefPtr<mozilla::dom::Performance> mPerformance;
+  // mTimeoutManager is only useed on inner windows.
+  mozilla::UniquePtr<mozilla::dom::TimeoutManager> mTimeoutManager;
 
   typedef nsRefPtrHashtable<nsStringHashKey,
                             mozilla::dom::ServiceWorkerRegistration>
@@ -621,8 +624,6 @@ protected:
   uint32_t               mModalStateDepth;
 
   // These variables are only used on inner windows.
-  mozilla::dom::Timeout *mRunningTimeout;
-
   uint32_t               mMutationBits;
 
   bool                   mIsDocumentLoaded;
@@ -843,6 +844,10 @@ public:
   // Apply the parent window's suspend, freeze, and modal state to the current
   // window.
   void SyncStateFromParentWindow();
+
+  bool HasAudioContexts() const;
+
+  mozilla::dom::TimeoutManager& TimeoutManager();
 
 protected:
   void CreatePerformanceObjectIfNeeded();
