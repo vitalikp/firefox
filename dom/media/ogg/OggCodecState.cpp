@@ -935,7 +935,6 @@ OpusState::OpusState(ogg_page* aBosPage)
   : OggCodecState(aBosPage, true)
   , mParser(nullptr)
   , mDecoder(nullptr)
-  , mSkip(0)
   , mPrevPacketGranulepos(0)
   , mPrevPageGranulepos(0)
 {
@@ -967,8 +966,6 @@ OpusState::Reset(bool aStart)
   if (mActive && mDecoder) {
     // Reset the decoder.
     opus_multistream_decoder_ctl(mDecoder, OPUS_RESET_STATE);
-    // Let the seek logic handle pre-roll if we're not seeking to the start.
-    mSkip = aStart ? mParser->mPreSkip : 0;
     // This lets us distinguish the first page being the last page vs. just
     // not having processed the previous page when we encounter the last page.
     mPrevPageGranulepos = aStart ? 0 : -1;
@@ -980,7 +977,7 @@ OpusState::Reset(bool aStart)
     return NS_ERROR_FAILURE;
   }
 
-  LOG(LogLevel::Debug, ("Opus decoder reset, to skip %d", mSkip));
+  LOG(LogLevel::Debug, ("Opus decoder reset"));
 
   return res;
 }
@@ -1003,9 +1000,7 @@ OpusState::Init(void)
                                              mParser->mMappingTable,
                                              &error);
 
-  mSkip = mParser->mPreSkip;
-
-  LOG(LogLevel::Debug, ("Opus decoder init, to skip %d", mSkip));
+  LOG(LogLevel::Debug, ("Opus decoder init"));
 
   return error == OPUS_OK;
 }
@@ -1024,11 +1019,6 @@ OpusState::DecodeHeader(ogg_packet* aPacket)
       mRate = mParser->mRate;
       mChannels = mParser->mChannels;
       mPreSkip = mParser->mPreSkip;
-#ifdef MOZ_SAMPLE_TYPE_FLOAT32
-      mGain = mParser->mGain;
-#else
-      mGain_Q16 = mParser->mGain_Q16;
-#endif
       break;
 
     // Parse the metadata header.
