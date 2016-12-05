@@ -1353,10 +1353,10 @@ FlacState::GetTags()
   return mParser.GetTags();
 }
 
-const AudioInfo&
-FlacState::Info()
+const TrackInfo*
+FlacState::GetInfo() const
 {
-  return mParser.mInfo;
+  return &mParser.mInfo;
 }
 
 bool
