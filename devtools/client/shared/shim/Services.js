@@ -600,6 +600,14 @@ const Services = {
       };
     },
   },
+
+  /**
+   * Shims for Services.obs.add/removeObserver.
+   */
+  obs: {
+    addObserver: () => {},
+    removeObserver: () => {},
+  },
 };
 
 /**
