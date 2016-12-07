@@ -38,8 +38,7 @@ public:
   void Init(PromiseId aPromiseId,
             const nsAString& aOrigin,
             const nsAString& aTopLevelOrigin,
-            const nsAString& aGMPName,
-            bool aInPrivateBrowsing) override;
+            const nsAString& aGMPName) override;
 
   void CreateSession(uint32_t aCreateSessionToken,
                      MediaKeySessionType aSessionType,
