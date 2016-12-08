@@ -1026,7 +1026,7 @@ nsFrameLoader::AddTreeItemToTreeOwner(nsIDocShellTreeItem* aItem,
     if (aOwner) {
       mOwnerContent->AddMutationObserver(this);
       mObservingOwnerContent = true;
-      aOwner->ContentShellAdded(aItem, is_primary, value);
+      aOwner->ContentShellAdded(aItem, is_primary);
     }
   }
 
@@ -3371,7 +3371,7 @@ nsFrameLoader::AttributeChanged(nsIDocument* aDocument,
       StringBeginsWith(value, NS_LITERAL_STRING("content-"),
                        nsCaseInsensitiveStringComparator())) {
 
-    parentTreeOwner->ContentShellAdded(mDocShell, is_primary, value);
+    parentTreeOwner->ContentShellAdded(mDocShell, is_primary);
   }
 }
 
