@@ -609,7 +609,7 @@ nsAppStartup::CreateChromeWindow(nsIWebBrowserChrome *aParent,
                                  nsIWebBrowserChrome **_retval)
 {
   bool cancel;
-  return CreateChromeWindow2(aParent, aChromeFlags, 0, nullptr, nullptr, &cancel, _retval);
+  return CreateChromeWindow2(aParent, aChromeFlags, nullptr, nullptr, &cancel, _retval);
 }
 
 
@@ -631,7 +631,6 @@ nsAppStartup::SetScreenId(uint32_t aScreenId)
 NS_IMETHODIMP
 nsAppStartup::CreateChromeWindow2(nsIWebBrowserChrome *aParent,
                                   uint32_t aChromeFlags,
-                                  uint32_t aContextFlags,
                                   nsITabParent *aOpeningTab,
                                   mozIDOMWindowProxy* aOpener,
                                   bool *aCancel,
@@ -676,7 +675,6 @@ nsAppStartup::CreateChromeWindow2(nsIWebBrowserChrome *aParent,
 
   // if anybody gave us anything to work with, use it
   if (newWindow) {
-    newWindow->SetContextFlags(aContextFlags);
     nsCOMPtr<nsIInterfaceRequestor> thing(do_QueryInterface(newWindow));
     if (thing)
       CallGetInterface(thing.get(), _retval);
