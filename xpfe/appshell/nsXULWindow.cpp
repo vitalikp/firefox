@@ -1784,7 +1784,7 @@ nsXULWindow::GetWindowDOMElement() const
 }
 
 nsresult nsXULWindow::ContentShellAdded(nsIDocShellTreeItem* aContentShell,
-   bool aPrimary, bool aTargetable, const nsAString& aID)
+   bool aPrimary, const nsAString& aID)
 {
   nsContentShellInfo* shellInfo = nullptr;
 
