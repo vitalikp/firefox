@@ -17,6 +17,7 @@
 #include "mozilla/HalTypes.h"
 #include "mozilla/LinkedList.h"
 #include "mozilla/StaticPtr.h"
+#include "mozilla/TimeStamp.h"
 #include "mozilla/UniquePtr.h"
 
 #include "nsDataHashtable.h"
@@ -1055,6 +1056,7 @@ private:
   // details.
 
   GeckoChildProcessHost* mSubprocess;
+  const TimeStamp mLaunchTS; // used to calculate time to start content process
   ContentParent* mOpener;
 
   nsString mRemoteType;
