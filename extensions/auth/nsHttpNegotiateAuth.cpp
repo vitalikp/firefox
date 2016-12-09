@@ -33,7 +33,6 @@
 #include "plbase64.h"
 #include "plstr.h"
 #include "mozilla/Base64.h"
-#include "prprf.h"
 #include "mozilla/Logging.h"
 #include "prmem.h"
 #include "prnetdb.h"
