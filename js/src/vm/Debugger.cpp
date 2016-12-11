@@ -8987,7 +8987,6 @@ DebuggerObject::proxyHandlerGetter(JSContext* cx, unsigned argc, Value* vp)
     return true;
 }
 
-#ifdef SPIDERMONKEY_PROMISE
 /* static */ bool
 DebuggerObject::isPromiseGetter(JSContext* cx, unsigned argc, Value* vp)
 {
@@ -9156,7 +9155,6 @@ DebuggerObject::promiseDependentPromisesGetter(JSContext* cx, unsigned argc, Val
     args.rval().setObject(*promises);
     return true;
 }
-#endif // SPIDERMONKEY_PROMISE
 
 /* static */ bool
 DebuggerObject::isExtensibleMethod(JSContext* cx, unsigned argc, Value* vp)
@@ -9594,7 +9592,6 @@ const JSPropertySpec DebuggerObject::properties_[] = {
     JS_PS_END
 };
 
-#ifdef SPIDERMONKEY_PROMISE
 const JSPropertySpec DebuggerObject::promiseProperties_[] = {
     JS_PSG("isPromise", DebuggerObject::isPromiseGetter, 0),
     JS_PSG("promiseState", DebuggerObject::promiseStateGetter, 0),
@@ -9608,7 +9605,6 @@ const JSPropertySpec DebuggerObject::promiseProperties_[] = {
     JS_PSG("promiseDependentPromises", DebuggerObject::promiseDependentPromisesGetter, 0),
     JS_PS_END
 };
-#endif // SPIDERMONKEY_PROMISE
 
 const JSFunctionSpec DebuggerObject::methods_[] = {
     JS_FN("isExtensible", DebuggerObject::isExtensibleMethod, 0, 0),
@@ -9648,10 +9644,8 @@ DebuggerObject::initClass(JSContext* cx, HandleObject obj, HandleObject debugCto
     if (!objectProto)
         return nullptr;
 
-#ifdef SPIDERMONKEY_PROMISE
     if (!DefinePropertiesAndFunctions(cx, objectProto, promiseProperties_, nullptr))
         return nullptr;
-#endif // SPIDERMONKEY_PROMISE
 
     return objectProto;
 }
@@ -9719,7 +9713,6 @@ DebuggerObject::isScriptedProxy() const
     return js::IsScriptedProxy(referent());
 }
 
-#ifdef SPIDERMONKEY_PROMISE
 bool
 DebuggerObject::isPromise() const
 {
@@ -9733,7 +9726,6 @@ DebuggerObject::isPromise() const
 
     return referent->is<PromiseObject>();
 }
-#endif // SPIDERMONKEY_PROMISE
 
 /* static */ bool
 DebuggerObject::getClassName(JSContext* cx, HandleDebuggerObject object,
@@ -9992,7 +9984,6 @@ DebuggerObject::getErrorColumnNumber(JSContext* cx, HandleDebuggerObject object,
     return true;
 }
 
-#ifdef SPIDERMONKEY_PROMISE
 /* static */ bool
 DebuggerObject::getPromiseValue(JSContext* cx, HandleDebuggerObject object,
                                 MutableHandleValue result)
@@ -10012,7 +10003,6 @@ DebuggerObject::getPromiseReason(JSContext* cx, HandleDebuggerObject object,
     result.set(object->promise()->reason());
     return object->owner()->wrapDebuggeeValue(cx, result);
 }
-#endif // SPIDERMONKEY_PROMISE
 
 /* static */ bool
 DebuggerObject::isExtensible(JSContext* cx, HandleDebuggerObject object, bool& result)
@@ -10482,7 +10472,6 @@ DebuggerObject::requireGlobal(JSContext* cx, HandleDebuggerObject object)
     return true;
 }
 
-#ifdef SPIDERMONKEY_PROMISE
 /* static */ bool
 DebuggerObject::requirePromise(JSContext* cx, HandleDebuggerObject object)
 {
@@ -10504,7 +10493,6 @@ DebuggerObject::requirePromise(JSContext* cx, HandleDebuggerObject object)
 
    return true;
 }
-#endif // SPIDERMONKEY_PROMISE
 
 /* static */ bool
 DebuggerObject::getScriptedProxyTarget(JSContext* cx, HandleDebuggerObject object,
