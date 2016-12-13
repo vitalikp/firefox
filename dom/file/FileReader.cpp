@@ -283,7 +283,7 @@ FileReader::DoReadData(uint64_t aCount)
   if (mDataFormat == FILE_AS_BINARY) {
     //Continuously update our binary string as data comes in
     uint32_t oldLen = mResult.Length();
-    NS_ASSERTION(mResult.Length() == mDataLen, "unexpected mResult length");
+    MOZ_ASSERT(mResult.Length() == mDataLen, "unexpected mResult length");
     if (uint64_t(oldLen) + aCount > UINT32_MAX)
       return NS_ERROR_OUT_OF_MEMORY;
     char16_t *buf = nullptr;
@@ -293,7 +293,7 @@ FileReader::DoReadData(uint64_t aCount)
     uint32_t bytesRead = 0;
     mAsyncStream->ReadSegments(ReadFuncBinaryString, buf + oldLen, aCount,
                                &bytesRead);
-    NS_ASSERTION(bytesRead == aCount, "failed to read data");
+    MOZ_ASSERT(bytesRead == aCount, "failed to read data");
   }
   else {
     CheckedInt<uint64_t> size = mDataLen;
@@ -315,7 +315,7 @@ FileReader::DoReadData(uint64_t aCount)
     uint32_t bytesRead = 0;
     MOZ_DIAGNOSTIC_ASSERT(mFileData);
     mAsyncStream->Read(mFileData + mDataLen, aCount, &bytesRead);
-    NS_ASSERTION(bytesRead == aCount, "failed to read data");
+    MOZ_ASSERT(bytesRead == aCount, "failed to read data");
   }
 
   mDataLen += aCount;
