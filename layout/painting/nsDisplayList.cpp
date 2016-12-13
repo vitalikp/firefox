@@ -7505,10 +7505,15 @@ nsDisplayFilter::BuildLayer(nsDisplayListBuilder* aBuilder,
   nsSVGEffects::EffectProperties effectProperties =
     nsSVGEffects::GetEffectProperties(firstFrame);
 
-  ContainerLayerParameters newContainerParameters = aContainerParameters;
-  if (effectProperties.HasValidFilter()) {
-    newContainerParameters.mDisableSubpixelAntialiasingInDescendants = true;
+  if (effectProperties.HasInvalidFilter()) {
+    return nullptr;
   }
+
+  MOZ_ASSERT(effectProperties.mFilter && mFrame->StyleEffects()->HasFilters(),
+             "By getting here, we must have valid CSS filters.");
+
+  ContainerLayerParameters newContainerParameters = aContainerParameters;
+  newContainerParameters.mDisableSubpixelAntialiasingInDescendants = true;
 
   RefPtr<ContainerLayer> container = aManager->GetLayerBuilder()->
     BuildContainerLayerFor(aBuilder, aManager, mFrame, this, &mList,
