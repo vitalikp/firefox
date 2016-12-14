@@ -11,6 +11,8 @@
 #include <errno.h>
 #endif
 
+#include "mozilla/IntegerPrintfMacros.h"
+
 #include "mozilla/ipc/ProtocolUtils.h"
 
 #include "mozilla/dom/ContentParent.h"

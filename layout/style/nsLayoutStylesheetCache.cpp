@@ -495,7 +495,7 @@ nsLayoutStylesheetCache::LoadSheet(nsIURI* aURI,
   nsresult rv = loader->LoadSheetSync(aURI, aParsingMode, true, aSheet);
   if (NS_FAILED(rv)) {
     ErrorLoadingSheet(aURI,
-      nsPrintfCString("LoadSheetSync failed with error %x", rv).get(),
+      nsPrintfCString("LoadSheetSync failed with error %" PRIx32, static_cast<uint32_t>(rv)).get(),
       aFailureAction);
   }
 }

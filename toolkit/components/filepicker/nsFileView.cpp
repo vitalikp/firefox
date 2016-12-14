@@ -740,7 +740,7 @@ nsFileView::GetCellText(int32_t aRow, nsITreeColumn* aCol,
     else {
       int64_t fileSize;
       curFile->GetFileSize(&fileSize);
-      CopyUTF8toUTF16(nsPrintfCString("%lld", fileSize), aCellText);
+      CopyUTF8toUTF16(nsPrintfCString("%" PRId64, fileSize), aCellText);
     }
   }
 
