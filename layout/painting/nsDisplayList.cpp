@@ -6466,6 +6466,20 @@ nsDisplayTransform::CanUseAsyncAnimations(nsDisplayListBuilder* aBuilder)
   return mAllowAsyncAnimation;
 }
 
+static nsRect ComputePartialPrerenderArea(const nsRect& aDirtyRect,
+                                          const nsRect& aOverflow,
+                                          const nsSize& aPrerenderSize)
+{
+  // Simple calculation for now: center the pre-render area on the dirty rect,
+  // and clamp to the overflow area. Later we can do more advanced things like
+  // redistributing from one axis to another, or from one side to another.
+  nscoord xExcess = aPrerenderSize.width - aDirtyRect.width;
+  nscoord yExcess = aPrerenderSize.height - aDirtyRect.height;
+  nsRect result = aDirtyRect;
+  result.Inflate(xExcess / 2, yExcess / 2);
+  return result.MoveInsideAndClamp(aOverflow);
+}
+
 /* static */ auto
 nsDisplayTransform::ShouldPrerenderTransformedContent(nsDisplayListBuilder* aBuilder,
                                                       nsIFrame* aFrame,
@@ -6506,6 +6520,9 @@ nsDisplayTransform::ShouldPrerenderTransformedContent(nsDisplayListBuilder* aBui
   if (frameSize <= maxSize) {
     *aDirtyRect = overflow;
     return FullPrerender;
+  } else if (gfxPrefs::PartiallyPrerenderAnimatedContent()) {
+    *aDirtyRect = ComputePartialPrerenderArea(*aDirtyRect, overflow, maxSize);
+    return PartialPrerender;
   }
 
   EffectCompositor::SetPerformanceWarning(
