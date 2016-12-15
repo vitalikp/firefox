@@ -1711,12 +1711,14 @@ nsDocShell::FirePageHideNotification(bool aIsUnload)
   return NS_OK;
 }
 
-void
+bool
 nsDocShell::MaybeInitTiming()
 {
   if (mTiming && !mBlankTiming) {
-    return;
+    return false;
   }
+
+  bool canBeReset = false;
 
   if (mScriptGlobal && mBlankTiming) {
     nsPIDOMWindowInner* innerWin =
@@ -1729,11 +1731,22 @@ nsDocShell::MaybeInitTiming()
 
   if (!mTiming) {
     mTiming = new nsDOMNavigationTiming();
+    canBeReset = true;
   }
 
   mTiming->NotifyNavigationStart(
     mIsActive ? nsDOMNavigationTiming::DocShellState::eActive
               : nsDOMNavigationTiming::DocShellState::eInactive);
+
+  return canBeReset;
+}
+
+void
+nsDocShell::MaybeResetInitTiming(bool aReset)
+{
+  if (aReset) {
+    mTiming = nullptr;
+  }
 }
 
 //
@@ -7319,7 +7332,7 @@ nsDocShell::OnStateChange(nsIWebProgress* aProgress, nsIRequest* aRequest,
 
     // We don't update navigation timing for wyciwyg channels
     if (this == aProgress && !wcwgChannel) {
-      MaybeInitTiming();
+      mozilla::Unused << MaybeInitTiming();
       mTiming->NotifyFetchStart(uri,
                                 ConvertLoadTypeToNavigationType(mLoadType));
     }
@@ -7998,7 +8011,7 @@ nsDocShell::CreateAboutBlankContentViewer(nsIPrincipal* aPrincipal,
   // Make sure timing is created.  But first record whether we had it
   // already, so we don't clobber the timing for an in-progress load.
   bool hadTiming = mTiming;
-  MaybeInitTiming();
+  bool toBeReset = MaybeInitTiming();
   if (mContentViewer) {
     // We've got a content viewer already. Make sure the user
     // permits us to discard the current document and replace it
@@ -8014,6 +8027,7 @@ nsDocShell::CreateAboutBlankContentViewer(nsIPrincipal* aPrincipal,
 
     if (NS_SUCCEEDED(rv) && !okToUnload) {
       // The user chose not to unload the page, interrupt the load.
+      MaybeResetInitTiming(toBeReset);
       return NS_ERROR_FAILURE;
     }
 
@@ -10507,12 +10521,10 @@ nsDocShell::InternalLoad(nsIURI* aURI,
   // timing then, from OnStateChange.
 
   // XXXbz mTiming should know what channel it's for, so we don't
-  // need this hackery.  Note that this is still broken in cases
-  // when we're loading something that's not javascript: and the
-  // beforeunload handler denies the load.  That will screw up
-  // timing for the next load!
+  // need this hackery.
+  bool toBeReset = false;
   if (!isJavaScript) {
-    MaybeInitTiming();
+    toBeReset = MaybeInitTiming();
   }
   bool timeBeforeUnload = aFileName.IsVoid();
   if (mTiming && timeBeforeUnload) {
@@ -10527,6 +10539,7 @@ nsDocShell::InternalLoad(nsIURI* aURI,
     if (NS_SUCCEEDED(rv) && !okToUnload) {
       // The user chose not to unload the page, interrupt the
       // load.
+      MaybeResetInitTiming(toBeReset);
       return NS_OK;
     }
   }
