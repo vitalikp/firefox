@@ -1607,12 +1607,6 @@ nsBaseWidget::HasPendingInputEvent()
   return false;
 }
 
-NS_IMETHODIMP
-nsBaseWidget::SetIcon(const nsAString&)
-{
-  return NS_OK;
-}
-
 bool
 nsBaseWidget::ShowsResizeIndicator(LayoutDeviceIntRect* aResizerRect)
 {
