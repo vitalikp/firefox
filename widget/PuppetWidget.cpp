@@ -680,7 +680,7 @@ PuppetWidget::NotifyIMEInternal(const IMENotification& aIMENotification)
   }
 }
 
-NS_IMETHODIMP
+nsresult
 PuppetWidget::StartPluginIME(const mozilla::WidgetKeyboardEvent& aKeyboardEvent,
                              int32_t aPanelX, int32_t aPanelY,
                              nsString& aCommitted)
