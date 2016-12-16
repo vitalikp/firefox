@@ -276,8 +276,6 @@ WidgetEvent::HasKeyEventMessage() const
     case eKeyUp:
     case eKeyDownOnPlugin:
     case eKeyUpOnPlugin:
-    case eBeforeKeyDown:
-    case eBeforeKeyUp:
     case eAfterKeyDown:
     case eAfterKeyUp:
     case eAccessKeyNotFound:
