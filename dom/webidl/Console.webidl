@@ -88,7 +88,6 @@ dictionary ConsoleStackEntry {
 
 dictionary ConsoleTimerStart {
   DOMString name = "";
-  double started = 0;
 };
 
 dictionary ConsoleTimerEnd {
