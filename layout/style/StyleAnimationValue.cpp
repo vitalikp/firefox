@@ -4415,10 +4415,6 @@ StyleAnimationValue::ExtractComputedValue(nsCSSPropertyID aProperty,
             static_cast<const nsStyleBackground*>(styleStruct)->mImage;
           ExtractImageLayerPositionYList(layers, aComputedValue);
           break;
-
-
-
-
         }
 #ifdef MOZ_ENABLE_MASK_AS_SHORTHAND
         case eCSSProperty_mask_position_x: {
