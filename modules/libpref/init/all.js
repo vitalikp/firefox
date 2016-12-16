@@ -5114,9 +5114,6 @@ pref("dom.system_update.debug", false);
 // UDPSocket API
 pref("dom.udpsocket.enabled", false);
 
-// Disable before keyboard events and after keyboard events by default.
-pref("dom.beforeAfterKeyboardEvent.enabled", false);
-
 // Presentation API
 pref("dom.presentation.enabled", false);
 pref("dom.presentation.controller.enabled", false);
