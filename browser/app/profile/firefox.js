@@ -1541,3 +1541,6 @@ pref("browser.crashReports.unsubmittedCheck.autoSubmit2", false);
 // controlling validation are located in /services/sync/services-sync.js
 pref("services.sync.validation.enabled", true);
 #endif
+
+// Preferences for the form autofill system extension
+pref("browser.formautofill.enabled", false);
