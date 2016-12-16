@@ -579,7 +579,7 @@ nsStringBundleService::FlushBundles()
   return NS_OK;
 }
 
-nsresult
+void
 nsStringBundleService::getStringBundle(const char *aURLSpec,
                                        nsIStringBundle **aResult)
 {
@@ -607,8 +607,6 @@ nsStringBundleService::getStringBundle(const char *aURLSpec,
   // finally, return the value
   *aResult = cacheEntry->mBundle;
   NS_ADDREF(*aResult);
-
-  return NS_OK;
 }
 
 bundleCacheEntry_t *
@@ -647,7 +645,8 @@ NS_IMETHODIMP
 nsStringBundleService::CreateBundle(const char* aURLSpec,
                                     nsIStringBundle** aResult)
 {
-  return getStringBundle(aURLSpec,aResult);
+  getStringBundle(aURLSpec,aResult);
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -748,16 +747,12 @@ nsStringBundleService::FormatStatusMessage(nsresult aStatus,
   rv = mErrorService->GetErrorStringBundle(NS_ERROR_GET_MODULE(aStatus),
                                            getter_Copies(stringBundleURL));
   if (NS_SUCCEEDED(rv)) {
-    rv = getStringBundle(stringBundleURL, getter_AddRefs(bundle));
-    if (NS_SUCCEEDED(rv)) {
-      rv = FormatWithBundle(bundle, aStatus, argCount, argArray, result);
-    }
+    getStringBundle(stringBundleURL, getter_AddRefs(bundle));
+    rv = FormatWithBundle(bundle, aStatus, argCount, argArray, result);
   }
   if (NS_FAILED(rv)) {
-    rv = getStringBundle(GLOBAL_PROPERTIES, getter_AddRefs(bundle));
-    if (NS_SUCCEEDED(rv)) {
-      rv = FormatWithBundle(bundle, aStatus, argCount, argArray, result);
-    }
+    getStringBundle(GLOBAL_PROPERTIES, getter_AddRefs(bundle));
+    rv = FormatWithBundle(bundle, aStatus, argCount, argArray, result);
   }
 
 done:
