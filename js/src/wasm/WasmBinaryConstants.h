@@ -35,7 +35,7 @@ static const char NameSectionName[]      = "name";
 
 enum class SectionId
 {
-    UserDefined                          = 0,
+    Custom                               = 0,
     Type                                 = 1,
     Import                               = 2,
     Function                             = 3,
