@@ -1993,7 +1993,8 @@ DrawTargetSkia::PushLayer(bool aOpaque, Float aOpacity, SourceSurface* aMask,
                           const Matrix& aMaskTransform, const IntRect& aBounds,
                           bool aCopyBackground)
 {
-  PushedLayer layer(GetPermitSubpixelAA(), aOpaque, aOpacity, aMask, aMaskTransform);
+  PushedLayer layer(GetPermitSubpixelAA(), aOpaque, aOpacity, aMask, aMaskTransform,
+                    mCanvas->getTopDevice());
   mPushedLayers.push_back(layer);
 
   SkPaint paint;
@@ -2002,7 +2003,16 @@ DrawTargetSkia::PushLayer(bool aOpaque, Float aOpacity, SourceSurface* aMask,
   // implicitly drawing the layer so that we can properly mask it in PopLayer.
   paint.setAlpha(aMask ? 0 : ColorFloatToByte(aOpacity));
 
+  // aBounds is supplied in device space, but SaveLayerRec wants local space.
   SkRect bounds = IntRectToSkRect(aBounds);
+  if (!bounds.isEmpty()) {
+    SkMatrix inverseCTM;
+    if (mCanvas->getTotalMatrix().invert(&inverseCTM)) {
+      inverseCTM.mapRect(&bounds);
+    } else {
+      bounds.setEmpty();
+    }
+  }
 
   sk_sp<SkImageFilter> backdrop(aCopyBackground ? new CopyLayerImageFilter : nullptr);
 
@@ -2029,7 +2039,10 @@ DrawTargetSkia::PopLayer()
   MOZ_ASSERT(mPushedLayers.size());
   const PushedLayer& layer = mPushedLayers.back();
 
-  if (layer.mMask) {
+  // Ensure that the top device has actually changed. If it hasn't, then there
+  // is no layer image to be masked.
+  if (layer.mMask &&
+      layer.mPreviousDevice != mCanvas->getTopDevice()) {
     // If we have a mask, take a reference to the top layer's device so that
     // we can mask it ourselves. This assumes we forced SkCanvas::restore to
     // skip implicitly drawing the layer.
