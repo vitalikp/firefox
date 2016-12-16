@@ -1476,7 +1476,7 @@ Navigator::GetConnection(ErrorResult& aRv)
       aRv.Throw(NS_ERROR_UNEXPECTED);
       return nullptr;
     }
-    mConnection = new network::Connection(mWindow);
+    mConnection = network::Connection::CreateForWindow(mWindow);
   }
 
   return mConnection;
