@@ -763,9 +763,7 @@ EventStateManager::PreHandleEvent(nsPresContext* aPresContext,
     // then fall through...
     MOZ_FALLTHROUGH;
   case eKeyDown:
-  case eAfterKeyDown:
   case eKeyUp:
-  case eAfterKeyUp:
     {
       nsIContent* content = GetFocusedContent();
       if (content)
@@ -3460,7 +3458,6 @@ EventStateManager::PostHandleEvent(nsPresContext* aPresContext,
     break;
 
   case eKeyUp:
-  case eAfterKeyUp:
     break;
 
   case eKeyPress:
