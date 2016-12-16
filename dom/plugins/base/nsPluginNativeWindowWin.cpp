@@ -161,7 +161,7 @@ static bool ProcessFlashMessageDelayed(nsPluginNativeWindowWin * aWin, nsNPAPIPl
 class nsDelayedPopupsEnabledEvent : public Runnable
 {
 public:
-  nsDelayedPopupsEnabledEvent(nsNPAPIPluginInstance *inst)
+  explicit nsDelayedPopupsEnabledEvent(nsNPAPIPluginInstance *inst)
     : mInst(inst)
   {}
 
