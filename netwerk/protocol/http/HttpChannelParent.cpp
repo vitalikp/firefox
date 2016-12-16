@@ -1823,5 +1823,13 @@ HttpChannelParent::IssueWarning(uint32_t aWarning, bool aAsError)
   return NS_OK;
 }
 
+void
+HttpChannelParent::DoSendSetPriority(int16_t aValue)
+{
+  if (!mIPCClosed) {
+    Unused << SendSetPriority(aValue);
+  }
+}
+
 } // namespace net
 } // namespace mozilla
