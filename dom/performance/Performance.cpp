@@ -144,6 +144,13 @@ Performance::~Performance()
 {}
 
 DOMHighResTimeStamp
+Performance::Now() const
+{
+  TimeDuration duration = TimeStamp::Now() - CreationTimeStamp();
+  return RoundTime(duration.ToMilliseconds());
+}
+
+DOMHighResTimeStamp
 Performance::TimeOrigin()
 {
   if (!mPerformanceService) {
