@@ -1193,7 +1193,7 @@ PluginInstanceChild::RecvContentsScaleFactorChanged(const double& aContentsScale
 // Create a new window from NPWindow
 bool PluginInstanceChild::CreateWindow(const NPRemoteWindow& aWindow)
 { 
-    PLUGIN_LOG_DEBUG(("%s (aWindow=<window: 0x%lx, x: %d, y: %d, width: %d, height: %d>)",
+    PLUGIN_LOG_DEBUG(("%s (aWindow=<window: 0x%" PRIx64 ", x: %d, y: %d, width: %d, height: %d>)",
                       FULLFUNCTION,
                       aWindow.window,
                       aWindow.x, aWindow.y,
@@ -1219,7 +1219,7 @@ bool PluginInstanceChild::CreateWindow(const NPRemoteWindow& aWindow)
 // Destroy window
 void PluginInstanceChild::DeleteWindow()
 {
-  PLUGIN_LOG_DEBUG(("%s (aWindow=<window: 0x%lx, x: %d, y: %d, width: %d, height: %d>)",
+  PLUGIN_LOG_DEBUG(("%s (aWindow=<window: 0x%p, x: %d, y: %d, width: %d, height: %d>)",
                     FULLFUNCTION,
                     mWindow.window,
                     mWindow.x, mWindow.y,
@@ -1277,7 +1277,7 @@ PluginInstanceChild::RecvCreateChildPopupSurrogate(const NativeWindowHandle& aNe
 mozilla::ipc::IPCResult
 PluginInstanceChild::AnswerNPP_SetWindow(const NPRemoteWindow& aWindow)
 {
-    PLUGIN_LOG_DEBUG(("%s (aWindow=<window: 0x%lx, x: %d, y: %d, width: %d, height: %d>)",
+    PLUGIN_LOG_DEBUG(("%s (aWindow=<window: 0x%" PRIx64 ", x: %d, y: %d, width: %d, height: %d>)",
                       FULLFUNCTION,
                       aWindow.window,
                       aWindow.x, aWindow.y,

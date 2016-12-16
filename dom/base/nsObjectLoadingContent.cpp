@@ -85,6 +85,7 @@
 #include "mozilla/AsyncEventDispatcher.h"
 #include "mozilla/EventDispatcher.h"
 #include "mozilla/EventStates.h"
+#include "mozilla/IntegerPrintfMacros.h"
 #include "mozilla/Telemetry.h"
 #include "mozilla/dom/HTMLObjectElementBinding.h"
 #include "mozilla/dom/HTMLSharedObjectElement.h"
@@ -886,7 +887,7 @@ nsObjectLoadingContent::InstantiatePluginInstance(bool aIsLoading)
                                          EmptyString(), &blockState);
       if (blockState == nsIBlocklistService::STATE_OUTDATED) {
         // Fire plugin outdated event if necessary
-        LOG(("OBJLC [%p]: Dispatching plugin outdated event for content %p\n",
+        LOG(("OBJLC [%p]: Dispatching plugin outdated event for content\n",
              this));
         nsCOMPtr<nsIRunnable> ev = new nsSimplePluginEvent(thisContent,
                                                      NS_LITERAL_STRING("PluginOutdated"));
@@ -2494,7 +2495,8 @@ nsObjectLoadingContent::LoadObject(bool aNotify,
       // If our type remains Loading, we need a channel to proceed
       rv = OpenChannel();
       if (NS_FAILED(rv)) {
-        LOG(("OBJLC [%p]: OpenChannel returned failure (%u)", this, rv));
+        LOG(("OBJLC [%p]: OpenChannel returned failure (%" PRIu32 ")",
+             this, static_cast<uint32_t>(rv)));
       }
     break;
     case eType_Null:
@@ -2772,7 +2774,7 @@ nsObjectLoadingContent::NotifyStateChanged(ObjectType aOldType,
                                            bool aSync,
                                            bool aNotify)
 {
-  LOG(("OBJLC [%p]: Notifying about state change: (%u, %llx) -> (%u, %llx)"
+  LOG(("OBJLC [%p]: Notifying about state change: (%u, %" PRIx64 ") -> (%u, %" PRIx64 ")"
        " (sync %i, notify %i)", this, aOldType, aOldState.GetInternalValue(),
        mType, ObjectState().GetInternalValue(), aSync, aNotify));
 

@@ -16,6 +16,7 @@
 #include "cert.h"
 #include "mozilla/Assertions.h"
 #include "mozilla/Casting.h"
+#include "mozilla/IntegerPrintfMacros.h"
 #include "nsNSSComponent.h"
 #include "nsServiceManagerUtils.h"
 #include "pk11pub.h"
@@ -254,7 +255,8 @@ CertVerifier::VerifySignedCertificateTimestamps(
                            result);
   if (rv != Success) {
     MOZ_LOG(gCertVerifierLog, LogLevel::Debug,
-            ("SCT verification failed with fatal error %i\n", rv));
+            ("SCT verification failed with fatal error %" PRId32 "\n",
+             static_cast<uint32_t>(rv)));
     return rv;
   }
 
@@ -519,7 +521,7 @@ CertVerifier::VerifyCert(CERTCertificate* cert, SECCertificateUsage usage,
         }
         if (rv == Success) {
           MOZ_LOG(gCertVerifierLog, LogLevel::Debug,
-                  ("cert is EV with status %i\n", sha1ModeResults[i]));
+                  ("cert is EV with status %i\n", static_cast<int>(sha1ModeResults[i])));
           if (evOidPolicy) {
             *evOidPolicy = evPolicyOidTag;
           }

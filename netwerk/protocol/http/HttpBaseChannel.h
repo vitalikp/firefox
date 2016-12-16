@@ -47,6 +47,7 @@
 #include "nsIThrottledInputChannel.h"
 #include "nsTArray.h"
 #include "nsCOMPtr.h"
+#include "mozilla/IntegerPrintfMacros.h"
 
 class nsISecurityConsoleMessage;
 class nsIPrincipal;
@@ -625,7 +626,8 @@ template <class T>
 nsresult HttpAsyncAborter<T>::AsyncAbort(nsresult status)
 {
   MOZ_LOG(gHttpLog, LogLevel::Debug,
-         ("HttpAsyncAborter::AsyncAbort [this=%p status=%x]\n", mThis, status));
+         ("HttpAsyncAborter::AsyncAbort [this=%p status=%" PRIx32 "]\n",
+          mThis, static_cast<uint32_t>(status)));
 
   mThis->mStatus = status;
 

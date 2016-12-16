@@ -57,6 +57,7 @@
 #include "nsCRT.h"
 #include "nsCRTGlue.h"
 #include "mozilla/HashFunctions.h"
+#include "mozilla/IntegerPrintfMacros.h"
 
 using namespace mozilla;
 
@@ -1383,7 +1384,7 @@ RDFServiceImpl::RegisterLiteral(nsIRDFLiteral* aLiteral)
 
     MOZ_LOG(gLog, LogLevel::Debug,
            ("rdfserv   register-literal [%p] %s",
-            aLiteral, (const char16_t*) value));
+            aLiteral, NS_ConvertUTF16toUTF8(value).get()));
 
     return NS_OK;
 }
@@ -1403,7 +1404,7 @@ RDFServiceImpl::UnregisterLiteral(nsIRDFLiteral* aLiteral)
     // reference to it in the hashtable.
     MOZ_LOG(gLog, LogLevel::Debug,
            ("rdfserv unregister-literal [%p] %s",
-            aLiteral, (const char16_t*) value));
+            aLiteral, NS_ConvertUTF16toUTF8(value).get()));
 
     return NS_OK;
 }
@@ -1482,7 +1483,7 @@ RDFServiceImpl::RegisterDate(nsIRDFDate* aDate)
     entry->mKey = value;
 
     MOZ_LOG(gLog, LogLevel::Debug,
-           ("rdfserv   register-date [%p] %ld",
+           ("rdfserv   register-date [%p] %" PRId64,
             aDate, value));
 
     return NS_OK;
@@ -1502,7 +1503,7 @@ RDFServiceImpl::UnregisterDate(nsIRDFDate* aDate)
     // N.B. that we _don't_ release the literal: we only held a weak
     // reference to it in the hashtable.
     MOZ_LOG(gLog, LogLevel::Debug,
-           ("rdfserv unregister-date [%p] %ld",
+           ("rdfserv unregister-date [%p] %" PRId64,
             aDate, value));
 
     return NS_OK;

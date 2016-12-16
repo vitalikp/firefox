@@ -307,7 +307,7 @@ VideoTrackEncoder::AppendVideoSegment(const VideoSegment& aSegment)
       chunk.mDuration = 0;
 
       TRACK_LOG(LogLevel::Verbose,
-                ("[VideoTrackEncoder]: Got first video chunk after %lld ticks.",
+                ("[VideoTrackEncoder]: Got first video chunk after %" PRId64 " ticks.",
                  nullDuration));
       // Adapt to the time before the first frame. This extends the first frame
       // from [start, end] to [0, end], but it'll do for now.
@@ -331,14 +331,14 @@ VideoTrackEncoder::AppendVideoSegment(const VideoSegment& aSegment)
 
       if (mLastChunk.mDuration < mTrackRate) {
         TRACK_LOG(LogLevel::Verbose,
-                  ("[VideoTrackEncoder]: Ignoring dupe/null chunk of duration "
-                   "%lld", chunk.mDuration));
+                  ("[VideoTrackEncoder]: Ignoring dupe/null chunk of duration %" PRId64,
+                   chunk.mDuration));
         continue;
       }
 
       TRACK_LOG(LogLevel::Verbose,
-                ("[VideoTrackEncoder]: Chunk >1 second. duration=%lld, "
-                 "trackRate=%lld", mLastChunk.mDuration, mTrackRate));
+                ("[VideoTrackEncoder]: Chunk >1 second. duration=%" PRId64 ", "
+                 "trackRate=%" PRId32, mLastChunk.mDuration, mTrackRate));
 
       // If we have gotten dupes for over a second, we force send one
       // to the encoder to make sure there is some output.
@@ -384,7 +384,7 @@ VideoTrackEncoder::AppendVideoSegment(const VideoSegment& aSegment)
         // used to trigger the 1-second frame above. This could happen due to
         // drift or underruns in the graph.
         TRACK_LOG(LogLevel::Warning,
-                  ("[VideoTrackEncoder]: Underrun detected. Diff=%lld",
+                  ("[VideoTrackEncoder]: Underrun detected. Diff=%" PRId64,
                    duration.value()));
         chunk.mTimeStamp = mLastChunk.mTimeStamp;
       } else {
