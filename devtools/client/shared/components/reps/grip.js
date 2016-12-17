@@ -109,7 +109,7 @@ define(function (require, exports, module) {
         props.push(Caption({
           object: objectLink({
             object: object
-          }, `${object.ownPropertyLength - max} more…`)
+          }, `${propertiesLength - max} more…`)
         }));
       }
 
