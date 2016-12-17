@@ -15,6 +15,7 @@
  * http://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html
  * https://w3c.github.io/webappsec-secure-contexts/#monkey-patching-global-object
  * https://w3c.github.io/requestidlecallback/
+ * https://webaudio.github.io/web-audio-api/#widl-Window-audioWorklet
  */
 
 interface ApplicationCache;
@@ -475,6 +476,7 @@ interface ChromeWindow {
   void beginWindowMove(Event mouseDownEvent, optional Element? panel = null);
 };
 
+// https://webaudio.github.io/web-audio-api/#widl-Window-audioWorklet
 partial interface Window {
   [Pref="dom.audioWorklet.enabled", Throws, SameObject]
   readonly attribute Worklet audioWorklet;
