@@ -1340,7 +1340,7 @@ private:
     MOZ_ASSERT(!mSeekJob.mPromise.IsEmpty(), "Seek shouldn't be finished");
 
     if (aVideo->mTime > mCurrentTime) {
-      mSeekedVideoData = aVideo;
+      mMaster->Push(aVideo);
     }
 
     if (NeedMoreVideo()) {
@@ -1455,10 +1455,6 @@ private:
 
   void OnSeekTaskResolved()
   {
-    if (mSeekedVideoData) {
-      mMaster->Push(mSeekedVideoData);
-    }
-
     if (mIsAudioQueueFinished) {
       AudioQueue().Finish();
     }
@@ -1492,7 +1488,6 @@ private:
   {
     // Need to request video when we have none and video queue is not finished.
     return VideoQueue().GetSize() == 0 &&
-           !mSeekedVideoData &&
            !VideoQueue().IsFinished() &&
            !mIsVideoQueueFinished;
   }
@@ -1523,8 +1518,6 @@ private:
     RefPtr<MediaData> data = VideoQueue().PeekFront();
     if (data) {
       mSeekJob.mTarget->SetTime(TimeUnit::FromMicroseconds(data->mTime));
-    } else if (mSeekedVideoData) {
-      mSeekJob.mTarget->SetTime(TimeUnit::FromMicroseconds(mSeekedVideoData->mTime));
     } else if (mIsVideoQueueFinished || VideoQueue().AtEndOfStream()) {
       mSeekJob.mTarget->SetTime(mDuration);
     } else {
@@ -1556,7 +1549,6 @@ private:
   /*
    * Information which are going to be returned to MDSM.
    */
-  RefPtr<MediaData> mSeekedVideoData;
   bool mIsAudioQueueFinished = false;
   bool mIsVideoQueueFinished = false;
 };
