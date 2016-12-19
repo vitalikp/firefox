@@ -1371,12 +1371,11 @@ private:
   {
     MOZ_ASSERT(aVideo);
     MOZ_ASSERT(!mSeekJob.mPromise.IsEmpty(), "Seek shouldn't be finished");
+    MOZ_ASSERT(NeedMoreVideo());
 
     if (aVideo->mTime > mCurrentTime) {
       mMaster->Push(aVideo);
-    }
-
-    if (NeedMoreVideo()) {
+    } else {
       RequestVideoData();
       return;
     }
@@ -1387,6 +1386,7 @@ private:
   void HandleNotDecoded(MediaData::Type aType, const MediaResult& aError) override
   {
     MOZ_ASSERT(!mSeekJob.mPromise.IsEmpty(), "Seek shouldn't be finished");
+    MOZ_ASSERT(NeedMoreVideo());
 
     switch (aType) {
     case MediaData::AUDIO_DATA:
@@ -1437,17 +1437,14 @@ private:
   void HandleVideoWaited(MediaData::Type aType) override
   {
     MOZ_ASSERT(!mSeekJob.mPromise.IsEmpty(), "Seek shouldn't be finished");
-
-    if (NeedMoreVideo()) {
-      RequestVideoData();
-      return;
-    }
-    MaybeFinishSeek();
+    MOZ_ASSERT(NeedMoreVideo());
+    RequestVideoData();
   }
 
   void HandleNotWaited(const WaitForDataRejectValue& aRejection) override
   {
     MOZ_ASSERT(!mSeekJob.mPromise.IsEmpty(), "Seek shouldn't be finished");
+    MOZ_ASSERT(NeedMoreVideo());
 
     switch(aRejection.mType) {
     case MediaData::AUDIO_DATA:
@@ -1457,12 +1454,8 @@ private:
     }
     case MediaData::VIDEO_DATA:
     {
-      if (NeedMoreVideo()) {
-        // Error out if we can't finish video seeking.
-        mMaster->DecodeError(NS_ERROR_DOM_MEDIA_CANCELED);
-        return;
-      }
-      MaybeFinishSeek();
+      // Error out if we can't finish video seeking.
+      mMaster->DecodeError(NS_ERROR_DOM_MEDIA_CANCELED);
       break;
     }
     default:
