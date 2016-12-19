@@ -431,13 +431,6 @@ NS_IMPL_ISUPPORTS(OggReporter, nsIMemoryReporter)
 /* static */ template<> Atomic<size_t>
 CountingAllocatorBase<OggReporter>::sAmount(0);
 
-static double
-TimeSinceProcessCreation()
-{
-  bool ignore;
-  return (TimeStamp::Now() - TimeStamp::ProcessCreation(ignore)).ToMilliseconds();
-}
-
 static bool sInitializedJS = false;
 
 // Note that on OSX, aBinDirectory will point to .app/Contents/Resources/browser
@@ -460,8 +453,6 @@ NS_InitXPCOM2(nsIServiceManager** aResult,
   NS_InitAtomTable();
 
   mozilla::LogModule::Init();
-
-  JS_SetCurrentEmbedderTimeFunction(TimeSinceProcessCreation);
 
   char aLocal;
   profiler_init(&aLocal);

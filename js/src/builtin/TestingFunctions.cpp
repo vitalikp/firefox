@@ -4201,6 +4201,17 @@ DisableForEach(JSContext* cx, unsigned argc, Value* vp)
 }
 
 static bool
+TimeSinceCreation(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+    bool ignore;
+    double when = (mozilla::TimeStamp::Now()
+                   - mozilla::TimeStamp::ProcessCreation(ignore)).ToMilliseconds();
+    args.rval().setNumber(when);
+    return true;
+}
+
+static bool
 IsConstructor(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
@@ -4752,6 +4763,11 @@ gc::ZealModeHelpText),
     JS_FN_HELP("disableForEach", DisableForEach, 0, 0,
 "disableForEach()",
 "  Disables the deprecated, non-standard for-each.\n"),
+
+    JS_FN_HELP("timeSinceCreation", TimeSinceCreation, 0, 0,
+"TimeSinceCreation()",
+"  Returns the time in milliseconds since process creation.\n"
+"  This uses a clock compatible with the profiler.\n"),
 
     JS_FN_HELP("isConstructor", IsConstructor, 1, 0,
 "isConstructor(value)",
