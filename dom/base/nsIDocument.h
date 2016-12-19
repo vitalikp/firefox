@@ -2861,6 +2861,8 @@ public:
   virtual nsIEventTarget*
   EventTargetFor(mozilla::dom::TaskCategory aCategory) const override;
 
+  bool PrerenderHref(nsIURI* aHref);
+
 protected:
   bool GetUseCounter(mozilla::UseCounter aUseCounter)
   {
