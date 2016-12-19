@@ -2190,8 +2190,7 @@ nsPermissionManager::GetPermissionHashKey(nsIPrincipal* aPrincipal,
     }
 
     // Copy the attributes over
-    mozilla::PrincipalOriginAttributes attrs =
-      mozilla::BasePrincipal::Cast(aPrincipal)->OriginAttributesRef();
+    mozilla::PrincipalOriginAttributes attrs = aPrincipal->OriginAttributesRef();
 
     // Disable userContext and firstParty isolation for permissions.
     attrs.StripUserContextIdAndFirstPartyDomain();
@@ -2387,7 +2386,7 @@ nsPermissionManager::RemovePermissionsWithAttributes(mozilla::OriginAttributesPa
       continue;
     }
 
-    if (!aPattern.Matches(mozilla::BasePrincipal::Cast(principal)->OriginAttributesRef())) {
+    if (!aPattern.Matches(principal->OriginAttributesRef())) {
       continue;
     }
 

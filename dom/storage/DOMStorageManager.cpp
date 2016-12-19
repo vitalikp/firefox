@@ -201,7 +201,7 @@ CreateQuotaDBKey(nsIPrincipal* aPrincipal,
   NS_ENSURE_SUCCESS(rv, rv);
 
   aKey.Truncate();
-  BasePrincipal::Cast(aPrincipal)->OriginAttributesRef().CreateSuffix(aKey);
+  aPrincipal->OriginAttributesRef().CreateSuffix(aKey);
 
   nsAutoCString subdomainsDBKey;
   CreateReversedDomain(eTLDplusOne, subdomainsDBKey);
@@ -316,7 +316,7 @@ DOMStorageManager::GetStorageInternal(bool aCreate,
   nsresult rv;
 
   nsAutoCString originAttrSuffix;
-  BasePrincipal::Cast(aPrincipal)->OriginAttributesRef().CreateSuffix(originAttrSuffix);
+  aPrincipal->OriginAttributesRef().CreateSuffix(originAttrSuffix);
 
   nsAutoCString originKey;
   rv = AppendOriginNoSuffix(aPrincipal, originKey);
@@ -447,7 +447,7 @@ DOMStorageManager::CheckStorage(nsIPrincipal* aPrincipal,
   }
 
   nsAutoCString suffix;
-  BasePrincipal::Cast(aPrincipal)->OriginAttributesRef().CreateSuffix(suffix);
+  aPrincipal->OriginAttributesRef().CreateSuffix(suffix);
 
   nsAutoCString origin;
   rv = AppendOriginNoSuffix(aPrincipal, origin);

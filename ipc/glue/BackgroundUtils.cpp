@@ -166,8 +166,7 @@ PrincipalToPrincipalInfo(nsIPrincipal* aPrincipal,
     }
 
     *aPrincipalInfo =
-      NullPrincipalInfo(BasePrincipal::Cast(aPrincipal)->OriginAttributesRef(),
-                        spec);
+      NullPrincipalInfo(aPrincipal->OriginAttributesRef(), spec);
     return NS_OK;
   }
 
@@ -210,7 +209,7 @@ PrincipalToPrincipalInfo(nsIPrincipal* aPrincipal,
     }
 
     *aPrincipalInfo =
-      ExpandedPrincipalInfo(BasePrincipal::Cast(aPrincipal)->OriginAttributesRef(),
+      ExpandedPrincipalInfo(aPrincipal->OriginAttributesRef(),
                             Move(whitelistInfo));
     return NS_OK;
   }
@@ -243,7 +242,7 @@ PrincipalToPrincipalInfo(nsIPrincipal* aPrincipal,
     infoOriginNoSuffix = originNoSuffix;
   }
 
-  *aPrincipalInfo = ContentPrincipalInfo(BasePrincipal::Cast(aPrincipal)->OriginAttributesRef(),
+  *aPrincipalInfo = ContentPrincipalInfo(aPrincipal->OriginAttributesRef(),
                                          infoOriginNoSuffix, spec);
   return NS_OK;
 }
