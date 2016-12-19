@@ -1368,7 +1368,7 @@ private:
     case MediaData::VIDEO_DATA:
     {
       if (aError == NS_ERROR_DOM_MEDIA_END_OF_STREAM) {
-        mIsVideoQueueFinished = true;
+        VideoQueue().Finish();
       }
 
       // Video seek not finished.
@@ -1455,19 +1455,11 @@ private:
 
   void OnSeekTaskResolved()
   {
-    if (mIsVideoQueueFinished) {
-      VideoQueue().Finish();
-    }
-
     SeekCompleted();
   }
 
   void OnSeekTaskRejected(MediaResult aError)
   {
-    if (mIsVideoQueueFinished) {
-      VideoQueue().Finish();
-    }
-
     mMaster->DecodeError(aError);
   }
 
@@ -1480,8 +1472,7 @@ private:
   {
     // Need to request video when we have none and video queue is not finished.
     return VideoQueue().GetSize() == 0 &&
-           !VideoQueue().IsFinished() &&
-           !mIsVideoQueueFinished;
+           !VideoQueue().IsFinished();
   }
 
   bool IsVideoRequestPending() const
@@ -1510,7 +1501,7 @@ private:
     RefPtr<MediaData> data = VideoQueue().PeekFront();
     if (data) {
       mSeekJob.mTarget->SetTime(TimeUnit::FromMicroseconds(data->mTime));
-    } else if (mIsVideoQueueFinished || VideoQueue().AtEndOfStream()) {
+    } else if (VideoQueue().AtEndOfStream()) {
       mSeekJob.mTarget->SetTime(mDuration);
     } else {
       MOZ_ASSERT(false, "No data!");
@@ -1537,11 +1528,6 @@ private:
   int64_t mCurrentTime;
   media::TimeUnit mDuration;
   RefPtr<AysncNextFrameSeekTask> mAsyncSeekTask;
-
-  /*
-   * Information which are going to be returned to MDSM.
-   */
-  bool mIsVideoQueueFinished = false;
 };
 
 /**
