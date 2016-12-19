@@ -1759,7 +1759,7 @@ nsBaseWidget::NotifyUIStateChanged(UIStateChangeType aShowAccelerators,
   }
 }
 
-NS_IMETHODIMP
+nsresult
 nsBaseWidget::NotifyIME(const IMENotification& aIMENotification)
 {
   switch (aIMENotification.mMessage) {
