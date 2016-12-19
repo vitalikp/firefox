@@ -1188,12 +1188,10 @@ nsWindow::ResizePluginSocketWidget()
     }
 }
 
-NS_IMETHODIMP
+void
 nsWindow::Enable(bool aState)
 {
     mEnabled = aState;
-
-    return NS_OK;
 }
 
 bool
