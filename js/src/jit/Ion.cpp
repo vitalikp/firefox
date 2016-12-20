@@ -1453,6 +1453,17 @@ OptimizeMIR(MIRGenerator* mir)
     }
 
     {
+        AutoTraceLog log(logger, TraceLogger_FoldEmptyBlocks);
+        if (!FoldEmptyBlocks(graph))
+            return false;
+        gs.spewPass("Fold Empty Blocks");
+        AssertBasicGraphCoherency(graph);
+
+        if (mir->shouldCancel("Fold Empty Blocks"))
+            return false;
+    }
+
+    {
         AutoTraceLog log(logger, TraceLogger_FoldTests);
         if (!FoldTests(graph))
             return false;
