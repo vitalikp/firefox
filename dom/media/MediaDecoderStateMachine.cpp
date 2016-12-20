@@ -1097,9 +1097,9 @@ private:
   void RequestAudioData()
   {
     MOZ_ASSERT(!mDoneAudioSeeking);
-    MOZ_ASSERT(!Reader()->IsRequestingAudioData());
+    MOZ_ASSERT(!mMaster->IsRequestingAudioData());
     MOZ_ASSERT(!Reader()->IsWaitingAudioData());
-    Reader()->RequestAudioData();
+    mMaster->RequestAudioData();
   }
 
   void RequestVideoData()
@@ -2173,7 +2173,7 @@ BufferingState::Step()
     mMaster->DispatchDecodeTasksIfNeeded();
     MOZ_ASSERT(mMaster->mMinimizePreroll ||
                !mMaster->OutOfDecodedAudio() ||
-               Reader()->IsRequestingAudioData() ||
+               mMaster->IsRequestingAudioData() ||
                Reader()->IsWaitingAudioData());
     MOZ_ASSERT(mMaster->mMinimizePreroll ||
                !mMaster->OutOfDecodedVideo() ||
@@ -2223,6 +2223,7 @@ ShutdownState::Enter()
 
   // To break the cycle-reference between MediaDecoderReaderWrapper and MDSM.
   master->CancelMediaDecoderReaderWrapperCallback();
+  master->mAudioDataRequest.DisconnectIfExists();
 
   master->Reset();
 
@@ -2557,6 +2558,8 @@ MediaDecoderStateMachine::OnAudioDecoded(MediaData* aAudio)
   MOZ_ASSERT(OnTaskQueue());
   MOZ_ASSERT(aAudio);
 
+  mAudioDataRequest.Complete();
+
   // audio->GetEndTime() is not always mono-increasing in chained ogg.
   mDecodedAudioEndTime = std::max(aAudio->GetEndTime(), mDecodedAudioEndTime);
 
@@ -2605,13 +2608,19 @@ MediaDecoderStateMachine::OnVideoPopped(const RefPtr<MediaData>& aSample)
 }
 
 void
+MediaDecoderStateMachine::OnAudioNotDecoded(const MediaResult& aError)
+{
+  MOZ_ASSERT(OnTaskQueue());
+  mAudioDataRequest.Complete();
+  OnNotDecoded(MediaData::AUDIO_DATA, aError);
+}
+
+void
 MediaDecoderStateMachine::OnNotDecoded(MediaData::Type aType,
                                        const MediaResult& aError)
 {
   MOZ_ASSERT(OnTaskQueue());
-
   SAMPLE_LOG("OnNotDecoded (aType=%u, aError=%u)", aType, aError.Code());
-
   mStateObj->HandleNotDecoded(aType, aError);
 }
 
@@ -2732,15 +2741,6 @@ MediaDecoderStateMachine::SetMediaDecoderReaderWrapperCallback()
 {
   MOZ_ASSERT(OnTaskQueue());
 
-  mAudioCallback = mReader->AudioCallback().Connect(
-    mTaskQueue, [this] (AudioCallbackData aData) {
-    if (aData.is<MediaData*>()) {
-      OnAudioDecoded(aData.as<MediaData*>());
-    } else {
-      OnNotDecoded(MediaData::AUDIO_DATA, aData.as<MediaResult>());
-    }
-  });
-
   mVideoCallback = mReader->VideoCallback().Connect(
     mTaskQueue, [this] (VideoCallbackData aData) {
     typedef Tuple<MediaData*, TimeStamp> Type;
@@ -2775,7 +2775,6 @@ void
 MediaDecoderStateMachine::CancelMediaDecoderReaderWrapperCallback()
 {
   MOZ_ASSERT(OnTaskQueue());
-  mAudioCallback.Disconnect();
   mVideoCallback.Disconnect();
   mAudioWaitCallback.Disconnect();
   mVideoWaitCallback.Disconnect();
@@ -3107,7 +3106,7 @@ MediaDecoderStateMachine::EnsureAudioDecodeTaskQueued()
   }
 
   if (!IsAudioDecoding() ||
-      mReader->IsRequestingAudioData() ||
+      IsRequestingAudioData() ||
       mReader->IsWaitingAudioData()) {
     return;
   }
@@ -3119,12 +3118,15 @@ void
 MediaDecoderStateMachine::RequestAudioData()
 {
   MOZ_ASSERT(OnTaskQueue());
-  MOZ_ASSERT(mState != DECODER_STATE_SEEKING);
-
   SAMPLE_LOG("Queueing audio task - queued=%i, decoder-queued=%o",
              AudioQueue().GetSize(), mReader->SizeOfAudioQueueInFrames());
 
-  mReader->RequestAudioData();
+  mAudioDataRequest.Begin(
+    mReader->RequestAudioData()->Then(
+      OwnerThread(), __func__, this,
+      &MediaDecoderStateMachine::OnAudioDecoded,
+      &MediaDecoderStateMachine::OnAudioNotDecoded)
+  );
 }
 
 void
@@ -3418,6 +3420,7 @@ MediaDecoderStateMachine::Reset(TrackSet aTracks)
     mDecodedAudioEndTime = 0;
     mAudioCompleted = false;
     AudioQueue().Reset();
+    mAudioDataRequest.DisconnectIfExists();
   }
 
   mPlaybackOffset = 0;
@@ -3829,7 +3832,7 @@ const char*
 MediaDecoderStateMachine::AudioRequestStatus() const
 {
   MOZ_ASSERT(OnTaskQueue());
-  if (mReader->IsRequestingAudioData()) {
+  if (IsRequestingAudioData()) {
     MOZ_DIAGNOSTIC_ASSERT(!mReader->IsWaitingAudioData());
     return "pending";
   } else if (mReader->IsWaitingAudioData()) {
