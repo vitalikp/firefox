@@ -2637,11 +2637,11 @@ nsDocument::InitCSP(nsIChannel* aChannel)
   }
 
   if (httpChannel) {
-    httpChannel->GetResponseHeader(
+    Unused << httpChannel->GetResponseHeader(
         NS_LITERAL_CSTRING("content-security-policy"),
         tCspHeaderValue);
 
-    httpChannel->GetResponseHeader(
+    Unused << httpChannel->GetResponseHeader(
         NS_LITERAL_CSTRING("content-security-policy-report-only"),
         tCspROHeaderValue);
   }
@@ -4766,7 +4766,8 @@ nsDocument::SetScriptGlobalObject(nsIScriptGlobalObject *aScriptGlobalObject)
     do_QueryInterface(GetChannel());
   if (internalChannel) {
     nsCOMArray<nsISecurityConsoleMessage> messages;
-    internalChannel->TakeAllSecurityMessages(messages);
+    DebugOnly<nsresult> rv = internalChannel->TakeAllSecurityMessages(messages);
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
     SendToConsole(messages);
   }
 
