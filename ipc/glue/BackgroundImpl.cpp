@@ -1345,8 +1345,6 @@ ParentImpl::RequestMessageLoopRunnable::Run()
   AssertIsInMainProcess();
   MOZ_ASSERT(mTargetThread);
 
-  char stackBaseGuess;
-
   if (NS_IsMainThread()) {
     MOZ_ASSERT(mMessageLoop);
 
@@ -1375,8 +1373,6 @@ ParentImpl::RequestMessageLoopRunnable::Run()
 
     return NS_OK;
   }
-
-  profiler_register_thread("IPDL Background", &stackBaseGuess);
 
 #ifdef DEBUG
   {
@@ -1414,8 +1410,6 @@ ParentImpl::ShutdownBackgroundThreadRunnable::Run()
   // was shutting down. In that case we can't assert anything about
   // sBackgroundPRThread and we should not modify it here.
   sBackgroundPRThread.compareExchange(PR_GetCurrentThread(), nullptr);
-
-  profiler_unregister_thread();
 
   return NS_OK;
 }
