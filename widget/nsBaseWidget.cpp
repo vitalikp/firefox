@@ -1573,7 +1573,7 @@ nsBaseWidget::GetClientOffset()
   return LayoutDeviceIntPoint(0, 0);
 }
 
-NS_IMETHODIMP
+nsresult
 nsBaseWidget::SetNonClientMargins(LayoutDeviceIntMargin &margins)
 {
   return NS_ERROR_NOT_IMPLEMENTED;

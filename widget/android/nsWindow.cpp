@@ -1872,7 +1872,7 @@ nsWindow::FindTopLevel()
     return this;
 }
 
-NS_IMETHODIMP
+nsresult
 nsWindow::SetFocus(bool aRaise)
 {
     nsWindow *top = FindTopLevel();
