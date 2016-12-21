@@ -1777,7 +1777,7 @@ nsWindow::SetNativeData(uint32_t aDataType, uintptr_t aVal)
     mPluginNativeWindow = (nsPluginNativeWindowGtk*)aVal;
 }
 
-NS_IMETHODIMP
+nsresult
 nsWindow::SetTitle(const nsAString& aTitle)
 {
     if (!mShell)
