@@ -759,6 +759,7 @@ void
 JSRuntime::setUsedByExclusiveThread(Zone* zone)
 {
     MOZ_ASSERT(!zone->usedByExclusiveThread);
+    MOZ_ASSERT(!zone->wasGCStarted());
     zone->usedByExclusiveThread = true;
     numExclusiveThreads++;
 }
