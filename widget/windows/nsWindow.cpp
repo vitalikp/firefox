@@ -1491,7 +1491,8 @@ nsWindow::GetFallbackScrollSnapshot(const RECT& aRequiredClip)
  *
  **************************************************************/
 
-NS_IMETHODIMP nsWindow::Show(bool bState)
+void
+nsWindow::Show(bool bState)
 {
   if (mWindowType == eWindowType_popup) {
     // See bug 603793. When we try to draw D3D9/10 windows with a drop shadow
@@ -1606,7 +1607,7 @@ NS_IMETHODIMP nsWindow::Show(bool bState)
       }
     }
   }
-  
+
 #ifdef MOZ_XUL
   if (!wasVisible && bState) {
     Invalidate();
@@ -1615,8 +1616,6 @@ NS_IMETHODIMP nsWindow::Show(bool bState)
     }
   }
 #endif
-
-  return NS_OK;
 }
 
 /**************************************************************

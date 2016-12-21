@@ -142,7 +142,7 @@ public:
     virtual nsIWidget *GetParent(void) override;
     virtual float GetDPI() override;
     virtual double GetDefaultScaleInternal() override;
-    NS_IMETHOD Show(bool aState) override;
+    virtual void Show(bool aState) override;
     virtual bool IsVisible() const override;
     virtual void ConstrainPosition(bool aAllowSlop,
                                    int32_t *aX,
