@@ -1242,7 +1242,8 @@ static NSMenuItem* NativeMenuItemWithLocation(NSMenu* menubar, NSString* locatio
 }
 
 // Used for testing native menu system structure and event handling.
-NS_IMETHODIMP nsChildView::ActivateNativeMenuItemAt(const nsAString& indexString)
+nsresult
+nsChildView::ActivateNativeMenuItemAt(const nsAString& indexString)
 {
   NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
 
@@ -1266,7 +1267,8 @@ NS_IMETHODIMP nsChildView::ActivateNativeMenuItemAt(const nsAString& indexString
 }
 
 // Used for testing native menu system structure and event handling.
-NS_IMETHODIMP nsChildView::ForceUpdateNativeMenuAt(const nsAString& indexString)
+nsresult
+nsChildView::ForceUpdateNativeMenuAt(const nsAString& indexString)
 {
   NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NSRESULT;
 
