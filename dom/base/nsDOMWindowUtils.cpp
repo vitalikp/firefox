@@ -653,12 +653,16 @@ nsDOMWindowUtils::SendMouseEvent(const nsAString& aType,
                                  bool aIsDOMEventSynthesized,
                                  bool aIsWidgetEventSynthesized,
                                  int32_t aButtons,
+                                 uint32_t aIdentifier,
                                  uint8_t aOptionalArgCount,
                                  bool *aPreventDefault)
 {
   return SendMouseEventCommon(aType, aX, aY, aButton, aClickCount, aModifiers,
                               aIgnoreRootScrollFrame, aPressure,
-                              aInputSourceArg, false, aPreventDefault,
+                              aInputSourceArg,
+                              aOptionalArgCount >= 7 ?
+                                aIdentifier : DEFAULT_MOUSE_POINTER_ID,
+                              false, aPreventDefault,
                               aOptionalArgCount >= 4 ?
                                 aIsDOMEventSynthesized : true,
                               aOptionalArgCount >= 5 ?
@@ -680,6 +684,7 @@ nsDOMWindowUtils::SendMouseEventToWindow(const nsAString& aType,
                                          bool aIsDOMEventSynthesized,
                                          bool aIsWidgetEventSynthesized,
                                          int32_t aButtons,
+                                         uint32_t aIdentifier,
                                          uint8_t aOptionalArgCount)
 {
   PROFILER_LABEL("nsDOMWindowUtils", "SendMouseEventToWindow",
@@ -687,7 +692,10 @@ nsDOMWindowUtils::SendMouseEventToWindow(const nsAString& aType,
 
   return SendMouseEventCommon(aType, aX, aY, aButton, aClickCount, aModifiers,
                               aIgnoreRootScrollFrame, aPressure,
-                              aInputSourceArg, true, nullptr,
+                              aInputSourceArg,
+                              aOptionalArgCount >= 7 ?
+                                aIdentifier : DEFAULT_MOUSE_POINTER_ID,
+                              true, nullptr,
                               aOptionalArgCount >= 4 ?
                                 aIsDOMEventSynthesized : true,
                               aOptionalArgCount >= 5 ?
@@ -706,6 +714,7 @@ nsDOMWindowUtils::SendMouseEventCommon(const nsAString& aType,
                                        bool aIgnoreRootScrollFrame,
                                        float aPressure,
                                        unsigned short aInputSourceArg,
+                                       uint32_t aPointerId,
                                        bool aToWindow,
                                        bool *aPreventDefault,
                                        bool aIsDOMEventSynthesized,
@@ -715,8 +724,8 @@ nsDOMWindowUtils::SendMouseEventCommon(const nsAString& aType,
   nsCOMPtr<nsIPresShell> presShell = GetPresShell();
   return nsContentUtils::SendMouseEvent(presShell, aType, aX, aY, aButton,
       aButtons, aClickCount, aModifiers, aIgnoreRootScrollFrame, aPressure,
-      aInputSourceArg, aToWindow, aPreventDefault, aIsDOMEventSynthesized,
-      aIsWidgetEventSynthesized);
+      aInputSourceArg, aPointerId, aToWindow, aPreventDefault,
+      aIsDOMEventSynthesized, aIsWidgetEventSynthesized);
 }
 
 NS_IMETHODIMP
