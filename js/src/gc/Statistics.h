@@ -170,6 +170,9 @@ const char* ExplainInvocationKind(JSGCInvocationKind gckind);
  */
 struct Statistics
 {
+    using TimeDuration = mozilla::TimeDuration;
+    using TimeStamp = mozilla::TimeStamp;
+
     /*
      * Phases are allowed to have multiple parents, though any path from root
      * to leaf is allowed at most one multi-parented phase. We keep a full set
@@ -188,7 +191,7 @@ struct Statistics
     static const size_t NumTimingArrays = MaxMultiparentPhases + 1;
 
     /* Create a convenient type for referring to tables of phase times. */
-    using PhaseTimeTable = int64_t[NumTimingArrays][PHASE_LIMIT];
+    using PhaseTimeTable = TimeDuration[NumTimingArrays][PHASE_LIMIT];
 
     static MOZ_MUST_USE bool initialize();
 
@@ -253,8 +256,8 @@ struct Statistics
     void beginNurseryCollection(JS::gcreason::Reason reason);
     void endNurseryCollection(JS::gcreason::Reason reason);
 
-    int64_t beginSCC();
-    void endSCC(unsigned scc, int64_t start);
+    TimeStamp beginSCC();
+    void endSCC(unsigned scc, TimeStamp start);
 
     UniqueChars formatCompactSliceMessage() const;
     UniqueChars formatCompactSummaryMessage() const;
@@ -265,8 +268,8 @@ struct Statistics
     JS::GCNurseryCollectionCallback setNurseryCollectionCallback(
         JS::GCNurseryCollectionCallback callback);
 
-    int64_t clearMaxGCPauseAccumulator();
-    int64_t getMaxGCPauseSinceClear();
+    TimeDuration clearMaxGCPauseAccumulator();
+    TimeDuration getMaxGCPauseSinceClear();
 
     // Return the current phase, suppressing the synthetic PHASE_MUTATOR phase.
     Phase currentPhase() {
@@ -280,13 +283,13 @@ struct Statistics
     static const size_t MAX_NESTING = 20;
 
     struct SliceData {
-        SliceData(SliceBudget budget, JS::gcreason::Reason reason, int64_t start,
-                  double startTimestamp, size_t startFaults, gc::State initialState)
+        SliceData(SliceBudget budget, JS::gcreason::Reason reason,
+                  TimeStamp start, size_t startFaults, gc::State initialState)
           : budget(budget), reason(reason),
             initialState(initialState),
             finalState(gc::State::NotActive),
             resetReason(gc::AbortReason::None),
-            start(start), startTimestamp(startTimestamp),
+            start(start),
             startFaults(startFaults)
         {
             for (auto i : mozilla::MakeRange(NumTimingArrays))
@@ -297,12 +300,11 @@ struct Statistics
         JS::gcreason::Reason reason;
         gc::State initialState, finalState;
         gc::AbortReason resetReason;
-        int64_t start, end;
-        double startTimestamp, endTimestamp;
+        TimeStamp start, end;
         size_t startFaults, endFaults;
         PhaseTimeTable phaseTimes;
 
-        int64_t duration() const { return end - start; }
+        TimeDuration duration() const { return end - start; }
         bool wasReset() const { return resetReason != gc::AbortReason::None; }
     };
 
@@ -324,8 +326,6 @@ struct Statistics
   private:
     JSRuntime* runtime;
 
-    int64_t startupTime;
-
     /* File pointer used for MOZ_GCTIMER output. */
     FILE* fp;
 
@@ -344,11 +344,11 @@ struct Statistics
     SliceDataVector slices;
 
     /* Most recent time when the given phase started. */
-    int64_t phaseStartTimes[PHASE_LIMIT];
+    TimeStamp phaseStartTimes[PHASE_LIMIT];
 
     /* Bookkeeping for GC timings when timingMutator is true */
-    int64_t timedGCStart;
-    int64_t timedGCTime;
+    TimeStamp timedGCStart;
+    TimeDuration timedGCTime;
 
     /* Total time in a given phase for this GC. */
     PhaseTimeTable phaseTimes;
@@ -363,7 +363,7 @@ struct Statistics
     size_t preBytes;
 
     /* Records the maximum GC pause in an API-controlled interval (in us). */
-    mutable int64_t maxPauseInInterval;
+    mutable TimeDuration maxPauseInInterval;
 
     /* Phases that are currently on stack. */
     Phase phaseNesting[MAX_NESTING];
@@ -381,7 +381,7 @@ struct Statistics
     size_t suspended;
 
     /* Sweep times for SCCs of compartments. */
-    Vector<int64_t, 0, SystemAllocPolicy> sccTimes;
+    Vector<TimeDuration, 0, SystemAllocPolicy> sccTimes;
 
     JS::GCSliceCallback sliceCallback;
     JS::GCNurseryCollectionCallback nurseryCollectionCallback;
@@ -404,11 +404,12 @@ FOR_EACH_GC_PROFILE_TIME(DEFINE_TIME_KEY)
         KeyCount
     };
 
-    using ProfileTimes = mozilla::EnumeratedArray<ProfileKey, ProfileKey::KeyCount, int64_t>;
+    using ProfileDurations =
+        mozilla::EnumeratedArray<ProfileKey, ProfileKey::KeyCount, TimeDuration>;
 
-    int64_t profileThreshold_;
+    TimeDuration profileThreshold_;
     bool enableProfiling_;
-    ProfileTimes totalTimes_;
+    ProfileDurations totalTimes_;
     uint64_t sliceCount_;
 
     void beginGC(JSGCInvocationKind kind);
@@ -416,8 +417,8 @@ FOR_EACH_GC_PROFILE_TIME(DEFINE_TIME_KEY)
 
     void recordPhaseEnd(Phase phase);
 
-    void gcDuration(int64_t* total, int64_t* maxPause) const;
-    void sccDurations(int64_t* total, int64_t* maxPause);
+    void gcDuration(TimeDuration* total, TimeDuration* maxPause) const;
+    void sccDurations(TimeDuration* total, TimeDuration* maxPause);
     void printStats();
 
     UniqueChars formatCompactSlicePhaseTimes(const PhaseTimeTable phaseTimes) const;
@@ -431,10 +432,10 @@ FOR_EACH_GC_PROFILE_TIME(DEFINE_TIME_KEY)
     UniqueChars formatJsonSliceDescription(unsigned i, const SliceData& slice);
     UniqueChars formatJsonPhaseTimes(const PhaseTimeTable phaseTimes);
 
-    double computeMMU(int64_t resolution) const;
+    double computeMMU(TimeDuration resolution) const;
 
     void printSliceProfile();
-    static void printProfileTimes(const ProfileTimes& times);
+    static void printProfileTimes(const ProfileDurations& times);
 };
 
 struct MOZ_RAII AutoGCSlice
@@ -500,7 +501,7 @@ struct MOZ_RAII AutoSCC
 
     Statistics& stats;
     unsigned scc;
-    int64_t start;
+    mozilla::TimeStamp start;
 };
 
 } /* namespace gcstats */

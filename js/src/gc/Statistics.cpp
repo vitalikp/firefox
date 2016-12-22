@@ -11,6 +11,7 @@
 #include "mozilla/IntegerRange.h"
 #include "mozilla/PodOperations.h"
 #include "mozilla/Sprintf.h"
+#include "mozilla/TimeStamp.h"
 
 #include <ctype.h>
 #include <stdarg.h>
@@ -33,6 +34,8 @@ using mozilla::DebugOnly;
 using mozilla::MakeRange;
 using mozilla::PodArrayZero;
 using mozilla::PodZero;
+using mozilla::TimeStamp;
+using mozilla::TimeDuration;
 
 /*
  * If this fails, then you can either delete this assertion and allow all
@@ -82,9 +85,9 @@ js::gcstats::ExplainAbortReason(gc::AbortReason reason)
 }
 
 static double
-t(int64_t t)
+t(TimeDuration duration)
 {
-    return double(t) / PRMJ_USEC_PER_MSEC;
+    return duration.ToMilliseconds();
 }
 
 struct PhaseInfo
@@ -287,7 +290,7 @@ struct AllPhaseIterator {
 };
 
 void
-Statistics::gcDuration(int64_t* total, int64_t* maxPause) const
+Statistics::gcDuration(TimeDuration* total, TimeDuration* maxPause) const
 {
     *total = *maxPause = 0;
     for (const SliceData* slice = slices.begin(); slice != slices.end(); slice++) {
@@ -300,7 +303,7 @@ Statistics::gcDuration(int64_t* total, int64_t* maxPause) const
 }
 
 void
-Statistics::sccDurations(int64_t* total, int64_t* maxPause)
+Statistics::sccDurations(TimeDuration* total, TimeDuration* maxPause)
 {
     *total = *maxPause = 0;
     for (size_t i = 0; i < sccTimes.length(); i++) {
@@ -339,11 +342,11 @@ Join(const FragmentVector& fragments, const char* separator = "") {
     return UniqueChars(joined);
 }
 
-static int64_t
+static TimeDuration
 SumChildTimes(size_t phaseSlot, Phase phase, const Statistics::PhaseTimeTable phaseTimes)
 {
     // Sum the contributions from single-parented children.
-    int64_t total = 0;
+    TimeDuration total = 0;
     size_t depth = phaseExtra[phase].depth;
     for (unsigned i = phase + 1; i < PHASE_LIMIT && phaseExtra[i].depth > depth; i++) {
         if (phases[i].parent == phase)
@@ -401,11 +404,11 @@ Statistics::formatCompactSummaryMessage() const
     if (!fragments.append(DuplicateString("Summary - ")))
         return UniqueChars(nullptr);
 
-    int64_t total, longest;
+    TimeDuration total, longest;
     gcDuration(&total, &longest);
 
-    const double mmu20 = computeMMU(20 * PRMJ_USEC_PER_MSEC);
-    const double mmu50 = computeMMU(50 * PRMJ_USEC_PER_MSEC);
+    const double mmu20 = computeMMU(TimeDuration::FromMilliseconds(20));
+    const double mmu50 = computeMMU(TimeDuration::FromMilliseconds(50));
 
     char buffer[1024];
     if (!nonincremental()) {
@@ -447,7 +450,7 @@ Statistics::formatCompactSummaryMessage() const
 UniqueChars
 Statistics::formatCompactSlicePhaseTimes(const PhaseTimeTable phaseTimes) const
 {
-    static const int64_t MaxUnaccountedTimeUS = 100;
+    static const TimeDuration MaxUnaccountedTime = TimeDuration::FromMicroseconds(100);
 
     FragmentVector fragments;
     char buffer[128];
@@ -458,14 +461,14 @@ Statistics::formatCompactSlicePhaseTimes(const PhaseTimeTable phaseTimes) const
         iter.get(&phase, &dagSlot, &level);
         MOZ_ASSERT(level < 4);
 
-        int64_t ownTime = phaseTimes[dagSlot][phase];
-        int64_t childTime = SumChildTimes(dagSlot, phase, phaseTimes);
-        if (ownTime > MaxUnaccountedTimeUS) {
+        TimeDuration ownTime = phaseTimes[dagSlot][phase];
+        TimeDuration childTime = SumChildTimes(dagSlot, phase, phaseTimes);
+        if (ownTime > MaxUnaccountedTime) {
             SprintfLiteral(buffer, "%s: %.3fms", phases[phase].name, t(ownTime));
             if (!fragments.append(DuplicateString(buffer)))
                 return UniqueChars(nullptr);
 
-            if (childTime && (ownTime - childTime) > MaxUnaccountedTimeUS) {
+            if (childTime && (ownTime - childTime) > MaxUnaccountedTime) {
                 MOZ_ASSERT(level < 3);
                 SprintfLiteral(buffer, "%s: %.3fms", "Other", t(ownTime - childTime));
                 if (!fragments.append(DuplicateString(buffer)))
@@ -505,11 +508,11 @@ Statistics::formatDetailedDescription()
 {
     const double bytesPerMiB = 1024 * 1024;
 
-    int64_t sccTotal, sccLongest;
+    TimeDuration sccTotal, sccLongest;
     sccDurations(&sccTotal, &sccLongest);
 
-    double mmu20 = computeMMU(20 * PRMJ_USEC_PER_MSEC);
-    double mmu50 = computeMMU(50 * PRMJ_USEC_PER_MSEC);
+    const double mmu20 = computeMMU(TimeDuration::FromMilliseconds(20));
+    const double mmu50 = computeMMU(TimeDuration::FromMilliseconds(50));
 
     const char* format =
 "=================================================================\n\
@@ -575,7 +578,7 @@ UniqueChars
 Statistics::formatDetailedPhaseTimes(const PhaseTimeTable phaseTimes)
 {
     static const char* LevelToIndent[] = { "", "  ", "    ", "      " };
-    static const int64_t MaxUnaccountedChildTimeUS = 50;
+    static const TimeDuration MaxUnaccountedChildTime = TimeDuration::FromMicroseconds(50);
 
     FragmentVector fragments;
     char buffer[128];
@@ -586,15 +589,15 @@ Statistics::formatDetailedPhaseTimes(const PhaseTimeTable phaseTimes)
         iter.get(&phase, &dagSlot, &level);
         MOZ_ASSERT(level < 4);
 
-        int64_t ownTime = phaseTimes[dagSlot][phase];
-        int64_t childTime = SumChildTimes(dagSlot, phase, phaseTimes);
-        if (ownTime > 0) {
+        TimeDuration ownTime = phaseTimes[dagSlot][phase];
+        TimeDuration childTime = SumChildTimes(dagSlot, phase, phaseTimes);
+        if (!ownTime.IsZero()) {
             SprintfLiteral(buffer, "      %s%s: %.3fms\n",
                            LevelToIndent[level], phases[phase].name, t(ownTime));
             if (!fragments.append(DuplicateString(buffer)))
                 return UniqueChars(nullptr);
 
-            if (childTime && (ownTime - childTime) > MaxUnaccountedChildTimeUS) {
+            if (childTime && (ownTime - childTime) > MaxUnaccountedChildTime) {
                 MOZ_ASSERT(level < 3);
                 SprintfLiteral(buffer, "      %s%s: %.3fms\n",
                                LevelToIndent[level + 1], "Other", t(ownTime - childTime));
@@ -609,7 +612,7 @@ Statistics::formatDetailedPhaseTimes(const PhaseTimeTable phaseTimes)
 UniqueChars
 Statistics::formatDetailedTotals()
 {
-    int64_t total, longest;
+    TimeDuration total, longest;
     gcDuration(&total, &longest);
 
     const char* format =
@@ -662,19 +665,19 @@ Statistics::formatJsonMessage(uint64_t timestamp)
 UniqueChars
 Statistics::formatJsonDescription(uint64_t timestamp)
 {
-    int64_t total, longest;
+    TimeDuration total, longest;
     gcDuration(&total, &longest);
 
-    int64_t sccTotal, sccLongest;
+    TimeDuration sccTotal, sccLongest;
     sccDurations(&sccTotal, &sccLongest);
 
-    double mmu20 = computeMMU(20 * PRMJ_USEC_PER_MSEC);
-    double mmu50 = computeMMU(50 * PRMJ_USEC_PER_MSEC);
+    const double mmu20 = computeMMU(TimeDuration::FromMilliseconds(20));
+    const double mmu50 = computeMMU(TimeDuration::FromMilliseconds(50));
 
     const char *format =
         "\"timestamp\":%llu,"
-        "\"max_pause\":%llu.%03llu,"
-        "\"total_time\":%llu.%03llu,"
+        "\"max_pause\":%.3f,"
+        "\"total_time\":%.3f,"
         "\"zones_collected\":%d,"
         "\"total_zones\":%d,"
         "\"total_compartments\":%d,"
@@ -682,8 +685,8 @@ Statistics::formatJsonDescription(uint64_t timestamp)
         "\"store_buffer_overflows\":%d,"
         "\"mmu_20ms\":%d,"
         "\"mmu_50ms\":%d,"
-        "\"scc_sweep_total\":%llu.%03llu,"
-        "\"scc_sweep_max_pause\":%llu.%03llu,"
+        "\"scc_sweep_total\":%.3f,"
+        "\"scc_sweep_max_pause\":%.3f,"
         "\"nonincremental_reason\":\"%s\","
         "\"allocated\":%u,"
         "\"added_chunks\":%d,"
@@ -691,8 +694,8 @@ Statistics::formatJsonDescription(uint64_t timestamp)
     char buffer[1024];
     SprintfLiteral(buffer, format,
                    (unsigned long long)timestamp,
-                   longest / 1000, longest % 1000,
-                   total / 1000, total % 1000,
+                   longest.ToMilliseconds(),
+                   total.ToMilliseconds(),
                    zoneStats.collectedZoneCount,
                    zoneStats.zoneCount,
                    zoneStats.compartmentCount,
@@ -700,8 +703,8 @@ Statistics::formatJsonDescription(uint64_t timestamp)
                    counts[STAT_STOREBUFFER_OVERFLOW],
                    int(mmu20 * 100),
                    int(mmu50 * 100),
-                   sccTotal / 1000, sccTotal % 1000,
-                   sccLongest / 1000, sccLongest % 1000,
+                   sccTotal.ToMilliseconds(),
+                   sccLongest.ToMilliseconds(),
                    ExplainAbortReason(nonincrementalReason_),
                    unsigned(preBytes / 1024 / 1024),
                    counts[STAT_NEW_CHUNK],
@@ -712,35 +715,37 @@ Statistics::formatJsonDescription(uint64_t timestamp)
 UniqueChars
 Statistics::formatJsonSliceDescription(unsigned i, const SliceData& slice)
 {
-    int64_t duration = slice.duration();
-    int64_t when = slice.start - slices[0].start;
+    TimeDuration duration = slice.duration();
+    TimeDuration when = slice.start - slices[0].start;
     char budgetDescription[200];
     slice.budget.describe(budgetDescription, sizeof(budgetDescription) - 1);
     int64_t pageFaults = slice.endFaults - slice.startFaults;
+    bool ignore;
+    TimeStamp originTime = TimeStamp::ProcessCreation(ignore);
 
     const char* format =
         "\"slice\":%d,"
-        "\"pause\":%llu.%03llu,"
-        "\"when\":%llu.%03llu,"
+        "\"pause\":%.3f,"
+        "\"when\":%.3f,"
         "\"reason\":\"%s\","
         "\"initial_state\":\"%s\","
         "\"final_state\":\"%s\","
         "\"budget\":\"%s\","
         "\"page_faults\":%llu,"
-        "\"start_timestamp\":%llu,"
-        "\"end_timestamp\":%llu,";
+        "\"start_timestamp\":%.3f,"
+        "\"end_timestamp\":%.3f,";
     char buffer[1024];
     SprintfLiteral(buffer, format,
                    i,
-                   duration / 1000, duration % 1000,
-                   when / 1000, when % 1000,
+                   duration.ToMilliseconds(),
+                   when.ToMilliseconds(),
                    ExplainReason(slice.reason),
                    gc::StateName(slice.initialState),
                    gc::StateName(slice.finalState),
                    budgetDescription,
                    pageFaults,
-                   slice.start,
-                   slice.end);
+                   (slice.start - originTime).ToSeconds(),
+                   (slice.end - originTime).ToSeconds());
     return DuplicateString(buffer);
 }
 
@@ -770,10 +775,9 @@ Statistics::formatJsonPhaseTimes(const PhaseTimeTable phaseTimes)
         iter.get(&phase, &dagSlot);
 
         UniqueChars name = FilterJsonKey(phases[phase].name);
-        int64_t ownTime = phaseTimes[dagSlot][phase];
-        if (ownTime > 0) {
-            SprintfLiteral(buffer, "\"%s\":%" PRId64 ".%03" PRId64,
-                           name.get(), ownTime / 1000, ownTime % 1000);
+        TimeDuration ownTime = phaseTimes[dagSlot][phase];
+        if (!ownTime.IsZero()) {
+            SprintfLiteral(buffer, "\"%s\":%.3f", name.get(), ownTime.ToMilliseconds());
 
             if (!fragments.append(DuplicateString(buffer)))
                 return UniqueChars(nullptr);
@@ -784,11 +788,9 @@ Statistics::formatJsonPhaseTimes(const PhaseTimeTable phaseTimes)
 
 Statistics::Statistics(JSRuntime* rt)
   : runtime(rt),
-    startupTime(PRMJ_Now()),
     fp(nullptr),
     gcDepth(0),
     nonincrementalReason_(gc::AbortReason::None),
-    timedGCStart(0),
     preBytes(0),
     maxPauseInInterval(0),
     phaseNestingDepth(0),
@@ -829,7 +831,7 @@ Statistics::Statistics(JSRuntime* rt)
             exit(0);
         }
         enableProfiling_ = true;
-        profileThreshold_ = atoi(env);
+        profileThreshold_ = TimeDuration::FromMilliseconds(atoi(env));
     }
 
     PodZero(&totalTimes_);
@@ -910,15 +912,15 @@ Statistics::setNurseryCollectionCallback(JS::GCNurseryCollectionCallback newCall
     return oldCallback;
 }
 
-int64_t
+TimeDuration
 Statistics::clearMaxGCPauseAccumulator()
 {
-    int64_t prior = maxPauseInInterval;
+    TimeDuration prior = maxPauseInInterval;
     maxPauseInInterval = 0;
     return prior;
 }
 
-int64_t
+TimeDuration
 Statistics::getMaxGCPauseSinceClear()
 {
     return maxPauseInInterval;
@@ -926,33 +928,33 @@ Statistics::getMaxGCPauseSinceClear()
 
 // Sum up the time for a phase, including instances of the phase with different
 // parents.
-static int64_t
+static TimeDuration
 SumPhase(Phase phase, const Statistics::PhaseTimeTable times)
 {
-    int64_t sum = 0;
+    TimeDuration sum = 0;
     for (auto i : MakeRange(Statistics::NumTimingArrays))
         sum += times[i][phase];
     return sum;
 }
 
 static void
-CheckSelfTime(Phase parent, Phase child, const Statistics::PhaseTimeTable times, int64_t selfTimes[PHASE_LIMIT], int64_t childTime)
+CheckSelfTime(Phase parent, Phase child, const Statistics::PhaseTimeTable times, TimeDuration selfTimes[PHASE_LIMIT], TimeDuration childTime)
 {
     if (selfTimes[parent] < childTime) {
         fprintf(stderr,
-                "Parent %s time = %" PRId64
-                " with %" PRId64 " remaining, "
-                "child %s time %" PRId64 "\n",
-                phases[parent].name, SumPhase(parent, times),
-                selfTimes[parent],
-                phases[child].name, childTime);
+                "Parent %s time = %.3fms"
+                " with %.3fms remaining, "
+                "child %s time %.3fms\n",
+                phases[parent].name, SumPhase(parent, times).ToMilliseconds(),
+                selfTimes[parent].ToMilliseconds(),
+                phases[child].name, childTime.ToMilliseconds());
     }
 }
 
 static Phase
 LongestPhaseSelfTime(const Statistics::PhaseTimeTable times)
 {
-    int64_t selfTimes[PHASE_LIMIT];
+    TimeDuration selfTimes[PHASE_LIMIT];
 
     // Start with total times, including children's times.
     for (size_t i = 0; i < PHASE_LIMIT; ++i)
@@ -979,7 +981,7 @@ LongestPhaseSelfTime(const Statistics::PhaseTimeTable times)
         }
     }
 
-    int64_t longestTime = 0;
+    TimeDuration longestTime = 0;
     Phase longestPhase = PHASE_NONE;
     for (size_t i = 0; i < PHASE_LIMIT; ++i) {
         if (selfTimes[i] > longestTime) {
@@ -998,8 +1000,12 @@ Statistics::printStats()
         fprintf(fp, "OOM during GC statistics collection. The report is unavailable for this GC.\n");
     } else {
         UniqueChars msg = formatDetailedMessage();
-        if (msg)
-            fprintf(fp, "GC(T+%.3fs) %s\n", t(slices[0].start - startupTime) / 1000.0, msg.get());
+        if (msg) {
+            bool ignoredInconsistency;
+            double secSinceStart =
+                (slices[0].start - TimeStamp::ProcessCreation(ignoredInconsistency)).ToSeconds();
+            fprintf(fp, "GC(T+%.3fs) %s\n", secSinceStart, msg.get());
+        }
     }
     fflush(fp);
 }
@@ -1022,17 +1028,17 @@ Statistics::endGC()
         for (int i = 0; i < PHASE_LIMIT; i++)
             phaseTotals[j][i] += phaseTimes[j][i];
 
-    int64_t total, longest;
+    TimeDuration total, longest;
     gcDuration(&total, &longest);
 
-    int64_t sccTotal, sccLongest;
+    TimeDuration sccTotal, sccLongest;
     sccDurations(&sccTotal, &sccLongest);
 
     runtime->addTelemetry(JS_TELEMETRY_GC_IS_ZONE_GC, !zoneStats.isCollectingAllZones());
     runtime->addTelemetry(JS_TELEMETRY_GC_MS, t(total));
     runtime->addTelemetry(JS_TELEMETRY_GC_MAX_PAUSE_MS, t(longest));
-    int64_t markTotal = SumPhase(PHASE_MARK, phaseTimes);
-    int64_t markRootsTotal = SumPhase(PHASE_MARK_ROOTS, phaseTimes);
+    TimeDuration markTotal = SumPhase(PHASE_MARK, phaseTimes);
+    TimeDuration markRootsTotal = SumPhase(PHASE_MARK_ROOTS, phaseTimes);
     runtime->addTelemetry(JS_TELEMETRY_GC_MARK_MS, t(markTotal));
     runtime->addTelemetry(JS_TELEMETRY_GC_SWEEP_MS, t(phaseTimes[PHASE_DAG_NONE][PHASE_SWEEP]));
     if (runtime->gc.isCompactingGc()) {
@@ -1049,7 +1055,7 @@ Statistics::endGC()
     runtime->addTelemetry(JS_TELEMETRY_GC_SCC_SWEEP_MAX_PAUSE_MS, t(sccLongest));
 
     if (!aborted) {
-        double mmu50 = computeMMU(50 * PRMJ_USEC_PER_MSEC);
+        const double mmu50 = computeMMU(TimeDuration::FromMilliseconds(50));
         runtime->addTelemetry(JS_TELEMETRY_GC_MMU_50, mmu50 * 100);
     }
 
@@ -1093,8 +1099,7 @@ Statistics::beginSlice(const ZoneGCStats& zoneStats, JSGCInvocationKind gckind,
     if (first)
         beginGC(gckind);
 
-    SliceData data(budget, reason, PRMJ_Now(), JS_GetCurrentEmbedderTime(), GetPageFaultCount(),
-                   runtime->gc.state());
+    SliceData data(budget, reason, TimeStamp::Now(), GetPageFaultCount(), runtime->gc.state());
     if (!slices.append(data)) {
         // If we are OOM, set a flag to indicate we have missing slice data.
         aborted = true;
@@ -1117,12 +1122,11 @@ void
 Statistics::endSlice()
 {
     if (!aborted) {
-        slices.back().end = PRMJ_Now();
-        slices.back().endTimestamp = JS_GetCurrentEmbedderTime();
+        slices.back().end = TimeStamp::Now();
         slices.back().endFaults = GetPageFaultCount();
         slices.back().finalState = runtime->gc.state();
 
-        int64_t sliceTime = slices.back().end - slices.back().start;
+        TimeDuration sliceTime = slices.back().end - slices.back().start;
         runtime->addTelemetry(JS_TELEMETRY_GC_SLICE_MS, t(sliceTime));
         runtime->addTelemetry(JS_TELEMETRY_GC_RESET, slices.back().wasReset());
         if (slices.back().wasReset())
@@ -1135,7 +1139,7 @@ Statistics::endSlice()
                 runtime->addTelemetry(JS_TELEMETRY_GC_ANIMATION_MS, t(sliceTime));
 
             // Record any phase that goes more than 2x over its budget.
-            if (sliceTime > 2 * budget_ms * 1000) {
+            if (sliceTime.ToMilliseconds() > 2 * budget_ms) {
                 Phase longest = LongestPhaseSelfTime(slices.back().phaseTimes);
                 runtime->addTelemetry(JS_TELEMETRY_GC_SLOW_PHASE, phases[longest].telemetryBucket);
             }
@@ -1188,9 +1192,9 @@ Statistics::startTimingMutator()
     MOZ_ASSERT(suspended == 0);
 
     timedGCTime = 0;
-    phaseStartTimes[PHASE_MUTATOR] = 0;
+    phaseStartTimes[PHASE_MUTATOR] = TimeStamp();
     phaseTimes[PHASE_DAG_NONE][PHASE_MUTATOR] = 0;
-    timedGCStart = 0;
+    timedGCStart = TimeStamp();
 
     beginPhase(PHASE_MUTATOR);
     return true;
@@ -1234,7 +1238,7 @@ Statistics::resumePhases()
     {
         Phase resumePhase = suspendedPhases[--suspended];
         if (resumePhase == PHASE_MUTATOR)
-            timedGCTime += PRMJ_Now() - timedGCStart;
+            timedGCTime += TimeStamp::Now() - timedGCStart;
         beginPhase(resumePhase);
     }
 }
@@ -1267,24 +1271,24 @@ Statistics::beginPhase(Phase phase)
     if (phases[phase].parent == PHASE_MULTI_PARENTS)
         activeDagSlot = phaseExtra[parent].dagSlot;
 
-    phaseStartTimes[phase] = PRMJ_Now();
+    phaseStartTimes[phase] = TimeStamp::Now();
 }
 
 void
 Statistics::recordPhaseEnd(Phase phase)
 {
-    int64_t now = PRMJ_Now();
+    TimeStamp now = TimeStamp::Now();
 
     if (phase == PHASE_MUTATOR)
         timedGCStart = now;
 
     phaseNestingDepth--;
 
-    int64_t t = now - phaseStartTimes[phase];
+    TimeDuration t = now - phaseStartTimes[phase];
     if (!slices.empty())
         slices.back().phaseTimes[activeDagSlot][phase] += t;
     phaseTimes[activeDagSlot][phase] += t;
-    phaseStartTimes[phase] = 0;
+    phaseStartTimes[phase] = TimeStamp();
 }
 
 void
@@ -1309,22 +1313,22 @@ Statistics::endParallelPhase(Phase phase, const GCParallelTask* task)
     if (!slices.empty())
         slices.back().phaseTimes[PHASE_DAG_NONE][phase] += task->duration();
     phaseTimes[PHASE_DAG_NONE][phase] += task->duration();
-    phaseStartTimes[phase] = 0;
+    phaseStartTimes[phase] = TimeStamp();
 }
 
-int64_t
+TimeStamp
 Statistics::beginSCC()
 {
-    return PRMJ_Now();
+    return TimeStamp::Now();
 }
 
 void
-Statistics::endSCC(unsigned scc, int64_t start)
+Statistics::endSCC(unsigned scc, TimeStamp start)
 {
     if (scc >= sccTimes.length() && !sccTimes.resize(scc + 1))
         return;
 
-    sccTimes[scc] += PRMJ_Now() - start;
+    sccTimes[scc] += TimeStamp::Now() - start;
 }
 
 /*
@@ -1337,12 +1341,12 @@ Statistics::endSCC(unsigned scc, int64_t start)
  * as long as the total time it spends is at most 10ms.
  */
 double
-Statistics::computeMMU(int64_t window) const
+Statistics::computeMMU(TimeDuration window) const
 {
     MOZ_ASSERT(!slices.empty());
 
-    int64_t gc = slices[0].end - slices[0].start;
-    int64_t gcMax = gc;
+    TimeDuration gc = slices[0].end - slices[0].start;
+    TimeDuration gcMax = gc;
 
     if (gc >= window)
         return 0.0;
@@ -1356,14 +1360,14 @@ Statistics::computeMMU(int64_t window) const
             startIndex++;
         }
 
-        int64_t cur = gc;
+        TimeDuration cur = gc;
         if (slices[endIndex].end - slices[startIndex].start > window)
             cur -= (slices[endIndex].end - slices[startIndex].start - window);
         if (cur > gcMax)
             gcMax = cur;
     }
 
-    return double(window - gcMax) / window;
+    return double((window - gcMax) / window);
 }
 
 void
@@ -1392,10 +1396,10 @@ FOR_EACH_GC_PROFILE_TIME(PRINT_PROFILE_HEADER)
 }
 
 /* static */ void
-Statistics::printProfileTimes(const ProfileTimes& times)
+Statistics::printProfileTimes(const ProfileDurations& times)
 {
     for (auto time : times)
-        fprintf(stderr, " %6" PRIi64, time / PRMJ_USEC_PER_MSEC);
+        fprintf(stderr, " %6.0f", time.ToMilliseconds());
     fprintf(stderr, "\n");
 }
 
@@ -1409,7 +1413,7 @@ Statistics::printSliceProfile()
     fprintf(stderr, "MajorGC: %20s %1d -> %1d      ",
             ExplainReason(slice.reason), int(slice.initialState), int(slice.finalState));
 
-    ProfileTimes times;
+    ProfileDurations times;
     times[ProfileKey::Total] = slice.duration();
     totalTimes_[ProfileKey::Total] += times[ProfileKey::Total];
 
