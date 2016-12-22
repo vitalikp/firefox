@@ -5128,7 +5128,9 @@ nsGlobalWindow::GetInnerWidth(int32_t* aInnerWidth)
 }
 
 void
-nsGlobalWindow::SetInnerWidthOuter(int32_t aInnerWidth, ErrorResult& aError, bool aCallerIsChrome)
+nsGlobalWindow::SetInnerWidthOuter(int32_t aInnerWidth,
+                                   CallerType aCallerType,
+                                   ErrorResult& aError)
 {
   MOZ_RELEASE_ASSERT(IsOuterWindow());
 
@@ -5137,7 +5139,7 @@ nsGlobalWindow::SetInnerWidthOuter(int32_t aInnerWidth, ErrorResult& aError, boo
     return;
   }
 
-  CheckSecurityWidthAndHeight(&aInnerWidth, nullptr, aCallerIsChrome);
+  CheckSecurityWidthAndHeight(&aInnerWidth, nullptr, aCallerType);
 
   RefPtr<nsIPresShell> presShell = mDocShell->GetPresShell();
 
@@ -5164,9 +5166,11 @@ nsGlobalWindow::SetInnerWidthOuter(int32_t aInnerWidth, ErrorResult& aError, boo
 }
 
 void
-nsGlobalWindow::SetInnerWidth(int32_t aInnerWidth, ErrorResult& aError)
+nsGlobalWindow::SetInnerWidth(int32_t aInnerWidth, CallerType aCallerType,
+                              ErrorResult& aError)
 {
-  FORWARD_TO_OUTER_OR_THROW(SetInnerWidthOuter, (aInnerWidth, aError, nsContentUtils::IsCallerChrome()), aError, );
+  FORWARD_TO_OUTER_OR_THROW(SetInnerWidthOuter,
+                            (aInnerWidth, aCallerType, aError), aError, );
 }
 
 void
@@ -5175,7 +5179,7 @@ nsGlobalWindow::SetInnerWidth(JSContext* aCx, JS::Handle<JS::Value> aValue,
                               ErrorResult& aError)
 {
   SetReplaceableWindowCoord(aCx, &nsGlobalWindow::SetInnerWidth,
-                            aValue, "innerWidth", aError);
+                            aValue, "innerWidth", aCallerType, aError);
 }
 
 int32_t
@@ -5221,7 +5225,9 @@ nsGlobalWindow::GetInnerHeight(int32_t* aInnerHeight)
 }
 
 void
-nsGlobalWindow::SetInnerHeightOuter(int32_t aInnerHeight, ErrorResult& aError, bool aCallerIsChrome)
+nsGlobalWindow::SetInnerHeightOuter(int32_t aInnerHeight,
+                                    CallerType aCallerType,
+                                    ErrorResult& aError)
 {
   MOZ_RELEASE_ASSERT(IsOuterWindow());
 
@@ -5240,7 +5246,7 @@ nsGlobalWindow::SetInnerHeightOuter(int32_t aInnerHeight, ErrorResult& aError, b
     nsRect shellArea = presContext->GetVisibleArea();
     nscoord height = aInnerHeight;
     nscoord width = shellArea.width;
-    CheckSecurityWidthAndHeight(nullptr, &height, aCallerIsChrome);
+    CheckSecurityWidthAndHeight(nullptr, &height, aCallerType);
     SetCSSViewportWidthAndHeight(width,
                                  nsPresContext::CSSPixelsToAppUnits(height));
     return;
@@ -5251,14 +5257,17 @@ nsGlobalWindow::SetInnerHeightOuter(int32_t aInnerHeight, ErrorResult& aError, b
 
   nsCOMPtr<nsIBaseWindow> docShellAsWin(do_QueryInterface(mDocShell));
   docShellAsWin->GetSize(&width, &height);
-  CheckSecurityWidthAndHeight(nullptr, &aInnerHeight, aCallerIsChrome);
+  CheckSecurityWidthAndHeight(nullptr, &aInnerHeight, aCallerType);
   aError = SetDocShellWidthAndHeight(width, CSSToDevIntPixels(aInnerHeight));
 }
 
 void
-nsGlobalWindow::SetInnerHeight(int32_t aInnerHeight, ErrorResult& aError)
+nsGlobalWindow::SetInnerHeight(int32_t aInnerHeight,
+                               CallerType aCallerType,
+                               ErrorResult& aError)
 {
-  FORWARD_TO_OUTER_OR_THROW(SetInnerHeightOuter, (aInnerHeight, aError, nsContentUtils::IsCallerChrome()), aError, );
+  FORWARD_TO_OUTER_OR_THROW(SetInnerHeightOuter,
+                            (aInnerHeight, aCallerType, aError), aError, );
 }
 
 void
@@ -5266,7 +5275,7 @@ nsGlobalWindow::SetInnerHeight(JSContext* aCx, JS::Handle<JS::Value> aValue,
                                CallerType aCallerType, ErrorResult& aError)
 {
   SetReplaceableWindowCoord(aCx, &nsGlobalWindow::SetInnerHeight,
-                            aValue, "innerHeight", aError);
+                            aValue, "innerHeight", aCallerType, aError);
 }
 
 nsIntSize
@@ -5350,7 +5359,7 @@ nsGlobalWindow::GetOuterHeight(JSContext* aCx,
 
 void
 nsGlobalWindow::SetOuterSize(int32_t aLengthCSSPixels, bool aIsWidth,
-                             ErrorResult& aError, bool aCallerIsChrome)
+                             CallerType aCallerType, ErrorResult& aError)
 {
   MOZ_ASSERT(IsOuterWindow());
 
@@ -5362,7 +5371,7 @@ nsGlobalWindow::SetOuterSize(int32_t aLengthCSSPixels, bool aIsWidth,
 
   CheckSecurityWidthAndHeight(aIsWidth ? &aLengthCSSPixels : nullptr,
                               aIsWidth ? nullptr : &aLengthCSSPixels,
-                              aCallerIsChrome);
+                              aCallerType);
 
   int32_t width, height;
   aError = treeOwnerAsWin->GetSize(&width, &height);
@@ -5382,17 +5391,22 @@ nsGlobalWindow::SetOuterSize(int32_t aLengthCSSPixels, bool aIsWidth,
 }
 
 void
-nsGlobalWindow::SetOuterWidthOuter(int32_t aOuterWidth, ErrorResult& aError, bool aCallerIsChrome)
+nsGlobalWindow::SetOuterWidthOuter(int32_t aOuterWidth,
+                                   CallerType aCallerType,
+                                   ErrorResult& aError)
 {
   MOZ_RELEASE_ASSERT(IsOuterWindow());
 
-  SetOuterSize(aOuterWidth, true, aError, aCallerIsChrome);
+  SetOuterSize(aOuterWidth, true, aCallerType, aError);
 }
 
 void
-nsGlobalWindow::SetOuterWidth(int32_t aOuterWidth, ErrorResult& aError)
+nsGlobalWindow::SetOuterWidth(int32_t aOuterWidth,
+                              CallerType aCallerType,
+                              ErrorResult& aError)
 {
-  FORWARD_TO_OUTER_OR_THROW(SetOuterWidthOuter, (aOuterWidth, aError, nsContentUtils::IsCallerChrome()), aError, );
+  FORWARD_TO_OUTER_OR_THROW(SetOuterWidthOuter,
+                            (aOuterWidth, aCallerType, aError), aError, );
 }
 
 void
@@ -5401,21 +5415,26 @@ nsGlobalWindow::SetOuterWidth(JSContext* aCx, JS::Handle<JS::Value> aValue,
                               ErrorResult& aError)
 {
   SetReplaceableWindowCoord(aCx, &nsGlobalWindow::SetOuterWidth,
-                            aValue, "outerWidth", aError);
+                            aValue, "outerWidth", aCallerType, aError);
 }
 
 void
-nsGlobalWindow::SetOuterHeightOuter(int32_t aOuterHeight, ErrorResult& aError, bool aCallerIsChrome)
+nsGlobalWindow::SetOuterHeightOuter(int32_t aOuterHeight,
+                                    CallerType aCallerType,
+                                    ErrorResult& aError)
 {
   MOZ_RELEASE_ASSERT(IsOuterWindow());
 
-  SetOuterSize(aOuterHeight, false, aError, aCallerIsChrome);
+  SetOuterSize(aOuterHeight, false, aCallerType, aError);
 }
 
 void
-nsGlobalWindow::SetOuterHeight(int32_t aOuterHeight, ErrorResult& aError)
+nsGlobalWindow::SetOuterHeight(int32_t aOuterHeight,
+                               CallerType aCallerType,
+                               ErrorResult& aError)
 {
-  FORWARD_TO_OUTER_OR_THROW(SetOuterHeightOuter, (aOuterHeight, aError, nsContentUtils::IsCallerChrome()), aError, );
+  FORWARD_TO_OUTER_OR_THROW(SetOuterHeightOuter,
+                            (aOuterHeight, aCallerType, aError), aError, );
 }
 
 void
@@ -5424,7 +5443,7 @@ nsGlobalWindow::SetOuterHeight(JSContext* aCx, JS::Handle<JS::Value> aValue,
                                ErrorResult& aError)
 {
   SetReplaceableWindowCoord(aCx, &nsGlobalWindow::SetOuterHeight,
-                            aValue, "outerHeight", aError);
+                            aValue, "outerHeight", aCallerType, aError);
 }
 
 CSSIntPoint
@@ -5684,7 +5703,9 @@ nsGlobalWindow::MatchMedia(const nsAString& aMediaQueryList,
 }
 
 void
-nsGlobalWindow::SetScreenXOuter(int32_t aScreenX, ErrorResult& aError, bool aCallerIsChrome)
+nsGlobalWindow::SetScreenXOuter(int32_t aScreenX,
+                                CallerType aCallerType,
+                                ErrorResult& aError)
 {
   MOZ_RELEASE_ASSERT(IsOuterWindow());
 
@@ -5700,7 +5721,7 @@ nsGlobalWindow::SetScreenXOuter(int32_t aScreenX, ErrorResult& aError, bool aCal
     return;
   }
 
-  CheckSecurityLeftAndTop(&aScreenX, nullptr, aCallerIsChrome);
+  CheckSecurityLeftAndTop(&aScreenX, nullptr, aCallerType);
   x = CSSToDevIntPixels(aScreenX);
 
   aError = treeOwnerAsWin->SetPosition(x, y);
@@ -5709,9 +5730,12 @@ nsGlobalWindow::SetScreenXOuter(int32_t aScreenX, ErrorResult& aError, bool aCal
 }
 
 void
-nsGlobalWindow::SetScreenX(int32_t aScreenX, ErrorResult& aError)
+nsGlobalWindow::SetScreenX(int32_t aScreenX,
+                           CallerType aCallerType,
+                           ErrorResult& aError)
 {
-  FORWARD_TO_OUTER_OR_THROW(SetScreenXOuter, (aScreenX, aError, nsContentUtils::IsCallerChrome()), aError, );
+  FORWARD_TO_OUTER_OR_THROW(SetScreenXOuter,
+                            (aScreenX, aCallerType, aError), aError, );
 }
 
 void
@@ -5719,7 +5743,7 @@ nsGlobalWindow::SetScreenX(JSContext* aCx, JS::Handle<JS::Value> aValue,
                            CallerType aCallerType, ErrorResult& aError)
 {
   SetReplaceableWindowCoord(aCx, &nsGlobalWindow::SetScreenX,
-                            aValue, "screenX", aError);
+                            aValue, "screenX", aCallerType, aError);
 }
 
 int32_t
@@ -5746,7 +5770,9 @@ nsGlobalWindow::GetScreenY(JSContext* aCx,
 }
 
 void
-nsGlobalWindow::SetScreenYOuter(int32_t aScreenY, ErrorResult& aError, bool aCallerIsChrome)
+nsGlobalWindow::SetScreenYOuter(int32_t aScreenY,
+                                CallerType aCallerType,
+                                ErrorResult& aError)
 {
   MOZ_RELEASE_ASSERT(IsOuterWindow());
 
@@ -5762,7 +5788,7 @@ nsGlobalWindow::SetScreenYOuter(int32_t aScreenY, ErrorResult& aError, bool aCal
     return;
   }
 
-  CheckSecurityLeftAndTop(nullptr, &aScreenY, aCallerIsChrome);
+  CheckSecurityLeftAndTop(nullptr, &aScreenY, aCallerType);
   y = CSSToDevIntPixels(aScreenY);
 
   aError = treeOwnerAsWin->SetPosition(x, y);
@@ -5771,9 +5797,12 @@ nsGlobalWindow::SetScreenYOuter(int32_t aScreenY, ErrorResult& aError, bool aCal
 }
 
 void
-nsGlobalWindow::SetScreenY(int32_t aScreenY, ErrorResult& aError)
+nsGlobalWindow::SetScreenY(int32_t aScreenY,
+                           CallerType aCallerType,
+                           ErrorResult& aError)
 {
-  FORWARD_TO_OUTER_OR_THROW(SetScreenYOuter, (aScreenY, aError, nsContentUtils::IsCallerChrome()), aError, );
+  FORWARD_TO_OUTER_OR_THROW(SetScreenYOuter,
+                            (aScreenY, aCallerType, aError), aError, );
 }
 
 void
@@ -5782,7 +5811,7 @@ nsGlobalWindow::SetScreenY(JSContext* aCx, JS::Handle<JS::Value> aValue,
                            ErrorResult& aError)
 {
   SetReplaceableWindowCoord(aCx, &nsGlobalWindow::SetScreenY,
-                            aValue, "screenY", aError);
+                            aValue, "screenY", aCallerType, aError);
 }
 
 // NOTE: Arguments to this function should have values scaled to
@@ -5813,6 +5842,14 @@ nsGlobalWindow::CheckSecurityWidthAndHeight(int32_t* aWidth, int32_t* aHeight, b
       }
     }
   }
+}
+
+void
+nsGlobalWindow::CheckSecurityWidthAndHeight(int32_t* aWidth, int32_t* aHeight,
+                                            CallerType aCallerType)
+{
+  return CheckSecurityWidthAndHeight(aWidth, aHeight,
+                                     aCallerType == mozilla::dom::CallerType::System);
 }
 
 // NOTE: Arguments to this function should have values in device pixels
@@ -5925,6 +5962,13 @@ nsGlobalWindow::CheckSecurityLeftAndTop(int32_t* aLeft, int32_t* aTop, bool aCal
         *aTop = 0;
     }
   }
+}
+
+void
+nsGlobalWindow::CheckSecurityLeftAndTop(int32_t* aLeft, int32_t* aTop,
+                                        CallerType aCallerType)
+{
+  CheckSecurityLeftAndTop(aLeft, aTop, aCallerType == CallerType::System);
 }
 
 int32_t
@@ -13860,6 +13904,7 @@ nsGlobalWindow::SetReplaceableWindowCoord(JSContext* aCx,
                                           nsGlobalWindow::WindowCoordSetter aSetter,
                                           JS::Handle<JS::Value> aValue,
                                           const char* aPropName,
+                                          CallerType aCallerType,
                                           ErrorResult& aError)
 {
   MOZ_ASSERT(IsInnerWindow());
@@ -13869,7 +13914,9 @@ nsGlobalWindow::SetReplaceableWindowCoord(JSContext* aCx,
    * just treat this the way we would an IDL replaceable property.
    */
   nsGlobalWindow* outer = GetOuterWindowInternal();
-  if (!outer || !outer->CanMoveResizeWindows(nsContentUtils::IsCallerChrome()) || outer->IsFrame()) {
+  if (!outer ||
+      !outer->CanMoveResizeWindows(aCallerType == CallerType::System) ||
+      outer->IsFrame()) {
     RedefineProperty(aCx, aPropName, aValue, aError);
     return;
   }
@@ -13880,7 +13927,7 @@ nsGlobalWindow::SetReplaceableWindowCoord(JSContext* aCx,
     return;
   }
 
-  (this->*aSetter)(value, aError);
+  (this->*aSetter)(value, aCallerType, aError);
 }
 
 void
