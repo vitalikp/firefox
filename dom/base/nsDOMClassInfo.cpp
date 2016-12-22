@@ -133,8 +133,7 @@ using namespace mozilla::dom;
 
 #define NS_DEFINE_CLASSINFO_DATA_HELPER(_class, _helper, _flags,              \
                                         _chromeOnly, _allowXBL)               \
-  { #_class,                                                                  \
-    nullptr,                                                                  \
+  { nullptr,                                                                  \
     XPC_MAKE_CLASS_OPS(_flags),                                               \
     XPC_MAKE_CLASS(#_class, _flags,                                           \
                    &sClassInfoData[eDOMClassInfo_##_class##_id].mClassOps),   \
@@ -678,7 +677,7 @@ nsDOMClassInfo::Init()
     }
 
     nsDOMClassInfoData& data = sClassInfoData[i];
-    nameSpaceManager->RegisterClassName(data.mName, i, data.mChromeOnly,
+    nameSpaceManager->RegisterClassName(data.mClass.name, i, data.mChromeOnly,
                                         data.mAllowXBL, &data.mNameUTF16);
   }
 
@@ -776,7 +775,7 @@ nsDOMClassInfo::GetFlags(uint32_t *aFlags)
 NS_IMETHODIMP
 nsDOMClassInfo::GetClassName(char **aClassName)
 {
-  *aClassName = NS_strdup(mData->mName);
+  *aClassName = NS_strdup(mData->mClass.name);
 
   return NS_OK;
 }
@@ -855,7 +854,7 @@ nsDOMClassInfo::Resolve(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
   JS::Rooted<JSObject*> global(cx, ::JS_GetGlobalForObject(cx, obj));
 
   JS::Rooted<JS::PropertyDescriptor> desc(cx);
-  if (!JS_GetPropertyDescriptor(cx, global, mData->mName, &desc)) {
+  if (!JS_GetPropertyDescriptor(cx, global, mData->mClass.name, &desc)) {
     return NS_ERROR_UNEXPECTED;
   }
 
@@ -958,7 +957,7 @@ nsDOMClassInfo::PostCreatePrototype(JSContext * cx, JSObject * aProto)
       if (if_info) {
         nsXPIDLCString name;
         if_info->GetName(getter_Copies(name));
-        NS_ASSERTION(nsCRT::strcmp(CutPrefix(name), mData->mName) == 0,
+        NS_ASSERTION(nsCRT::strcmp(CutPrefix(name), mData->mClass.name) == 0,
                      "Class name and proto chain interface name mismatch!");
       }
     }
