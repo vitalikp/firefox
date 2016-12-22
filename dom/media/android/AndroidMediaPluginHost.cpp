@@ -224,7 +224,7 @@ AndroidMediaPluginHost::~AndroidMediaPluginHost() {
 }
 
 bool AndroidMediaPluginHost::FindDecoder(const MediaContentType& aMimeType,
-                                         const char* const** aCodecs)
+                                         MediaCodecs* aCodecs)
 {
   const char *chars;
   size_t len = NS_CStringGetData(aMimeType.Type().AsString(), &chars, nullptr);
@@ -232,8 +232,16 @@ bool AndroidMediaPluginHost::FindDecoder(const MediaContentType& aMimeType,
     Manifest *plugin = mPlugins[n];
     const char* const *codecs;
     if (plugin->CanDecode(chars, len, &codecs)) {
-      if (aCodecs)
-        *aCodecs = codecs;
+      if (aCodecs) {
+        nsString codecsString;
+        for (const char* const* codec = codecs; *codec; ++codec) {
+          if (codecsString.IsEmpty()) {
+            codecsString += ',';
+          }
+          codecsString.AppendASCII(*codec);
+        }
+        *aCodecs = MediaCodecs(codecsString);
+      }
       return true;
     }
   }
