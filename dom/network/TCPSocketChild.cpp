@@ -110,7 +110,7 @@ void
 TCPSocketChild::SendWindowlessOpenBind(nsITCPSocketCallback* aSocket,
                                        const nsACString& aRemoteHost, uint16_t aRemotePort,
                                        const nsACString& aLocalHost, uint16_t aLocalPort,
-                                       bool aUseSSL)
+                                       bool aUseSSL, bool aReuseAddrPort)
 {
   mSocket = aSocket;
   AddIPDLReference();
@@ -119,7 +119,8 @@ TCPSocketChild::SendWindowlessOpenBind(nsITCPSocketCallback* aSocket,
                                          aRemotePort);
   PTCPSocketChild::SendOpenBind(nsCString(aRemoteHost), aRemotePort,
                                 nsCString(aLocalHost), aLocalPort,
-                                aUseSSL, true, mFilterName);
+                                aUseSSL, aReuseAddrPort,
+                                true, mFilterName);
 }
 
 void
