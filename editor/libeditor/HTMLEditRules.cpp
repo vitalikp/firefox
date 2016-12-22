@@ -1007,9 +1007,8 @@ HTMLEditRules::GetIndentState(bool* aCanIndent,
     NS_ENSURE_TRUE(selection, NS_ERROR_NULL_POINTER);
 
     // test start parent hierarchy
-    NS_ENSURE_STATE(mHTMLEditor);
-    rv = mHTMLEditor->GetStartNodeAndOffset(selection, getter_AddRefs(parent),
-                                            &selOffset);
+    rv = EditorBase::GetStartNodeAndOffset(selection, getter_AddRefs(parent),
+                                           &selOffset);
     NS_ENSURE_SUCCESS(rv, rv);
     while (parent && parent != root) {
       if (HTMLEditUtils::IsNodeThatCanOutdent(parent)) {
@@ -1021,9 +1020,8 @@ HTMLEditRules::GetIndentState(bool* aCanIndent,
     }
 
     // test end parent hierarchy
-    NS_ENSURE_STATE(mHTMLEditor);
-    rv = mHTMLEditor->GetEndNodeAndOffset(selection, getter_AddRefs(parent),
-                                          &selOffset);
+    rv = EditorBase::GetEndNodeAndOffset(selection, getter_AddRefs(parent),
+                                         &selOffset);
     NS_ENSURE_SUCCESS(rv, rv);
     while (parent && parent != root) {
       if (HTMLEditUtils::IsNodeThatCanOutdent(parent)) {
@@ -1078,9 +1076,8 @@ HTMLEditRules::GetParagraphState(bool* aMixed,
     NS_ENSURE_STATE(mHTMLEditor);
     RefPtr<Selection> selection = mHTMLEditor->GetSelection();
     NS_ENSURE_STATE(selection);
-    NS_ENSURE_STATE(mHTMLEditor);
-    rv = mHTMLEditor->GetStartNodeAndOffset(selection, getter_AddRefs(selNode),
-                                            &selOffset);
+    rv = EditorBase::GetStartNodeAndOffset(selection, getter_AddRefs(selNode),
+                                           &selOffset);
     NS_ENSURE_SUCCESS(rv, rv);
     NS_ENSURE_TRUE(selNode, NS_ERROR_NULL_POINTER);
     arrayOfNodes.AppendElement(*selNode);
@@ -1734,10 +1731,9 @@ HTMLEditRules::SplitMailCites(Selection* aSelection,
   nsCOMPtr<nsINode> selNode;
   nsCOMPtr<Element> citeNode;
   int32_t selOffset;
-  NS_ENSURE_STATE(mHTMLEditor);
   nsresult rv =
-    mHTMLEditor->GetStartNodeAndOffset(aSelection, getter_AddRefs(selNode),
-                                       &selOffset);
+    EditorBase::GetStartNodeAndOffset(aSelection, getter_AddRefs(selNode),
+                                      &selOffset);
   NS_ENSURE_SUCCESS(rv, rv);
   citeNode = GetTopEnclosingMailCite(*selNode);
   if (citeNode) {
@@ -2562,8 +2558,8 @@ HTMLEditRules::InsertBRIfNeeded(Selection* aSelection)
   nsCOMPtr<nsINode> node;
   int32_t offset;
   nsresult rv =
-    mTextEditor->GetStartNodeAndOffset(aSelection,
-                                       getter_AddRefs(node), &offset);
+    EditorBase::GetStartNodeAndOffset(aSelection,
+                                      getter_AddRefs(node), &offset);
   NS_ENSURE_SUCCESS(rv, rv);
   NS_ENSURE_TRUE(node, NS_ERROR_FAILURE);
 
@@ -3019,9 +3015,9 @@ HTMLEditRules::DidDeleteSelection(Selection* aSelection,
   // find where we are
   nsCOMPtr<nsINode> startNode;
   int32_t startOffset;
-  nsresult rv = mTextEditor->GetStartNodeAndOffset(aSelection,
-                                                   getter_AddRefs(startNode),
-                                                   &startOffset);
+  nsresult rv = EditorBase::GetStartNodeAndOffset(aSelection,
+                                                  getter_AddRefs(startNode),
+                                                  &startOffset);
   NS_ENSURE_SUCCESS(rv, rv);
   NS_ENSURE_TRUE(startNode, NS_ERROR_FAILURE);
 
@@ -3624,11 +3620,11 @@ HTMLEditRules::WillCSSIndent(Selection* aSelection,
   if (aSelection->Collapsed()) {
     nsCOMPtr<nsINode> node;
     int32_t offset;
-    NS_ENSURE_STATE(mHTMLEditor);
     nsresult rv =
-      mHTMLEditor->GetStartNodeAndOffset(aSelection,
-                                         getter_AddRefs(node), &offset);
+      EditorBase::GetStartNodeAndOffset(aSelection,
+                                        getter_AddRefs(node), &offset);
     NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_STATE(mHTMLEditor);
     nsCOMPtr<Element> block = mHTMLEditor->GetBlock(*node);
     if (block && HTMLEditUtils::IsListItem(block)) {
       liNode = block;
@@ -7249,10 +7245,9 @@ HTMLEditRules::AdjustWhitespace(Selection* aSelection)
   // get selection point
   nsCOMPtr<nsIDOMNode> selNode;
   int32_t selOffset;
-  NS_ENSURE_STATE(mHTMLEditor);
   nsresult rv =
-    mHTMLEditor->GetStartNodeAndOffset(aSelection,
-                                       getter_AddRefs(selNode), &selOffset);
+    EditorBase::GetStartNodeAndOffset(aSelection,
+                                      getter_AddRefs(selNode), &selOffset);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // ask whitespace object to tweak nbsp's
@@ -7271,10 +7266,9 @@ HTMLEditRules::PinSelectionToNewBlock(Selection* aSelection)
   // get the (collapsed) selection location
   nsCOMPtr<nsIDOMNode> selNode, temp;
   int32_t selOffset;
-  NS_ENSURE_STATE(mHTMLEditor);
   nsresult rv =
-    mHTMLEditor->GetStartNodeAndOffset(aSelection,
-                                       getter_AddRefs(selNode), &selOffset);
+    EditorBase::GetStartNodeAndOffset(aSelection,
+                                      getter_AddRefs(selNode), &selOffset);
   NS_ENSURE_SUCCESS(rv, rv);
   temp = selNode;
 
@@ -7380,10 +7374,9 @@ HTMLEditRules::AdjustSelection(Selection* aSelection,
   // get the (collapsed) selection location
   nsCOMPtr<nsINode> selNode, temp;
   int32_t selOffset;
-  NS_ENSURE_STATE(mHTMLEditor);
   nsresult rv =
-    mHTMLEditor->GetStartNodeAndOffset(aSelection,
-                                       getter_AddRefs(selNode), &selOffset);
+    EditorBase::GetStartNodeAndOffset(aSelection,
+                                      getter_AddRefs(selNode), &selOffset);
   NS_ENSURE_SUCCESS(rv, rv);
   temp = selNode;
 
@@ -7972,10 +7965,9 @@ HTMLEditRules::ConfirmSelectionInBody()
   // get the selection start location
   nsCOMPtr<nsIDOMNode> selNode, temp, parent;
   int32_t selOffset;
-  NS_ENSURE_STATE(mHTMLEditor);
   nsresult rv =
-    mHTMLEditor->GetStartNodeAndOffset(selection,
-                                       getter_AddRefs(selNode), &selOffset);
+    EditorBase::GetStartNodeAndOffset(selection,
+                                      getter_AddRefs(selNode), &selOffset);
   if (NS_FAILED(rv)) {
     return rv;
   }
@@ -7996,9 +7988,8 @@ HTMLEditRules::ConfirmSelectionInBody()
   }
 
   // get the selection end location
-  NS_ENSURE_STATE(mHTMLEditor);
-  rv = mHTMLEditor->GetEndNodeAndOffset(selection,
-                                        getter_AddRefs(selNode), &selOffset);
+  rv = EditorBase::GetEndNodeAndOffset(selection,
+                                       getter_AddRefs(selNode), &selOffset);
   NS_ENSURE_SUCCESS(rv, rv);
   temp = selNode;
 
@@ -8281,16 +8272,14 @@ HTMLEditRules::WillDeleteSelection(nsISelection* aSelection)
   nsCOMPtr<nsIDOMNode> selNode;
   int32_t selOffset;
 
-  NS_ENSURE_STATE(mHTMLEditor);
   nsresult rv =
-    mHTMLEditor->GetStartNodeAndOffset(selection,
-                                       getter_AddRefs(selNode), &selOffset);
+    EditorBase::GetStartNodeAndOffset(selection,
+                                      getter_AddRefs(selNode), &selOffset);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = mUtilRange->SetStart(selNode, selOffset);
   NS_ENSURE_SUCCESS(rv, rv);
-  NS_ENSURE_STATE(mHTMLEditor);
-  rv = mHTMLEditor->GetEndNodeAndOffset(selection,
-                                        getter_AddRefs(selNode), &selOffset);
+  rv = EditorBase::GetEndNodeAndOffset(selection,
+                                       getter_AddRefs(selNode), &selOffset);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = mUtilRange->SetEnd(selNode, selOffset);
   NS_ENSURE_SUCCESS(rv, rv);
