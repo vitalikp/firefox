@@ -316,7 +316,7 @@ DecodePool::AsyncRun(IDecodingTask* aTask)
   mImpl->PushWork(aTask);
 }
 
-void
+bool
 DecodePool::SyncRunIfPreferred(IDecodingTask* aTask)
 {
   MOZ_ASSERT(NS_IsMainThread());
@@ -324,10 +324,11 @@ DecodePool::SyncRunIfPreferred(IDecodingTask* aTask)
 
   if (aTask->ShouldPreferSyncRun()) {
     aTask->Run();
-    return;
+    return true;
   }
 
   AsyncRun(aTask);
+  return false;
 }
 
 void
