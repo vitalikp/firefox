@@ -6888,12 +6888,12 @@ nsGlobalWindow::MakeScriptDialogTitle(nsAString& aOutTitle,
 }
 
 bool
-nsGlobalWindow::CanMoveResizeWindows(bool aCallerIsChrome)
+nsGlobalWindow::CanMoveResizeWindows(CallerType aCallerType)
 {
   MOZ_ASSERT(IsOuterWindow());
 
   // When called from chrome, we can avoid the following checks.
-  if (!aCallerIsChrome) {
+  if (aCallerType != CallerType::System) {
     // Don't allow scripts to move or resize windows that were not opened by a
     // script.
     if (!mHadOriginalOpener) {
@@ -7547,7 +7547,7 @@ nsGlobalWindow::MoveToOuter(int32_t aXPos, int32_t aYPos,
    * prevent window.moveTo() by exiting early
    */
 
-  if (!CanMoveResizeWindows(aCallerType == CallerType::System) || IsFrame()) {
+  if (!CanMoveResizeWindows(aCallerType) || IsFrame()) {
     return;
   }
 
@@ -7615,7 +7615,7 @@ nsGlobalWindow::MoveByOuter(int32_t aXDif, int32_t aYDif,
    * prevent window.moveBy() by exiting early
    */
 
-  if (!CanMoveResizeWindows(aCallerType == CallerType::System) || IsFrame()) {
+  if (!CanMoveResizeWindows(aCallerType) || IsFrame()) {
     return;
   }
 
@@ -7694,7 +7694,7 @@ nsGlobalWindow::ResizeToOuter(int32_t aWidth, int32_t aHeight,
    * prevent window.resizeTo() by exiting early
    */
 
-  if (!CanMoveResizeWindows(aCallerType == CallerType::System) || IsFrame()) {
+  if (!CanMoveResizeWindows(aCallerType) || IsFrame()) {
     return;
   }
 
@@ -7753,7 +7753,7 @@ nsGlobalWindow::ResizeByOuter(int32_t aWidthDif, int32_t aHeightDif,
    * prevent window.resizeBy() by exiting early
    */
 
-  if (!CanMoveResizeWindows(aCallerType == CallerType::System) || IsFrame()) {
+  if (!CanMoveResizeWindows(aCallerType) || IsFrame()) {
     return;
   }
 
@@ -7810,7 +7810,7 @@ nsGlobalWindow::SizeToContentOuter(CallerType aCallerType, ErrorResult& aError)
    * prevent window.sizeToContent() by exiting early
    */
 
-  if (!CanMoveResizeWindows(aCallerType == CallerType::System) || IsFrame()) {
+  if (!CanMoveResizeWindows(aCallerType) || IsFrame()) {
     return;
   }
 
@@ -13915,7 +13915,7 @@ nsGlobalWindow::SetReplaceableWindowCoord(JSContext* aCx,
    */
   nsGlobalWindow* outer = GetOuterWindowInternal();
   if (!outer ||
-      !outer->CanMoveResizeWindows(aCallerType == CallerType::System) ||
+      !outer->CanMoveResizeWindows(aCallerType) ||
       outer->IsFrame()) {
     RedefineProperty(aCx, aPropName, aValue, aError);
     return;
