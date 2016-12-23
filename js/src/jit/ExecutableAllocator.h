@@ -40,6 +40,9 @@
 #include "jit/arm/Architecture-arm.h"
 #endif
 #include "jit/arm/Simulator-arm.h"
+#if defined(JS_CODEGEN_ARM64)
+#include "jit/arm64/vixl/Cpu-vixl.h"
+#endif
 #include "jit/mips32/Simulator-mips32.h"
 #include "jit/mips64/Simulator-mips64.h"
 #include "jit/ProcessExecutableMemory.h"
@@ -296,7 +299,7 @@ class ExecutableAllocator
 #elif defined(JS_CODEGEN_ARM64)
     static void cacheFlush(void* code, size_t size)
     {
-	__clear_cache(code, (void *)((size_t)code + size));
+        vixl::CPU::EnsureIAndDCacheCoherency(code, size);
     }
 #elif defined(__sparc__)
     static void cacheFlush(void* code, size_t size)
