@@ -488,6 +488,8 @@ private: // data
 
   bool IsOpaque();
 
+  DrawableSurface RequestDecodeForSizeInternal(const gfx::IntSize& aSize, uint32_t aFlags);
+
 protected:
   explicit RasterImage(ImageURL* aURI = nullptr);
 
