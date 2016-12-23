@@ -435,7 +435,7 @@ nsresult
 nsParser::WillBuildModel(nsString& aFilename)
 {
   if (!mParserContext)
-    return kInvalidParserContext;
+    return NS_ERROR_HTMLPARSER_INVALIDPARSERCONTEXT;
 
   if (eUnknownDetect != mParserContext->mAutoDetectStatus)
     return NS_OK;
@@ -762,7 +762,7 @@ nsParser::Parse(nsIURI* aURL,
 
   NS_PRECONDITION(aURL, "Error: Null URL given");
 
-  nsresult result=kBadURL;
+  nsresult result = NS_ERROR_HTMLPARSER_BADURL;
   mObserver = aListener;
 
   if (aURL) {
@@ -1059,7 +1059,7 @@ nsParser::ResumeParse(bool allowIteration, bool aIsFinalChunk,
           PostContinueEvent();
         }
 
-        theIterationIsOk = theTokenizerResult != kEOF &&
+        theIterationIsOk = theTokenizerResult != NS_ERROR_HTMLPARSER_EOF &&
                            result != NS_ERROR_HTMLPARSER_INTERRUPTED;
 
         // Make sure not to stop parsing too early. Therefore, before shutting
@@ -1086,8 +1086,9 @@ nsParser::ResumeParse(bool allowIteration, bool aIsFinalChunk,
 
           return NS_OK;
         }
-        if ((NS_OK == result && theTokenizerResult == kEOF) ||
-             result == NS_ERROR_HTMLPARSER_INTERRUPTED) {
+        if ((NS_OK == result &&
+             theTokenizerResult == NS_ERROR_HTMLPARSER_EOF) ||
+            result == NS_ERROR_HTMLPARSER_INTERRUPTED) {
           bool theContextIsStringBased =
             CParserContext::eCTString == mParserContext->mContextType;
 
@@ -1119,7 +1120,7 @@ nsParser::ResumeParse(bool allowIteration, bool aIsFinalChunk,
           }
         }
 
-        if (theTokenizerResult == kEOF ||
+        if (theTokenizerResult == NS_ERROR_HTMLPARSER_EOF ||
             result == NS_ERROR_HTMLPARSER_INTERRUPTED) {
           result = (result == NS_ERROR_HTMLPARSER_INTERRUPTED) ? NS_OK : result;
           mSink->WillInterrupt();
@@ -1533,7 +1534,7 @@ nsresult nsParser::Tokenize(bool aIsFinalChunk)
                                           flushTokens);
       if (NS_FAILED(result)) {
         mParserContext->mScanner->RewindToMark();
-        if (kEOF == result){
+        if (NS_ERROR_HTMLPARSER_EOF == result) {
           break;
         }
         if (NS_ERROR_HTMLPARSER_STOPPARSING == result) {

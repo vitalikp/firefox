@@ -305,7 +305,7 @@ nsresult nsScanner::Append(const char* aBuffer, uint32_t aLen)
 nsresult nsScanner::GetChar(char16_t& aChar) {
   if (!mSlidingBuffer || mCurrentPosition == mEndPosition) {
     aChar = 0;
-    return kEOF;
+    return NS_ERROR_HTMLPARSER_EOF;
   }
 
   aChar = *mCurrentPosition++;
