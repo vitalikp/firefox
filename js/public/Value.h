@@ -51,12 +51,12 @@ JS_ENUM_HEADER(JSValueType, uint8_t)
     JSVAL_TYPE_DOUBLE              = 0x00,
     JSVAL_TYPE_INT32               = 0x01,
     JSVAL_TYPE_UNDEFINED           = 0x02,
-    JSVAL_TYPE_BOOLEAN             = 0x03,
-    JSVAL_TYPE_MAGIC               = 0x04,
-    JSVAL_TYPE_STRING              = 0x05,
-    JSVAL_TYPE_SYMBOL              = 0x06,
-    JSVAL_TYPE_PRIVATE_GCTHING     = 0x07,
-    JSVAL_TYPE_NULL                = 0x08,
+    JSVAL_TYPE_NULL                = 0x03,
+    JSVAL_TYPE_BOOLEAN             = 0x04,
+    JSVAL_TYPE_MAGIC               = 0x05,
+    JSVAL_TYPE_STRING              = 0x06,
+    JSVAL_TYPE_SYMBOL              = 0x07,
+    JSVAL_TYPE_PRIVATE_GCTHING     = 0x08,
     JSVAL_TYPE_OBJECT              = 0x0c,
 
     /* These never appear in a jsval; they are only provided as an out-of-band value. */
@@ -75,11 +75,11 @@ JS_ENUM_HEADER(JSValueTag, uint32_t)
     JSVAL_TAG_CLEAR                = 0xFFFFFF80,
     JSVAL_TAG_INT32                = JSVAL_TAG_CLEAR | JSVAL_TYPE_INT32,
     JSVAL_TAG_UNDEFINED            = JSVAL_TAG_CLEAR | JSVAL_TYPE_UNDEFINED,
+    JSVAL_TAG_NULL                 = JSVAL_TAG_CLEAR | JSVAL_TYPE_NULL,
     JSVAL_TAG_STRING               = JSVAL_TAG_CLEAR | JSVAL_TYPE_STRING,
     JSVAL_TAG_SYMBOL               = JSVAL_TAG_CLEAR | JSVAL_TYPE_SYMBOL,
     JSVAL_TAG_BOOLEAN              = JSVAL_TAG_CLEAR | JSVAL_TYPE_BOOLEAN,
     JSVAL_TAG_MAGIC                = JSVAL_TAG_CLEAR | JSVAL_TYPE_MAGIC,
-    JSVAL_TAG_NULL                 = JSVAL_TAG_CLEAR | JSVAL_TYPE_NULL,
     JSVAL_TAG_OBJECT               = JSVAL_TAG_CLEAR | JSVAL_TYPE_OBJECT,
     JSVAL_TAG_PRIVATE_GCTHING      = JSVAL_TAG_CLEAR | JSVAL_TYPE_PRIVATE_GCTHING
 } JS_ENUM_FOOTER(JSValueTag);
@@ -95,11 +95,11 @@ JS_ENUM_HEADER(JSValueTag, uint32_t)
     JSVAL_TAG_MAX_DOUBLE           = 0x1FFF0,
     JSVAL_TAG_INT32                = JSVAL_TAG_MAX_DOUBLE | JSVAL_TYPE_INT32,
     JSVAL_TAG_UNDEFINED            = JSVAL_TAG_MAX_DOUBLE | JSVAL_TYPE_UNDEFINED,
+    JSVAL_TAG_NULL                 = JSVAL_TAG_MAX_DOUBLE | JSVAL_TYPE_NULL,
     JSVAL_TAG_STRING               = JSVAL_TAG_MAX_DOUBLE | JSVAL_TYPE_STRING,
     JSVAL_TAG_SYMBOL               = JSVAL_TAG_MAX_DOUBLE | JSVAL_TYPE_SYMBOL,
     JSVAL_TAG_BOOLEAN              = JSVAL_TAG_MAX_DOUBLE | JSVAL_TYPE_BOOLEAN,
     JSVAL_TAG_MAGIC                = JSVAL_TAG_MAX_DOUBLE | JSVAL_TYPE_MAGIC,
-    JSVAL_TAG_NULL                 = JSVAL_TAG_MAX_DOUBLE | JSVAL_TYPE_NULL,
     JSVAL_TAG_OBJECT               = JSVAL_TAG_MAX_DOUBLE | JSVAL_TYPE_OBJECT,
     JSVAL_TAG_PRIVATE_GCTHING      = JSVAL_TAG_MAX_DOUBLE | JSVAL_TYPE_PRIVATE_GCTHING
 } JS_ENUM_FOOTER(JSValueTag);
@@ -112,11 +112,11 @@ JS_ENUM_HEADER(JSValueShiftedTag, uint64_t)
     JSVAL_SHIFTED_TAG_MAX_DOUBLE      = ((((uint64_t)JSVAL_TAG_MAX_DOUBLE)     << JSVAL_TAG_SHIFT) | 0xFFFFFFFF),
     JSVAL_SHIFTED_TAG_INT32           = (((uint64_t)JSVAL_TAG_INT32)           << JSVAL_TAG_SHIFT),
     JSVAL_SHIFTED_TAG_UNDEFINED       = (((uint64_t)JSVAL_TAG_UNDEFINED)       << JSVAL_TAG_SHIFT),
+    JSVAL_SHIFTED_TAG_NULL            = (((uint64_t)JSVAL_TAG_NULL)            << JSVAL_TAG_SHIFT),
     JSVAL_SHIFTED_TAG_STRING          = (((uint64_t)JSVAL_TAG_STRING)          << JSVAL_TAG_SHIFT),
     JSVAL_SHIFTED_TAG_SYMBOL          = (((uint64_t)JSVAL_TAG_SYMBOL)          << JSVAL_TAG_SHIFT),
     JSVAL_SHIFTED_TAG_BOOLEAN         = (((uint64_t)JSVAL_TAG_BOOLEAN)         << JSVAL_TAG_SHIFT),
     JSVAL_SHIFTED_TAG_MAGIC           = (((uint64_t)JSVAL_TAG_MAGIC)           << JSVAL_TAG_SHIFT),
-    JSVAL_SHIFTED_TAG_NULL            = (((uint64_t)JSVAL_TAG_NULL)            << JSVAL_TAG_SHIFT),
     JSVAL_SHIFTED_TAG_OBJECT          = (((uint64_t)JSVAL_TAG_OBJECT)          << JSVAL_TAG_SHIFT),
     JSVAL_SHIFTED_TAG_PRIVATE_GCTHING = (((uint64_t)JSVAL_TAG_PRIVATE_GCTHING) << JSVAL_TAG_SHIFT)
 } JS_ENUM_FOOTER(JSValueShiftedTag);
@@ -142,7 +142,6 @@ static_assert(sizeof(JSValueShiftedTag) == sizeof(uint64_t),
 
 #define JSVAL_RAW64_UNDEFINED        (uint64_t(JSVAL_TAG_UNDEFINED) << 32)
 
-#define JSVAL_LOWER_INCL_TAG_OF_OBJ_OR_NULL_SET         JSVAL_TAG_NULL
 #define JSVAL_UPPER_EXCL_TAG_OF_PRIMITIVE_SET           JSVAL_TAG_OBJECT
 #define JSVAL_UPPER_INCL_TAG_OF_NUMBER_SET              JSVAL_TAG_INT32
 #define JSVAL_LOWER_INCL_TAG_OF_GCTHING_SET             JSVAL_TAG_STRING
@@ -156,12 +155,10 @@ static_assert(sizeof(JSValueShiftedTag) == sizeof(uint64_t),
 #define JSVAL_TYPE_TO_TAG(type)      ((JSValueTag)(JSVAL_TAG_MAX_DOUBLE | (type)))
 #define JSVAL_TYPE_TO_SHIFTED_TAG(type) (((uint64_t)JSVAL_TYPE_TO_TAG(type)) << JSVAL_TAG_SHIFT)
 
-#define JSVAL_LOWER_INCL_TAG_OF_OBJ_OR_NULL_SET         JSVAL_TAG_NULL
 #define JSVAL_UPPER_EXCL_TAG_OF_PRIMITIVE_SET           JSVAL_TAG_OBJECT
 #define JSVAL_UPPER_INCL_TAG_OF_NUMBER_SET              JSVAL_TAG_INT32
 #define JSVAL_LOWER_INCL_TAG_OF_GCTHING_SET             JSVAL_TAG_STRING
 
-#define JSVAL_LOWER_INCL_SHIFTED_TAG_OF_OBJ_OR_NULL_SET  JSVAL_SHIFTED_TAG_NULL
 #define JSVAL_UPPER_EXCL_SHIFTED_TAG_OF_PRIMITIVE_SET    JSVAL_SHIFTED_TAG_OBJECT
 #define JSVAL_UPPER_EXCL_SHIFTED_TAG_OF_NUMBER_SET       JSVAL_SHIFTED_TAG_UNDEFINED
 #define JSVAL_LOWER_INCL_SHIFTED_TAG_OF_GCTHING_SET      JSVAL_SHIFTED_TAG_STRING
@@ -541,12 +538,7 @@ class MOZ_NON_PARAM alignas(8) Value
     }
 
     bool isObjectOrNull() const {
-        MOZ_ASSERT(uint32_t(toTag()) <= uint32_t(JSVAL_TAG_OBJECT));
-#if defined(JS_NUNBOX32)
-        return uint32_t(toTag()) >= uint32_t(JSVAL_LOWER_INCL_TAG_OF_OBJ_OR_NULL_SET);
-#elif defined(JS_PUNBOX64)
-        return data.asBits >= JSVAL_LOWER_INCL_SHIFTED_TAG_OF_OBJ_OR_NULL_SET;
-#endif
+        return isObject() || isNull();
     }
 
     bool isGCThing() const {
@@ -579,12 +571,8 @@ class MOZ_NON_PARAM alignas(8) Value
         return isMagic();
     }
 
-    bool isMarkable() const {
-        return isGCThing() && !isNull();
-    }
-
     JS::TraceKind traceKind() const {
-        MOZ_ASSERT(isMarkable());
+        MOZ_ASSERT(isGCThing());
         static_assert((JSVAL_TAG_STRING & 0x03) == size_t(JS::TraceKind::String),
                       "Value type tags must correspond with JS::TraceKinds.");
         static_assert((JSVAL_TAG_SYMBOL & 0x03) == size_t(JS::TraceKind::Symbol),
@@ -688,11 +676,6 @@ class MOZ_NON_PARAM alignas(8) Value
 #endif
     }
 
-    js::gc::Cell* toMarkablePointer() const {
-        MOZ_ASSERT(isMarkable());
-        return toGCThing();
-    }
-
     GCCellPtr toGCCellPtr() const {
         return GCCellPtr(toGCThing(), traceKind());
     }
@@ -764,9 +747,9 @@ class MOZ_NON_PARAM alignas(8) Value
      * Private GC Thing API
      *
      * Non-JSObject, JSString, and JS::Symbol cells may be put into the 64-bit
-     * payload as private GC things. Such Values are considered isMarkable()
-     * and isGCThing(), and as such, automatically marked. Their traceKind()
-     * is gotten via their cells.
+     * payload as private GC things. Such Values are considered isGCThing(), and
+     * as such, automatically marked. Their traceKind() is gotten via their
+     * cells.
      */
 
     void setPrivateGCThing(js::gc::Cell* cell) {
@@ -1027,7 +1010,7 @@ IsOptimizedPlaceholderMagicValue(const Value& v)
 static MOZ_ALWAYS_INLINE void
 ExposeValueToActiveJS(const Value& v)
 {
-    if (v.isMarkable())
+    if (v.isGCThing())
         js::gc::ExposeGCThingToActiveJS(GCCellPtr(v));
 }
 
@@ -1345,7 +1328,7 @@ template <>
 struct BarrierMethods<JS::Value>
 {
     static gc::Cell* asGCThingOrNull(const JS::Value& v) {
-        return v.isMarkable() ? v.toGCThing() : nullptr;
+        return v.isGCThing() ? v.toGCThing() : nullptr;
     }
     static void postBarrier(JS::Value* v, const JS::Value& prev, const JS::Value& next) {
         JS::HeapValuePostBarrier(v, prev, next);
@@ -1383,9 +1366,8 @@ class WrappedPtrOperations<JS::Value, Wrapper>
     bool isObject() const { return value().isObject(); }
     bool isMagic() const { return value().isMagic(); }
     bool isMagic(JSWhyMagic why) const { return value().isMagic(why); }
-    bool isMarkable() const { return value().isMarkable(); }
-    bool isPrimitive() const { return value().isPrimitive(); }
     bool isGCThing() const { return value().isGCThing(); }
+    bool isPrimitive() const { return value().isPrimitive(); }
 
     bool isNullOrUndefined() const { return value().isNullOrUndefined(); }
     bool isObjectOrNull() const { return value().isObjectOrNull(); }
@@ -1510,7 +1492,7 @@ DispatchTyped(F f, const JS::Value& val, Args&&... args)
         return f(val.toSymbol(), mozilla::Forward<Args>(args)...);
     if (MOZ_UNLIKELY(val.isPrivateGCThing()))
         return DispatchTyped(f, val.toGCCellPtr(), mozilla::Forward<Args>(args)...);
-    MOZ_ASSERT(!val.isMarkable());
+    MOZ_ASSERT(!val.isGCThing());
     return F::defaultValue(val);
 }
 

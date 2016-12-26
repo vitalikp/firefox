@@ -1993,7 +1993,7 @@ SnapshotIterator::traceAllocation(JSTracer* trc)
         return;
 
     Value v = allocationValue(alloc, RM_AlwaysDefault);
-    if (!v.isMarkable())
+    if (!v.isGCThing())
         return;
 
     Value copy = v;
