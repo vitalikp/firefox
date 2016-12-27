@@ -1627,8 +1627,8 @@ HttpChannelParent::StartDiversion()
   // Create a content conversion chain based on mDivertListener and update
   // mDivertListener.
   nsCOMPtr<nsIStreamListener> converterListener;
-  mChannel->DoApplyContentConversions(mDivertListener,
-                                      getter_AddRefs(converterListener));
+  Unused << mChannel->DoApplyContentConversions(mDivertListener,
+                                                getter_AddRefs(converterListener));
   if (converterListener) {
     mDivertListener = converterListener.forget();
   }
