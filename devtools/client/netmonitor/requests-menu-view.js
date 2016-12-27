@@ -139,16 +139,13 @@ RequestsMenuView.prototype = {
       },
     ));
 
-    this.sendCustomRequestEvent = this.sendCustomRequest.bind(this);
-    this.closeCustomRequestEvent = this.closeCustomRequest.bind(this);
-
     this._summary = $("#requests-menu-network-summary-button");
     this._summary.setAttribute("label", L10N.getStr("networkMenu.empty"));
 
     this.onResize = this.onResize.bind(this);
     this._splitter = $("#network-inspector-view-splitter");
-    this._splitter.addEventListener("mouseup", this.onResize, false);
-    window.addEventListener("resize", this.onResize, false);
+    this._splitter.addEventListener("mouseup", this.onResize);
+    window.addEventListener("resize", this.onResize);
 
     this.tooltip = new HTMLTooltip(NetMonitorController._toolbox.doc, { type: "arrow" });
 
@@ -157,17 +154,6 @@ RequestsMenuView.prototype = {
       { store: this.store },
       RequestList()
     ), this.mountPoint);
-
-    window.once("connected", this._onConnect.bind(this));
-  },
-
-  _onConnect() {
-    if (NetMonitorController.supportsCustomRequest) {
-      $("#custom-request-send-button")
-        .addEventListener("click", this.sendCustomRequestEvent, false);
-      $("#custom-request-close-button")
-        .addEventListener("click", this.closeCustomRequestEvent, false);
-    }
   },
 
   /**
@@ -178,15 +164,8 @@ RequestsMenuView.prototype = {
 
     Prefs.filters = getActiveFilters(this.store.getState());
 
-    // this.flushRequestsTask.disarm();
-
-    $("#custom-request-send-button")
-      .removeEventListener("click", this.sendCustomRequestEvent, false);
-    $("#custom-request-close-button")
-      .removeEventListener("click", this.closeCustomRequestEvent, false);
-
-    this._splitter.removeEventListener("mouseup", this.onResize, false);
-    window.removeEventListener("resize", this.onResize, false);
+    this._splitter.removeEventListener("mouseup", this.onResize);
+    window.removeEventListener("resize", this.onResize);
 
     this.tooltip.destroy();
 
@@ -426,48 +405,7 @@ RequestsMenuView.prototype = {
         this.store.dispatch(Actions.resizeWaterfall(width));
       }
     });
-  },
-
-  /**
-   * Create a new custom request form populated with the data from
-   * the currently selected request.
-   */
-  cloneSelectedRequest() {
-    this.store.dispatch(Actions.cloneSelectedRequest());
-  },
-
-  /**
-   * Send a new HTTP request using the data in the custom request form.
-   */
-  sendCustomRequest: function () {
-    let selected = getSelectedRequest(this.store.getState());
-
-    let data = {
-      url: selected.url,
-      method: selected.method,
-      httpVersion: selected.httpVersion,
-    };
-    if (selected.requestHeaders) {
-      data.headers = selected.requestHeaders.headers;
-    }
-    if (selected.requestPostData) {
-      data.body = selected.requestPostData.postData.text;
-    }
-
-    NetMonitorController.webConsoleClient.sendHTTPRequest(data, response => {
-      let id = response.eventActor.actor;
-      this.store.dispatch(Actions.preselectRequest(id));
-    });
-
-    this.closeCustomRequest();
-  },
-
-  /**
-   * Remove the currently selected custom request.
-   */
-  closeCustomRequest() {
-    this.store.dispatch(Actions.removeSelectedCustomRequest());
-  },
+  }
 };
 
 exports.RequestsMenuView = RequestsMenuView;
