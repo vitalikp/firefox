@@ -268,8 +268,8 @@ nsAsyncRedirectVerifyHelper::IsOldChannelCanceled()
     nsCOMPtr<nsIHttpChannelInternal> oldChannelInternal =
         do_QueryInterface(mOldChan);
     if (oldChannelInternal) {
-        oldChannelInternal->GetCanceled(&canceled);
-        if (canceled) {
+        nsresult rv = oldChannelInternal->GetCanceled(&canceled);
+        if (NS_SUCCEEDED(rv) && canceled) {
             return true;
         }
     } else if (mOldChan) {
