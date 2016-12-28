@@ -32,8 +32,8 @@
 #include "webrtc/modules/desktop_capture/mac/scoped_pixel_buffer_object.h"
 #include "webrtc/modules/desktop_capture/screen_capture_frame_queue.h"
 #include "webrtc/modules/desktop_capture/screen_capturer_helper.h"
-#include "webrtc/system_wrappers/interface/logging.h"
-#include "webrtc/system_wrappers/interface/tick_util.h"
+#include "webrtc/system_wrappers/include/logging.h"
+#include "webrtc/system_wrappers/include/tick_util.h"
 
 namespace webrtc {
 
@@ -191,14 +191,13 @@ CGImageRef CreateExcludedWindowRegionImage(const DesktopRect& pixel_bounds,
 class ScreenCapturerMac : public ScreenCapturer {
  public:
   explicit ScreenCapturerMac(
-      scoped_refptr<DesktopConfigurationMonitor> desktop_config_monitor);
+      rtc::scoped_refptr<DesktopConfigurationMonitor> desktop_config_monitor);
   virtual ~ScreenCapturerMac();
 
   bool Init();
 
   // Overridden from ScreenCapturer:
   void Start(Callback* callback) override;
-  void Stop() override;
   void Capture(const DesktopRegion& region) override;
   void SetExcludedWindow(WindowId window) override;
   bool GetScreenList(ScreenList* screens) override;
@@ -273,7 +272,7 @@ class ScreenCapturerMac : public ScreenCapturer {
   DesktopRegion last_invalid_region_;
 
   // Monitoring display reconfiguration.
-  scoped_refptr<DesktopConfigurationMonitor> desktop_config_monitor_;
+  rtc::scoped_refptr<DesktopConfigurationMonitor> desktop_config_monitor_;
 
   // Power management assertion to prevent the screen from sleeping.
   IOPMAssertionID power_assertion_id_display_;
@@ -291,7 +290,7 @@ class ScreenCapturerMac : public ScreenCapturer {
 
   CGWindowID excluded_window_;
 
-  DISALLOW_COPY_AND_ASSIGN(ScreenCapturerMac);
+  RTC_DISALLOW_COPY_AND_ASSIGN(ScreenCapturerMac);
 };
 
 // DesktopFrame wrapper that flips wrapped frame upside down by inverting
@@ -314,11 +313,11 @@ class InvertedDesktopFrame : public DesktopFrame {
  private:
   rtc::scoped_ptr<DesktopFrame> original_frame_;
 
-  DISALLOW_COPY_AND_ASSIGN(InvertedDesktopFrame);
+  RTC_DISALLOW_COPY_AND_ASSIGN(InvertedDesktopFrame);
 };
 
 ScreenCapturerMac::ScreenCapturerMac(
-    scoped_refptr<DesktopConfigurationMonitor> desktop_config_monitor)
+    rtc::scoped_refptr<DesktopConfigurationMonitor> desktop_config_monitor)
     : screen_callback_data_(new ScreenCallbackData(this)),
       callback_(NULL),
       cgl_context_(NULL),
@@ -398,19 +397,6 @@ void ScreenCapturerMac::Start(Callback* callback) {
                               kIOPMAssertionLevelOn,
                               CFSTR("Chrome Remote Desktop connection active"),
                               &power_assertion_id_user_);
-}
-
-void ScreenCapturerMac::Stop() {
-  if (power_assertion_id_display_ != kIOPMNullAssertionID) {
-    IOPMAssertionRelease(power_assertion_id_display_);
-    power_assertion_id_display_ = kIOPMNullAssertionID;
-  }
-  if (power_assertion_id_user_ != kIOPMNullAssertionID) {
-    IOPMAssertionRelease(power_assertion_id_user_);
-    power_assertion_id_user_ = kIOPMNullAssertionID;
-  }
-
-  callback_ = NULL;
 }
 
 void ScreenCapturerMac::Capture(const DesktopRegion& region_to_capture) {
