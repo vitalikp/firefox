@@ -8203,6 +8203,21 @@ IonBuilder::getElemTryCache(bool* emitted, MDefinition* obj, MDefinition* index)
     if (index->mightBeType(MIRType::String) || index->mightBeType(MIRType::Symbol))
         barrier = BarrierKind::TypeSet;
 
+    // Ensure we insert a type barrier for reads from typed objects, as type
+    // information does not account for the initial undefined/null types.
+    if (barrier != BarrierKind::TypeSet && !types->unknown()) {
+        MOZ_ASSERT(obj->resultTypeSet());
+        switch (obj->resultTypeSet()->forAllClasses(constraints(), IsTypedObjectClass)) {
+          case TemporaryTypeSet::ForAllResult::ALL_FALSE:
+          case TemporaryTypeSet::ForAllResult::EMPTY:
+            break;
+          case TemporaryTypeSet::ForAllResult::ALL_TRUE:
+          case TemporaryTypeSet::ForAllResult::MIXED:
+            barrier = BarrierKind::TypeSet;
+            break;
+        }
+    }
+
     MGetPropertyCache* ins = MGetPropertyCache::New(alloc(), obj, index,
                                                     barrier == BarrierKind::TypeSet);
     current->add(ins);
@@ -10945,6 +10960,21 @@ IonBuilder::getPropAddCache(MDefinition* obj, PropertyName* name,
         if (protoBarrier != BarrierKind::NoBarrier) {
             MOZ_ASSERT(barrier <= protoBarrier);
             barrier = protoBarrier;
+        }
+    }
+
+    // Ensure we insert a type barrier for reads from typed objects, as type
+    // information does not account for the initial undefined/null types.
+    if (barrier != BarrierKind::TypeSet && !types->unknown()) {
+        MOZ_ASSERT(obj->resultTypeSet());
+        switch (obj->resultTypeSet()->forAllClasses(constraints(), IsTypedObjectClass)) {
+          case TemporaryTypeSet::ForAllResult::ALL_FALSE:
+          case TemporaryTypeSet::ForAllResult::EMPTY:
+            break;
+          case TemporaryTypeSet::ForAllResult::ALL_TRUE:
+          case TemporaryTypeSet::ForAllResult::MIXED:
+            barrier = BarrierKind::TypeSet;
+            break;
         }
     }
 
