@@ -56,7 +56,6 @@ public:
 
   bool mHttpRequestSucceeded;
   uint16_t mHttpResponseCode;
-  nsCString mHttpResponseContentType;
 
   const uint8_t* mResultData; // allocated in loader, but owned by listener
   uint32_t mResultLen;
@@ -112,7 +111,6 @@ public:
 
   Result trySendAndReceiveFcn(PRPollDesc** pPollDesc,
                               uint16_t* httpResponseCode,
-                              const char** httpResponseContentType,
                               const char** httpResponseHeaders,
                               const char** httpResponseData,
                               uint32_t* httpResponseDataLen);
@@ -140,7 +138,6 @@ protected:
   Result internal_send_receive_attempt(bool& retryableError,
                                        PRPollDesc** pPollDesc,
                                        uint16_t* httpResponseCode,
-                                       const char** httpResponseContentType,
                                        const char** httpResponseHeaders,
                                        const char** httpResponseData,
                                        uint32_t* httpResponseDataLen);
@@ -183,13 +180,11 @@ public:
   static Result trySendAndReceiveFcn(nsNSSHttpRequestSession* request,
                                      PRPollDesc** pPollDesc,
                                      uint16_t* httpResponseCode,
-                                     const char** httpResponseContentType,
                                      const char** httpResponseHeaders,
                                      const char** httpResponseData,
                                      uint32_t* httpResponseDataLen)
   {
     return request->trySendAndReceiveFcn(pPollDesc, httpResponseCode,
-                                         httpResponseContentType,
                                          httpResponseHeaders,
                                          httpResponseData, httpResponseDataLen);
   }
