@@ -20,6 +20,7 @@
 #include "jsapi.h"
 #include "jsatom.h"
 #include "jscntxt.h"
+#include "jsfriendapi.h"
 #include "jsobj.h"
 #include "jsstr.h"
 
@@ -3709,6 +3710,9 @@ CreatePluralRulesPrototype(JSContext* cx, HandleObject Intl, Handle<GlobalObject
     RootedNativeObject proto(cx, global->createBlankPrototype(cx, &PluralRulesClass));
     if (!proto)
         return nullptr;
+    MOZ_ASSERT(proto->getReservedSlot(UPLURAL_RULES_SLOT).isUndefined(),
+               "improperly creating PluralRules more than once for a single "
+               "global?");
     proto->setReservedSlot(UPLURAL_RULES_SLOT, PrivateValue(nullptr));
 
     if (!LinkConstructorAndPrototype(cx, ctor, proto))
@@ -3735,6 +3739,37 @@ CreatePluralRulesPrototype(JSContext* cx, HandleObject Intl, Handle<GlobalObject
         return nullptr;
 
     return proto;
+}
+
+/* static */ bool
+js::GlobalObject::addPluralRulesConstructor(JSContext* cx, HandleObject intl)
+{
+    Handle<GlobalObject*> global = cx->global();
+
+    {
+        const HeapSlot& slot = global->getReservedSlotRef(PLURAL_RULES_PROTO);
+        if (!slot.isUndefined()) {
+            MOZ_ASSERT(slot.isObject());
+            MOZ_ASSERT(slot.toObject().hasClass(&PluralRulesClass));
+            JS_ReportErrorASCII(cx,
+                                "the PluralRules constructor can't be added "
+                                "multiple times in the same global");
+            return false;
+        }
+    }
+
+    JSObject* pluralRulesProto = CreatePluralRulesPrototype(cx, intl, global);
+    if (!pluralRulesProto)
+        return false;
+
+    global->setReservedSlot(PLURAL_RULES_PROTO, ObjectValue(*pluralRulesProto));
+    return true;
+}
+
+bool
+js::AddPluralRulesConstructor(JSContext* cx, JS::Handle<JSObject*> intl)
+{
+    return GlobalObject::addPluralRulesConstructor(cx, intl);
 }
 
 bool
@@ -4433,9 +4468,6 @@ GlobalObject::initIntlObject(JSContext* cx, Handle<GlobalObject*> global)
     RootedObject numberFormatProto(cx, CreateNumberFormatPrototype(cx, intl, global));
     if (!numberFormatProto)
         return false;
-    RootedObject pluralRulesProto(cx, CreatePluralRulesPrototype(cx, intl, global));
-    if (!pluralRulesProto)
-        return false;
 
     // The |Intl| object is fully set up now, so define the global property.
     RootedValue intlValue(cx, ObjectValue(*intl));
@@ -4457,7 +4489,6 @@ GlobalObject::initIntlObject(JSContext* cx, Handle<GlobalObject*> global)
     global->setReservedSlot(COLLATOR_PROTO, ObjectValue(*collatorProto));
     global->setReservedSlot(DATE_TIME_FORMAT_PROTO, ObjectValue(*dateTimeFormatProto));
     global->setReservedSlot(NUMBER_FORMAT_PROTO, ObjectValue(*numberFormatProto));
-    global->setReservedSlot(PLURAL_RULES_PROTO, ObjectValue(*pluralRulesProto));
 
     // Also cache |Intl| to implement spec language that conditions behavior
     // based on values being equal to "the standard built-in |Intl| object".
