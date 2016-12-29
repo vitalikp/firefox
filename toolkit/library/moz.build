@@ -25,7 +25,6 @@ def Libxul(name):
     DELAYLOAD_DLLS += [
         'comdlg32.dll',
         'netapi32.dll',
-        'psapi.dll',
         'secur32.dll',
         'wininet.dll',
         'winspool.drv'
@@ -305,7 +304,6 @@ if CONFIG['OS_ARCH'] == 'WINNT':
         'msimg32',
         'netapi32',
         'shlwapi',
-        'psapi',
         'ws2_32',
         'iphlpapi',
         'uxtheme',
