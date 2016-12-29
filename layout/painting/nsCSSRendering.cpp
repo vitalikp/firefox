@@ -1193,8 +1193,9 @@ nsCSSRendering::FindNonTransparentBackgroundFrame(nsIFrame* aFrame,
   while (frame) {
     // No need to call GetVisitedDependentColor because it always uses
     // this alpha component anyway.
-    if (NS_GET_A(frame->StyleBackground()->mBackgroundColor) > 0)
+    if (NS_GET_A(frame->StyleBackground()->BackgroundColor(frame)) > 0) {
       break;
+    }
 
     if (frame->IsThemed())
       break;
@@ -1228,7 +1229,7 @@ nsCSSRendering::FindBackgroundStyleFrame(nsIFrame* aForFrame)
   const nsStyleBackground* result = aForFrame->StyleBackground();
 
   // Check if we need to do propagation from BODY rather than HTML.
-  if (!result->IsTransparent()) {
+  if (!result->IsTransparent(aForFrame)) {
     return aForFrame;
   }
 
@@ -1334,7 +1335,7 @@ FindElementBackground(nsIFrame* aForFrame, nsIFrame* aRootElementFrame,
     return true;
 
   const nsStyleBackground* htmlBG = aRootElementFrame->StyleBackground();
-  return !htmlBG->IsTransparent();
+  return !htmlBG->IsTransparent(aRootElementFrame);
 }
 
 bool
@@ -2250,7 +2251,7 @@ nsCSSRendering::DetermineBackgroundColor(nsPresContext* aPresContext,
     // transparent, but we are expected to use white instead of whatever
     // color was specified.
     bgColor = NS_RGB(255, 255, 255);
-    if (aDrawBackgroundImage || !bg->IsTransparent()) {
+    if (aDrawBackgroundImage || !bg->IsTransparent(aStyleContext)) {
       aDrawBackgroundColor = true;
     } else {
       bgColor = NS_RGBA(0,0,0,0);
