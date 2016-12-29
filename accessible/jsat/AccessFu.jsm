@@ -38,16 +38,6 @@ this.AccessFu = { // jshint ignore:line
       Services.obs.addObserver(this, 'Accessibility:Settings', false);
     } catch (x) {
       // Not on Android
-      if (aWindow.navigator.mozSettings) {
-        let lock = aWindow.navigator.mozSettings.createLock();
-        let req = lock.get(SCREENREADER_SETTING);
-        req.addEventListener('success', () => {
-          this._systemPref = req.result[SCREENREADER_SETTING];
-          this._enableOrDisable();
-        });
-        aWindow.navigator.mozSettings.addObserver(
-          SCREENREADER_SETTING, this.handleEvent);
-      }
     }
 
     this._activatePref = new PrefCache(
@@ -66,9 +56,6 @@ this.AccessFu = { // jshint ignore:line
     }
     if (Utils.MozBuildApp === 'mobile/android') {
       Services.obs.removeObserver(this, 'Accessibility:Settings');
-    } else if (Utils.win.navigator.mozSettings) {
-      Utils.win.navigator.mozSettings.removeObserver(
-        SCREENREADER_SETTING, this.handleEvent);
     }
     delete this._activatePref;
     Utils.uninit();

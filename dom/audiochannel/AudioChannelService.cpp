@@ -25,7 +25,6 @@
 #include "nsGlobalWindow.h"
 #include "nsPIDOMWindow.h"
 #include "nsServiceManagerUtils.h"
-#include "mozilla/dom/SettingChangeNotificationBinding.h"
 
 #ifdef MOZ_WIDGET_GONK
 #include "nsJSUtils.h"
@@ -236,11 +235,6 @@ AudioChannelService::Shutdown()
 
       if (IsParentProcess()) {
         obs->RemoveObserver(gAudioChannelService, "ipc:content-shutdown");
-
-#ifdef MOZ_WIDGET_GONK
-        // To monitor the volume settings based on audio channel.
-        obs->RemoveObserver(gAudioChannelService, "mozsettings-changed");
-#endif
       }
     }
 
@@ -280,11 +274,6 @@ AudioChannelService::AudioChannelService()
     obs->AddObserver(this, "outer-window-destroyed", false);
     if (IsParentProcess()) {
       obs->AddObserver(this, "ipc:content-shutdown", false);
-
-#ifdef MOZ_WIDGET_GONK
-      // To monitor the volume settings based on audio channel.
-      obs->AddObserver(this, "mozsettings-changed", false);
-#endif
     }
   }
 
