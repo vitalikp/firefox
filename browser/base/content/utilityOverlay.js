@@ -388,7 +388,7 @@ function openLinkIn(url, where, params) {
     }
 
     targetBrowser.loadURIWithFlags(url, {
-      flags: flags,
+      flags,
       referrerURI: aNoReferrer ? null : aReferrerURI,
       referrerPolicy: aReferrerPolicy,
       postData: aPostData,

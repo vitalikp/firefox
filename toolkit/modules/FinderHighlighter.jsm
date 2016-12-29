@@ -1591,7 +1591,7 @@ FinderHighlighter.prototype = {
     return {
       findbar: this,
 
-      QueryInterface: function(iid) {
+      QueryInterface(iid) {
         if (iid.equals(Ci.nsIDocumentStateListener) ||
             iid.equals(Ci.nsISupports))
           return this;
@@ -1599,13 +1599,13 @@ FinderHighlighter.prototype = {
         throw Components.results.NS_ERROR_NO_INTERFACE;
       },
 
-      NotifyDocumentWillBeDestroyed: function() {
+      NotifyDocumentWillBeDestroyed() {
         this.findbar._onEditorDestruction(this);
       },
 
       // Unimplemented
-      notifyDocumentCreated: function() {},
-      notifyDocumentStateChanged: function(aDirty) {}
+      notifyDocumentCreated() {},
+      notifyDocumentStateChanged(aDirty) {}
     };
   }
 };

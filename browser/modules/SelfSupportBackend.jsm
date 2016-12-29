@@ -53,11 +53,11 @@ const IS_UNIFIED_TELEMETRY = Preferences.get(PREF_TELEMETRY_UNIFIED, false);
 var gLogAppenderDump = null;
 
 this.SelfSupportBackend = Object.freeze({
-  init: function() {
+  init() {
     SelfSupportBackendInternal.init();
   },
 
-  uninit: function() {
+  uninit() {
     SelfSupportBackendInternal.uninit();
   },
 });
@@ -111,7 +111,7 @@ var SelfSupportBackendInternal = {
   /**
    * Shut down the self support backend, if active.
    */
-  uninit: function() {
+  uninit() {
     this._log.trace("uninit");
 
     Preferences.ignore(PREF_BRANCH_LOG, this._configureLogging, this);
@@ -148,7 +148,7 @@ var SelfSupportBackendInternal = {
    * Handle notifications. Once all windows are created, we wait a little bit more
    * since tabs might still be loading. Then, we open the self support.
    */
-  observe: function(aSubject, aTopic, aData) {
+  observe(aSubject, aTopic, aData) {
     this._log.trace("observe - Topic " + aTopic);
 
     if (aTopic === "sessionstore-windows-restored") {
@@ -160,7 +160,7 @@ var SelfSupportBackendInternal = {
   /**
    * Configure the logger based on the preferences.
    */
-  _configureLogging: function() {
+  _configureLogging() {
     if (!this._log) {
       this._log = Log.repository.getLogger(LOGGER_NAME);
 
@@ -189,7 +189,7 @@ var SelfSupportBackendInternal = {
    * Create an hidden frame to host our |browser|, then load the SelfSupport page in it.
    * @param aURL The URL to load in the browser.
    */
-  _makeHiddenBrowser: function(aURL) {
+  _makeHiddenBrowser(aURL) {
     this._frame = new HiddenFrame();
     return this._frame.get().then(aFrame => {
       let doc = aFrame.document;
@@ -206,7 +206,7 @@ var SelfSupportBackendInternal = {
     });
   },
 
-  handleEvent: function(aEvent) {
+  handleEvent(aEvent) {
     this._log.trace("handleEvent - aEvent.type " + aEvent.type + ", Trusted " + aEvent.isTrusted);
 
     if (aEvent.type === "DOMWindowClose") {
@@ -226,7 +226,7 @@ var SelfSupportBackendInternal = {
   /**
    * Called when the self support page correctly loads.
    */
-  _pageSuccessCallback: function() {
+  _pageSuccessCallback() {
     this._log.debug("_pageSuccessCallback - Page correctly loaded.");
     this._browser.removeProgressListener(this._progressListener);
     this._progressListener.destroy();
@@ -239,7 +239,7 @@ var SelfSupportBackendInternal = {
   /**
    * Called when the self support page fails to load.
    */
-  _pageLoadErrorCallback: function() {
+  _pageLoadErrorCallback() {
     this._log.info("_pageLoadErrorCallback - Too many failed load attempts. Giving up.");
     this.uninit();
   },
@@ -249,7 +249,7 @@ var SelfSupportBackendInternal = {
    * self support page and attempt to load the page content. If loading fails, try again
    * after an interval.
    */
-  _loadSelfSupport: function() {
+  _loadSelfSupport() {
     // Fetch the Self Support URL from the preferences.
     let unformattedURL = Preferences.get(PREF_URL, null);
     let url = Services.urlFormatter.formatURL(unformattedURL);
@@ -299,7 +299,7 @@ function ProgressListener(aLoadErrorCallback, aLoadSuccessCallback) {
 }
 
 ProgressListener.prototype = {
-  onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags) {
+  onLocationChange(aWebProgress, aRequest, aLocation, aFlags) {
     if (aFlags & Ci.nsIWebProgressListener.LOCATION_CHANGE_ERROR_PAGE) {
       this._log.warn("onLocationChange - There was a problem fetching the SelfSupport URL (attempt " +
                      this._loadAttempts + ").");
@@ -321,7 +321,7 @@ ProgressListener.prototype = {
     }
   },
 
-  onStateChange: function(aWebProgress, aRequest, aFlags, aStatus) {
+  onStateChange(aWebProgress, aRequest, aFlags, aStatus) {
     if (aFlags & Ci.nsIWebProgressListener.STATE_STOP &&
         aFlags & Ci.nsIWebProgressListener.STATE_IS_NETWORK &&
         aFlags & Ci.nsIWebProgressListener.STATE_IS_WINDOW &&
@@ -330,7 +330,7 @@ ProgressListener.prototype = {
     }
   },
 
-  destroy: function() {
+  destroy() {
     // Make sure we don't try to reload self support when shutting down.
     clearTimeout(this._reloadTimerId);
   },

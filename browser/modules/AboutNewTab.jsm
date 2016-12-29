@@ -24,18 +24,18 @@ var AboutNewTab = {
 
   pageListener: null,
 
-  init: function() {
+  init() {
     this.pageListener = new RemotePages("about:newtab");
     this.pageListener.addMessageListener("NewTab:Customize", this.customize.bind(this));
     this.pageListener.addMessageListener("NewTab:MaybeShowAutoMigrationUndoNotification",
       (msg) => AutoMigrate.maybeShowUndoNotification(msg.target.browser));
   },
 
-  customize: function(message) {
+  customize(message) {
     NewTabUtils.allPages.enabled = message.data.enabled;
   },
 
-  uninit: function() {
+  uninit() {
     this.pageListener.destroy();
     this.pageListener = null;
   },

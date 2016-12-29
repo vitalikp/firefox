@@ -54,7 +54,7 @@ this.TabCrashHandler = {
     return this.prefs = Services.prefs.getBranch("browser.tabs.crashReporting.");
   },
 
-  init: function() {
+  init() {
     if (this.initialized)
       return;
     this.initialized = true;
@@ -73,7 +73,7 @@ this.TabCrashHandler = {
     this.pageListener.addMessageListener("restoreAll", this.receiveMessage.bind(this));
   },
 
-  observe: function(aSubject, aTopic, aData) {
+  observe(aSubject, aTopic, aData) {
     switch (aTopic) {
       case "ipc:content-shutdown": {
         aSubject.QueryInterface(Ci.nsIPropertyBag2);
@@ -128,7 +128,7 @@ this.TabCrashHandler = {
     }
   },
 
-  receiveMessage: function(message) {
+  receiveMessage(message) {
     let browser = message.target.browser;
     let gBrowser = browser.ownerGlobal.gBrowser;
     let tab = gBrowser.getTabForBrowser(browser);
@@ -320,7 +320,7 @@ this.TabCrashHandler = {
   maybeSendCrashReport(message) {
   },
 
-  removeSubmitCheckboxesForSameCrash: function(childID) {
+  removeSubmitCheckboxesForSameCrash(childID) {
     let enumerator = Services.wm.getEnumerator("navigator:browser");
     while (enumerator.hasMoreElements()) {
       let window = enumerator.getNext();
@@ -348,7 +348,7 @@ this.TabCrashHandler = {
     }
   },
 
-  onAboutTabCrashedLoad: function(message) {
+  onAboutTabCrashedLoad(message) {
     this._crashedTabCount++;
 
     // Broadcast to all about:tabcrashed pages a count of
@@ -750,7 +750,7 @@ this.UnsubmittedCrashHandler = {
     },
     {
       label: gNavigatorBundle.GetStringFromName("pendingCrashReports.viewAll"),
-      callback: function() {
+      callback() {
         chromeWin.openUILinkIn("about:crashes", "tab");
         return true;
       },

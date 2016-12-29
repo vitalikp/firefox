@@ -103,7 +103,7 @@ PromiseSet.prototype = {
    * @return {Promise} Resolved once all Promise have been resolved or removed,
    * or rejected after at least one Promise has rejected.
    */
-  wait: function() {
+  wait() {
     // Pick an arbitrary element in the map, if any exists.
     let entry = this._indirections.entries().next();
     if (entry.done) {
@@ -126,7 +126,7 @@ PromiseSet.prototype = {
    * Calls to wait (including ongoing calls) will only return once
    * `key` has either resolved or been removed.
    */
-  add: function(key) {
+  add(key) {
     this._ensurePromise(key);
     let indirection = PromiseUtils.defer();
     key.then(
@@ -150,7 +150,7 @@ PromiseSet.prototype = {
    * Calls to wait (including ongoing calls) will ignore this promise,
    * unless it is added again.
    */
-  delete: function(key) {
+  delete(key) {
     this._ensurePromise(key);
     let value = this._indirections.get(key);
     if (!value) {
@@ -161,7 +161,7 @@ PromiseSet.prototype = {
     return true;
   },
 
-  _ensurePromise: function(key) {
+  _ensurePromise(key) {
     if (!key || typeof key != "object") {
       throw new Error("Expected an object");
     }
@@ -322,9 +322,9 @@ function getOrigin(topFrame, filename = null, lineNumber = null, stack = null) {
     }
 
     return {
-      filename: filename,
-      lineNumber: lineNumber,
-      stack: stack,
+      filename,
+      lineNumber,
+      stack,
     };
   } catch (ex) {
     return {
@@ -423,7 +423,7 @@ function getPhase(topic) {
      *       // No specific guarantee about completion of profileBeforeChange
      * });
      */
-    addBlocker: function(name, condition, details = null) {
+    addBlocker(name, condition, details = null) {
       spinner.addBlocker(name, condition, details);
     },
     /**
@@ -438,7 +438,7 @@ function getPhase(topic) {
      * the blocker has never been installed or that the phase has
      * completed and the blocker has already been resolved.
      */
-    removeBlocker: function(condition) {
+    removeBlocker(condition) {
       return spinner.removeBlocker(condition);
     },
 
@@ -486,7 +486,7 @@ Spinner.prototype = {
    * See the documentation of `addBlocker` in property `client`
    * of instances of `Barrier`.
    */
-  addBlocker: function(name, condition, details) {
+  addBlocker(name, condition, details) {
     this._barrier.client.addBlocker(name, condition, details);
   },
   /**
@@ -500,7 +500,7 @@ Spinner.prototype = {
    * the blocker has never been installed or that the phase has
    * completed and the blocker has already been resolved.
    */
-  removeBlocker: function(condition) {
+  removeBlocker(condition) {
     return this._barrier.client.removeBlocker(condition);
   },
 
@@ -509,7 +509,7 @@ Spinner.prototype = {
   },
 
   // nsIObserver.observe
-  observe: function() {
+  observe() {
     let topic = this._topic;
     debug(`Starting phase ${ topic }`);
     Services.obs.removeObserver(this, topic);
@@ -738,10 +738,10 @@ function Barrier(name) {
       }
 
       let blocker = {
-        trigger: trigger,
-        promise: promise,
-        name: name,
-        fetchState: fetchState,
+        trigger,
+        promise,
+        name,
+        fetchState,
         getOrigin: () => getOrigin(topFrame, filename, lineNumber, stack),
       };
 
@@ -797,11 +797,11 @@ Barrier.prototype = Object.freeze({
       let {name, fetchState} = blocker;
       let {stack, filename, lineNumber} = blocker.getOrigin();
       frozen.push({
-        name: name,
+        name,
         state: safeGetState(fetchState),
-        filename: filename,
-        lineNumber: lineNumber,
-        stack: stack
+        filename,
+        lineNumber,
+        stack
       });
     }
     return frozen;
@@ -829,14 +829,14 @@ Barrier.prototype = Object.freeze({
    *
    * @return {Promise} A promise satisfied once all blockers are complete.
    */
-  wait: function(options = {}) {
+  wait(options = {}) {
     // This method only implements caching on top of _wait()
     if (this._promise) {
       return this._promise;
     }
     return this._promise = this._wait(options);
   },
-  _wait: function(options) {
+  _wait(options) {
 
     // Sanity checks
     if (this._isStarted) {
@@ -967,7 +967,7 @@ Barrier.prototype = Object.freeze({
     return promise;
   },
 
-  _removeBlocker: function(condition) {
+  _removeBlocker(condition) {
     if (!this._waitForMe || !this._promiseToBlocker || !this._conditionToPromise) {
       // We have already cleaned up everything.
       return false;

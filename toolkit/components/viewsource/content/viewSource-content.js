@@ -422,8 +422,8 @@ var ViewSourceContent = {
   onContextMenu(event) {
     let addonInfo = {};
     let subject = {
-      event: event,
-      addonInfo: addonInfo,
+      event,
+      addonInfo,
     };
 
     subject.wrappedJSObject = subject;

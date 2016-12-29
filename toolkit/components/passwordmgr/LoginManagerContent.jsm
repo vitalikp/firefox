@@ -266,7 +266,7 @@ var LoginManagerContent = {
         let loginsFound = LoginHelper.vanillaObjectsToLogins(msg.data.logins);
         request.promise.resolve({
           form: request.form,
-          loginsFound: loginsFound,
+          loginsFound,
           recipes: msg.data.recipes,
         });
         break;
@@ -307,10 +307,10 @@ var LoginManagerContent = {
     let messageManager = messageManagerFromWindow(win);
 
     // XXX Weak??
-    let requestData = { form: form };
-    let messageData = { formOrigin: formOrigin,
-                        actionOrigin: actionOrigin,
-                        options: options };
+    let requestData = { form };
+    let messageData = { formOrigin,
+                        actionOrigin,
+                        options };
 
     return this._sendRequest(messageManager, requestData,
                              "RemoteLogins:findLogins",
@@ -337,14 +337,14 @@ var LoginManagerContent = {
                            null;
 
     let requestData = {};
-    let messageData = { formOrigin: formOrigin,
-                        actionOrigin: actionOrigin,
+    let messageData = { formOrigin,
+                        actionOrigin,
                         searchString: aSearchString,
-                        previousResult: previousResult,
+                        previousResult,
                         rect: aRect,
                         isSecure: InsecurePasswordUtils.isFormSecure(form),
                         isPasswordField: aElement.type == "password",
-                        remote: remote };
+                        remote };
 
     return this._sendRequest(messageManager, requestData,
                              "RemoteLogins:autoCompleteLogins",
@@ -685,7 +685,7 @@ var LoginManagerContent = {
 
       pwFields[pwFields.length] = {
                                     index   : i,
-                                    element : element
+                                    element
                                   };
     }
 
@@ -958,8 +958,8 @@ var LoginManagerContent = {
     let openerTopWindow = win.opener ? win.opener.top : null;
 
     messageManager.sendAsyncMessage("RemoteLogins:onFormSubmit",
-                                    { hostname: hostname,
-                                      formSubmitURL: formSubmitURL,
+                                    { hostname,
+                                      formSubmitURL,
                                       usernameField: mockUsername,
                                       newPasswordField: mockPassword,
                                       oldPasswordField: mockOldPassword },

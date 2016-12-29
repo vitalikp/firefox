@@ -27,7 +27,7 @@ XPCOMUtils.defineLazyGetter(this, "SimpleServiceDiscovery", function() {
   ssdp.registerDevice({
     id: "roku:ecp",
     target: "roku:ecp",
-    factory: function(aService) {
+    factory(aService) {
       Cu.import("resource://gre/modules/RokuApp.jsm");
       return new RokuApp(aService);
     },
@@ -98,13 +98,13 @@ addMessageListener("SecondScreen:tab-mirror", function(message) {
   if (app) {
     let width = content.innerWidth;
     let height = content.innerHeight;
-    let viewport = {cssWidth: width, cssHeight: height, width: width, height: height};
+    let viewport = {cssWidth: width, cssHeight: height, width, height};
     app.mirror(function() {}, content, viewport, function() {}, content);
   }
 });
 
 var AboutHomeListener = {
-  init: function(chromeGlobal) {
+  init(chromeGlobal) {
     chromeGlobal.addEventListener('AboutHomeLoad', this, false, true);
   },
 
@@ -112,7 +112,7 @@ var AboutHomeListener = {
     return content.document.documentURI.toLowerCase() == "about:home";
   },
 
-  handleEvent: function(aEvent) {
+  handleEvent(aEvent) {
     if (!this.isAboutHome) {
       return;
     }
@@ -129,7 +129,7 @@ var AboutHomeListener = {
     }
   },
 
-  receiveMessage: function(aMessage) {
+  receiveMessage(aMessage) {
     if (!this.isAboutHome) {
       return;
     }
@@ -140,7 +140,7 @@ var AboutHomeListener = {
     }
   },
 
-  onUpdate: function(aData) {
+  onUpdate(aData) {
     let doc = content.document;
     if (aData.showRestoreLastSession && !PrivateBrowsingUtils.isContentWindowPrivate(content))
       doc.getElementById("launcher").setAttribute("session", "true");
@@ -151,7 +151,7 @@ var AboutHomeListener = {
       docElt.setAttribute("showKnowYourRights", "true");
   },
 
-  onPageLoad: function() {
+  onPageLoad() {
     addMessageListener("AboutHome:Update", this);
     addEventListener("click", this, true);
     addEventListener("pagehide", this, true);
@@ -160,7 +160,7 @@ var AboutHomeListener = {
     sendAsyncMessage("AboutHome:RequestUpdate");
   },
 
-  onClick: function(aEvent) {
+  onClick(aEvent) {
     if (!aEvent.isTrusted || // Don't trust synthetic events
         aEvent.button == 2 || aEvent.target.localName != "button") {
       return;
@@ -207,7 +207,7 @@ var AboutHomeListener = {
     }
   },
 
-  onPageHide: function(aEvent) {
+  onPageHide(aEvent) {
     if (aEvent.target.defaultView.frameElement) {
       return;
     }
@@ -257,7 +257,7 @@ var AboutReaderListener = {
 
   _isLeavingReaderMode: false,
 
-  init: function() {
+  init() {
     addEventListener("AboutReaderContentLoaded", this, false, true);
     addEventListener("DOMContentLoaded", this, false);
     addEventListener("pageshow", this, false);
@@ -266,7 +266,7 @@ var AboutReaderListener = {
     addMessageListener("Reader:PushState", this);
   },
 
-  receiveMessage: function(message) {
+  receiveMessage(message) {
     switch (message.name) {
       case "Reader:ToggleReaderMode":
         if (!this.isAboutReader) {
@@ -291,7 +291,7 @@ var AboutReaderListener = {
     return content.document.documentURI.startsWith("about:reader");
   },
 
-  handleEvent: function(aEvent) {
+  handleEvent(aEvent) {
     if (aEvent.originalTarget.defaultView != content) {
       return;
     }
@@ -341,7 +341,7 @@ var AboutReaderListener = {
    * this is a suitable document). Calling it on things which won't be
    * painted is not going to work.
    */
-  updateReaderButton: function(forceNonArticle) {
+  updateReaderButton(forceNonArticle) {
     if (!ReaderMode.isEnabledForParseOnLoad || this.isAboutReader ||
         !content || !(content.document instanceof content.HTMLDocument) ||
         content.document.mozSyntheticDocument) {
@@ -351,14 +351,14 @@ var AboutReaderListener = {
     this.scheduleReadabilityCheckPostPaint(forceNonArticle);
   },
 
-  cancelPotentialPendingReadabilityCheck: function() {
+  cancelPotentialPendingReadabilityCheck() {
     if (this._pendingReadabilityCheck) {
       removeEventListener("MozAfterPaint", this._pendingReadabilityCheck);
       delete this._pendingReadabilityCheck;
     }
   },
 
-  scheduleReadabilityCheckPostPaint: function(forceNonArticle) {
+  scheduleReadabilityCheckPostPaint(forceNonArticle) {
     if (this._pendingReadabilityCheck) {
       // We need to stop this check before we re-add one because we don't know
       // if forceNonArticle was true or false last time.
@@ -368,7 +368,7 @@ var AboutReaderListener = {
     addEventListener("MozAfterPaint", this._pendingReadabilityCheck);
   },
 
-  onPaintWhenWaitedFor: function(forceNonArticle, event) {
+  onPaintWhenWaitedFor(forceNonArticle, event) {
     // In non-e10s, we'll get called for paints other than ours, and so it's
     // possible that this page hasn't been laid out yet, in which case we
     // should wait until we get an event that does relate to our layout. We
@@ -398,18 +398,18 @@ var ContentSearchMediator = {
     "about:newtab",
   ]),
 
-  init: function(chromeGlobal) {
+  init(chromeGlobal) {
     chromeGlobal.addEventListener("ContentSearchClient", this, true, true);
     addMessageListener("ContentSearch", this);
   },
 
-  handleEvent: function(event) {
+  handleEvent(event) {
     if (this._contentWhitelisted) {
       this._sendMsg(event.detail.type, event.detail.data);
     }
   },
 
-  receiveMessage: function(msg) {
+  receiveMessage(msg) {
     if (msg.data.type == "AddToWhitelist") {
       for (let uri of msg.data.data) {
         this.whitelist.add(uri);
@@ -426,18 +426,18 @@ var ContentSearchMediator = {
     return this.whitelist.has(content.document.documentURI);
   },
 
-  _sendMsg: function(type, data = null) {
+  _sendMsg(type, data = null) {
     sendAsyncMessage("ContentSearch", {
-      type: type,
-      data: data,
+      type,
+      data,
     });
   },
 
-  _fireEvent: function(type, data = null) {
+  _fireEvent(type, data = null) {
     let event = Cu.cloneInto({
       detail: {
-        type: type,
-        data: data,
+        type,
+        data,
       },
     }, content);
     content.dispatchEvent(new content.CustomEvent("ContentSearchService",
@@ -447,7 +447,7 @@ var ContentSearchMediator = {
 ContentSearchMediator.init(this);
 
 var PageStyleHandler = {
-  init: function() {
+  init() {
     addMessageListener("PageStyle:Switch", this);
     addMessageListener("PageStyle:Disable", this);
     addEventListener("pageshow", () => this.sendStyleSheetInfo());
@@ -457,23 +457,23 @@ var PageStyleHandler = {
     return docShell.contentViewer;
   },
 
-  sendStyleSheetInfo: function() {
+  sendStyleSheetInfo() {
     let filteredStyleSheets = this._filterStyleSheets(this.getAllStyleSheets());
 
     sendAsyncMessage("PageStyle:StyleSheets", {
-      filteredStyleSheets: filteredStyleSheets,
+      filteredStyleSheets,
       authorStyleDisabled: this.markupDocumentViewer.authorStyleDisabled,
       preferredStyleSheetSet: content.document.preferredStyleSheetSet
     });
   },
 
-  getAllStyleSheets: function(frameset = content) {
+  getAllStyleSheets(frameset = content) {
     let selfSheets = Array.slice(frameset.document.styleSheets);
     let subSheets = Array.map(frameset.frames, frame => this.getAllStyleSheets(frame));
     return selfSheets.concat(...subSheets);
   },
 
-  receiveMessage: function(msg) {
+  receiveMessage(msg) {
     switch (msg.name) {
       case "PageStyle:Switch":
         this.markupDocumentViewer.authorStyleDisabled = false;
@@ -488,7 +488,7 @@ var PageStyleHandler = {
     this.sendStyleSheetInfo();
   },
 
-  _stylesheetSwitchAll: function(frameset, title) {
+  _stylesheetSwitchAll(frameset, title) {
     if (!title || this._stylesheetInFrame(frameset, title)) {
       this._stylesheetSwitchFrame(frameset, title);
     }
@@ -499,7 +499,7 @@ var PageStyleHandler = {
     }
   },
 
-  _stylesheetSwitchFrame: function(frame, title) {
+  _stylesheetSwitchFrame(frame, title) {
     var docStyleSheets = frame.document.styleSheets;
 
     for (let i = 0; i < docStyleSheets.length; ++i) {
@@ -512,11 +512,11 @@ var PageStyleHandler = {
     }
   },
 
-  _stylesheetInFrame: function(frame, title) {
+  _stylesheetInFrame(frame, title) {
     return Array.some(frame.document.styleSheets, (styleSheet) => styleSheet.title == title);
   },
 
-  _filterStyleSheets: function(styleSheets) {
+  _filterStyleSheets(styleSheets) {
     let result = [];
 
     for (let currentStyleSheet of styleSheets) {
@@ -658,13 +658,13 @@ let PrerenderContentHandler = {
     sendAsyncMessage("Prerender:Request", {
       href: aHref.spec,
       referrer: aReferrer ? aReferrer.spec : null,
-      id: id,
+      id,
     });
 
     this._pending.push({
       href: aHref,
       referrer: aReferrer,
-      id: id,
+      id,
       success: null,
       failure: null,
     });
@@ -696,12 +696,12 @@ if (Services.appinfo.processType == Services.appinfo.PROCESS_TYPE_CONTENT) {
 }
 
 var WebBrowserChrome = {
-  onBeforeLinkTraversal: function(originalTarget, linkURI, linkNode, isAppTab) {
+  onBeforeLinkTraversal(originalTarget, linkURI, linkNode, isAppTab) {
     return BrowserUtils.onBeforeLinkTraversal(originalTarget, linkURI, linkNode, isAppTab);
   },
 
   // Check whether this URI should load in the current process
-  shouldLoadURI: function(aDocShell, aURI, aReferrer) {
+  shouldLoadURI(aDocShell, aURI, aReferrer) {
     if (!E10SUtils.shouldLoadURI(aDocShell, aURI, aReferrer)) {
       E10SUtils.redirectLoad(aDocShell, aURI, aReferrer);
       return false;
@@ -710,23 +710,23 @@ var WebBrowserChrome = {
     return true;
   },
 
-  shouldLoadURIInThisProcess: function(aURI) {
+  shouldLoadURIInThisProcess(aURI) {
     return E10SUtils.shouldLoadURIInThisProcess(aURI);
   },
 
   // Try to reload the currently active or currently loading page in a new process.
-  reloadInFreshProcess: function(aDocShell, aURI, aReferrer) {
+  reloadInFreshProcess(aDocShell, aURI, aReferrer) {
     E10SUtils.redirectLoad(aDocShell, aURI, aReferrer, true);
     return true;
   },
 
-  startPrerenderingDocument: function(aHref, aReferrer) {
+  startPrerenderingDocument(aHref, aReferrer) {
     if (PrerenderContentHandler.initialized) {
       PrerenderContentHandler.startPrerenderingDocument(aHref, aReferrer);
     }
   },
 
-  shouldSwitchToPrerenderedDocument: function(aHref, aReferrer, aSuccess, aFailure) {
+  shouldSwitchToPrerenderedDocument(aHref, aReferrer, aSuccess, aFailure) {
     if (PrerenderContentHandler.initialized) {
       return PrerenderContentHandler.shouldSwitchToPrerenderedDocument(
         aHref, aReferrer, aSuccess, aFailure);
@@ -744,7 +744,7 @@ if (Services.appinfo.processType == Services.appinfo.PROCESS_TYPE_CONTENT) {
 
 var DOMFullscreenHandler = {
 
-  init: function() {
+  init() {
     addMessageListener("DOMFullscreen:Entered", this);
     addMessageListener("DOMFullscreen:CleanUp", this);
     addEventListener("MozDOMFullscreen:Request", this);
@@ -762,7 +762,7 @@ var DOMFullscreenHandler = {
                   .getInterface(Ci.nsIDOMWindowUtils);
   },
 
-  receiveMessage: function(aMessage) {
+  receiveMessage(aMessage) {
     let windowUtils = this._windowUtils;
     switch (aMessage.name) {
       case "DOMFullscreen:Entered": {
@@ -790,7 +790,7 @@ var DOMFullscreenHandler = {
     }
   },
 
-  handleEvent: function(aEvent) {
+  handleEvent(aEvent) {
     switch (aEvent.type) {
       case "MozDOMFullscreen:Request": {
         sendAsyncMessage("DOMFullscreen:Request");

@@ -191,7 +191,7 @@ GMPWrapper.prototype = {
     return false;
   },
 
-  isCompatibleWith: function(aAppVersion, aPlatformVersion) {
+  isCompatibleWith(aAppVersion, aPlatformVersion) {
     return true;
   },
 
@@ -214,7 +214,7 @@ GMPWrapper.prototype = {
     }
   },
 
-  findUpdates: function(aListener, aReason, aAppVersion, aPlatformVersion) {
+  findUpdates(aListener, aReason, aAppVersion, aPlatformVersion) {
     this._log.trace("findUpdates() - " + this._plugin.id + " - reason=" +
                     aReason);
 
@@ -296,7 +296,7 @@ GMPWrapper.prototype = {
     return this.version && this.version.length > 0;
   },
 
-  _handleEnabledChanged: function() {
+  _handleEnabledChanged() {
     this._log.info("_handleEnabledChanged() id=" +
       this._plugin.id + " isActive=" + this.isActive);
 
@@ -319,7 +319,7 @@ GMPWrapper.prototype = {
                                            this);
   },
 
-  checkForUpdates: function(delay) {
+  checkForUpdates(delay) {
     if (this._isUpdateCheckPending) {
       return;
     }
@@ -338,7 +338,7 @@ GMPWrapper.prototype = {
     }, delay);
   },
 
-  receiveMessage: function({target: browser, data: data}) {
+  receiveMessage({target: browser, data: data}) {
     this._log.trace("receiveMessage() data=" + data);
     let parsedData;
     try {
@@ -353,13 +353,13 @@ GMPWrapper.prototype = {
     }
   },
 
-  onPrefEnabledChanged: function() {
+  onPrefEnabledChanged() {
     if (!this._plugin.isEME || !this.appDisabled) {
       this._handleEnabledChanged();
     }
   },
 
-  onPrefVersionChanged: function() {
+  onPrefVersionChanged() {
     AddonManagerPrivate.callAddonListeners("onUninstalling", this, false);
     if (this._gmpPath) {
       this._log.info("onPrefVersionChanged() - unregistering gmp directory " +
@@ -386,7 +386,7 @@ GMPWrapper.prototype = {
     AddonManagerPrivate.callAddonListeners("onInstalled", this);
   },
 
-  uninstallPlugin: function() {
+  uninstallPlugin() {
     AddonManagerPrivate.callAddonListeners("onUninstalling", this, false);
     if (this.gmpPath) {
       this._log.info("uninstallPlugin() - unregistering gmp directory " +
@@ -399,7 +399,7 @@ GMPWrapper.prototype = {
     AddonManagerPrivate.callAddonListeners("onUninstalled", this);
   },
 
-  shutdown: function() {
+  shutdown() {
     Preferences.ignore(GMPPrefs.getPrefKey(GMPPrefs.KEY_PLUGIN_ENABLED,
                                            this._plugin.id),
                        this.onPrefEnabledChanged, this);
@@ -412,7 +412,7 @@ GMPWrapper.prototype = {
     return this._updateTask;
   },
 
-  _arePluginFilesOnDisk: function() {
+  _arePluginFilesOnDisk() {
     let fileExists = function(aGmpPath, aFileName) {
       let f = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
       let path = OS.Path.join(aGmpPath, aFileName);
@@ -464,7 +464,7 @@ var GMPProvider = {
 
   _plugins: null,
 
-  startup: function() {
+  startup() {
     configureLogging();
     this._log = Log.repository.getLoggerWithMessagePrefix("Toolkit.GMP",
                                                           "GMPProvider.");
@@ -507,7 +507,7 @@ var GMPProvider = {
     }
   },
 
-  shutdown: function() {
+  shutdown() {
     this._log.trace("shutdown");
     Preferences.ignore(GMPPrefs.KEY_LOG_BASE, configureLogging);
 
@@ -533,7 +533,7 @@ var GMPProvider = {
     return shutdownTask;
   },
 
-  getAddonByID: function(aId, aCallback) {
+  getAddonByID(aId, aCallback) {
     if (!this.isEnabled) {
       aCallback(null);
       return;
@@ -547,7 +547,7 @@ var GMPProvider = {
     }
   },
 
-  getAddonsByTypes: function(aTypes, aCallback) {
+  getAddonsByTypes(aTypes, aCallback) {
     if (!this.isEnabled ||
         (aTypes && aTypes.indexOf("plugin") < 0)) {
       aCallback([]);
@@ -565,7 +565,7 @@ var GMPProvider = {
     return GMPPrefs.get(GMPPrefs.KEY_PROVIDER_ENABLED, false);
   },
 
-  generateFullDescription: function(aPlugin) {
+  generateFullDescription(aPlugin) {
     let rv = [];
     for (let [urlProp, labelId] of [["learnMoreURL", GMP_LEARN_MORE],
                                     ["licenseURL", GMP_LICENSE_INFO]]) {
@@ -577,7 +577,7 @@ var GMPProvider = {
     return rv.length ? rv.join("<xhtml:br /><xhtml:br />") : undefined;
   },
 
-  buildPluginList: function() {
+  buildPluginList() {
     this._plugins = new Map();
     for (let aPlugin of GMP_PLUGINS) {
       let plugin = {
@@ -595,7 +595,7 @@ var GMPProvider = {
     }
   },
 
-  ensureProperCDMInstallState: function() {
+  ensureProperCDMInstallState() {
     for (let plugin of this._plugins.values()) {
       if (plugin.isEME && plugin.wrapper.isInstalled) {
         gmpService.addPluginDirectory(plugin.wrapper.gmpPath);

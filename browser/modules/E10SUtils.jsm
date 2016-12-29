@@ -46,13 +46,13 @@ this.E10SUtils = {
   WEB_REMOTE_TYPE,
   FILE_REMOTE_TYPE,
 
-  canLoadURIInProcess: function(aURL, aProcess) {
+  canLoadURIInProcess(aURL, aProcess) {
     let remoteType = aProcess == Ci.nsIXULRuntime.PROCESS_TYPE_CONTENT
                      ? DEFAULT_REMOTE_TYPE : NOT_REMOTE;
     return remoteType == this.getRemoteTypeForURI(aURL, true, remoteType);
   },
 
-  getRemoteTypeForURI: function(aURL, aMultiProcess,
+  getRemoteTypeForURI(aURL, aMultiProcess,
                                 aPreferredRemoteType = DEFAULT_REMOTE_TYPE) {
     if (!aMultiProcess) {
       return NOT_REMOTE;
@@ -143,7 +143,7 @@ this.E10SUtils = {
     return validatedWebRemoteType(aPreferredRemoteType);
   },
 
-  shouldLoadURIInThisProcess: function(aURI) {
+  shouldLoadURIInThisProcess(aURI) {
     let remoteType = Services.appinfo.remoteType;
     return remoteType == this.getRemoteTypeForURI(aURI.spec, true, remoteType);
   },
@@ -184,7 +184,7 @@ this.E10SUtils = {
     return false;
   },
 
-  wrapHandlingUserInput: function(aWindow, aIsHandling, aCallback) {
+  wrapHandlingUserInput(aWindow, aIsHandling, aCallback) {
     var handlingUserInput;
     try {
       handlingUserInput = aWindow.QueryInterface(Ci.nsIInterfaceRequestor)
