@@ -108,6 +108,7 @@ struct FontSizePrefs
 // DOM Traversal.
 uint32_t Gecko_ChildrenCount(RawGeckoNodeBorrowed node);
 bool Gecko_NodeIsElement(RawGeckoNodeBorrowed node);
+bool Gecko_IsInDocument(RawGeckoNodeBorrowed node);
 RawGeckoNodeBorrowedOrNull Gecko_GetParentNode(RawGeckoNodeBorrowed node);
 RawGeckoNodeBorrowedOrNull Gecko_GetFirstChild(RawGeckoNodeBorrowed node);
 RawGeckoNodeBorrowedOrNull Gecko_GetLastChild(RawGeckoNodeBorrowed node);
