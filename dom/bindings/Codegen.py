@@ -4354,17 +4354,6 @@ class FailureFatalCastableObjectUnwrapper(CastableObjectUnwrapper):
             isCallbackReturnValue)
 
 
-class CGCallbackTempRoot(CGGeneric):
-    def __init__(self, name):
-        define = dedent("""
-            { // Scope for tempRoot
-              JS::Rooted<JSObject*> tempRoot(cx, &${val}.toObject());
-              ${declName} = new %s(cx, tempRoot, mozilla::dom::GetIncumbentGlobal());
-            }
-            """) % name
-        CGGeneric.__init__(self, define=define)
-
-
 def getCallbackConversionInfo(type, idlObject, isMember, isCallbackReturnValue,
                               isOptional):
     """
@@ -4380,6 +4369,11 @@ def getCallbackConversionInfo(type, idlObject, isMember, isCallbackReturnValue,
                        not isOptional)
     if useFastCallback:
         name = "binding_detail::Fast%s" % name
+        argsPre = ""
+        argsPost = ""
+    else:
+        argsPre = "cx, "
+        argsPost = ", GetIncumbentGlobal()"
 
     if type.nullable() or isCallbackReturnValue:
         declType = CGGeneric("RefPtr<%s>" % name)
@@ -4392,7 +4386,16 @@ def getCallbackConversionInfo(type, idlObject, isMember, isCallbackReturnValue,
     else:
         declArgs = None
 
-    conversion = indent(CGCallbackTempRoot(name).define())
+    conversion = fill(
+        """
+        { // scope for tempRoot
+          JS::Rooted<JSObject*> tempRoot(cx, &$${val}.toObject());
+          $${declName} = new ${name}(${argsPre}tempRoot${argsPost});
+        }
+        """,
+        name=name,
+        argsPre=argsPre,
+        argsPost=argsPost)
     return (declType, declArgs, conversion)
 
 
@@ -15562,13 +15565,12 @@ class CGCallback(CGClass):
                 body=body),
             ClassConstructor(
                 [Argument("JS::Handle<JSObject*>", "aCallback"),
-                 Argument("nsIGlobalObject*", "aIncumbentGlobal"),
                  Argument("const FastCallbackConstructor&", "")],
                 bodyInHeader=True,
                 visibility="public",
                 explicit=True,
                 baseConstructors=[
-                    "%s(aCallback, aIncumbentGlobal, FastCallbackConstructor())" % self.baseName,
+                    "%s(aCallback, FastCallbackConstructor())" % self.baseName,
                 ],
                 body=body),
             ClassConstructor(
@@ -15741,14 +15743,12 @@ class CGFastCallback(CGClass):
         self._deps = idlObject.getDeps()
         baseName = idlObject.identifier.name
         constructor = ClassConstructor(
-            [Argument("JSContext*", "aCx"),
-             Argument("JS::Handle<JSObject*>", "aCallback"),
-             Argument("nsIGlobalObject*", "aIncumbentGlobal")],
+            [Argument("JS::Handle<JSObject*>", "aCallback")],
             bodyInHeader=True,
             visibility="public",
             explicit=True,
             baseConstructors=[
-                "%s(aCallback, aIncumbentGlobal, FastCallbackConstructor())" %
+                "%s(aCallback, FastCallbackConstructor())" %
                 baseName,
             ],
             body="")
