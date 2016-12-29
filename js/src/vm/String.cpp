@@ -43,9 +43,13 @@ JSString::sizeOfExcludingThis(mozilla::MallocSizeOf mallocSizeOf)
     if (isDependent())
         return 0;
 
-    // JSExternalString: don't count, the chars could be stored anywhere.
-    if (isExternal())
+    // JSExternalString: Ask the embedding to tell us what's going on.  If it
+    // doesn't want to say, don't count, the chars could be stored anywhere.
+    if (isExternal()) {
+        if (auto* cb = runtimeFromMainThread()->externalStringSizeofCallback)
+            return cb(this, mallocSizeOf);
         return 0;
+    }
 
     MOZ_ASSERT(isFlat());
 
