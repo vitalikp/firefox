@@ -38,8 +38,6 @@ static NS_DEFINE_CID(kStandardURLCID, NS_STANDARDURL_CID);
 
 nsIIDNService *nsStandardURL::gIDN = nullptr;
 bool nsStandardURL::gInitialized = false;
-bool nsStandardURL::gEscapeUTF8 = true;
-bool nsStandardURL::gAlwaysEncodeInUTF8 = true;
 char nsStandardURL::gHostLimitDigits[] = { '/', '\\', '?', '#', 0 };
 
 //
@@ -67,8 +65,6 @@ static LazyLogModule gStandardURLLog("nsStandardURL");
 // nsStandardURL::nsPrefObserver
 //----------------------------------------------------------------------------
 
-#define NS_NET_PREF_ESCAPEUTF8         "network.standard-url.escape-utf8"
-#define NS_NET_PREF_ALWAYSENCODEINUTF8 "network.standard-url.encode-utf8"
 
 NS_IMPL_ISUPPORTS(nsStandardURL::nsPrefObserver, nsIObserver)
 
@@ -133,13 +129,10 @@ nsSegmentEncoder::EncodeSegmentCount(const char *str,
             }
         }
 
-        // escape per RFC2396 unless UTF-8 and allowed by preferences
-        int16_t escapeFlags = (gEscapeUTF8 || mEncoder) ? 0 : esc_OnlyASCII;
-
         uint32_t initLen = result.Length();
 
         // now perform any required escaping
-        if (NS_EscapeURL(str + pos, len, mask | escapeFlags, result)) {
+        if (NS_EscapeURL(str + pos, len, mask, result)) {
             len = result.Length() - initLen;
             appended = true;
         }
@@ -188,7 +181,7 @@ nsSegmentEncoder::InitUnicodeEncoder()
     nsSegmentEncoder name(useUTF8 ? nullptr : mOriginCharset.get())
 
 #define GET_SEGMENT_ENCODER(name) \
-    GET_SEGMENT_ENCODER_INTERNAL(name, gAlwaysEncodeInUTF8)
+    GET_SEGMENT_ENCODER_INTERNAL(name, true)
 
 #define GET_QUERY_ENCODER(name) \
     GET_SEGMENT_ENCODER_INTERNAL(name, false)
@@ -274,8 +267,6 @@ nsStandardURL::InitGlobalObjects()
     nsCOMPtr<nsIPrefBranch> prefBranch( do_GetService(NS_PREFSERVICE_CONTRACTID) );
     if (prefBranch) {
         nsCOMPtr<nsIObserver> obs( new nsPrefObserver() );
-        prefBranch->AddObserver(NS_NET_PREF_ESCAPEUTF8, obs.get(), false);
-        prefBranch->AddObserver(NS_NET_PREF_ALWAYSENCODEINUTF8, obs.get(), false);
 
         PrefsChanged(prefBranch, nullptr);
     }
@@ -1149,24 +1140,11 @@ nsStandardURL::WriteSegment(nsIBinaryOutputStream *stream, const URLSegment &seg
 /* static */ void
 nsStandardURL::PrefsChanged(nsIPrefBranch *prefs, const char *pref)
 {
-    bool val;
-
     LOG(("nsStandardURL::PrefsChanged [pref=%s]\n", pref));
 
 #define PREF_CHANGED(p) ((pref == nullptr) || !strcmp(pref, p))
 #define GOT_PREF(p, b) (NS_SUCCEEDED(prefs->GetBoolPref(p, &b)))
 
-    if (PREF_CHANGED(NS_NET_PREF_ESCAPEUTF8)) {
-        if (GOT_PREF(NS_NET_PREF_ESCAPEUTF8, val))
-            gEscapeUTF8 = val;
-        LOG(("escape UTF-8 %s\n", gEscapeUTF8 ? "enabled" : "disabled"));
-    }
-
-    if (PREF_CHANGED(NS_NET_PREF_ALWAYSENCODEINUTF8)) {
-        if (GOT_PREF(NS_NET_PREF_ALWAYSENCODEINUTF8, val))
-            gAlwaysEncodeInUTF8 = val;
-        LOG(("encode in UTF-8 %s\n", gAlwaysEncodeInUTF8 ? "enabled" : "disabled"));
-    }
 #undef PREF_CHANGED
 #undef GOT_PREF
 }
