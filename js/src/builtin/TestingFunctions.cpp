@@ -3502,7 +3502,8 @@ GetConstructorName(JSContext* cx, unsigned argc, Value* vp)
     }
 
     RootedAtom name(cx);
-    if (!args[0].toObject().constructorDisplayAtom(cx, &name))
+    RootedObject obj(cx, &args[0].toObject());
+    if (!JSObject::constructorDisplayAtom(cx, obj, &name))
         return false;
 
     if (name) {
