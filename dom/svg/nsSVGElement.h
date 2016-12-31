@@ -13,7 +13,6 @@
 */
 
 #include "mozilla/Attributes.h"
-#include "mozilla/css/StyleRule.h"
 #include "nsAutoPtr.h"
 #include "nsChangeHint.h"
 #include "nsCOMPtr.h"
@@ -348,8 +347,8 @@ protected:
                                               const nsAString& aValue);
 
   void UpdateContentDeclarationBlock();
-  void UpdateAnimatedContentStyleRule();
-  mozilla::css::StyleRule* GetAnimatedContentStyleRule();
+  void UpdateAnimatedContentDeclarationBlock();
+  mozilla::DeclarationBlock* GetAnimatedContentDeclarationBlock();
 
   nsAttrValue WillChangeValue(nsIAtom* aName);
   // aNewValue is set to the old value. This value may be invalid if
