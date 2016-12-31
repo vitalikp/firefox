@@ -218,8 +218,7 @@ var StarUI = {
       if (PlacesUIUtils.useAsyncTransactions) {
         let guid = yield PlacesUtils.promiseItemGuid(itemId);
         aNode = yield PlacesUIUtils.promiseNodeLike(guid);
-      }
-      else {
+      } else {
         aNode = { itemId };
         yield PlacesUIUtils.completeNodeLikeObjectForItemId(aNode);
       }
@@ -360,8 +359,7 @@ var StarUI = {
       PlacesTransactions.batch(function* () {
         yield this._batchBlockingDeferred.promise;
       }.bind(this));
-    }
-    else {
+    } else {
       PlacesUtils.transactionManager.beginBatch(null);
     }
     this._batching = true;
@@ -374,8 +372,7 @@ var StarUI = {
     if (PlacesUIUtils.useAsyncTransactions) {
       this._batchBlockingDeferred.resolve();
       this._batchBlockingDeferred = null;
-    }
-    else {
+    } else {
       PlacesUtils.transactionManager.endBatch(false);
     }
     this._batching = false;
@@ -417,8 +414,7 @@ var PlacesCommandHook = {
         title = title || uri.spec;
         description = docInfo.description;
         charset = aBrowser.characterSet;
-      }
-      catch (e) { }
+      } catch (e) { }
 
       if (aShowEditUI && isNewBookmark) {
         // If we bookmark the page here but open right into a cancelable
@@ -490,8 +486,7 @@ var PlacesCommandHook = {
         info.title = info.title || url.href;
         description = docInfo.description;
         charset = aBrowser.characterSet;
-      }
-      catch (e) {
+      } catch (e) {
         Components.utils.reportError(e);
       }
 
@@ -698,8 +693,7 @@ var PlacesCommandHook = {
       // No currently open places window, so open one with the specified mode.
       openDialog("chrome://browser/content/places/places.xul",
                  "", "chrome,toolbar=yes,dialog=no,resizable", aLeftPaneRoot);
-    }
-    else {
+    } else {
       organizer.PlacesOrganizer.selectLeftPaneContainerByHierarchy(aLeftPaneRoot);
       organizer.focus();
     }
@@ -887,8 +881,7 @@ var BookmarksEventHandler = {
       // in a bookmarks menupopup is middle-clicked.
       if (target.localName == "menu" || target.localName == "toolbarbutton")
         PlacesUIUtils.openContainerNodeInTabs(target._placesNode, aEvent, aView);
-    }
-    else if (aEvent.button == 1) {
+    } else if (aEvent.button == 1) {
       // left-clicks with modifier are already served by onCommand
       this.onCommand(aEvent, aView);
     }
@@ -922,8 +915,7 @@ var BookmarksEventHandler = {
         return false;
       node = tree.view.nodeForTreeIndex(cell.row);
       cropped = tbo.isCellCropped(cell.row, cell.col);
-    }
-    else {
+    } else {
       // Check whether the tooltipNode is a Places node.
       // In such a case use it, otherwise check for targetURI attribute.
       var tooltipNode = aDocument.tooltipNode;
@@ -1301,15 +1293,13 @@ var BookmarkingUI = {
                                                : this.STATUS_UNSTARRED;
   },
 
-  get _starredTooltip()
-  {
+  get _starredTooltip() {
     delete this._starredTooltip;
     return this._starredTooltip =
       this._getFormattedTooltip("starButtonOn.tooltip2");
   },
 
-  get _unstarredTooltip()
-  {
+  get _unstarredTooltip() {
     delete this._unstarredTooltip;
     return this._unstarredTooltip =
       this._getFormattedTooltip("starButtonOff.tooltip2");
@@ -1703,8 +1693,7 @@ var BookmarkingUI = {
       if (this.button.getAttribute("overflowedItem") == "true") {
         this.button.setAttribute("label", this._starButtonOverflowedStarredLabel);
       }
-    }
-    else {
+    } else {
       this.broadcaster.removeAttribute("starred");
       this.broadcaster.setAttribute("buttontooltiptext", this._unstarredTooltip);
       if (this.button.getAttribute("overflowedItem") == "true") {
@@ -1763,7 +1752,7 @@ var BookmarkingUI = {
 
       // Compute, but do not set, transform for star icon
       let [translateX, translateY] = getCenteringTransformForRects(notifierRect, buttonRect);
-      let starIconTransform = "translate(" +  translateX + ", " + translateY + ")";
+      let starIconTransform = "translate(" + translateX + ", " + translateY + ")";
       if (isRTL) {
         starIconTransform += " scaleX(-1)";
       }
@@ -1931,9 +1920,8 @@ var BookmarkingUI = {
         if (this._itemIds.length == 0) {
           this._updateStar();
         }
-      }
-      // If another bookmark is now pointing to the tracked uri, register it.
-      else if (index == -1 && aNewValue == this._uri.spec) {
+      } else if (index == -1 && aNewValue == this._uri.spec) {
+        // If another bookmark is now pointing to the tracked uri, register it.
         this._itemIds.push(aItemId);
         // Only need to update the UI if it wasn't marked as starred before:
         if (this._itemIds.length == 1) {

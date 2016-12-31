@@ -515,8 +515,7 @@ var ViewSourceContent = {
       if (offset < node.data.length) {
         // The same text node spans across the "\n", just focus where we were.
         selection.extend(node, offset);
-      }
-      else {
+      } else {
         // There is another tag just after the "\n", hook there. We need
         // to focus a safe point because there are edgy cases such as
         // <span>...\n</span><span>...</span> vs.
@@ -739,8 +738,7 @@ var ViewSourceContent = {
    * @param drawSelection true to highlight the selection
    * @param baseURI base URI of the original document
    */
-  viewSourceWithSelection(uri, drawSelection, baseURI)
-  {
+  viewSourceWithSelection(uri, drawSelection, baseURI) {
     this.needsDrawSelection = drawSelection;
 
     // all our content is held by the data:URI and URIs are internally stored as utf-8 (see nsIURI.idl)
@@ -849,8 +847,7 @@ var ViewSourceContent = {
                                  Ci.nsISelectionController.SELECTION_NORMAL,
                                  Ci.nsISelectionController.SELECTION_ANCHOR_REGION,
                                  true);
-    }
-    catch (e) { }
+    } catch (e) { }
 
     // restore the current find state
     findService.matchCase     = matchCase;

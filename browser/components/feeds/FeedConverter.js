@@ -97,8 +97,7 @@ function safeGetCharPref(pref, defaultValue) {
       getService(Ci.nsIPrefBranch);
   try {
     return prefs.getCharPref(pref);
-  }
-  catch (e) {
+  } catch (e) {
   }
   return defaultValue;
 }
@@ -265,8 +264,7 @@ FeedConverter.prototype = {
 
       chromeChannel.loadGroup = this._request.loadGroup;
       chromeChannel.asyncOpen(this._listener, null);
-    }
-    finally {
+    } finally {
       this._releaseHandles();
     }
   },
@@ -301,8 +299,7 @@ FeedConverter.prototype = {
 
       // Note: this throws if the header is not set.
       httpChannel.getResponseHeader("X-Moz-Is-Feed");
-    }
-    catch (ex) {
+    } catch (ex) {
       this._sniffed = true;
     }
 

@@ -38,8 +38,7 @@ function isBlankPageURL(aURL) {
   return aURL == "about:blank" || aURL == BROWSER_NEW_TAB_URL;
 }
 
-function getBrowserURL()
-{
+function getBrowserURL() {
   return "chrome://browser/content/browser.xul";
 }
 
@@ -61,12 +60,10 @@ function openTopWin(url) {
   openUILinkIn(url, "current");
 }
 
-function getBoolPref(prefname, def)
-{
+function getBoolPref(prefname, def) {
   try {
     return Services.prefs.getBoolPref(prefname);
-  }
-  catch (er) {
+  } catch (er) {
     return def;
   }
 }
@@ -122,8 +119,7 @@ function openUILink(url, event, aIgnoreButton, aIgnoreAlt, aAllowThirdPartyFixup
  * - Alt can't be used on the bookmarks toolbar because Alt is used for "treat this as something draggable".
  * - The button is ignored for the middle-click-paste-URL feature, since it's always a middle-click.
  */
-function whereToOpenLink( e, ignoreButton, ignoreAlt )
-{
+function whereToOpenLink(e, ignoreButton, ignoreAlt) {
   // This method must treat a null event like a left click without modifier keys (i.e.
   // e = { shiftKey:false, ctrlKey:false, metaKey:false, altKey:false, button:0 })
   // for compatibility purposes.
@@ -233,8 +229,7 @@ function openLinkIn(url, where, params) {
     // ContentClick.jsm passes isContentWindowPrivate for saveURL instead of passing a CPOW initiatingDoc
     if ("isContentWindowPrivate" in params) {
       saveURL(url, null, null, true, true, aNoReferrer ? null : aReferrerURI, null, params.isContentWindowPrivate);
-    }
-    else {
+    } else {
       if (!aInitiatingDoc) {
         Components.utils.reportError("openUILink/openLinkIn was called with " +
           "where == 'save' but without initiatingDoc.  See bug 814264.");
@@ -521,8 +516,7 @@ function createUserContextMenu(event, isContextMenu = false, excludeUserContextI
 }
 
 // Closes all popups that are ancestors of the node.
-function closeMenus(node)
-{
+function closeMenus(node) {
   if ("tagName" in node) {
     if (node.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     && (node.tagName == "menupopup" || node.tagName == "popup"))
@@ -542,8 +536,7 @@ function closeMenus(node)
  *        For example, aKey can be a variable set to document.getElementById("key_close")
  *        to check if the close command key was pressed in aEvent.
 */
-function eventMatchesKey(aEvent, aKey)
-{
+function eventMatchesKey(aEvent, aKey) {
   let keyPressed = aKey.getAttribute("key").toLowerCase();
   let keyModifiers = aKey.getAttribute("modifiers");
   let modifiers = ["Alt", "Control", "Meta", "Shift"];
@@ -562,7 +555,7 @@ function eventMatchesKey(aEvent, aKey)
     // Capitalize first letter of aKey's modifers to compare to aEvent's modifier
     keyModifiers.forEach(function(modifier, index) {
       if (modifier == "accel") {
-        keyModifiers[index] = AppConstants.platform == "macosx" ?  "Meta" : "Control";
+        keyModifiers[index] = AppConstants.platform == "macosx" ? "Meta" : "Control";
       } else {
         keyModifiers[index] = modifier[0].toUpperCase() + modifier.slice(1);
       }
@@ -573,8 +566,7 @@ function eventMatchesKey(aEvent, aKey)
 }
 
 // Gather all descendent text under given document node.
-function gatherTextUnder( root )
-{
+function gatherTextUnder(root) {
   var text = "";
   var node = root.firstChild;
   var depth = 1;
@@ -615,8 +607,7 @@ function gatherTextUnder( root )
 }
 
 // This function exists for legacy reasons.
-function getShellService()
-{
+function getShellService() {
   return ShellService;
 }
 
@@ -678,8 +669,7 @@ function openAboutDialog() {
   window.openDialog("chrome://browser/content/aboutDialog.xul", "", features);
 }
 
-function openPreferences(paneID, extraArgs)
-{
+function openPreferences(paneID, extraArgs) {
   function switchToAdvancedSubPane(doc) {
     if (extraArgs && extraArgs["advancedTab"]) {
       let advancedPaneTabs = doc.getElementById("advancedPrefs");
@@ -745,8 +735,7 @@ function openPreferences(paneID, extraArgs)
   }
 }
 
-function openAdvancedPreferences(tabID)
-{
+function openAdvancedPreferences(tabID) {
   openPreferences("paneAdvanced", { "advancedTab" : tabID });
 }
 
@@ -754,8 +743,7 @@ function openAdvancedPreferences(tabID)
  * Opens the troubleshooting information (about:support) page for this version
  * of the application.
  */
-function openTroubleshootingPage()
-{
+function openTroubleshootingPage() {
   openUILinkIn("about:support", "tab");
 }
 
@@ -763,35 +751,30 @@ function openTroubleshootingPage()
  * Opens the troubleshooting information (about:support) page for this version
  * of the application.
  */
-function openHealthReport()
-{
+function openHealthReport() {
   openUILinkIn("about:healthreport", "tab");
 }
 
 /**
  * Opens the feedback page for this version of the application.
  */
-function openFeedbackPage()
-{
+function openFeedbackPage() {
   var url = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
                       .getService(Components.interfaces.nsIURLFormatter)
                       .formatURLPref("app.feedback.baseURL");
   openUILinkIn(url, "tab");
 }
 
-function openTourPage()
-{
+function openTourPage() {
   let scope = {}
   Components.utils.import("resource:///modules/UITour.jsm", scope);
   openUILinkIn(scope.UITour.url, "tab");
 }
 
-function buildHelpMenu()
-{
+function buildHelpMenu() {
 }
 
-function isElementVisible(aElement)
-{
+function isElementVisible(aElement) {
   if (!aElement)
     return false;
 
@@ -801,8 +784,7 @@ function isElementVisible(aElement)
   return (bo.height > 0 && bo.width > 0);
 }
 
-function makeURLAbsolute(aBase, aUrl)
-{
+function makeURLAbsolute(aBase, aUrl) {
   // Note:  makeURI() will throw if aUri is not a valid URI
   return makeURI(aUrl, null, makeURI(aBase)).spec;
 }

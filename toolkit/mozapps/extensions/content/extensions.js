@@ -461,8 +461,7 @@ if (window.QueryInterface(Ci.nsIInterfaceRequestor)
           .getInterface(Ci.nsIWebNavigation)
           .sessionHistory) {
   var gHistory = HTML5History;
-}
-else {
+} else {
   gHistory = FakeHistory;
 }
 
@@ -538,8 +537,7 @@ var gEventManager = {
           tiptext += " " + (addonItem.hasAttribute("upgrade") ? addonItem.mManualUpdate.version
                                                               : addonItem.mAddon.version);
         }
-      }
-      else if (shouldShowVersionNumber(addonItem.mInstall)) {
+      } else if (shouldShowVersionNumber(addonItem.mInstall)) {
         tiptext += " " + addonItem.mInstall.version;
       }
 
@@ -726,8 +724,7 @@ var gViewController = {
     try {
       this.loadViewInternal(state.view, state.previousView, state);
       this.lastHistoryIndex = gHistory.index;
-    }
-    catch (e) {
+    } catch (e) {
       // The attempt to load the view failed, try moving further along history
       if (this.lastHistoryIndex > gHistory.index) {
         if (gHistory.canGoBack)
@@ -914,7 +911,7 @@ var gViewController = {
 
         let appStartup = Cc["@mozilla.org/toolkit/app-startup;1"].
                          getService(Ci.nsIAppStartup);
-        appStartup.quit(Ci.nsIAppStartup.eAttemptQuit |  Ci.nsIAppStartup.eRestart);
+        appStartup.quit(Ci.nsIAppStartup.eAttemptQuit | Ci.nsIAppStartup.eRestart);
       }
     },
 
@@ -1887,8 +1884,7 @@ var gCategories = {
       var prefName = PREF_UI_TYPE_HIDDEN.replace("%TYPE%", aType.id);
       try {
         startHidden = Services.prefs.getBoolPref(prefName);
-      }
-      catch (e) {
+      } catch (e) {
         // Default to hidden
         startHidden = true;
       }

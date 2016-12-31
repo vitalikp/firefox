@@ -1231,11 +1231,9 @@ Experiments.Experiments.prototype = {
           reason = shouldStopResult.reason;
         }
         changes = yield activeExperiment.stop(kind, reason);
-      }
-      else if (this._terminateReason) {
+      } else if (this._terminateReason) {
         changes = yield activeExperiment.stop(this._terminateReason);
-      }
-      else {
+      } else {
         changes = yield activeExperiment.reconcileAddonState();
       }
 
@@ -1258,8 +1256,7 @@ Experiments.Experiments.prototype = {
         let reason = null;
         try {
           applicable = yield experiment.isApplicable();
-        }
-        catch (e) {
+        } catch (e) {
           applicable = false;
           reason = e;
         }
@@ -1722,13 +1719,11 @@ Experiments.ExperimentEntry.prototype = {
     let result = false;
     try {
       result = !!Cu.evalInSandbox("filter({get telemetryEnvironment() { return _e; } })", sandbox);
-    }
-    catch (e) {
+    } catch (e) {
       this._log.debug("runFilterFunction() - filter function failed: "
                       + e.message + ", " + e.stack);
       throw ["jsfilter-threw", e.message];
-    }
-    finally {
+    } finally {
       Cu.nukeSandbox(sandbox);
     }
 
@@ -2069,7 +2064,7 @@ Experiments.ExperimentEntry.prototype = {
     if (this._enabled) {
       let startTime = this._startDate.getTime();
       let maxActiveTime = startTime + 1000 * this._manifestData.maxActiveSeconds;
-      return Math.min(1000 * this._manifestData.endTime,  maxActiveTime);
+      return Math.min(1000 * this._manifestData.endTime, maxActiveTime);
     }
 
     if (this._endDate) {

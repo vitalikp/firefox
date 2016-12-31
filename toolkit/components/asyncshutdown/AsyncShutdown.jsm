@@ -914,7 +914,7 @@ Barrier.prototype = Object.freeze({
       }
     }
 
-    if (crashAfterMS  > 0) {
+    if (crashAfterMS > 0) {
       let timeToCrash = null;
 
       // If after |crashAfterMS| milliseconds (adjusted to take into

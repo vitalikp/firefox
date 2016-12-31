@@ -116,10 +116,8 @@ var gPrivacyPane = {
    * Sets up the UI for the number of days of history to keep, and updates the
    * label of the "Clear Now..." button.
    */
-  init()
-  {
-    function setEventListener(aId, aEventType, aCallback)
-    {
+  init() {
+    function setEventListener(aId, aEventType, aCallback) {
       document.getElementById(aId)
               .addEventListener(aEventType, aCallback.bind(gPrivacyPane));
     }
@@ -278,8 +276,7 @@ var gPrivacyPane = {
   /**
    * Initialize the history mode menulist based on the privacy preferences
    */
-  initializeHistoryMode()
-  {
+  initializeHistoryMode() {
     let mode;
     let getVal = aPref => document.getElementById(aPref).value;
 
@@ -290,8 +287,7 @@ var gPrivacyPane = {
         mode = "dontremember";
       else
         mode = "remember";
-    }
-    else
+    } else
       mode = "custom";
 
     document.getElementById("historyMode").value = mode;
@@ -300,8 +296,7 @@ var gPrivacyPane = {
   /**
    * Update the selected pane based on the history mode menulist
    */
-  updateHistoryModePane()
-  {
+  updateHistoryModePane() {
     let selectedIndex = -1;
     switch (document.getElementById("historyMode").value) {
     case "remember":
@@ -322,8 +317,7 @@ var gPrivacyPane = {
    * Update the private browsing auto-start pref and the history mode
    * micro-management prefs based on the history mode menulist
    */
-  updateHistoryModePrefs()
-  {
+  updateHistoryModePrefs() {
     let pref = document.getElementById("browser.privatebrowsing.autostart");
     switch (document.getElementById("historyMode").value) {
     case "remember":
@@ -357,8 +351,7 @@ var gPrivacyPane = {
    * Update the privacy micro-management controls based on the
    * value of the private browsing auto-start checkbox.
    */
-  updatePrivacyMicroControls()
-  {
+  updatePrivacyMicroControls() {
     if (document.getElementById("historyMode").value == "custom") {
       let disabled = this._autoStartPrivateBrowsing =
         document.getElementById("privateBrowsingAutoStart").checked;
@@ -409,8 +402,7 @@ var gPrivacyPane = {
   /**
    * Initialize the starting state for the auto-start private browsing mode pref reverter.
    */
-  initAutoStartPrivateBrowsingReverter()
-  {
+  initAutoStartPrivateBrowsingReverter() {
     let mode = document.getElementById("historyMode");
     let autoStart = document.getElementById("privateBrowsingAutoStart");
     this._lastMode = mode.selectedIndex;
@@ -443,7 +435,7 @@ var gPrivacyPane = {
         pref.value = autoStart.hasAttribute('checked');
         let appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
                            .getService(Ci.nsIAppStartup);
-        appStartup.quit(Ci.nsIAppStartup.eAttemptQuit |  Ci.nsIAppStartup.eRestart);
+        appStartup.quit(Ci.nsIAppStartup.eAttemptQuit | Ci.nsIAppStartup.eRestart);
         return;
       }
 
@@ -526,8 +518,7 @@ var gPrivacyPane = {
    * enables/disables the rest of the cookie UI accordingly, returning true
    * if cookies are enabled.
    */
-  readAcceptCookies()
-  {
+  readAcceptCookies() {
     var pref = document.getElementById("network.cookie.cookieBehavior");
     var acceptThirdPartyLabel = document.getElementById("acceptThirdPartyLabel");
     var acceptThirdPartyMenu = document.getElementById("acceptThirdPartyMenu");
@@ -547,8 +538,7 @@ var gPrivacyPane = {
    * Enables/disables the "keep until" label and menulist in response to the
    * "accept cookies" checkbox being checked or unchecked.
    */
-  writeAcceptCookies()
-  {
+  writeAcceptCookies() {
     var accept = document.getElementById("acceptCookies");
     var acceptThirdPartyMenu = document.getElementById("acceptThirdPartyMenu");
 
@@ -562,11 +552,9 @@ var gPrivacyPane = {
   /**
    * Converts between network.cookie.cookieBehavior and the third-party cookie UI
    */
-  readAcceptThirdPartyCookies()
-  {
+  readAcceptThirdPartyCookies() {
     var pref = document.getElementById("network.cookie.cookieBehavior");
-    switch (pref.value)
-    {
+    switch (pref.value) {
       case 0:
         return "always";
       case 1:
@@ -580,11 +568,9 @@ var gPrivacyPane = {
     }
   },
 
-  writeAcceptThirdPartyCookies()
-  {
+  writeAcceptThirdPartyCookies() {
     var accept = document.getElementById("acceptThirdPartyMenu").selectedItem;
-    switch (accept.value)
-    {
+    switch (accept.value) {
       case "always":
         return 0;
       case "visited":
@@ -599,8 +585,7 @@ var gPrivacyPane = {
   /**
    * Displays fine-grained, per-site preferences for cookies.
    */
-  showCookieExceptions()
-  {
+  showCookieExceptions() {
     var bundlePreferences = document.getElementById("bundlePreferences");
     var params = { blockVisible   : true,
                    sessionVisible : true,
@@ -616,8 +601,7 @@ var gPrivacyPane = {
   /**
    * Displays all the user's cookies in a dialog.
    */
-  showCookies(aCategory)
-  {
+  showCookies(aCategory) {
     gSubDialog.open("chrome://browser/content/preferences/cookies.xul");
   },
 
@@ -634,8 +618,7 @@ var gPrivacyPane = {
   /**
    * Displays the Clear Private Data settings dialog.
    */
-  showClearPrivateDataSettings()
-  {
+  showClearPrivateDataSettings() {
     gSubDialog.open("chrome://browser/content/preferences/sanitize.xul", "resizable=no");
   },
 
@@ -685,8 +668,7 @@ var gPrivacyPane = {
    /**
     * Enables/disables the Settings button used to configure containers
     */
-   readBrowserContainersCheckbox()
-   {
+   readBrowserContainersCheckbox() {
      var pref = document.getElementById("privacy.userContext.enabled");
      var settings = document.getElementById("browserContainersSettings");
 

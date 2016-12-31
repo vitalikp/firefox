@@ -67,8 +67,7 @@ function getRequestStatus(request) {
   let status = null;
   try {
     status = request.status;
-  }
-  catch (e) {
+  } catch (e) {
   }
 
   if (status != null) {
@@ -119,7 +118,7 @@ function downloadXML(url, allowNonBuiltIn = false, allowedCerts = null) {
     let fail = (event) => {
       let request = event.target;
       let status = getRequestStatus(request);
-      let message = "Failed downloading XML, status: " + status +  ", reason: " + event.type;
+      let message = "Failed downloading XML, status: " + status + ", reason: " + event.type;
       logger.warn(message);
       let ex = new Error(message);
       ex.status = status;
@@ -303,7 +302,7 @@ function downloadFile(url) {
     let fail = (event) => {
       let request = event.target;
       let status = getRequestStatus(request);
-      let message = "Failed downloading via XHR, status: " + status +  ", reason: " + event.type;
+      let message = "Failed downloading via XHR, status: " + status + ", reason: " + event.type;
       logger.warn(message);
       let ex = new Error(message);
       ex.status = status;
@@ -361,8 +360,7 @@ var computeHash = Task.async(function*(hashFunction, path) {
     } while (bytes.length == HASH_CHUNK_SIZE);
 
     return binaryToHex(hasher.finish(false));
-  }
-  finally {
+  } finally {
     yield file.close();
   }
 });
@@ -390,7 +388,7 @@ var verifyFile = Task.async(function*(properties, path) {
     let expectedDigest = properties.hashValue.toLowerCase();
     let digest = yield computeHash(properties.hashFunction, path);
     if (digest != expectedDigest) {
-      throw new Error("Hash was `" + digest + "` but expected `" + expectedDigest +  "`.");
+      throw new Error("Hash was `" + digest + "` but expected `" + expectedDigest + "`.");
     }
   }
 });
@@ -431,8 +429,7 @@ const ProductAddonChecker = {
     try {
       yield verifyFile(addon, path);
       return path;
-    }
-    catch (e) {
+    } catch (e) {
       yield OS.File.remove(path);
       throw e;
     }

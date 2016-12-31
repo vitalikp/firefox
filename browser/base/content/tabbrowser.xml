@@ -652,8 +652,7 @@
 
               if (aStateFlags & nsIWebProgressListener.STATE_START) {
                 this.mRequestCount++;
-              }
-              else if (aStateFlags & nsIWebProgressListener.STATE_STOP) {
+              } else if (aStateFlags & nsIWebProgressListener.STATE_STOP) {
                 const NS_ERROR_UNKNOWN_HOST = 2152398878;
                 if (--this.mRequestCount > 0 && aStatus == NS_ERROR_UNKNOWN_HOST) {
                   // to prevent bug 235825: wait for the request handled
@@ -705,9 +704,8 @@
                   if (this.mTab.selected)
                     this.mTabBrowser.mIsBusy = true;
                 }
-              }
-              else if (aStateFlags & nsIWebProgressListener.STATE_STOP &&
-                       aStateFlags & nsIWebProgressListener.STATE_IS_NETWORK) {
+              } else if (aStateFlags & nsIWebProgressListener.STATE_STOP &&
+                         aStateFlags & nsIWebProgressListener.STATE_IS_NETWORK) {
 
                 if (this.mTab.hasAttribute("busy")) {
                   this.mTab.removeAttribute("busy");
@@ -925,8 +923,7 @@
                     this.serializationHelper.serializeToString(loadingPrincipal));
                   browser.mIconLoadingPrincipal = loadingPrincipal;
                 }
-              }
-              else {
+              } else {
                 aTab.removeAttribute("image");
                 aTab.removeAttribute("iconLoadingPrincipal");
                 delete browser.mIconLoadingPrincipal;
@@ -1686,8 +1683,7 @@
             if (firstTabAdded) {
               // .selectedTab setter focuses the content area
               this.selectedTab = firstTabAdded;
-            }
-            else
+            } else
               this.selectedBrowser.focus();
           }
         ]]></body>
@@ -4011,8 +4007,7 @@
                     !this.maybeVisibleTabs.has(tab) &&
                     tab !== this.lastVisibleTab &&
                     tab !== this.loadingTab &&
-                    tab !== this.requestedTab)
-                {
+                    tab !== this.requestedTab) {
                   this.setTabState(tab, this.STATE_UNLOADING);
                 }
 
@@ -6493,8 +6488,7 @@
             captureListener = function() {
               dt.updateDragImage(canvas, dragImageOffset, dragImageOffset);
             }
-          }
-          else {
+          } else {
             // Create a panel to use it in setDragImage
             // which will tell xul to render a panel that follows
             // the pointer while a dnd session is on.
@@ -6607,8 +6601,7 @@
             [minMargin, maxMargin] = [this.clientWidth - maxMargin,
                                       this.clientWidth - minMargin];
           newMargin = (pixelsToScroll > 0) ? maxMargin : minMargin;
-        }
-        else {
+        } else {
           let newIndex = this._getDropIndex(event, effects == "link");
           if (newIndex == this.childNodes.length) {
             let tabRect = this.childNodes[newIndex - 1].getBoundingClientRect();
@@ -6616,8 +6609,7 @@
               newMargin = tabRect.right - rect.left;
             else
               newMargin = rect.right - tabRect.left;
-          }
-          else {
+          } else {
             let tabRect = this.childNodes[newIndex].getBoundingClientRect();
             if (ltr)
               newMargin = tabRect.left - rect.left;

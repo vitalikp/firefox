@@ -100,8 +100,7 @@ XPCOMUtils.defineLazyGetter(this, "gABI", function() {
   let abi = null;
   try {
     abi = gApp.XPCOMABI;
-  }
-  catch (e) {
+  } catch (e) {
     LOG("BlockList Global gABI: XPCOM ABI unknown.");
   }
 
@@ -123,16 +122,14 @@ XPCOMUtils.defineLazyGetter(this, "gOSVersion", function() {
                 getService(Ci.nsIPropertyBag2);
   try {
     osVersion = sysInfo.getProperty("name") + " " + sysInfo.getProperty("version");
-  }
-  catch (e) {
+  } catch (e) {
     LOG("BlockList Global gOSVersion: OS Version unknown.");
   }
 
   if (osVersion) {
     try {
       osVersion += " (" + sysInfo.getProperty("secondaryLibrary") + ")";
-    }
-    catch (e) {
+    } catch (e) {
       // Not all platforms have a secondary widget library, so an error is nothing to worry about.
     }
     osVersion = encodeURIComponent(osVersion);
@@ -174,8 +171,7 @@ function LOG(string) {
 function getPref(func, preference, defaultValue) {
   try {
     return gPref[func](preference);
-  }
-  catch (e) {
+  } catch (e) {
   }
   return defaultValue;
 }
@@ -488,8 +484,7 @@ Blocklist.prototype = {
     let request = aEvent.target;
     try {
       gCertUtils.checkCert(request.channel);
-    }
-    catch (e) {
+    } catch (e) {
       LOG("Blocklist::onXMLLoad: " + e);
       return;
     }
@@ -524,8 +519,7 @@ Blocklist.prototype = {
       var request = aEvent.target;
       // the following may throw (e.g. a local file or timeout)
       var status = request.status;
-    }
-    catch (e) {
+    } catch (e) {
       request = aEvent.target.channel.QueryInterface(Ci.nsIRequest);
       status = request.status;
     }
@@ -790,8 +784,7 @@ Blocklist.prototype = {
       if (this._gfxEntries.length > 0) {
         this._notifyObserversBlocklistGFX();
       }
-    }
-    catch (e) {
+    } catch (e) {
       LOG("Blocklist::_loadBlocklistFromFile: Error constructing blocklist " + e);
       return;
     }
@@ -876,8 +869,7 @@ Blocklist.prototype = {
             continue;
           blockEntry.prefs.push(prefElement.textContent);
         }
-      }
-      else if (childElement.localName === "versionRange")
+      } else if (childElement.localName === "versionRange")
         blockEntry.versions.push(new BlocklistItemData(childElement));
     }
     // if only the extension ID is specified block all versions of the
@@ -918,8 +910,7 @@ Blocklist.prototype = {
       }
       if (matchElement.localName == "versionRange") {
         blockEntry.versions.push(new BlocklistItemData(matchElement));
-      }
-      else if (matchElement.localName == "infoURL") {
+      } else if (matchElement.localName == "infoURL") {
         blockEntry.infoURL = matchElement.textContent;
       }
     }
@@ -985,8 +976,7 @@ Blocklist.prototype = {
               // (c.f serialization in _notifyObserversBlocklistGFX)
               const e = new Error(`Unsupported device name ${childValue}`);
               Components.utils.reportError(e);
-            }
-            else {
+            } else {
               value.push(childValue);
             }
           }
@@ -1260,8 +1250,7 @@ Blocklist.prototype = {
         if (oldState == Ci.nsIBlocklistService.STATE_BLOCKED) {
           if (state == Ci.nsIBlocklistService.STATE_SOFTBLOCKED)
             plugin.enabledState = Ci.nsIPluginTag.STATE_DISABLED;
-        }
-        else if (!plugin.disabled && state != Ci.nsIBlocklistService.STATE_NOT_BLOCKED) {
+        } else if (!plugin.disabled && state != Ci.nsIBlocklistService.STATE_NOT_BLOCKED) {
           if (state != Ci.nsIBlocklistService.STATE_OUTDATED &&
               state != Ci.nsIBlocklistService.STATE_VULNERABLE_UPDATE_AVAILABLE &&
               state != Ci.nsIBlocklistService.STATE_VULNERABLE_NO_UPDATE) {

@@ -145,16 +145,13 @@ RDFSerializer.prototype = {
           item += this.serializeResource(aDs, target, aIndent + this.INDENT);
           item += aIndent + "</em:" + prop + ">\n";
           items.push(item);
-        }
-        else if (target instanceof Ci.nsIRDFLiteral) {
+        } else if (target instanceof Ci.nsIRDFLiteral) {
           items.push(aIndent + "<em:" + prop + ">" +
                      this.escapeEntities(target.Value) + "</em:" + prop + ">\n");
-        }
-        else if (target instanceof Ci.nsIRDFInt) {
+        } else if (target instanceof Ci.nsIRDFInt) {
           items.push(aIndent + "<em:" + prop + " NC:parseType=\"Integer\">" +
                      target.Value + "</em:" + prop + ">\n");
-        }
-        else {
+        } else {
           throw Components.Exception("Cannot serialize unknown literal type");
         }
       }
@@ -193,12 +190,10 @@ RDFSerializer.prototype = {
     if (this.cUtils.IsSeq(aDs, aResource)) {
       type = "Seq";
       container = this.cUtils.MakeSeq(aDs, aResource);
-    }
-    else if (this.cUtils.IsAlt(aDs, aResource)) {
+    } else if (this.cUtils.IsAlt(aDs, aResource)) {
       type = "Alt";
       container = this.cUtils.MakeAlt(aDs, aResource);
-    }
-    else if (this.cUtils.IsBag(aDs, aResource)) {
+    } else if (this.cUtils.IsBag(aDs, aResource)) {
       type = "Bag";
       container = this.cUtils.MakeBag(aDs, aResource);
     }
@@ -340,8 +335,7 @@ function parseRDFManifest(aId, aUpdateKey, aRequest, aManifestData) {
 
     try {
       updateString = serializer.serializeResource(ds, addonRes);
-    }
-    catch (e) {
+    } catch (e) {
       throw Components.Exception("Failed to generate signed string for " + aId + ". Serializer threw " + e,
                                  e.result);
     }
@@ -352,8 +346,7 @@ function parseRDFManifest(aId, aUpdateKey, aRequest, aManifestData) {
       let verifier = Cc["@mozilla.org/security/datasignatureverifier;1"].
                      getService(Ci.nsIDataSignatureVerifier);
       result = verifier.verifyData(updateString, signature, aUpdateKey);
-    }
-    catch (e) {
+    } catch (e) {
       throw Components.Exception("The signature or updateKey for " + aId + " is malformed." +
                                  "Verifier threw " + e, e.result);
     }
@@ -403,8 +396,7 @@ function parseRDFManifest(aId, aUpdateKey, aRequest, aManifestData) {
         appEntry.id = getRequiredProperty(ds, targetApp, "id");
         appEntry.minVersion = getRequiredProperty(ds, targetApp, "minVersion");
         appEntry.maxVersion = getRequiredProperty(ds, targetApp, "maxVersion");
-      }
-      catch (e) {
+      } catch (e) {
         logger.warn(e);
         continue;
       }
@@ -586,8 +578,7 @@ function UpdateParser(aId, aUpdateKey, aUrl, aObserver) {
     this.request.addEventListener("error", () => this.onError(), false);
     this.request.addEventListener("timeout", () => this.onTimeout(), false);
     this.request.send(null);
-  }
-  catch (e) {
+  } catch (e) {
     logger.error("Failed to request update manifest", e);
   }
 }
@@ -609,8 +600,7 @@ UpdateParser.prototype = {
 
     try {
       CertUtils.checkCert(request.channel, true);
-    }
-    catch (e) {
+    } catch (e) {
       logger.warn("Request failed: " + this.url + " - " + e);
       this.notifyError(AddonUpdateChecker.ERROR_DOWNLOAD_ERROR);
       return;
@@ -658,8 +648,7 @@ UpdateParser.prototype = {
     let results;
     try {
       results = parser();
-    }
-    catch (e) {
+    } catch (e) {
       logger.warn("onUpdateCheckComplete failed to parse update manifest", e);
       this.notifyError(AddonUpdateChecker.ERROR_PARSE_ERROR);
       return;
@@ -668,12 +657,10 @@ UpdateParser.prototype = {
     if ("onUpdateCheckComplete" in this.observer) {
       try {
         this.observer.onUpdateCheckComplete(results);
-      }
-      catch (e) {
+      } catch (e) {
         logger.warn("onUpdateCheckComplete notification failed", e);
       }
-    }
-    else {
+    } else {
       logger.warn("onUpdateCheckComplete may not properly cancel", new Error("stack marker"));
     }
   },
@@ -694,20 +681,17 @@ UpdateParser.prototype = {
   onError() {
     if (!Components.isSuccessCode(this.request.status)) {
       logger.warn("Request failed: " + this.url + " - " + this.request.status);
-    }
-    else if (this.request.channel instanceof Ci.nsIHttpChannel) {
+    } else if (this.request.channel instanceof Ci.nsIHttpChannel) {
       try {
         if (this.request.channel.requestSucceeded) {
           logger.warn("Request failed: " + this.url + " - " +
                this.request.channel.responseStatus + ": " +
                this.request.channel.responseStatusText);
         }
-      }
-      catch (e) {
+      } catch (e) {
         logger.warn("HTTP Request failed for an unknown reason");
       }
-    }
-    else {
+    } else {
       logger.warn("Request failed for an unknown reason");
     }
 
@@ -724,8 +708,7 @@ UpdateParser.prototype = {
     if ("onUpdateCheckError" in this.observer) {
       try {
         this.observer.onUpdateCheckError(aStatus);
-      }
-      catch (e) {
+      } catch (e) {
         logger.warn("onUpdateCheckError notification failed", e);
       }
     }
@@ -844,8 +827,7 @@ this.AddonUpdateChecker = {
             if (id == Services.appinfo.ID || id == TOOLKIT_ID)
               return update;
           }
-        }
-        else if (matchesVersions(update, aAppVersion, aPlatformVersion,
+        } else if (matchesVersions(update, aAppVersion, aPlatformVersion,
                                  aIgnoreMaxVersion, aIgnoreStrictCompat)) {
           return update;
         }

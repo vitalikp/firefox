@@ -349,7 +349,7 @@ var LoginManagerParent = {
     formLogin.init(hostname, formSubmitURL, null,
                    (usernameField ? usernameField.value : ""),
                    newPasswordField.value,
-                   (usernameField ? usernameField.name  : ""),
+                   (usernameField ? usernameField.name : ""),
                    newPasswordField.name);
 
     // Below here we have one login per hostPort + action + username with the

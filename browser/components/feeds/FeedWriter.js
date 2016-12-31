@@ -22,8 +22,7 @@ function LOG(str) {
   let shouldLog = false;
   try {
     shouldLog = prefB.getBoolPref("feeds.log");
-  }
-  catch (ex) {
+  } catch (ex) {
   }
 
   if (shouldLog)
@@ -94,8 +93,7 @@ FeedWriter.prototype = {
   _getPropertyAsString(container, property) {
     try {
       return container.fields.getPropertyAsAString(property);
-    }
-    catch (e) {
+    } catch (e) {
     }
     return "";
   },
@@ -131,8 +129,7 @@ FeedWriter.prototype = {
       // checkLoadURIStrWithPrincipal will throw if the link URI should not be
       // loaded, either because our feedURI isn't allowed to load it or per
       // the rules specified in |flags|, so we'll never "linkify" the link...
-    }
-    catch (e) {
+    } catch (e) {
       // Not allowed to load this link because secman.checkLoadURIStr threw
       return;
     }
@@ -271,8 +268,7 @@ FeedWriter.prototype = {
 
       this._safeSetURIAttribute(feedTitleLink, "href",
                                 parts.getPropertyAsAString("link"));
-    }
-    catch (e) {
+    } catch (e) {
       LOG("Failed to set Title Image (this is benign): " + e);
     }
   },
@@ -468,8 +464,7 @@ FeedWriter.prototype = {
     try {
       result =
         feedService.getFeedResult(this._getOriginalURI(this._window));
-    }
-    catch (e) {
+    } catch (e) {
       LOG("Subscribe Preview: feed not available?!");
     }
 
@@ -480,8 +475,7 @@ FeedWriter.prototype = {
     let container;
     try {
       container = result.doc;
-    }
-    catch (e) {
+    } catch (e) {
       LOG("Subscribe Preview: no result.doc? Why didn't the original reload?");
       return null;
     }
@@ -891,8 +885,7 @@ FeedWriter.prototype = {
       this._setTitleText(container);
       this._setTitleImage(container);
       this._writeFeedContent(container);
-    }
-    finally {
+    } finally {
       this._removeFeedFromCache();
     }
   },
