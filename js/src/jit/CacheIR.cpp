@@ -1234,6 +1234,10 @@ GetNameIRGenerator::tryAttachGlobalNameValue(ObjOperandId objId, HandleId id)
     if (!shape->hasDefaultGetter() || !shape->hasSlot())
         return false;
 
+    // This might still be an uninitialized lexical.
+    if (holder->getSlot(shape->slot()).isMagic())
+        return false;
+
     // Instantiate this global property, for use during Ion compilation.
     if (IsIonEnabled(cx_))
         EnsureTrackPropertyTypes(cx_, holder, id);
@@ -1347,6 +1351,8 @@ GetNameIRGenerator::tryAttachEnvironmentName(ObjOperandId objId, HandleId id)
 
     holder = &env->as<NativeObject>();
     if (!IsCacheableGetPropReadSlotForIonOrCacheIR(holder, holder, shape))
+        return false;
+    if (holder->getSlot(shape->slot()).isMagic())
         return false;
 
     ObjOperandId lastObjId = objId;
