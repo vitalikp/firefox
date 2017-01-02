@@ -5,6 +5,7 @@
 #include "nsPKCS12Blob.h"
 
 #include "ScopedNSSTypes.h"
+#include "mozilla/Assertions.h"
 #include "mozilla/Casting.h"
 #include "nsICertificateDialogs.h"
 #include "nsIFile.h"

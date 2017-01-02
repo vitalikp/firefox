@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "ScopedNSSTypes.h"
+#include "mozilla/Assertions.h"
 #include "mozilla/Casting.h"
 #include "mozilla/NotNull.h"
 #include "mozilla/Sprintf.h"
