@@ -32,6 +32,7 @@ XPCOMUtils.defineLazyServiceGetter(this, "AlertsService", "@mozilla.org/alerts-s
   ["ContentPrefServiceParent", "resource://gre/modules/ContentPrefServiceParent.jsm"],
   ["ContentSearch", "resource:///modules/ContentSearch.jsm"],
   ["DateTimePickerHelper", "resource://gre/modules/DateTimePickerHelper.jsm"],
+  ["ExtensionsUI", "resource:///modules/ExtensionsUI.jsm"],
   ["Feeds", "resource:///modules/Feeds.jsm"],
   ["FileUtils", "resource://gre/modules/FileUtils.jsm"],
   ["FormValidationHandler", "resource:///modules/FormValidationHandler.jsm"],
@@ -1091,6 +1092,8 @@ BrowserGlue.prototype = {
         win.openUILinkIn("about:newaddon?id=" + addon.id, "tab");
       }
     });
+
+    ExtensionsUI.init();
 
     E10SAccessibilityCheck.onWindowsRestored();
   },
