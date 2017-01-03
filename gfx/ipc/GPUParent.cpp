@@ -12,6 +12,8 @@
 #include "gfxPrefs.h"
 #include "GPUProcessHost.h"
 #include "mozilla/Assertions.h"
+#include "mozilla/Telemetry.h"
+#include "mozilla/TimeStamp.h"
 #include "mozilla/gfx/2D.h"
 #include "mozilla/gfx/gfxVars.h"
 #include "mozilla/ipc/ProcessChild.h"
@@ -45,6 +47,7 @@ using namespace layers;
 static GPUParent* sGPUParent;
 
 GPUParent::GPUParent()
+  : mLaunchTime(TimeStamp::Now())
 {
   sGPUParent = this;
 }
@@ -181,6 +184,7 @@ GPUParent::RecvInit(nsTArray<GfxPrefSetting>&& prefs,
   RecvGetDeviceStatus(&data);
   Unused << SendInitComplete(data);
 
+  Telemetry::AccumulateTimeDelta(Telemetry::GPU_PROCESS_INITIALIZATION_TIME_MS, mLaunchTime);
   return IPC_OK();
 }
 
