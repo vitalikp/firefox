@@ -32,6 +32,8 @@ class Shmem;
 
 namespace layers {
 
+struct ImageCompositeNotificationInfo;
+
 /**
  * ImageBridgeParent is the manager Protocol of ImageContainerParent.
  * It's purpose is mainly to setup the IPDL connection. Most of the
@@ -84,8 +86,7 @@ public:
                                                 const uint64_t& aFwdTransactionId) override;
 
   PCompositableParent* AllocPCompositableParent(const TextureInfo& aInfo,
-                                                const uint64_t& aID,
-                                                PImageContainerParent* aImageContainer) override;
+                                                const uint64_t& aID) override;
   bool DeallocPCompositableParent(PCompositableParent* aActor) override;
 
   virtual PTextureParent* AllocPTextureParent(const SurfaceDescriptor& aSharedData,
@@ -120,7 +121,7 @@ public:
 
   static RefPtr<ImageBridgeParent> GetInstance(ProcessId aId);
 
-  static bool NotifyImageComposites(nsTArray<ImageCompositeNotification>& aNotifications);
+  static bool NotifyImageComposites(nsTArray<ImageCompositeNotificationInfo>& aNotifications);
 
   virtual bool UsesImageBridge() const override { return true; }
 

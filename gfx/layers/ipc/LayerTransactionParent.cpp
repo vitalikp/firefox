@@ -969,7 +969,7 @@ LayerTransactionParent::RecvForceComposite()
 PCompositableParent*
 LayerTransactionParent::AllocPCompositableParent(const TextureInfo& aInfo)
 {
-  return CompositableHost::CreateIPDLActor(this, aInfo, 0);
+  return CompositableHost::CreateIPDLActor(this, aInfo);
 }
 
 bool
