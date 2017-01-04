@@ -79,11 +79,6 @@ ImageBridgeParent::ImageBridgeParent(MessageLoop* aLoop,
 
 ImageBridgeParent::~ImageBridgeParent()
 {
-  nsTArray<PImageContainerParent*> parents;
-  ManagedPImageContainerParent(parents);
-  for (PImageContainerParent* p : parents) {
-    delete p;
-  }
 }
 
 static StaticRefPtr<ImageBridgeParent> sImageBridgeParentSingleton;
@@ -309,19 +304,6 @@ ImageBridgeParent::DeallocPMediaSystemResourceManagerParent(PMediaSystemResource
 {
   MOZ_ASSERT(aActor);
   delete static_cast<mozilla::media::MediaSystemResourceManagerParent*>(aActor);
-  return true;
-}
-
-PImageContainerParent*
-ImageBridgeParent::AllocPImageContainerParent()
-{
-  return new ImageContainerParent();
-}
-
-bool
-ImageBridgeParent::DeallocPImageContainerParent(PImageContainerParent* actor)
-{
-  delete actor;
   return true;
 }
 
