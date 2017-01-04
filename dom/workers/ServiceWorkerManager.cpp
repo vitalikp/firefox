@@ -548,6 +548,7 @@ NS_IMETHODIMP
 ServiceWorkerManager::Register(mozIDOMWindow* aWindow,
                                nsIURI* aScopeURI,
                                nsIURI* aScriptURI,
+                               nsLoadFlags aLoadFlags,
                                nsISupports** aPromise)
 {
   AssertIsOnMainThread();
@@ -674,7 +675,7 @@ ServiceWorkerManager::Register(mozIDOMWindow* aWindow,
 
   RefPtr<ServiceWorkerRegisterJob> job =
     new ServiceWorkerRegisterJob(documentPrincipal, cleanedScope, spec,
-                                 loadGroup);
+                                 loadGroup, aLoadFlags);
   job->AppendResultCallback(cb);
   queue->ScheduleJob(job);
 

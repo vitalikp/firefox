@@ -572,4 +572,10 @@ ServiceWorkerRegistrationInfo::GetLoadFlags() const
   return mLoadFlags;
 }
 
+void
+ServiceWorkerRegistrationInfo::SetLoadFlags(nsLoadFlags aLoadFlags)
+{
+  mLoadFlags = aLoadFlags;
+}
+
 END_WORKERS_NAMESPACE
