@@ -9711,7 +9711,7 @@ nsContentUtils::AttemptLargeAllocationLoad(nsIHttpChannel* aChannel)
                                       NS_LITERAL_CSTRING("DOM"),
                                       doc,
                                       nsContentUtils::eDOM_PROPERTIES,
-                                      "LargeAllocationRelatedBrowsingContexts");
+                                      "LargeAllocationNotOnlyToplevelInTabGroup");
     }
     return false;
   }
