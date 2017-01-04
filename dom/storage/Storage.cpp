@@ -4,9 +4,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "DOMStorage.h"
-#include "DOMStorageCache.h"
-#include "DOMStorageManager.h"
+#include "Storage.h"
+#include "StorageCache.h"
+#include "StorageManager.h"
 
 #include "nsIObserverService.h"
 #include "nsIScriptSecurityManager.h"
@@ -27,49 +27,49 @@
 namespace mozilla {
 namespace dom {
 
-NS_IMPL_CYCLE_COLLECTION_WRAPPERCACHE(DOMStorage, mManager, mPrincipal, mWindow)
+NS_IMPL_CYCLE_COLLECTION_WRAPPERCACHE(Storage, mManager, mPrincipal, mWindow)
 
-NS_IMPL_CYCLE_COLLECTING_ADDREF(DOMStorage)
-NS_IMPL_CYCLE_COLLECTING_RELEASE(DOMStorage)
+NS_IMPL_CYCLE_COLLECTING_ADDREF(Storage)
+NS_IMPL_CYCLE_COLLECTING_RELEASE(Storage)
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(DOMStorage)
+NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(Storage)
   NS_WRAPPERCACHE_INTERFACE_MAP_ENTRY
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIDOMStorage)
   NS_INTERFACE_MAP_ENTRY(nsIDOMStorage)
   NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
 NS_INTERFACE_MAP_END
 
-DOMStorage::DOMStorage(nsPIDOMWindowInner* aWindow,
-                       DOMStorageManager* aManager,
-                       DOMStorageCache* aCache,
-                       const nsAString& aDocumentURI,
-                       nsIPrincipal* aPrincipal,
-                       bool aIsPrivate)
-: mWindow(aWindow)
-, mManager(aManager)
-, mCache(aCache)
-, mDocumentURI(aDocumentURI)
-, mPrincipal(aPrincipal)
-, mIsPrivate(aIsPrivate)
-, mIsSessionOnly(false)
+Storage::Storage(nsPIDOMWindowInner* aWindow,
+                 StorageManagerBase* aManager,
+                 StorageCache* aCache,
+                 const nsAString& aDocumentURI,
+                 nsIPrincipal* aPrincipal,
+                 bool aIsPrivate)
+  : mWindow(aWindow)
+  , mManager(aManager)
+  , mCache(aCache)
+  , mDocumentURI(aDocumentURI)
+  , mPrincipal(aPrincipal)
+  , mIsPrivate(aIsPrivate)
+  , mIsSessionOnly(false)
 {
   mCache->Preload();
 }
 
-DOMStorage::~DOMStorage()
+Storage::~Storage()
 {
   mCache->KeepAlive();
 }
 
 /* virtual */ JSObject*
-DOMStorage::WrapObject(JSContext* aCx, JS::Handle<JSObject*> aGivenProto)
+Storage::WrapObject(JSContext* aCx, JS::Handle<JSObject*> aGivenProto)
 {
   return StorageBinding::Wrap(aCx, this, aGivenProto);
 }
 
 uint32_t
-DOMStorage::GetLength(nsIPrincipal& aSubjectPrincipal,
-                      ErrorResult& aRv)
+Storage::GetLength(nsIPrincipal& aSubjectPrincipal,
+                   ErrorResult& aRv)
 {
   if (!CanUseStorage(aSubjectPrincipal)) {
     aRv.Throw(NS_ERROR_DOM_SECURITY_ERR);
@@ -82,9 +82,9 @@ DOMStorage::GetLength(nsIPrincipal& aSubjectPrincipal,
 }
 
 void
-DOMStorage::Key(uint32_t aIndex, nsAString& aResult,
-                nsIPrincipal& aSubjectPrincipal,
-                ErrorResult& aRv)
+Storage::Key(uint32_t aIndex, nsAString& aResult,
+             nsIPrincipal& aSubjectPrincipal,
+             ErrorResult& aRv)
 {
   if (!CanUseStorage(aSubjectPrincipal)) {
     aRv.Throw(NS_ERROR_DOM_SECURITY_ERR);
@@ -95,9 +95,9 @@ DOMStorage::Key(uint32_t aIndex, nsAString& aResult,
 }
 
 void
-DOMStorage::GetItem(const nsAString& aKey, nsAString& aResult,
-                    nsIPrincipal& aSubjectPrincipal,
-                    ErrorResult& aRv)
+Storage::GetItem(const nsAString& aKey, nsAString& aResult,
+                 nsIPrincipal& aSubjectPrincipal,
+                 ErrorResult& aRv)
 {
   if (!CanUseStorage(aSubjectPrincipal)) {
     aRv.Throw(NS_ERROR_DOM_SECURITY_ERR);
@@ -108,9 +108,9 @@ DOMStorage::GetItem(const nsAString& aKey, nsAString& aResult,
 }
 
 void
-DOMStorage::SetItem(const nsAString& aKey, const nsAString& aData,
-                    nsIPrincipal& aSubjectPrincipal,
-                    ErrorResult& aRv)
+Storage::SetItem(const nsAString& aKey, const nsAString& aData,
+                 nsIPrincipal& aSubjectPrincipal,
+                 ErrorResult& aRv)
 {
   if (!CanUseStorage(aSubjectPrincipal)) {
     aRv.Throw(NS_ERROR_DOM_SECURITY_ERR);
@@ -136,9 +136,8 @@ DOMStorage::SetItem(const nsAString& aKey, const nsAString& aData,
 }
 
 void
-DOMStorage::RemoveItem(const nsAString& aKey,
-                       nsIPrincipal& aSubjectPrincipal,
-                       ErrorResult& aRv)
+Storage::RemoveItem(const nsAString& aKey, nsIPrincipal& aSubjectPrincipal,
+                    ErrorResult& aRv)
 {
   if (!CanUseStorage(aSubjectPrincipal)) {
     aRv.Throw(NS_ERROR_DOM_SECURITY_ERR);
@@ -157,8 +156,7 @@ DOMStorage::RemoveItem(const nsAString& aKey,
 }
 
 void
-DOMStorage::Clear(nsIPrincipal& aSubjectPrincipal,
-                  ErrorResult& aRv)
+Storage::Clear(nsIPrincipal& aSubjectPrincipal, ErrorResult& aRv)
 {
   if (!CanUseStorage(aSubjectPrincipal)) {
     aRv.Throw(NS_ERROR_DOM_SECURITY_ERR);
@@ -211,9 +209,9 @@ StorageNotifierRunnable::Run()
 } // namespace
 
 void
-DOMStorage::BroadcastChangeNotification(const nsSubstring& aKey,
-                                        const nsSubstring& aOldValue,
-                                        const nsSubstring& aNewValue)
+Storage::BroadcastChangeNotification(const nsSubstring& aKey,
+                                     const nsSubstring& aOldValue,
+                                     const nsSubstring& aNewValue)
 {
   StorageEventInit dict;
   dict.mBubbles = false;
@@ -242,7 +240,7 @@ static const char kPermissionType[] = "cookie";
 static const char kStorageEnabled[] = "dom.storage.enabled";
 
 bool
-DOMStorage::CanUseStorage(nsIPrincipal& aSubjectPrincipal)
+Storage::CanUseStorage(nsIPrincipal& aSubjectPrincipal)
 {
   // This method is responsible for correct setting of mIsSessionOnly.
   // It doesn't work with mIsPrivate flag at all, since it is checked
@@ -263,36 +261,37 @@ DOMStorage::CanUseStorage(nsIPrincipal& aSubjectPrincipal)
   return CanAccess(&aSubjectPrincipal);
 }
 
-DOMStorage::StorageType
-DOMStorage::GetType() const
+Storage::StorageType
+Storage::GetType() const
 {
   return mManager->Type();
 }
 
 nsIPrincipal*
-DOMStorage::GetPrincipal()
+Storage::GetPrincipal()
 {
   return mPrincipal;
 }
 
-// Defined in DOMStorageManager.cpp
+// Defined in StorageManager.cpp
 extern bool
-PrincipalsEqual(nsIPrincipal* aObjectPrincipal, nsIPrincipal* aSubjectPrincipal);
+PrincipalsEqual(nsIPrincipal* aObjectPrincipal,
+                nsIPrincipal* aSubjectPrincipal);
 
 bool
-DOMStorage::PrincipalEquals(nsIPrincipal* aPrincipal)
+Storage::PrincipalEquals(nsIPrincipal* aPrincipal)
 {
   return PrincipalsEqual(mPrincipal, aPrincipal);
 }
 
 bool
-DOMStorage::CanAccess(nsIPrincipal* aPrincipal)
+Storage::CanAccess(nsIPrincipal* aPrincipal)
 {
   return !aPrincipal || aPrincipal->Subsumes(mPrincipal);
 }
 
 void
-DOMStorage::GetSupportedNames(nsTArray<nsString>& aKeys)
+Storage::GetSupportedNames(nsTArray<nsString>& aKeys)
 {
   if (!CanUseStorage(*nsContentUtils::SubjectPrincipal())) {
     // return just an empty array
