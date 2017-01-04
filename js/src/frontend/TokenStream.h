@@ -490,10 +490,9 @@ class MOZ_STACK_CLASS TokenStream
         bool sawOctalEscape:1;  // Saw an octal character escape.
         bool hadError:1;        // Hit a syntax error, at start or during a
                                 // token.
-        bool hitOOM:1;          // Hit OOM.
 
         Flags()
-          : isEOF(), isDirtyLine(), sawOctalEscape(), hadError(), hitOOM()
+          : isEOF(), isDirtyLine(), sawOctalEscape(), hadError()
         {}
     };
 
@@ -1078,7 +1077,7 @@ class MOZ_STACK_CLASS TokenStream
         }
     }
 
-    void updateLineInfoForEOL();
+    MOZ_MUST_USE MOZ_ALWAYS_INLINE bool updateLineInfoForEOL();
     void updateFlagsForEOL();
 
     const Token& nextToken() const {
