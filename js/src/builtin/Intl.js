@@ -1700,6 +1700,7 @@ function Intl_Collator_compare_get() {
     // Step 2.
     return internals.boundCompare;
 }
+_SetCanonicalName(Intl_Collator_compare_get, "get compare");
 
 
 /**
@@ -2148,6 +2149,7 @@ function Intl_NumberFormat_format_get() {
     // Step 2.
     return internals.boundFormat;
 }
+_SetCanonicalName(Intl_NumberFormat_format_get, "get format");
 
 
 function Intl_NumberFormat_formatToParts(value) {
@@ -2871,6 +2873,7 @@ function Intl_DateTimeFormat_format_get() {
     // Step 2.
     return internals.boundFormat;
 }
+_SetCanonicalName(Intl_DateTimeFormat_format_get, "get format");
 
 
 function Intl_DateTimeFormat_formatToParts() {
