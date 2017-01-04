@@ -697,13 +697,17 @@ gfxPlatform::Init()
                                                     SurfaceFormat::B8G8R8A8);
     if (!gPlatform->mScreenReferenceDrawTarget ||
         !gPlatform->mScreenReferenceDrawTarget->IsValid()) {
-      NS_RUNTIMEABORT("Could not initialize mScreenReferenceDrawTarget");
+      MOZ_CRASH("Could not initialize mScreenReferenceDrawTarget");
     }
 
     rv = gfxFontCache::Init();
     if (NS_FAILED(rv)) {
-        NS_RUNTIMEABORT("Could not initialize gfxFontCache");
+        MOZ_CRASH("Could not initialize gfxFontCache");
     }
+
+#ifdef MOZ_ENABLE_FREETYPE
+    Factory::SetFTLibrary(gPlatform->GetFTLibrary());
+#endif
 
     /* Create and register our CMS Override observer. */
     gPlatform->mSRGBOverrideObserver = new SRGBOverrideObserver();
