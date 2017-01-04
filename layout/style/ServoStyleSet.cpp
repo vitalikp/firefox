@@ -543,3 +543,9 @@ ServoStyleSet::AssertTreeIsClean()
   }
 }
 #endif
+
+void
+ServoStyleSet::RecomputeDefaultComputedStyles()
+{
+  Servo_StyleSet_RecomputeDefaultStyles(mRawSet.get(), mPresContext);
+}
