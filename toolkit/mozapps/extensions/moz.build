@@ -14,7 +14,7 @@ DIRS += ['internal']
 XPIDL_SOURCES += [
     'amIAddonManager.idl',
     'amIAddonPathService.idl',
-    'amIWebInstallListener.idl',
+    'amIWebInstallPrompt.idl',
 ]
 
 XPIDL_MODULE = 'extensions'
@@ -24,7 +24,6 @@ EXTRA_COMPONENTS += [
     'amContentHandler.js',
     'amInstallTrigger.js',
     'amWebAPI.js',
-    'amWebInstallListener.js',
     'nsBlocklistService.js',
     'nsBlocklistServiceContent.js',
 ]
