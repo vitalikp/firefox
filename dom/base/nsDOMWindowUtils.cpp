@@ -112,6 +112,7 @@
 #include "mozilla/dom/Promise.h"
 #include "mozilla/StyleSheetInlines.h"
 #include "mozilla/gfx/GPUProcessManager.h"
+#include "mozilla/PreloadedStyleSheet.h"
 
 #ifdef XP_WIN
 #undef GetClassName
@@ -3448,7 +3449,7 @@ nsDOMWindowUtils::LoadSheetUsingURIString(const nsACString& aSheetURI, uint32_t 
 }
 
 NS_IMETHODIMP
-nsDOMWindowUtils::AddSheet(nsIDOMStyleSheet *aSheet, uint32_t aSheetType)
+nsDOMWindowUtils::AddSheet(nsIPreloadedStyleSheet* aSheet, uint32_t aSheetType)
 {
   NS_ENSURE_ARG_POINTER(aSheet);
   NS_ENSURE_ARG(aSheetType == AGENT_SHEET ||
@@ -3458,12 +3459,17 @@ nsDOMWindowUtils::AddSheet(nsIDOMStyleSheet *aSheet, uint32_t aSheetType)
   nsCOMPtr<nsIDocument> doc = GetDocument();
   NS_ENSURE_TRUE(doc, NS_ERROR_FAILURE);
 
-  nsIDocument::additionalSheetType type = convertSheetType(aSheetType);
-  RefPtr<CSSStyleSheet> sheet = do_QueryObject(aSheet);
+  StyleSheet* sheet = nullptr;
+  auto preloadedSheet = static_cast<PreloadedStyleSheet*>(aSheet);
+  nsresult rv = preloadedSheet->GetSheet(doc->GetStyleBackendType(), &sheet);
+  NS_ENSURE_SUCCESS(rv, rv);
   NS_ENSURE_TRUE(sheet, NS_ERROR_FAILURE);
+
   if (sheet->GetOwningDocument()) {
     return NS_ERROR_INVALID_ARG;
   }
+
+  nsIDocument::additionalSheetType type = convertSheetType(aSheetType);
   return doc->AddAdditionalStyleSheet(type, sheet);
 }
 
