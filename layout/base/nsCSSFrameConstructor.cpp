@@ -2445,7 +2445,6 @@ nsCSSFrameConstructor::ConstructDocElementFrame(Element*                 aDocEle
   RefPtr<nsStyleContext> styleContext;
   styleContext = mPresShell->StyleSet()->ResolveStyleFor(aDocElement,
                                                          nullptr,
-                                                         ConsumeStyleBehavior::Consume,
                                                          LazyComputeBehavior::Allow);
 
   const nsStyleDisplay* display = styleContext->StyleDisplay();
@@ -2482,7 +2481,6 @@ nsCSSFrameConstructor::ConstructDocElementFrame(Element*                 aDocEle
       // element.)
       styleContext = mPresShell->StyleSet()->ResolveStyleFor(aDocElement,
                                                              nullptr,
-                                                             ConsumeStyleBehavior::Consume,
                                                              LazyComputeBehavior::Allow);
       display = styleContext->StyleDisplay();
     }
@@ -5059,13 +5057,11 @@ nsCSSFrameConstructor::ResolveStyleContext(nsStyleContext* aParentStyleContext,
     if (aState) {
       result = styleSet->ResolveStyleFor(aContent->AsElement(),
                                          aParentStyleContext,
-                                         ConsumeStyleBehavior::Consume,
                                          LazyComputeBehavior::Assert,
                                          aState->mTreeMatchContext);
     } else {
       result = styleSet->ResolveStyleFor(aContent->AsElement(),
                                          aParentStyleContext,
-                                         ConsumeStyleBehavior::Consume,
                                          LazyComputeBehavior::Assert);
     }
   } else {
@@ -9329,7 +9325,6 @@ nsCSSFrameConstructor::MaybeRecreateFramesForElement(Element* aElement)
   // The parent has a frame, so try resolving a new context.
   RefPtr<nsStyleContext> newContext = mPresShell->StyleSet()->
     ResolveStyleFor(aElement, oldContext->GetParent(),
-                    ConsumeStyleBehavior::Consume,
                     LazyComputeBehavior::Assert);
 
   if (oldDisplay == StyleDisplay::None) {

@@ -2058,7 +2058,6 @@ nsImageFrame::GetCursor(const nsPoint& aPoint,
       RefPtr<nsStyleContext> areaStyle = 
         PresContext()->PresShell()->StyleSet()->
           ResolveStyleFor(area->AsElement(), StyleContext(),
-                          ConsumeStyleBehavior::DontConsume,
                           LazyComputeBehavior::Allow);
       FillCursorInformationFromStyle(areaStyle->StyleUserInterface(),
                                      aCursor);
