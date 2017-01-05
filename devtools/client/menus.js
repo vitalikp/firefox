@@ -137,11 +137,7 @@ exports.menuitems = [
       let window = event.target.ownerDocument.defaultView;
       let target = TargetFactory.forTab(window.gBrowser.selectedTab);
 
-      CommandUtils.createRequisition(target, {
-        environment: CommandUtils.createEnvironment({target})
-      }).then(requisition => {
-        requisition.updateExec("eyedropper --frommenu");
-      }, e => console.error(e));
+      CommandUtils.executeOnTarget(target, "eyedropper --frommenu");
     },
     checkbox: true
   },
