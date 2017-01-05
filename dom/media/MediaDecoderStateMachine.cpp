@@ -2505,10 +2505,11 @@ MediaDecoderStateMachine::GetDecodedAudioDuration()
   return AudioQueue().Duration();
 }
 
-bool MediaDecoderStateMachine::HaveEnoughDecodedAudio()
+bool
+MediaDecoderStateMachine::HaveEnoughDecodedAudio()
 {
   MOZ_ASSERT(OnTaskQueue());
-  int64_t ampleAudioUSecs = mAmpleAudioThresholdUsecs * mPlaybackRate;
+  auto ampleAudioUSecs = mAmpleAudioThresholdUsecs * mPlaybackRate;
   return AudioQueue().GetSize() > 0 &&
          GetDecodedAudioDuration() >= ampleAudioUSecs;
 }
