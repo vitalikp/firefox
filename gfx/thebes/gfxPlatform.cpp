@@ -90,6 +90,7 @@
 
 #ifdef MOZ_WIDGET_ANDROID
 #include "TexturePoolOGL.h"
+#include "mozilla/layers/UiCompositorControllerChild.h"
 #endif
 
 #ifdef USE_SKIA
@@ -893,7 +894,9 @@ gfxPlatform::ShutdownLayersIPC()
     } else if (XRE_IsParentProcess()) {
         layers::CompositorBridgeChild::ShutDown();
         layers::ImageBridgeChild::ShutDown();
-
+#if defined(MOZ_WIDGET_ANDROID)
+        layers::UiCompositorControllerChild::Shutdown();
+#endif // defined(MOZ_WIDGET_ANDROID)
         // This has to happen after shutting down the child protocols.
         layers::CompositorThreadHolder::Shutdown();
     } else {

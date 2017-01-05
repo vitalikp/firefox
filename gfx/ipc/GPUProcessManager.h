@@ -188,6 +188,7 @@ private:
   void ShutdownVsyncIOThread();
 
   void EnsureImageBridgeChild();
+  void EnsureUiCompositorController();
 
   RefPtr<CompositorSession> CreateRemoteSession(
     nsBaseWidget* aWidget,

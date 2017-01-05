@@ -420,10 +420,11 @@ CompositorBridgeParent::~CompositorBridgeParent()
   }
 }
 
-void
-CompositorBridgeParent::ForceIsFirstPaint()
+mozilla::ipc::IPCResult
+CompositorBridgeParent::RecvForceIsFirstPaint()
 {
   mCompositionManager->ForceIsFirstPaint();
+  return IPC_OK();
 }
 
 void
@@ -1114,6 +1115,13 @@ RefPtr<APZCTreeManager>
 CompositorBridgeParent::GetAPZCTreeManager()
 {
   return mApzcTreeManager;
+}
+
+CompositorBridgeParent*
+CompositorBridgeParent::GetCompositorBridgeParentFromLayersId(const uint64_t& aLayersId)
+{
+  MonitorAutoLock lock(*sIndirectLayerTreesLock);
+  return sIndirectLayerTrees[aLayersId].mParent;
 }
 
 bool

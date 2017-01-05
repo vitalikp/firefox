@@ -25,6 +25,7 @@
 #include "mozilla/layers/ImageBridgeParent.h"
 #include "mozilla/dom/VideoDecoderManagerChild.h"
 #include "mozilla/layers/LayerTreeOwnerTracker.h"
+#include "mozilla/layers/UiCompositorControllerParent.h"
 #include "nsDebugImpl.h"
 #include "nsThreadManager.h"
 #include "prenv.h"
@@ -199,6 +200,13 @@ mozilla::ipc::IPCResult
 GPUParent::RecvInitImageBridge(Endpoint<PImageBridgeParent>&& aEndpoint)
 {
   ImageBridgeParent::CreateForGPUProcess(Move(aEndpoint));
+  return IPC_OK();
+}
+
+mozilla::ipc::IPCResult
+GPUParent::RecvInitUiCompositorController(Endpoint<PUiCompositorControllerParent>&& aEndpoint)
+{
+  UiCompositorControllerParent::Start(Move(aEndpoint));
   return IPC_OK();
 }
 
