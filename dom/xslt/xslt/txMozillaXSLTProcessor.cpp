@@ -1039,7 +1039,7 @@ NS_IMETHODIMP
 txMozillaXSLTProcessor::LoadStyleSheet(nsIURI* aUri,
                                        nsIDocument* aLoaderDocument)
 {
-    mozilla::net::ReferrerPolicy refpol = mozilla::net::RP_Default;
+    mozilla::net::ReferrerPolicy refpol = mozilla::net::RP_Unset;
     if (mStylesheetDocument) {
         refpol = mStylesheetDocument->GetReferrerPolicy();
     }
