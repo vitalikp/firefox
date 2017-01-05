@@ -678,10 +678,6 @@ private:
                                   TabParent* aTopLevel, const TabId& aTabId,
                                   uint64_t* aId);
 
-  PGMPServiceParent*
-  AllocPGMPServiceParent(mozilla::ipc::Transport* aTransport,
-                         base::ProcessId aOtherProcess) override;
-
   PBackgroundParent*
   AllocPBackgroundParent(Transport* aTransport, ProcessId aOtherProcess)
                          override;
