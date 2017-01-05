@@ -1782,7 +1782,7 @@ nsHTMLDocument::Close(ErrorResult& rv)
   //
   // XXXhsivonen keeping this around for bug 577508 / 253951 still :-(
   if (GetShell()) {
-    FlushPendingNotifications(Flush_Layout);
+    FlushPendingNotifications(FlushType::Layout);
   }
 
   // Removing the wyciwygChannel here is wrong when document.close() is
@@ -2637,7 +2637,7 @@ nsHTMLDocument::EditingStateChanged()
   // Flush out style changes on our _parent_ document, if any, so that
   // our check for a presshell won't get stale information.
   if (mParentDocument) {
-    mParentDocument->FlushPendingNotifications(Flush_Style);
+    mParentDocument->FlushPendingNotifications(FlushType::Style);
   }
 
   // get editing session, make sure this is a strong reference so the
@@ -3599,7 +3599,7 @@ nsHTMLDocument::IsEditingOnAfterFlush()
   if (doc) {
     // Make sure frames are up to date, since that can affect whether
     // we're editable.
-    doc->FlushPendingNotifications(Flush_Frames);
+    doc->FlushPendingNotifications(FlushType::Frames);
   }
 
   return IsEditingOn();

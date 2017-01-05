@@ -397,7 +397,7 @@ ImageDocument::ScrollImageTo(int32_t aX, int32_t aY, bool restoreImage)
 
   if (restoreImage) {
     RestoreImage();
-    FlushPendingNotifications(Flush_Layout);
+    FlushPendingNotifications(FlushType::Layout);
   }
 
   nsCOMPtr<nsIPresShell> shell = GetShell();
@@ -626,7 +626,7 @@ ImageDocument::UpdateSizeFromLayout()
 
   // Need strong ref, because GetPrimaryFrame can run script.
   nsCOMPtr<Element> imageContent = mImageContent;
-  nsIFrame* contentFrame = imageContent->GetPrimaryFrame(Flush_Frames);
+  nsIFrame* contentFrame = imageContent->GetPrimaryFrame(FlushType::Frames);
   if (!contentFrame) {
     return;
   }

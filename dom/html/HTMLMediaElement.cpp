@@ -1550,7 +1550,7 @@ void HTMLMediaElement::LoadFromSourceChildren()
 
   nsIDocument* parentDoc = OwnerDoc()->GetParentDocument();
   if (parentDoc) {
-    parentDoc->FlushPendingNotifications(Flush_Layout);
+    parentDoc->FlushPendingNotifications(FlushType::Layout);
   }
 
   while (true) {

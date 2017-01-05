@@ -635,7 +635,7 @@ Element::GetElementsByTagName(const nsAString& aLocalName,
 nsIFrame*
 Element::GetStyledFrame()
 {
-  nsIFrame *frame = GetPrimaryFrame(Flush_Layout);
+  nsIFrame *frame = GetPrimaryFrame(FlushType::Layout);
   return frame ? nsLayoutUtils::GetStyleFrame(frame) : nullptr;
 }
 
@@ -650,8 +650,9 @@ Element::GetScrollFrame(nsIFrame **aStyledFrame, bool aFlushLayout)
     return nullptr;
   }
 
-  // Inline version of GetStyledFrame to use Flush_None if needed.
-  nsIFrame* frame = GetPrimaryFrame(aFlushLayout ? Flush_Layout : Flush_None);
+  // Inline version of GetStyledFrame to use FlushType::None if needed.
+  nsIFrame* frame =
+    GetPrimaryFrame(aFlushLayout ? FlushType::Layout : FlushType::None);
   if (frame) {
     frame = nsLayoutUtils::GetStyleFrame(frame);
   }
@@ -981,7 +982,7 @@ Element::GetBoundingClientRect()
 {
   RefPtr<DOMRect> rect = new DOMRect(this);
 
-  nsIFrame* frame = GetPrimaryFrame(Flush_Layout);
+  nsIFrame* frame = GetPrimaryFrame(FlushType::Layout);
   if (!frame) {
     // display:none, perhaps? Return the empty rect
     return rect.forget();
@@ -999,7 +1000,7 @@ Element::GetClientRects()
 {
   RefPtr<DOMRectList> rectList = new DOMRectList(this);
 
-  nsIFrame* frame = GetPrimaryFrame(Flush_Layout);
+  nsIFrame* frame = GetPrimaryFrame(FlushType::Layout);
   if (!frame) {
     // display:none, perhaps? Return an empty list
     return rectList.forget();
@@ -2186,7 +2187,7 @@ Element::DispatchClickEvent(nsPresContext* aPresContext,
 }
 
 nsIFrame*
-Element::GetPrimaryFrame(mozFlushType aType)
+Element::GetPrimaryFrame(FlushType aType)
 {
   nsIDocument* doc = GetComposedDoc();
   if (!doc) {
@@ -2195,7 +2196,7 @@ Element::GetPrimaryFrame(mozFlushType aType)
 
   // Cause a flush, so we get up-to-date frame
   // information
-  if (aType != Flush_None) {
+  if (aType != FlushType::None) {
     doc->FlushPendingNotifications(aType);
   }
 
@@ -3458,7 +3459,7 @@ Element::GetAnimations(const AnimationFilter& filter,
 {
   nsIDocument* doc = GetComposedDoc();
   if (doc) {
-    doc->FlushPendingNotifications(Flush_Style);
+    doc->FlushPendingNotifications(FlushType::Style);
   }
 
   Element* elem = this;

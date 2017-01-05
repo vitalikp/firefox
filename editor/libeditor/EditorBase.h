@@ -945,7 +945,7 @@ public:
   {
     nsCOMPtr<nsIDocument> doc = GetDocument();
     if (doc) {
-      doc->FlushPendingNotifications(Flush_Frames);
+      doc->FlushPendingNotifications(FlushType::Frames);
     }
   }
 

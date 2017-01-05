@@ -2534,7 +2534,7 @@ void
 HTMLInputElement::FlushFrames()
 {
   if (GetComposedDoc()) {
-    GetComposedDoc()->FlushPendingNotifications(Flush_Frames);
+    GetComposedDoc()->FlushPendingNotifications(FlushType::Frames);
   }
 }
 

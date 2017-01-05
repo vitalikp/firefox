@@ -996,7 +996,7 @@ void
 AccessibleCaretManager::FlushLayout() const
 {
   if (mPresShell) {
-    mPresShell->FlushPendingNotifications(Flush_Layout);
+    mPresShell->FlushPendingNotifications(FlushType::Layout);
   }
 }
 
