@@ -1085,8 +1085,6 @@ nsRefreshDriver::ChooseTimer() const
 
 nsRefreshDriver::nsRefreshDriver(nsPresContext* aPresContext)
   : mActiveTimer(nullptr),
-    mReflowCause(nullptr),
-    mStyleCause(nullptr),
     mPresContext(aPresContext),
     mRootRefresh(nullptr),
     mPendingTransaction(0),
@@ -1140,9 +1138,6 @@ nsRefreshDriver::~nsRefreshDriver()
     shell->InvalidatePresShellIfHidden();
   }
   mPresShellsToInvalidateIfHidden.Clear();
-
-  profiler_free_backtrace(mStyleCause);
-  profiler_free_backtrace(mReflowCause);
 }
 
 // Method for testing.  See nsIDOMWindowUtils.advanceTimeAndRefresh
@@ -1823,7 +1818,7 @@ nsRefreshDriver::Tick(int64_t aNowEpoch, TimeStamp aNowTime)
 
           if (!tracingStyleFlush) {
             tracingStyleFlush = true;
-            profiler_tracing("Paint", "Styles", mStyleCause, TRACING_INTERVAL_START);
+            profiler_tracing("Paint", "Styles", Move(mStyleCause), TRACING_INTERVAL_START);
             mStyleCause = nullptr;
           }
 
@@ -1863,7 +1858,7 @@ nsRefreshDriver::Tick(int64_t aNowEpoch, TimeStamp aNowTime)
 
         if (!tracingLayoutFlush) {
           tracingLayoutFlush = true;
-          profiler_tracing("Paint", "Reflow", mReflowCause, TRACING_INTERVAL_START);
+          profiler_tracing("Paint", "Reflow", Move(mReflowCause), TRACING_INTERVAL_START);
           mReflowCause = nullptr;
         }
 
