@@ -417,12 +417,6 @@ CSSStyleSheet::CSSStyleSheet(const CSSStyleSheet& aCopy,
     // FIXME: handle failure?
     EnsureUniqueInner();
   }
-
-  if (aCopy.mMedia) {
-    // XXX This is wrong; we should be keeping @import rules and
-    // sheets in sync!
-    mMedia = aCopy.mMedia->Clone();
-  }
 }
 
 CSSStyleSheet::~CSSStyleSheet()
@@ -438,7 +432,6 @@ CSSStyleSheet::~CSSStyleSheet()
     }
   }
   DropRuleCollection();
-  DropMedia();
   mInner->RemoveSheet(this);
   // XXX The document reference is not reference counted and should
   // not be released. The document will let us know when it is going
@@ -458,15 +451,6 @@ CSSStyleSheet::DropRuleCollection()
   if (mRuleCollection) {
     mRuleCollection->DropReference();
     mRuleCollection = nullptr;
-  }
-}
-
-void
-CSSStyleSheet::DropMedia()
-{
-  if (mMedia) {
-    mMedia->SetStyleSheet(nullptr);
-    mMedia = nullptr;
   }
 }
 
@@ -542,7 +526,6 @@ NS_IMPL_RELEASE_INHERITED(CSSStyleSheet, StyleSheet)
 NS_IMPL_CYCLE_COLLECTION_CLASS(CSSStyleSheet)
 
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(CSSStyleSheet)
-  tmp->DropMedia();
   // We do not unlink mNext; our parent will handle that.  If we
   // unlinked it here, our parent would not be able to walk its list
   // of child sheets and null out the back-references to it, if we got
@@ -552,7 +535,6 @@ NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(CSSStyleSheet)
   tmp->mScopeElement = nullptr;
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END_INHERITED(StyleSheet)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(CSSStyleSheet, StyleSheet)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mMedia)
   // We do not traverse mNext; our parent will handle that.  See
   // comments in Unlink for why.
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mRuleCollection)
@@ -609,12 +591,6 @@ CSSStyleSheet::UseForPresentation(nsPresContext* aPresContext,
   return true;
 }
 
-
-void
-CSSStyleSheet::SetMedia(nsMediaList* aMedia)
-{
-  mMedia = aMedia;
-}
 
 bool
 CSSStyleSheet::HasRules() const
@@ -906,17 +882,6 @@ CSSStyleSheet::RegisterNamespaceRule(css::Rule* aRule)
 
   AddNamespaceRuleToMap(aRule, mInner->mNameSpaceMap);
   return NS_OK;
-}
-
-nsMediaList*
-CSSStyleSheet::Media()
-{
-  if (!mMedia) {
-    mMedia = new nsMediaList();
-    mMedia->SetStyleSheet(this);
-  }
-
-  return mMedia;
 }
 
 nsIDOMCSSRule*
