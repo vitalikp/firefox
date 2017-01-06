@@ -1272,7 +1272,7 @@ Loader::PrepareSheet(StyleSheet* aSheet,
                      const nsSubstring& aMediaString,
                      nsMediaList* aMediaList,
                      Element* aScopeElement,
-                     bool isAlternate)
+                     bool aIsAlternate)
 {
   NS_PRECONDITION(aSheet, "Must have a sheet!");
 
@@ -1301,7 +1301,7 @@ Loader::PrepareSheet(StyleSheet* aSheet,
   aSheet->SetMedia(mediaList);
 
   aSheet->SetTitle(aTitle);
-  sheet->SetEnabled(!isAlternate);
+  sheet->SetEnabled(!aIsAlternate);
   sheet->SetScopeElement(aScopeElement);
 }
 
