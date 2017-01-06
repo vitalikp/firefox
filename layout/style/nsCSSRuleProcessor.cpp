@@ -59,7 +59,6 @@
 #include "mozilla/TypedEnumBits.h"
 #include "RuleProcessorCache.h"
 #include "nsIDOMMutationEvent.h"
-#include "nsIMozBrowserFrame.h"
 
 using namespace mozilla;
 using namespace mozilla::dom;
@@ -1754,6 +1753,14 @@ static bool SelectorMatches(Element* aElement,
       }
       continue;
     }
+    Maybe<bool> matchesElement =
+      nsCSSPseudoClasses::MatchesElement(pseudoClass->mType, aElement);
+    if (matchesElement.isSome()) {
+      if (!matchesElement.value()) {
+        return false;
+      }
+      continue;
+    }
     // keep the cases here in the same order as the list in
     // nsCSSPseudoClassList.h
     switch (pseudoClass->mType) {
@@ -1992,12 +1999,6 @@ static bool SelectorMatches(Element* aElement,
       }
       break;
 
-    case CSSPseudoClassType::mozNativeAnonymous:
-      if (!aElement->IsInNativeAnonymousSubtree()) {
-        return false;
-      }
-      break;
-
     case CSSPseudoClassType::mozSystemMetric:
       {
         nsCOMPtr<nsIAtom> metric = NS_Atomize(pseudoClass->u.mString);
@@ -2061,31 +2062,6 @@ static bool SelectorMatches(Element* aElement,
       if (!aTreeMatchContext.mDocument->GetDocumentState().
               HasState(NS_DOCUMENT_STATE_WINDOW_INACTIVE)) {
         return false;
-      }
-      break;
-
-    case CSSPseudoClassType::mozTableBorderNonzero:
-      {
-        if (!aElement->IsHTMLElement(nsGkAtoms::table)) {
-          return false;
-        }
-        const nsAttrValue *val = aElement->GetParsedAttr(nsGkAtoms::border);
-        if (!val ||
-            (val->Type() == nsAttrValue::eInteger &&
-             val->GetIntegerValue() == 0)) {
-          return false;
-        }
-      }
-      break;
-
-    case CSSPseudoClassType::mozBrowserFrame:
-      {
-        nsCOMPtr<nsIMozBrowserFrame>
-          browserFrame = do_QueryInterface(aElement);
-        if (!browserFrame ||
-            !browserFrame->GetReallyIsBrowser()) {
-          return false;
-        }
       }
       break;
 
