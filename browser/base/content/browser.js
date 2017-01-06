@@ -6455,11 +6455,6 @@ var gIdentityHandler = {
    */
   _popupTriggeredByKeyboard: false,
 
-  /**
-   * Whether a permission is just removed from permission list.
-   */
-  _permissionJustRemoved: false,
-
   get _isBroken() {
     return this._state & Ci.nsIWebProgressListener.STATE_IS_BROKEN;
   },
@@ -7156,6 +7151,9 @@ var gIdentityHandler = {
     // the popup is actually needed
     this._identityPopup.hidden = false;
 
+    // Remove the reload hint that we show after a user has cleared a permission.
+    this._permissionReloadHint.setAttribute("hidden", "true");
+
     // Update the popup strings
     this.refreshIdentityPopup();
 
@@ -7223,21 +7221,10 @@ var gIdentityHandler = {
   },
 
   onLocationChange() {
-    this._permissionJustRemoved = false;
-    this.updatePermissionHint();
-  },
+    this._permissionReloadHint.setAttribute("hidden", "true");
 
-  updatePermissionHint() {
-    if (!this._permissionList.hasChildNodes() && !this._permissionJustRemoved) {
+    if (!this._permissionList.hasChildNodes()) {
       this._permissionEmptyHint.removeAttribute("hidden");
-    } else {
-      this._permissionEmptyHint.setAttribute("hidden", "true");
-    }
-
-    if (this._permissionJustRemoved) {
-      this._permissionReloadHint.removeAttribute("hidden");
-    } else {
-      this._permissionReloadHint.setAttribute("hidden", "true");
     }
   },
 
@@ -7277,7 +7264,13 @@ var gIdentityHandler = {
       this._permissionList.appendChild(item);
     }
 
-    this.updatePermissionHint();
+    // Show a placeholder text if there's no permission and no reload hint.
+    if (!this._permissionList.hasChildNodes() &&
+        this._permissionReloadHint.hasAttribute("hidden")) {
+      this._permissionEmptyHint.removeAttribute("hidden");
+    } else {
+      this._permissionEmptyHint.setAttribute("hidden", "true");
+    }
   },
 
   _handleHeightChange(aFunction, aWillShowReloadHint) {
@@ -7323,8 +7316,9 @@ var gIdentityHandler = {
     let tooltiptext = gNavigatorBundle.getString("permissions.remove.tooltip");
     button.setAttribute("tooltiptext", tooltiptext);
     button.addEventListener("command", () => {
-      this._handleHeightChange(() =>
-        this._permissionList.removeChild(container), !this._permissionJustRemoved);
+      // Only resize the window if the reload hint was previously hidden.
+      this._handleHeightChange(() => this._permissionList.removeChild(container),
+                               this._permissionReloadHint.hasAttribute("hidden"));
       if (aPermission.inUse &&
           ["camera", "microphone", "screen"].includes(aPermission.id)) {
         let windowId = this._sharingState.windowId;
@@ -7349,8 +7343,8 @@ var gIdentityHandler = {
         mm.sendAsyncMessage("webrtc:StopSharing", windowId);
       }
       SitePermissions.remove(gBrowser.currentURI, aPermission.id);
-      this._permissionJustRemoved = true;
-      this.updatePermissionHint();
+
+      this._permissionReloadHint.removeAttribute("hidden");
 
       // Set telemetry values for clearing a permission
       let histogram = Services.telemetry.getKeyedHistogramById("WEB_PERMISSION_CLEARED");
