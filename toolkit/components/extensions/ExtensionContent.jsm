@@ -160,6 +160,7 @@ function Script(extension, options, deferred = PromiseUtils.defer()) {
   this.css = this.options.css || [];
   this.remove_css = this.options.remove_css;
   this.match_about_blank = this.options.match_about_blank;
+  this.css_origin = this.options.css_origin;
 
   this.deferred = deferred;
 
@@ -286,8 +287,9 @@ Script.prototype = {
       let winUtils = window.QueryInterface(Ci.nsIInterfaceRequestor)
                            .getInterface(Ci.nsIDOMWindowUtils);
 
+      let type = this.css_origin === "user" ? winUtils.USER_SHEET : winUtils.AUTHOR_SHEET;
       for (let url of this.cssURLs) {
-        runSafeSyncWithoutClone(winUtils.removeSheetUsingURIString, url, winUtils.AUTHOR_SHEET);
+        runSafeSyncWithoutClone(winUtils.removeSheetUsingURIString, url, type);
       }
     }
   },
@@ -325,8 +327,9 @@ Script.prototype = {
                              .getInterface(Ci.nsIDOMWindowUtils);
 
         let method = this.remove_css ? winUtils.removeSheetUsingURIString : winUtils.loadSheetUsingURIString;
+        let type = this.css_origin === "user" ? winUtils.USER_SHEET : winUtils.AUTHOR_SHEET;
         for (let url of cssURLs) {
-          runSafeSyncWithoutClone(method, url, winUtils.AUTHOR_SHEET);
+          runSafeSyncWithoutClone(method, url, type);
         }
 
         this.deferred.resolve();
