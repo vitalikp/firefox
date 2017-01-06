@@ -8819,7 +8819,6 @@ nsCSSFrameConstructor::BeginUpdate() {
     rootPresContext->IncrementDOMGeneration();
   }
 
-  ++sGlobalGenerationNumber;
 #ifdef DEBUG
   ++mUpdateCount;
 #endif
