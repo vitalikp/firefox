@@ -87,6 +87,8 @@ protected:
                               uint32_t aIndex, ErrorResult& aRv);
   void DeleteRuleInternal(uint32_t aIndex, ErrorResult& aRv);
 
+  void EnabledStateChangedInternal() {}
+
 private:
   void DropSheet();
   void DropRuleList();
