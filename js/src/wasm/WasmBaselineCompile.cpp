@@ -492,6 +492,7 @@ class BaseCompiler
     int32_t                     varHigh_;        // High byte offset + 1 of local area for true locals
     int32_t                     maxFramePushed_; // Max value of masm.framePushed() observed
     bool                        deadCode_;       // Flag indicating we should decode & discard the opcode
+    bool                        debugEnabled_;
     ValTypeVector               SigI64I64_;
     ValTypeVector               SigDD_;
     ValTypeVector               SigD_;
@@ -563,6 +564,7 @@ class BaseCompiler
                  Decoder& decoder,
                  const FuncBytes& func,
                  const ValTypeVector& locals,
+                 bool debugEnabled,
                  TempAllocator* alloc,
                  MacroAssembler* masm);
 
@@ -7605,6 +7607,7 @@ BaseCompiler::BaseCompiler(const ModuleEnvironment& env,
                            Decoder& decoder,
                            const FuncBytes& func,
                            const ValTypeVector& locals,
+                           bool debugEnabled,
                            TempAllocator* alloc,
                            MacroAssembler* masm)
     : env_(env),
@@ -7618,6 +7621,7 @@ BaseCompiler::BaseCompiler(const ModuleEnvironment& env,
       varHigh_(0),
       maxFramePushed_(0),
       deadCode_(false),
+      debugEnabled_(debugEnabled),
       prologueTrapOffset_(trapOffset()),
       stackAddOffset_(0),
       latentOp_(LatentOp::None),
@@ -7851,7 +7855,7 @@ js::wasm::BaselineCompileFunction(CompileTask* task, FuncCompileUnit* unit, Uniq
 
     // One-pass baseline compilation.
 
-    BaseCompiler f(task->env(), d, func, locals, &task->alloc(), &task->masm());
+    BaseCompiler f(task->env(), d, func, locals, task->debugEnabled(), &task->alloc(), &task->masm());
     if (!f.init())
         return false;
 
