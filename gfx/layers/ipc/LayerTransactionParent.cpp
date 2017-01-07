@@ -266,7 +266,7 @@ LayerTransactionParent::RecvUpdate(InfallibleTArray<Edit>&& cset,
                                    const int32_t& aPaintSyncId,
                                    InfallibleTArray<EditReply>* reply)
 {
-  profiler_tracing("Paint", "LayerTransaction", TRACING_INTERVAL_START);
+  GeckoProfilerTracingRAII tracer("Paint", "LayerTransaction");
   PROFILER_LABEL("LayerTransactionParent", "RecvUpdate",
     js::ProfileEntry::Category::GRAPHICS);
 
@@ -724,7 +724,6 @@ LayerTransactionParent::RecvUpdate(InfallibleTArray<Edit>&& cset,
     }
   }
 
-  profiler_tracing("Paint", "LayerTransaction", TRACING_INTERVAL_END);
   return IPC_OK();
 }
 
