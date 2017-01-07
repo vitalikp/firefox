@@ -17,6 +17,7 @@
 #include "js/GCAPI.h"
 #include "vm/Debugger.h"
 #include "vm/Opcodes.h"
+#include "wasm/WasmDebugFrame.h"
 
 #include "jit/JitFrameIterator-inl.h"
 #include "vm/EnvironmentObject-inl.h"
@@ -554,7 +555,7 @@ FrameIter::settleOnActivation()
                 continue;
             }
 
-            data_.pc_ = (jsbytecode*)data_.wasmFrames_.pc();
+            data_.pc_ = nullptr;
             data_.state_ = WASM;
             return;
         }
@@ -687,7 +688,7 @@ FrameIter::popWasmFrame()
     MOZ_ASSERT(data_.state_ == WASM);
 
     ++data_.wasmFrames_;
-    data_.pc_ = (jsbytecode*)data_.wasmFrames_.pc();
+    data_.pc_ = nullptr;
     if (data_.wasmFrames_.done())
         popActivation();
 }
@@ -735,7 +736,6 @@ FrameIter::copyData() const
     if (!data)
         return nullptr;
 
-    MOZ_ASSERT(data_.state_ != WASM);
     if (data && data_.jitFrames_.isIonScripted())
         data->ionInlineFrameNo_ = ionInlineFrames_.frameNo();
     return data;
@@ -761,7 +761,7 @@ FrameIter::rawFramePtr() const
       case INTERP:
         return interpFrame();
       case WASM:
-        return data_.wasmFrames_.fp();
+        return nullptr;
     }
     MOZ_CRASH("Unexpected state");
 }
@@ -813,7 +813,7 @@ FrameIter::isFunctionFrame() const
             return data_.jitFrames_.baselineFrame()->isFunctionFrame();
         return script()->functionNonDelazifying();
       case WASM:
-        return true;
+        return false;
     }
     MOZ_CRASH("Unexpected state");
 }
@@ -821,15 +821,15 @@ FrameIter::isFunctionFrame() const
 JSAtom*
 FrameIter::functionDisplayAtom() const
 {
-    MOZ_ASSERT(isFunctionFrame());
-
     switch (data_.state_) {
       case DONE:
         break;
       case INTERP:
       case JIT:
+        MOZ_ASSERT(isFunctionFrame());
         return calleeTemplate()->displayAtom();
       case WASM:
+        MOZ_ASSERT(isWasm());
         return data_.wasmFrames_.functionDisplayAtom();
     }
 
@@ -948,7 +948,6 @@ FrameIter::hasUsableAbstractFramePtr() const
 {
     switch (data_.state_) {
       case DONE:
-      case WASM:
         return false;
       case JIT:
         if (data_.jitFrames_.isBaselineJS())
@@ -960,6 +959,8 @@ FrameIter::hasUsableAbstractFramePtr() const
         break;
       case INTERP:
         return true;
+      case WASM:
+        return data_.wasmFrames_.debugEnabled();
     }
     MOZ_CRASH("Unexpected state");
 }
@@ -970,7 +971,6 @@ FrameIter::abstractFramePtr() const
     MOZ_ASSERT(hasUsableAbstractFramePtr());
     switch (data_.state_) {
       case DONE:
-      case WASM:
         break;
       case JIT: {
         if (data_.jitFrames_.isBaselineJS())
@@ -984,6 +984,9 @@ FrameIter::abstractFramePtr() const
       case INTERP:
         MOZ_ASSERT(interpFrame());
         return AbstractFramePtr(interpFrame());
+      case WASM:
+        MOZ_ASSERT(data_.wasmFrames_.debugEnabled());
+        return data_.wasmFrames_.debugFrame();
     }
     MOZ_CRASH("Unexpected state");
 }
@@ -992,6 +995,7 @@ void
 FrameIter::updatePcQuadratic()
 {
     switch (data_.state_) {
+      case WASM:
       case DONE:
         break;
       case INTERP: {
@@ -1029,10 +1033,6 @@ FrameIter::updatePcQuadratic()
             data_.jitFrames_.baselineScriptAndPc(nullptr, &data_.pc_);
             return;
         }
-        break;
-      case WASM:
-        // Update the pc.
-        data_.pc_ = (jsbytecode*)data_.wasmFrames_.pc();
         break;
     }
     MOZ_CRASH("Unexpected state");
