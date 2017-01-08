@@ -18,7 +18,6 @@
 #include "mozilla/Preferences.h"
 #include "mozilla/ScopeExit.h"
 #include "mozilla/Services.h"
-#include "mozilla/ServoBindings.h"
 #include "mozilla/Telemetry.h"
 
 #include "nsAppRunner.h"
@@ -3825,15 +3824,6 @@ XREMain::XRE_mainRun()
     rv = appStartup->CreateHiddenWindow();
     NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
 
-#ifdef MOZ_STYLO
-    // We initialize Servo here so that the hidden DOM window is available,
-    // since initializing Servo calls style struct constructors, and the
-    // HackilyFindDeviceContext stuff we have right now depends on the hidden
-    // DOM window. When we fix that, this should move back to
-    // nsLayoutStatics.cpp
-    Servo_Initialize();
-#endif
-
 #if defined(HAVE_DESKTOP_STARTUP_ID) && defined(MOZ_WIDGET_GTK)
     nsGTKToolkit* toolkit = nsGTKToolkit::GetToolkit();
     if (toolkit && !mDesktopStartupID.IsEmpty()) {
@@ -3923,12 +3913,6 @@ XREMain::XRE_mainRun()
       gLogConsoleErrors = true;
     }
   }
-
-#ifdef MOZ_STYLO
-    // This, along with the call to Servo_Initialize, should eventually move back
-    // to nsLayoutStatics.cpp.
-    Servo_Shutdown();
-#endif
 
   return rv;
 }
