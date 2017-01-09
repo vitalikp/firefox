@@ -3227,7 +3227,7 @@ nsCSSRendering::PaintGradient(nsPresContext* aPresContext,
       if (aGradient->mShape == NS_STYLE_GRADIENT_SHAPE_LINEAR && !isRepeat &&
           RectIsBeyondLinearGradientEdge(fillRectRelativeToTile, matrix, stops,
                                          gradientStart, gradientEnd, &edgeColor)) {
-        edgeColor.a = aOpacity;
+        edgeColor.a *= aOpacity;
         ctx->SetColor(edgeColor);
       } else {
         ctx->SetMatrix(
