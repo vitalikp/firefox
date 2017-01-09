@@ -5676,13 +5676,19 @@ IonBuilder::newArrayTryTemplateObject(bool* emitted, JSObject* templateObject, u
 {
     MOZ_ASSERT(*emitted == false);
 
-    if (!templateObject)
+    trackOptimizationAttempt(TrackedStrategy::NewArray_TemplateObject);
+
+    if (!templateObject) {
+        trackOptimizationOutcome(TrackedOutcome::NoTemplateObject);
         return Ok();
+    }
 
     if (templateObject->is<UnboxedArrayObject>()) {
         MOZ_ASSERT(templateObject->as<UnboxedArrayObject>().capacity() >= length);
-        if (!templateObject->as<UnboxedArrayObject>().hasInlineElements())
+        if (!templateObject->as<UnboxedArrayObject>().hasInlineElements()) {
+            trackOptimizationOutcome(TrackedOutcome::TemplateObjectIsUnboxedWithoutInlineElements);
             return Ok();
+        }
     }
 
     MOZ_ASSERT(length <= NativeObject::MAX_DENSE_ELEMENTS_COUNT);
@@ -5690,8 +5696,10 @@ IonBuilder::newArrayTryTemplateObject(bool* emitted, JSObject* templateObject, u
     size_t arraySlots =
         gc::GetGCKindSlots(templateObject->asTenured().getAllocKind()) - ObjectElements::VALUES_PER_HEADER;
 
-    if (length > arraySlots)
+    if (length > arraySlots) {
+        trackOptimizationOutcome(TrackedOutcome::LengthTooBig);
         return Ok();
+    }
 
     // Emit fastpath.
 
@@ -5703,6 +5711,7 @@ IonBuilder::newArrayTryTemplateObject(bool* emitted, JSObject* templateObject, u
     current->add(ins);
     current->push(ins);
 
+    trackOptimizationSuccess();
     *emitted = true;
     return Ok();
 }
@@ -5720,6 +5729,8 @@ IonBuilder::newArrayTrySharedStub(bool* emitted)
     if (*pc != JSOP_NEWINIT && *pc != JSOP_NEWARRAY)
         return Ok();
 
+    trackOptimizationAttempt(TrackedStrategy::NewArray_SharedCache);
+
     MInstruction* stub = MNullarySharedStub::New(alloc());
     current->add(stub);
     current->push(stub);
@@ -5729,6 +5740,8 @@ IonBuilder::newArrayTrySharedStub(bool* emitted)
     MUnbox* unbox = MUnbox::New(alloc(), current->pop(), MIRType::Object, MUnbox::Infallible);
     current->add(unbox);
     current->push(unbox);
+
+    trackOptimizationSuccess();
 
     *emitted = true;
     return Ok();
@@ -5740,6 +5753,7 @@ IonBuilder::newArrayTryVM(bool* emitted, JSObject* templateObject, uint32_t leng
     MOZ_ASSERT(*emitted == false);
 
     // Emit a VM call.
+    trackOptimizationAttempt(TrackedStrategy::NewArray_Call);
 
     gc::InitialHeap heap = gc::DefaultHeap;
     MConstant* templateConst = MConstant::New(alloc(), NullValue());
@@ -5755,6 +5769,7 @@ IonBuilder::newArrayTryVM(bool* emitted, JSObject* templateObject, uint32_t leng
     current->add(ins);
     current->push(ins);
 
+    trackOptimizationSuccess();
     *emitted = true;
     return Ok();
 }
@@ -5779,6 +5794,7 @@ AbortReasonOr<Ok>
 IonBuilder::jsop_newarray(JSObject* templateObject, uint32_t length)
 {
     bool emitted = false;
+    startTrackingOptimizations();
 
     if (!forceInlineCaches()) {
         MOZ_TRY(newArrayTryTemplateObject(&emitted, templateObject, length));
@@ -5824,11 +5840,16 @@ IonBuilder::newObjectTryTemplateObject(bool* emitted, JSObject* templateObject)
 {
     MOZ_ASSERT(*emitted == false);
 
-    if (!templateObject)
+    trackOptimizationAttempt(TrackedStrategy::NewObject_TemplateObject);
+    if (!templateObject) {
+        trackOptimizationOutcome(TrackedOutcome::NoTemplateObject);
         return Ok();
+    }
 
-    if (templateObject->is<PlainObject>() && templateObject->as<PlainObject>().hasDynamicSlots())
+    if (templateObject->is<PlainObject>() && templateObject->as<PlainObject>().hasDynamicSlots()) {
+        trackOptimizationOutcome(TrackedOutcome::TemplateObjectIsPlainObjectWithDynamicSlots);
         return Ok();
+    }
 
     // Emit fastpath.
 
@@ -5848,6 +5869,7 @@ IonBuilder::newObjectTryTemplateObject(bool* emitted, JSObject* templateObject)
 
     MOZ_TRY(resumeAfter(ins));
 
+    trackOptimizationSuccess();
     *emitted = true;
     return Ok();
 }
@@ -5862,6 +5884,8 @@ IonBuilder::newObjectTrySharedStub(bool* emitted)
     if (JitOptions.disableSharedStubs)
         return Ok();
 
+    trackOptimizationAttempt(TrackedStrategy::NewObject_SharedCache);
+
     MInstruction* stub = MNullarySharedStub::New(alloc());
     current->add(stub);
     current->push(stub);
@@ -5872,6 +5896,7 @@ IonBuilder::newObjectTrySharedStub(bool* emitted)
     current->add(unbox);
     current->push(unbox);
 
+    trackOptimizationSuccess();
     *emitted = true;
     return Ok();
 }
@@ -5881,6 +5906,8 @@ IonBuilder::newObjectTryVM(bool* emitted, JSObject* templateObject)
 {
     // Emit a VM call.
     MOZ_ASSERT(JSOp(*pc) == JSOP_NEWOBJECT || JSOp(*pc) == JSOP_NEWINIT);
+
+    trackOptimizationAttempt(TrackedStrategy::NewObject_Call);
 
     gc::InitialHeap heap = gc::DefaultHeap;
     MConstant* templateConst = MConstant::New(alloc(), NullValue());
@@ -5899,6 +5926,7 @@ IonBuilder::newObjectTryVM(bool* emitted, JSObject* templateObject)
 
     MOZ_TRY(resumeAfter(ins));
 
+    trackOptimizationSuccess();
     *emitted = true;
     return Ok();
 }
@@ -5907,6 +5935,7 @@ AbortReasonOr<Ok>
 IonBuilder::jsop_newobject()
 {
     bool emitted = false;
+    startTrackingOptimizations();
 
     JSObject* templateObject = inspector->getTemplateObject(pc);
 
