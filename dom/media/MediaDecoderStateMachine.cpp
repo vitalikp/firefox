@@ -197,7 +197,6 @@ public:
   virtual void HandleAudioWaited(MediaData::Type aType);
   virtual void HandleVideoWaited(MediaData::Type aType);
   virtual void HandleNotWaited(const WaitForDataRejectValue& aRejection);
-  virtual void HandleEndOfStream() {}
   virtual void HandleAudioCaptured() {}
 
   virtual void HandleWaitingForAudio()
@@ -213,7 +212,6 @@ public:
   virtual void HandleEndOfAudio()
   {
     AudioQueue().Finish();
-    HandleEndOfStream();
   }
 
   virtual void HandleWaitingForVideo()
@@ -229,7 +227,6 @@ public:
   virtual void HandleEndOfVideo()
   {
     VideoQueue().Finish();
-    HandleEndOfStream();
   }
 
   virtual RefPtr<MediaDecoder::SeekPromise> HandleSeek(SeekTarget aTarget);
@@ -662,7 +659,8 @@ public:
     CheckSlowDecoding(aDecodeStart);
   }
 
-  void HandleEndOfStream() override;
+  void HandleEndOfAudio() override;
+  void HandleEndOfVideo() override;
 
   void HandleWaitingForAudio() override
   {
@@ -1648,7 +1646,8 @@ public:
     mMaster->ScheduleStateMachine();
   }
 
-  void HandleEndOfStream() override;
+  void HandleEndOfAudio() override;
+  void HandleEndOfVideo() override;
 
   void HandleVideoSuspendTimeout() override
   {
@@ -2104,8 +2103,21 @@ DecodingState::Enter()
 
 void
 MediaDecoderStateMachine::
-DecodingState::HandleEndOfStream()
+DecodingState::HandleEndOfAudio()
 {
+  AudioQueue().Finish();
+  if (mMaster->CheckIfDecodeComplete()) {
+    SetState<CompletedState>();
+  } else {
+    MaybeStopPrerolling();
+  }
+}
+
+void
+MediaDecoderStateMachine::
+DecodingState::HandleEndOfVideo()
+{
+  VideoQueue().Finish();
   if (mMaster->CheckIfDecodeComplete()) {
     SetState<CompletedState>();
   } else {
@@ -2276,8 +2288,22 @@ BufferingState::Step()
 
 void
 MediaDecoderStateMachine::
-BufferingState::HandleEndOfStream()
+BufferingState::HandleEndOfAudio()
 {
+  AudioQueue().Finish();
+  if (mMaster->CheckIfDecodeComplete()) {
+    SetState<CompletedState>();
+  } else {
+    // Check if we can exit buffering.
+    mMaster->ScheduleStateMachine();
+  }
+}
+
+void
+MediaDecoderStateMachine::
+BufferingState::HandleEndOfVideo()
+{
+  VideoQueue().Finish();
   if (mMaster->CheckIfDecodeComplete()) {
     SetState<CompletedState>();
   } else {
