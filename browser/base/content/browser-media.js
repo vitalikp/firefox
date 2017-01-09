@@ -14,28 +14,19 @@ var gEMEHandler = {
     }
     return emeUIEnabled;
   },
-  ensureEMEEnabled: function(browser, keySystem) {
+  ensureEMEEnabled(browser, keySystem) {
     Services.prefs.setBoolPref("media.eme.enabled", true);
-    if (keySystem) {
-      if (keySystem.startsWith("com.adobe") &&
-          Services.prefs.getPrefType("media.gmp-eme-adobe.enabled") &&
-          !Services.prefs.getBoolPref("media.gmp-eme-adobe.enabled")) {
-        Services.prefs.setBoolPref("media.gmp-eme-adobe.enabled", true);
-      } else if (keySystem == "com.widevine.alpha" &&
-                 Services.prefs.getPrefType("media.gmp-widevinecdm.enabled") &&
-                 !Services.prefs.getBoolPref("media.gmp-widevinecdm.enabled")) {
-        Services.prefs.setBoolPref("media.gmp-widevinecdm.enabled", true);
-      }
+    if (keySystem &&
+        keySystem == "com.widevine.alpha" &&
+        Services.prefs.getPrefType("media.gmp-widevinecdm.enabled") &&
+        !Services.prefs.getBoolPref("media.gmp-widevinecdm.enabled")) {
+      Services.prefs.setBoolPref("media.gmp-widevinecdm.enabled", true);
     }
     browser.reload();
   },
-  isKeySystemVisible: function(keySystem) {
+  isKeySystemVisible(keySystem) {
     if (!keySystem) {
       return false;
-    }
-    if (keySystem.startsWith("com.adobe") &&
-        Services.prefs.getPrefType("media.gmp-eme-adobe.visible")) {
-      return Services.prefs.getBoolPref("media.gmp-eme-adobe.visible");
     }
     if (keySystem == "com.widevine.alpha" &&
         Services.prefs.getPrefType("media.gmp-widevinecdm.visible")) {
@@ -43,7 +34,7 @@ var gEMEHandler = {
     }
     return true;
   },
-  getLearnMoreLink: function(msgId) {
+  getLearnMoreLink(msgId) {
     let text = gNavigatorBundle.getString("emeNotifications." + msgId + ".learnMoreLabel");
     let baseURL = Services.urlFormatter.formatURLPref("app.support.baseURL");
     return "<label class='text-link' href='" + baseURL + "drm-content'>" +
