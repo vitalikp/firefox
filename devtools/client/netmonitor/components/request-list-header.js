@@ -8,6 +8,7 @@
 
 const { createClass, PropTypes, DOM } = require("devtools/client/shared/vendor/react");
 const { div, button } = DOM;
+const { findDOMNode } = require("devtools/client/shared/vendor/react-dom");
 const { connect } = require("devtools/client/shared/vendor/react-redux");
 const { L10N } = require("../l10n");
 const { getWaterfallScale } = require("../selectors/index");
@@ -50,6 +51,17 @@ const RequestListHeader = createClass({
   },
 
   componentDidMount() {
+    // This is the first time the waterfall column header is actually rendered.
+    // Measure its width and update the 'waterfallWidth' property in the store.
+    // The 'waterfallWidth' will be further updated on every window resize.
+    const waterfallHeaderEl = findDOMNode(this)
+      .querySelector("#requests-menu-waterfall-header-box");
+    if (waterfallHeaderEl) {
+      const { width } = waterfallHeaderEl.getBoundingClientRect();
+      this.props.resizeWaterfall(width);
+    }
+
+    // Create the object that takes care of drawing the waterfall canvas background
     this.background = new WaterfallBackground(document);
     this.background.draw(this.props);
   },
@@ -176,7 +188,7 @@ function waterfallDivisionLabels(waterfallWidth, scale) {
 function WaterfallLabel(waterfallWidth, scale, label) {
   let className = "button-text requests-menu-waterfall-label-wrapper";
 
-  if (scale != null) {
+  if (waterfallWidth != null && scale != null) {
     label = waterfallDivisionLabels(waterfallWidth, scale);
     className += " requests-menu-waterfall-visible";
   }
@@ -194,5 +206,6 @@ module.exports = connect(
   }),
   dispatch => ({
     onHeaderClick: type => dispatch(Actions.sortBy(type)),
+    resizeWaterfall: width => dispatch(Actions.resizeWaterfall(width)),
   })
 )(RequestListHeader);
