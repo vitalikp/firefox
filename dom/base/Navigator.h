@@ -40,6 +40,7 @@ class ServiceWorkerContainer;
 class DOMRequest;
 struct FlyWebPublishOptions;
 struct FlyWebFilter;
+class WebAuthentication;
 } // namespace dom
 } // namespace mozilla
 
@@ -219,6 +220,8 @@ public:
 
   already_AddRefed<ServiceWorkerContainer> ServiceWorker();
 
+  mozilla::dom::WebAuthentication* Authentication();
+
   void GetLanguages(nsTArray<nsString>& aLanguages);
 
   bool MozE10sEnabled();
@@ -269,6 +272,7 @@ private:
   RefPtr<Promise> mBatteryPromise;
   RefPtr<PowerManager> mPowerManager;
   RefPtr<network::Connection> mConnection;
+  RefPtr<WebAuthentication> mAuthentication;
 #ifdef MOZ_AUDIO_CHANNEL_MANAGER
   RefPtr<system::AudioChannelManager> mAudioChannelManager;
 #endif
