@@ -411,12 +411,6 @@ protected:
 
   void EnqueueFirstFrameLoadedEvent();
 
-  // Dispatch a task to decode audio if there is not.
-  void EnsureAudioDecodeTaskQueued();
-
-  // Dispatch a task to decode video if there is not.
-  void EnsureVideoDecodeTaskQueued();
-
   // Start a task to decode audio.
   void RequestAudioData();
 
