@@ -443,11 +443,11 @@ module.exports = createClass({
     switch (e.key) {
       case "ArrowUp":
         this._focusPrevNode();
-        return;
+        break;
 
       case "ArrowDown":
         this._focusNextNode();
-        return;
+        break;
 
       case "ArrowLeft":
         if (this.props.isExpanded(this.props.focused)
@@ -456,7 +456,7 @@ module.exports = createClass({
         } else {
           this._focusParentNode();
         }
-        return;
+        break;
 
       case "ArrowRight":
         if (!this.props.isExpanded(this.props.focused)) {
@@ -464,7 +464,7 @@ module.exports = createClass({
         } else {
           this._focusNextNode();
         }
-        return;
+        break;
     }
   },
 
