@@ -297,7 +297,7 @@ AudioContext::CreateBuffer(uint32_t aNumberOfChannels, uint32_t aLength,
     return nullptr;
   }
 
-  return AudioBuffer::Create(this, aNumberOfChannels, aLength,
+  return AudioBuffer::Create(GetOwner(), aNumberOfChannels, aLength,
                              aSampleRate, aRv);
 }
 
