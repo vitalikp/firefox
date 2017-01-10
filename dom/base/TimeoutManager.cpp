@@ -7,6 +7,7 @@
 #include "TimeoutManager.h"
 #include "nsGlobalWindow.h"
 #include "nsQueryObject.h"
+#include "mozilla/Logging.h"
 #include "mozilla/ThrottledEventQueue.h"
 #include "mozilla/TimeStamp.h"
 #include "nsITimeoutHandler.h"
@@ -14,6 +15,8 @@
 
 using namespace mozilla;
 using namespace mozilla::dom;
+
+static LazyLogModule gLog("Timeout");
 
 static int32_t              gRunningTimeoutDepth       = 0;
 
@@ -105,6 +108,15 @@ TimeoutManager::TimeoutManager(nsGlobalWindow& aWindow)
     mBackPressureDelayMS(0)
 {
   MOZ_DIAGNOSTIC_ASSERT(aWindow.IsInnerWindow());
+
+  MOZ_LOG(gLog, LogLevel::Debug,
+          ("TimeoutManager %p created\n", this));
+}
+
+TimeoutManager::~TimeoutManager()
+{
+  MOZ_LOG(gLog, LogLevel::Debug,
+          ("TimeoutManager %p destroyed\n", this));
 }
 
 /* static */
@@ -241,6 +253,16 @@ TimeoutManager::SetTimeout(nsITimeoutHandler* aHandler,
   timeout->mTimeoutId = GetTimeoutId(aReason);
   *aReturn = timeout->mTimeoutId;
 
+  MOZ_LOG(gLog, LogLevel::Debug,
+          ("Set%s(TimeoutManager=%p, timeout=%p, "
+           "delay=%i, minimum=%i, background=%d, realInterval=%i) "
+           "returned timeout ID %u\n",
+           aIsInterval ? "Interval" : "Timeout",
+           this, timeout.get(), interval,
+           DOMMinTimeoutValue(),
+           int(mWindow.IsBackgroundInternal()), realInterval,
+           timeout->mTimeoutId));
+
   return NS_OK;
 }
 
@@ -250,6 +272,10 @@ TimeoutManager::ClearTimeout(int32_t aTimerId, Timeout::Reason aReason)
   uint32_t timerId = (uint32_t)aTimerId;
 
   ForEachUnorderedTimeoutAbortable([&](Timeout* aTimeout) {
+    MOZ_LOG(gLog, LogLevel::Debug,
+            ("Clear%s(TimeoutManager=%p, timeout=%p, aTimerId=%u, ID=%u)\n", aTimeout->mIsInterval ? "Interval" : "Timeout",
+             this, aTimeout, timerId, aTimeout->mTimeoutId));
+
     if (aTimeout->mTimeoutId == timerId && aTimeout->mReason == aReason) {
       if (aTimeout->mRunning) {
         /* We're running from inside the aTimeout. Mark this
@@ -402,6 +428,10 @@ TimeoutManager::RunTimeout(Timeout* aTimeout)
 
     // This timeout is good to run
     bool timeout_was_cleared = mWindow.RunTimeoutHandler(timeout, scx);
+    MOZ_LOG(gLog, LogLevel::Debug,
+            ("Run%s(TimeoutManager=%p, timeout=%p, aTimeout=%p) returned %d\n", timeout->mIsInterval ? "Interval" : "Timeout",
+             this, timeout, aTimeout,
+             !!timeout_was_cleared));
 
     if (timeout_was_cleared) {
       // The running timeout's window was cleared, this means that
@@ -486,6 +516,12 @@ TimeoutManager::MaybeApplyBackPressure()
   // Since the callback was scheduled successfully we can now persist the
   // backpressure value.
   mBackPressureDelayMS = CalculateNewBackPressureDelayMS(queue->Length());
+
+  MOZ_LOG(gLog, LogLevel::Debug,
+          ("Applying %dms of back pressure to TimeoutManager %p "
+           "because of a queue length of %u\n",
+           mBackPressureDelayMS, this,
+           queue->Length()));
 }
 
 void
@@ -498,8 +534,14 @@ TimeoutManager::CancelOrUpdateBackPressure(nsGlobalWindow* aWindow)
   // First, re-calculate the back pressure delay.
   RefPtr<ThrottledEventQueue> queue =
     do_QueryObject(mWindow.TabGroup()->EventTargetFor(TaskCategory::Timer));
-  int32_t newBackPressureDelayMS =
-    CalculateNewBackPressureDelayMS(queue ? queue->Length() : 0);
+  auto queueLength = queue ? queue->Length() : 0;
+  int32_t newBackPressureDelayMS = CalculateNewBackPressureDelayMS(queueLength);
+
+  MOZ_LOG(gLog, LogLevel::Debug,
+          ("Updating back pressure from %d to %dms for TimeoutManager %p "
+           "because of a queue length of %u\n",
+           mBackPressureDelayMS, newBackPressureDelayMS,
+           this, queueLength));
 
   // If the delay has increased, then simply apply it.  Increasing the delay
   // does not risk re-ordering timers with similar parameters.  We want to
@@ -743,6 +785,9 @@ TimeoutManager::ClearAllTimeouts()
 {
   bool seenRunningTimeout = false;
 
+  MOZ_LOG(gLog, LogLevel::Debug,
+          ("ClearAllTimeouts(TimeoutManager=%p)\n", this));
+
   ForEachUnorderedTimeout([&](Timeout* aTimeout) {
     /* If RunTimeout() is higher up on the stack for this
        window, e.g. as a result of document.write from a timeout,
@@ -843,6 +888,9 @@ TimeoutManager::UnmarkGrayTimers()
 void
 TimeoutManager::Suspend()
 {
+  MOZ_LOG(gLog, LogLevel::Debug,
+          ("Suspend(TimeoutManager=%p)\n", this));
+
   ForEachUnorderedTimeout([](Timeout* aTimeout) {
     // Leave the timers with the current time remaining.  This will
     // cause the timers to potentially fire when the window is
@@ -863,6 +911,9 @@ TimeoutManager::Suspend()
 void
 TimeoutManager::Resume()
 {
+  MOZ_LOG(gLog, LogLevel::Debug,
+          ("Resume(TimeoutManager=%p)\n", this));
+
   TimeStamp now = TimeStamp::Now();
   DebugOnly<bool> _seenDummyTimeout = false;
 
@@ -912,6 +963,9 @@ TimeoutManager::Resume()
 void
 TimeoutManager::Freeze()
 {
+  MOZ_LOG(gLog, LogLevel::Debug,
+          ("Freeze(TimeoutManager=%p)\n", this));
+
   TimeStamp now = TimeStamp::Now();
   ForEachUnorderedTimeout([&](Timeout* aTimeout) {
     // Save the current remaining time for this timeout.  We will
@@ -934,6 +988,9 @@ TimeoutManager::Freeze()
 void
 TimeoutManager::Thaw()
 {
+  MOZ_LOG(gLog, LogLevel::Debug,
+          ("Thaw(TimeoutManager=%p)\n", this));
+
   TimeStamp now = TimeStamp::Now();
   DebugOnly<bool> _seenDummyTimeout = false;
 
