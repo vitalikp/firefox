@@ -38,6 +38,7 @@
 #include "nsCategoryCache.h"
 #include "nsIContentSniffer.h"
 #include "Predictor.h"
+#include "ThrottlingService.h"
 #include "nsIThreadPool.h"
 #include "mozilla/net/NeckoChild.h"
 
@@ -866,6 +867,7 @@ NS_DEFINE_NAMED_CID(NS_REQUESTCONTEXTSERVICE_CID);
 #ifdef BUILD_NETWORK_INFO_SERVICE
 NS_DEFINE_NAMED_CID(NETWORKINFOSERVICE_CID);
 #endif // BUILD_NETWORK_INFO_SERVICE
+NS_DEFINE_NAMED_CID(NS_THROTTLINGSERVICE_CID);
 
 static const mozilla::Module::CIDEntry kNeckoCIDs[] = {
     { &kNS_IOSERVICE_CID, false, nullptr, nsIOServiceConstructor },
@@ -1017,6 +1019,7 @@ static const mozilla::Module::CIDEntry kNeckoCIDs[] = {
 #ifdef BUILD_NETWORK_INFO_SERVICE
     { &kNETWORKINFOSERVICE_CID, false, nullptr, nsNetworkInfoServiceConstructor },
 #endif
+    { &kNS_THROTTLINGSERVICE_CID, false, nullptr, mozilla::net::ThrottlingService::Create },
     { nullptr }
 };
 
@@ -1173,6 +1176,7 @@ static const mozilla::Module::ContractIDEntry kNeckoContracts[] = {
 #ifdef BUILD_NETWORK_INFO_SERVICE
     { NETWORKINFOSERVICE_CONTRACT_ID, &kNETWORKINFOSERVICE_CID },
 #endif
+    { NS_THROTTLINGSERVICE_CONTRACTID, &kNS_THROTTLINGSERVICE_CID },
     { nullptr }
 };
 
