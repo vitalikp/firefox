@@ -9,6 +9,7 @@
 #include "ChildIterator.h"
 #include "gfxFontFamilyList.h"
 #include "nsAttrValueInlines.h"
+#include "nsCSSProps.h"
 #include "nsCSSParser.h"
 #include "nsCSSRuleProcessor.h"
 #include "nsContentUtils.h"
@@ -1026,6 +1027,13 @@ nsCSSValueBorrowedMut
 Gecko_CSSValue_GetArrayItem(nsCSSValueBorrowedMut aCSSValue, int32_t aIndex)
 {
   return &aCSSValue->GetArrayValue()->Item(aIndex);
+}
+
+
+bool
+Gecko_PropertyId_IsPrefEnabled(nsCSSPropertyID id)
+{
+  return nsCSSProps::IsEnabled(id);
 }
 
 void
