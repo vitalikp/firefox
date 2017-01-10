@@ -582,7 +582,7 @@ public:
   T& as() {
     static_assert(detail::IsVariant<T, Ts...>::value,
                   "provided a type not found in this Variant's type list");
-    MOZ_ASSERT(is<T>());
+    MOZ_RELEASE_ASSERT(is<T>());
     return *reinterpret_cast<T*>(&raw);
   }
 
@@ -591,7 +591,7 @@ public:
   const T& as() const {
     static_assert(detail::IsVariant<T, Ts...>::value,
                   "provided a type not found in this Variant's type list");
-    MOZ_ASSERT(is<T>());
+    MOZ_RELEASE_ASSERT(is<T>());
     return *reinterpret_cast<const T*>(&raw);
   }
 
