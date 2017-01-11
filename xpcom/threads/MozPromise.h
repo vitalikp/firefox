@@ -724,9 +724,8 @@ private:
   /*
    * A command object to store all information needed to make a request to
    * the promise. This allows us to delay the request until further use is
-   * known (whether it is ->Then() again for more promise chaining or passed
-   * to MozPromiseRequestHolder::Begin() to terminate chaining and issue
-   * the request).
+   * known (whether it is ->Then() again for more promise chaining or ->Track()
+   * to terminate chaining and issue the request).
    *
    * This allows a unified syntax for promise chaining and disconnection
    * and feels more like its JS counterpart.
@@ -755,14 +754,6 @@ private:
       }
     }
 
-    // Allow passing Then() to MozPromiseRequestHolder::Begin().
-    operator RefPtr<Request>()
-    {
-      RefPtr<ThenValueBase> thenValue = mThenValue.forget();
-      mReceiver->ThenInternal(mResponseThread, thenValue, mCallSite);
-      return thenValue.forget();
-    }
-
     // Allow RefPtr<MozPromise> p = somePromise->Then();
     //       p->Then(thread1, ...);
     //       p->Then(thread2, ...);
@@ -788,7 +779,9 @@ private:
 
     void Track(MozPromiseRequestHolder<MozPromise>& aRequestHolder)
     {
-      aRequestHolder.Track(*this);
+      RefPtr<ThenValueBase> thenValue = mThenValue.forget();
+      mReceiver->ThenInternal(mResponseThread, thenValue, mCallSite);
+      aRequestHolder.Track(thenValue.forget());
     }
 
     // Allow calling ->Then() again for more promise chaining or ->Track() to
