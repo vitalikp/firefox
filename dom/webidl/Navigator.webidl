@@ -347,6 +347,6 @@ interface NavigatorConcurrentHardware {
 };
 
 partial interface Navigator {
-  [Pref="security.webauth.w3c", SameObject]
+  [Pref="security.webauth.webauthn", SameObject]
   readonly attribute WebAuthentication authentication;
 };
