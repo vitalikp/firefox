@@ -82,8 +82,10 @@ public:
   explicit IOThreadAutoTimer(Telemetry::ID aId,
     IOInterposeObserver::Operation aOp = IOInterposeObserver::OpNone)
     : start(TimeStamp::Now()),
-      id(aId),
-      op(aOp)
+      id(aId)
+#if defined(MOZ_ENABLE_PROFILER_SPS) && !defined(XP_WIN)
+      , op(aOp)
+#endif
   {
   }
 
@@ -95,8 +97,10 @@ public:
    */
   explicit IOThreadAutoTimer(IOInterposeObserver::Operation aOp)
     : start(TimeStamp::Now()),
-      id(Telemetry::HistogramCount),
-      op(aOp)
+      id(Telemetry::HistogramCount)
+#if defined(MOZ_ENABLE_PROFILER_SPS) && !defined(XP_WIN)
+      , op(aOp)
+#endif
   {
   }
 
@@ -128,7 +132,9 @@ public:
 private:
   const TimeStamp start;
   const Telemetry::ID id;
+#if defined(MOZ_ENABLE_PROFILER_SPS) && !defined(XP_WIN)
   IOInterposeObserver::Operation op;
+#endif
 };
 
 struct telemetry_file {
