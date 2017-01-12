@@ -33,6 +33,7 @@
 #include "mozilla/EventForwards.h"
 #include "mozilla/layers/CompositorTypes.h"
 #include "mozilla/layers/APZCCallbackHelper.h"
+#include "mozilla/layers/CompositorOptions.h"
 #include "nsIWebBrowserChrome3.h"
 #include "mozilla/dom/ipc/IdType.h"
 #include "AudioChannelService.h"
@@ -596,7 +597,7 @@ public:
     return mParentIsActive;
   }
 
-  bool AsyncPanZoomEnabled() const { return mAsyncPanZoomEnabled; }
+  bool AsyncPanZoomEnabled() const;
 
   virtual ScreenIntSize GetInnerSize() override;
 
@@ -768,6 +769,10 @@ private:
   LayoutDeviceIntPoint mChromeDisp;
   TabId mUniqueId;
 
+  // Holds the compositor options for the compositor rendering this tab,
+  // once we find out which compositor that is.
+  Maybe<mozilla::layers::CompositorOptions> mCompositorOptions;
+
   friend class ContentChild;
   float mDPI;
   int32_t mRounding;
@@ -777,7 +782,6 @@ private:
 
   bool mIPCOpen;
   bool mParentIsActive;
-  bool mAsyncPanZoomEnabled;
   CSSSize mUnscaledInnerSize;
   bool mDidSetRealShowInfo;
   bool mDidLoadURLInit;
