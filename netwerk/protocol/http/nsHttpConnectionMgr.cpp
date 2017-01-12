@@ -2520,7 +2520,8 @@ nsHttpConnectionMgr::GetOrCreateConnectionEntry(nsHttpConnectionInfo *specificCI
     // step 2
     if (!prohibitWildCard) {
         RefPtr<nsHttpConnectionInfo> wildCardProxyCI;
-        specificCI->CreateWildCard(getter_AddRefs(wildCardProxyCI));
+        DebugOnly<nsresult> rv = specificCI->CreateWildCard(getter_AddRefs(wildCardProxyCI));
+        MOZ_ASSERT(NS_SUCCEEDED(rv));
         nsConnectionEntry *wildCardEnt = mCT.Get(wildCardProxyCI->HashKey());
         if (wildCardEnt && wildCardEnt->AvailableForDispatchNow()) {
             return wildCardEnt;
@@ -2598,7 +2599,10 @@ nsHttpConnectionMgr::OnMsgSpeculativeConnect(int32_t, ARefBase *param)
          !ent->mIdleConns.Length()) &&
         !(keepAlive && RestrictConnections(ent)) &&
         !AtActiveConnectionLimit(ent, args->mTrans->Caps())) {
-        CreateTransport(ent, args->mTrans, args->mTrans->Caps(), true, isFromPredictor, allow1918);
+        DebugOnly<nsresult> rv = CreateTransport(ent, args->mTrans,
+                                                 args->mTrans->Caps(), true,
+                                                 isFromPredictor, allow1918);
+        MOZ_ASSERT(NS_SUCCEEDED(rv));
     } else {
         LOG(("OnMsgSpeculativeConnect Transport "
              "not created due to existing connection count\n"));
@@ -2955,7 +2959,8 @@ nsHttpConnectionMgr::nsHalfOpenSocket::Notify(nsITimer *timer)
     MOZ_ASSERT(mTransaction && !mTransaction->IsNullTransaction(),
                "null transactions dont have backup streams");
 
-    SetupBackupStreams();
+    DebugOnly<nsresult> rv = SetupBackupStreams();
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
 
     mSynTimer = nullptr;
     return NS_OK;
