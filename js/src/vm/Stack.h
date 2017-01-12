@@ -1823,6 +1823,8 @@ class FrameIter
     // -----------------------------------------------------------
     //  The following functions can only be called when isWasm()
     // -----------------------------------------------------------
+
+    inline bool wasmDebugEnabled() const;
     inline wasm::Instance* wasmInstance() const;
 
     // -----------------------------------------------------------
@@ -2068,11 +2070,19 @@ FrameIter::script() const
     return data_.jitFrames_.script();
 }
 
+inline bool
+FrameIter::wasmDebugEnabled() const
+{
+    MOZ_ASSERT(!done());
+    MOZ_ASSERT(data_.state_ == WASM);
+    return data_.wasmFrames_.debugEnabled();
+}
+
 inline wasm::Instance*
 FrameIter::wasmInstance() const
 {
     MOZ_ASSERT(!done());
-    MOZ_ASSERT(data_.state_ == WASM);
+    MOZ_ASSERT(data_.state_ == WASM && wasmDebugEnabled());
     return data_.wasmFrames_.instance();
 }
 
