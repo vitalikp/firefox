@@ -1777,6 +1777,22 @@ class BaseCompiler
         return true;
     }
 
+    MOZ_MUST_USE bool peekConstI32(int32_t* c) {
+        Stk& v = stk_.back();
+        if (v.kind() != Stk::ConstI32)
+            return false;
+        *c = v.i32val();
+        return true;
+    }
+
+    MOZ_MUST_USE bool peekConstI64(int64_t* c) {
+        Stk& v = stk_.back();
+        if (v.kind() != Stk::ConstI64)
+            return false;
+        *c = v.i64val();
+        return true;
+    }
+
     MOZ_MUST_USE bool popConstPositivePowerOfTwoI32(int32_t& c,
                                                     uint_fast8_t& power,
                                                     int32_t cutoff)
@@ -2809,12 +2825,15 @@ class BaseCompiler
     }
 
 #ifndef INT_DIV_I64_CALLOUT
-    void quotientI64(RegI64 rhs, RegI64 srcDest, IsUnsigned isUnsigned) {
+    void quotientI64(RegI64 rhs, RegI64 srcDest, IsUnsigned isUnsigned,
+                     bool isConst, int64_t c)
+    {
         Label done;
 
-        checkDivideByZeroI64(rhs);
+        if (!isConst || c == 0)
+            checkDivideByZeroI64(rhs);
 
-        if (!isUnsigned)
+        if (!isUnsigned && (!isConst || c == -1))
             checkDivideSignedOverflowI64(rhs, srcDest, &done, ZeroOnOverflow(false));
 
 # if defined(JS_CODEGEN_X64)
@@ -2834,12 +2853,15 @@ class BaseCompiler
         masm.bind(&done);
     }
 
-    void remainderI64(RegI64 rhs, RegI64 srcDest, IsUnsigned isUnsigned) {
+    void remainderI64(RegI64 rhs, RegI64 srcDest, IsUnsigned isUnsigned,
+                      bool isConst, int64_t c)
+    {
         Label done;
 
-        checkDivideByZeroI64(rhs);
+        if (!isConst || c == 0)
+            checkDivideByZeroI64(rhs);
 
-        if (!isUnsigned)
+        if (!isUnsigned && (!isConst || c == -1))
             checkDivideSignedOverflowI64(rhs, srcDest, &done, ZeroOnOverflow(true));
 
 # if defined(JS_CODEGEN_X64)
@@ -4095,7 +4117,7 @@ BaseCompiler::emitMultiplyF64()
 void
 BaseCompiler::emitQuotientI32()
 {
-    int32_t c;
+    int32_t c = 0;
     uint_fast8_t power;
     if (popConstPositivePowerOfTwoI32(c, power, 0)) {
         if (power != 0) {
@@ -4109,12 +4131,15 @@ BaseCompiler::emitQuotientI32()
             pushI32(r);
         }
     } else {
+        bool isConst = peekConstI32(&c);
         RegI32 r0, r1;
         pop2xI32ForIntMulDiv(&r0, &r1);
 
         Label done;
-        checkDivideByZeroI32(r1, r0, &done);
-        checkDivideSignedOverflowI32(r1, r0, &done, ZeroOnOverflow(false));
+        if (!isConst || c == 0)
+            checkDivideByZeroI32(r1, r0, &done);
+        if (!isConst || c == -1)
+            checkDivideSignedOverflowI32(r1, r0, &done, ZeroOnOverflow(false));
         masm.quotient32(r1, r0, IsUnsigned(false));
         masm.bind(&done);
 
@@ -4135,11 +4160,13 @@ BaseCompiler::emitQuotientU32()
             pushI32(r);
         }
     } else {
+        bool isConst = peekConstI32(&c);
         RegI32 r0, r1;
         pop2xI32ForIntMulDiv(&r0, &r1);
 
         Label done;
-        checkDivideByZeroI32(r1, r0, &done);
+        if (!isConst || c == 0)
+            checkDivideByZeroI32(r1, r0, &done);
         masm.quotient32(r1, r0, IsUnsigned(true));
         masm.bind(&done);
 
@@ -4151,7 +4178,7 @@ BaseCompiler::emitQuotientU32()
 void
 BaseCompiler::emitRemainderI32()
 {
-    int32_t c;
+    int32_t c = 0;
     uint_fast8_t power;
     if (popConstPositivePowerOfTwoI32(c, power, 1)) {
         RegI32 r = popI32();
@@ -4170,12 +4197,15 @@ BaseCompiler::emitRemainderI32()
 
         pushI32(r);
     } else {
+        bool isConst = peekConstI32(&c);
         RegI32 r0, r1;
         pop2xI32ForIntMulDiv(&r0, &r1);
 
         Label done;
-        checkDivideByZeroI32(r1, r0, &done);
-        checkDivideSignedOverflowI32(r1, r0, &done, ZeroOnOverflow(true));
+        if (!isConst || c == 0)
+            checkDivideByZeroI32(r1, r0, &done);
+        if (!isConst || c == -1)
+            checkDivideSignedOverflowI32(r1, r0, &done, ZeroOnOverflow(true));
         masm.remainder32(r1, r0, IsUnsigned(false));
         masm.bind(&done);
 
@@ -4194,11 +4224,13 @@ BaseCompiler::emitRemainderU32()
         masm.and32(Imm32(c-1), r);
         pushI32(r);
     } else {
+        bool isConst = peekConstI32(&c);
         RegI32 r0, r1;
         pop2xI32ForIntMulDiv(&r0, &r1);
 
         Label done;
-        checkDivideByZeroI32(r1, r0, &done);
+        if (!isConst || c == 0)
+            checkDivideByZeroI32(r1, r0, &done);
         masm.remainder32(r1, r0, IsUnsigned(true));
         masm.bind(&done);
 
@@ -4212,7 +4244,7 @@ void
 BaseCompiler::emitQuotientI64()
 {
 # ifdef JS_PUNBOX64
-    int64_t c;
+    int64_t c = 0;
     uint_fast8_t power;
     if (popConstPositivePowerOfTwoI64(c, power, 0)) {
         if (power != 0) {
@@ -4227,9 +4259,10 @@ BaseCompiler::emitQuotientI64()
             pushI64(r);
         }
     } else {
+        bool isConst = peekConstI64(&c);
         RegI64 r0, r1;
         pop2xI64ForIntDiv(&r0, &r1);
-        quotientI64(r1, r0, IsUnsigned(false));
+        quotientI64(r1, r0, IsUnsigned(false), isConst, c);
         freeI64(r1);
         pushI64(r0);
     }
@@ -4251,9 +4284,10 @@ BaseCompiler::emitQuotientU64()
             pushI64(r);
         }
     } else {
+        bool isConst = peekConstI64(&c);
         RegI64 r0, r1;
         pop2xI64ForIntDiv(&r0, &r1);
-        quotientI64(r1, r0, IsUnsigned(true));
+        quotientI64(r1, r0, IsUnsigned(true), isConst, c);
         freeI64(r1);
         pushI64(r0);
     }
@@ -4266,7 +4300,7 @@ void
 BaseCompiler::emitRemainderI64()
 {
 # ifdef JS_PUNBOX64
-    int64_t c;
+    int64_t c = 0;
     uint_fast8_t power;
     if (popConstPositivePowerOfTwoI64(c, power, 1)) {
         RegI64 r = popI64();
@@ -4286,9 +4320,10 @@ BaseCompiler::emitRemainderI64()
 
         pushI64(r);
     } else {
+        bool isConst = peekConstI64(&c);
         RegI64 r0, r1;
         pop2xI64ForIntDiv(&r0, &r1);
-        remainderI64(r1, r0, IsUnsigned(false));
+        remainderI64(r1, r0, IsUnsigned(false), isConst, c);
         freeI64(r1);
         pushI64(r0);
     }
@@ -4308,9 +4343,10 @@ BaseCompiler::emitRemainderU64()
         masm.and64(Imm64(c-1), r);
         pushI64(r);
     } else {
+        bool isConst = peekConstI64(&c);
         RegI64 r0, r1;
         pop2xI64ForIntDiv(&r0, &r1);
-        remainderI64(r1, r0, IsUnsigned(true));
+        remainderI64(r1, r0, IsUnsigned(true), isConst, c);
         freeI64(r1);
         pushI64(r0);
     }
