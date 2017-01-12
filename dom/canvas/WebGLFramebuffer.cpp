@@ -49,7 +49,8 @@ WebGLFBAttachPoint::~WebGLFBAttachPoint()
 void
 WebGLFBAttachPoint::Unlink()
 {
-    Clear();
+    const char funcName[] = "WebGLFramebuffer::GC";
+    Clear(funcName);
 }
 
 bool
@@ -116,7 +117,7 @@ WebGLFBAttachPoint::IsReadableFloat() const
 }
 
 void
-WebGLFBAttachPoint::Clear()
+WebGLFBAttachPoint::Clear(const char* funcName)
 {
     if (mRenderbufferPtr) {
         MOZ_ASSERT(!mTexturePtr);
@@ -128,14 +129,14 @@ WebGLFBAttachPoint::Clear()
     mTexturePtr = nullptr;
     mRenderbufferPtr = nullptr;
 
-    OnBackingStoreRespecified();
+    OnBackingStoreRespecified(funcName);
 }
 
 void
-WebGLFBAttachPoint::SetTexImage(WebGLTexture* tex, TexImageTarget target, GLint level,
-                                GLint layer)
+WebGLFBAttachPoint::SetTexImage(const char* funcName, WebGLTexture* tex,
+                                TexImageTarget target, GLint level, GLint layer)
 {
-    Clear();
+    Clear(funcName);
 
     mTexturePtr = tex;
     mTexImageTarget = target;
@@ -148,9 +149,9 @@ WebGLFBAttachPoint::SetTexImage(WebGLTexture* tex, TexImageTarget target, GLint 
 }
 
 void
-WebGLFBAttachPoint::SetRenderbuffer(WebGLRenderbuffer* rb)
+WebGLFBAttachPoint::SetRenderbuffer(const char* funcName, WebGLRenderbuffer* rb)
 {
-    Clear();
+    Clear(funcName);
 
     mRenderbufferPtr = rb;
 
@@ -228,9 +229,9 @@ WebGLFBAttachPoint::Size(uint32_t* const out_width, uint32_t* const out_height) 
 }
 
 void
-WebGLFBAttachPoint::OnBackingStoreRespecified() const
+WebGLFBAttachPoint::OnBackingStoreRespecified(const char* funcName) const
 {
-    mFB->InvalidateFramebufferStatus();
+    mFB->InvalidateFramebufferStatus(funcName);
 }
 
 void
@@ -621,6 +622,7 @@ WebGLFBAttachPoint::GetParameter(const char* funcName, WebGLContext* webgl, JSCo
 WebGLFramebuffer::WebGLFramebuffer(WebGLContext* webgl, GLuint fbo)
     : WebGLRefCountedObject(webgl)
     , mGLName(fbo)
+    , mNumFBStatusInvals(0)
 #ifdef ANDROID
     , mIsFB(false)
 #endif
@@ -643,14 +645,16 @@ WebGLFramebuffer::WebGLFramebuffer(WebGLContext* webgl, GLuint fbo)
 void
 WebGLFramebuffer::Delete()
 {
-    InvalidateFramebufferStatus();
+    const char funcName[] = "WebGLFramebuffer::Delete";
 
-    mDepthAttachment.Clear();
-    mStencilAttachment.Clear();
-    mDepthStencilAttachment.Clear();
+    InvalidateFramebufferStatus(funcName);
+
+    mDepthAttachment.Clear(funcName);
+    mStencilAttachment.Clear(funcName);
+    mDepthStencilAttachment.Clear(funcName);
 
     for (auto& cur : mColorAttachments) {
-        cur.Clear();
+        cur.Clear(funcName);
     }
 
     mContext->MakeContextCurrent();
@@ -711,11 +715,11 @@ WebGLFramebuffer::GetAttachPoint(GLenum attachPoint)
     }
 
 void
-WebGLFramebuffer::DetachTexture(const WebGLTexture* tex)
+WebGLFramebuffer::DetachTexture(const char* funcName, const WebGLTexture* tex)
 {
     const auto fnDetach = [&](WebGLFBAttachPoint& attach) {
         if (attach.Texture() == tex) {
-            attach.Clear();
+            attach.Clear(funcName);
         }
     };
 
@@ -723,11 +727,11 @@ WebGLFramebuffer::DetachTexture(const WebGLTexture* tex)
 }
 
 void
-WebGLFramebuffer::DetachRenderbuffer(const WebGLRenderbuffer* rb)
+WebGLFramebuffer::DetachRenderbuffer(const char* funcName, const WebGLRenderbuffer* rb)
 {
     const auto fnDetach = [&](WebGLFBAttachPoint& attach) {
         if (attach.Renderbuffer() == rb) {
-            attach.Clear();
+            attach.Clear(funcName);
         }
     };
 
@@ -1138,6 +1142,21 @@ WebGLFramebuffer::ResolvedData::ResolvedData(const WebGLFramebuffer& parent)
 }
 
 void
+WebGLFramebuffer::InvalidateFramebufferStatus(const char* funcName)
+{
+    if (mResolvedCompleteData) {
+        mNumFBStatusInvals++;
+        if (mNumFBStatusInvals > mContext->mMaxAcceptableFBStatusInvals) {
+            mContext->GeneratePerfWarning("%s: FB was invalidated after being complete %u"
+                                          " times.",
+                                          funcName, uint32_t(mNumFBStatusInvals));
+        }
+    }
+
+    mResolvedCompleteData = nullptr;
+}
+
+void
 WebGLFramebuffer::RefreshResolvedData()
 {
     if (mResolvedCompleteData) {
@@ -1356,13 +1375,13 @@ WebGLFramebuffer::FramebufferRenderbuffer(const char* funcName, GLenum attachEnu
     // End of validation.
 
     if (mContext->IsWebGL2() && attachEnum == LOCAL_GL_DEPTH_STENCIL_ATTACHMENT) {
-        mDepthAttachment.SetRenderbuffer(rb);
-        mStencilAttachment.SetRenderbuffer(rb);
+        mDepthAttachment.SetRenderbuffer(funcName, rb);
+        mStencilAttachment.SetRenderbuffer(funcName, rb);
     } else {
-        attach->SetRenderbuffer(rb);
+        attach->SetRenderbuffer(funcName, rb);
     }
 
-    InvalidateFramebufferStatus();
+    InvalidateFramebufferStatus(funcName);
 }
 
 void
@@ -1444,13 +1463,13 @@ WebGLFramebuffer::FramebufferTexture2D(const char* funcName, GLenum attachEnum,
     // End of validation.
 
     if (mContext->IsWebGL2() && attachEnum == LOCAL_GL_DEPTH_STENCIL_ATTACHMENT) {
-        mDepthAttachment.SetTexImage(tex, texImageTarget, level);
-        mStencilAttachment.SetTexImage(tex, texImageTarget, level);
+        mDepthAttachment.SetTexImage(funcName, tex, texImageTarget, level);
+        mStencilAttachment.SetTexImage(funcName, tex, texImageTarget, level);
     } else {
-        attach->SetTexImage(tex, texImageTarget, level);
+        attach->SetTexImage(funcName, tex, texImageTarget, level);
     }
 
-    InvalidateFramebufferStatus();
+    InvalidateFramebufferStatus(funcName);
 }
 
 void
@@ -1528,13 +1547,13 @@ WebGLFramebuffer::FramebufferTextureLayer(const char* funcName, GLenum attachEnu
     // End of validation.
 
     if (mContext->IsWebGL2() && attachEnum == LOCAL_GL_DEPTH_STENCIL_ATTACHMENT) {
-        mDepthAttachment.SetTexImage(tex, texImageTarget, level, layer);
-        mStencilAttachment.SetTexImage(tex, texImageTarget, level, layer);
+        mDepthAttachment.SetTexImage(funcName, tex, texImageTarget, level, layer);
+        mStencilAttachment.SetTexImage(funcName, tex, texImageTarget, level, layer);
     } else {
-        attach->SetTexImage(tex, texImageTarget, level, layer);
+        attach->SetTexImage(funcName, tex, texImageTarget, level, layer);
     }
 
-    InvalidateFramebufferStatus();
+    InvalidateFramebufferStatus(funcName);
 }
 
 JS::Value
