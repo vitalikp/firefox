@@ -534,6 +534,7 @@ GPUProcessManager::CreateRemoteSession(nsBaseWidget* aWidget,
     Move(parentPipe),
     aScale,
     vsyncRate,
+    aOptions,
     aUseExternalSurfaceSize,
     aSurfaceSize);
   if (!ok) {
