@@ -317,11 +317,7 @@ Gecko_StoreStyleDifference(RawGeckoNodeBorrowed aNode, nsChangeHint aChangeHintT
 RawServoDeclarationBlockStrongBorrowedOrNull
 Gecko_GetServoDeclarationBlock(RawGeckoElementBorrowed aElement)
 {
-  const nsAttrValue* attr = aElement->GetParsedAttr(nsGkAtoms::style);
-  if (!attr || attr->Type() != nsAttrValue::eCSSDeclaration) {
-    return nullptr;
-  }
-  DeclarationBlock* decl = attr->GetCSSDeclarationValue();
+  DeclarationBlock* decl = aElement->GetInlineStyleDeclaration();
   if (!decl) {
     return nullptr;
   }
