@@ -284,7 +284,7 @@ nsHttpChannelAuthProvider::CheckForSuperfluousAuth()
     if (!ConfirmAuth(NS_LITERAL_STRING("SuperfluousAuth"), true)) {
         // calling cancel here sets our mStatus and aborts the HTTP
         // transaction, which prevents OnDataAvailable events.
-        mAuthChannel->Cancel(NS_ERROR_ABORT);
+        Unused << mAuthChannel->Cancel(NS_ERROR_ABORT);
         return NS_ERROR_ABORT;
     }
     return NS_OK;
@@ -356,7 +356,8 @@ SetIdent(nsHttpAuthIdentity &ident,
     if (authFlags & nsIHttpAuthenticator::IDENTITY_INCLUDES_DOMAIN)
         ParseUserDomain(userBuf, &user, &domain);
 
-    ident.Set(domain, user, passBuf);
+    DebugOnly<nsresult> rv = ident.Set(domain, user, passBuf);
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
 }
 
 // helper function for getting an auth prompt from an interface requestor
@@ -804,7 +805,8 @@ nsHttpChannelAuthProvider::GetCredentialsForChallenge(const char *challenge,
         // auth failed (invalid password).
         // The mConnectionBased flag is set later for the newly received challenge,
         // so here it reflects the previous 401/7 response schema.
-        mAuthChannel->CloseStickyConnection();
+        rv = mAuthChannel->CloseStickyConnection();
+        MOZ_ASSERT(NS_SUCCEEDED(rv));
         if (!proxyAuth) {
             // We must clear proxy ident in the following scenario + explanation:
             // - we are authenticating to an NTLM proxy and an NTLM server
@@ -855,7 +857,8 @@ nsHttpChannelAuthProvider::GetCredentialsForChallenge(const char *challenge,
                 // to distinguish logons based on the supplied password alone,
                 // but that would be quite unusual... and i don't think we need
                 // to worry about such unorthodox cases.
-                ident->Set(entry->Identity());
+                rv = ident->Set(entry->Identity());
+                MOZ_ASSERT(NS_SUCCEEDED(rv));
                 identFromURI = false;
                 if (entry->Creds()[0] != '\0') {
                     LOG(("    using cached credentials!\n"));
@@ -922,7 +925,8 @@ nsHttpChannelAuthProvider::GetCredentialsForChallenge(const char *challenge,
         if (!ConfirmAuth(NS_LITERAL_STRING("AutomaticAuth"), false)) {
             // calling cancel here sets our mStatus and aborts the HTTP
             // transaction, which prevents OnDataAvailable events.
-            mAuthChannel->Cancel(NS_ERROR_ABORT);
+            rv = mAuthChannel->Cancel(NS_ERROR_ABORT);
+            MOZ_ASSERT(NS_SUCCEEDED(rv));
             // this return code alone is not equivalent to Cancel, since
             // it only instructs our caller that authentication failed.
             // without an explicit call to Cancel, our caller would just
@@ -1163,7 +1167,8 @@ void
 nsHTTPAuthInformation::SetToHttpAuthIdentity(uint32_t authFlags,
                                              nsHttpAuthIdentity& identity)
 {
-    identity.Set(Domain().get(), User().get(), Password().get());
+    DebugOnly<nsresult> rv = identity.Set(Domain().get(), User().get(), Password().get());
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
 }
 
 nsresult
@@ -1265,7 +1270,10 @@ nsHttpChannelAuthProvider::PromptForIdentity(uint32_t            level,
         // to provide credentials.
         // It's OK to send the NTLM type 1 message (response to the plain "NTLM"
         // challenge) on a new connection.
-        mAuthChannel->CloseStickyConnection();
+        {
+            DebugOnly<nsresult> rv = mAuthChannel->CloseStickyConnection();
+            MOZ_ASSERT(NS_SUCCEEDED(rv));
+        }
     }
 
     return rv;
@@ -1312,9 +1320,10 @@ NS_IMETHODIMP nsHttpChannelAuthProvider::OnAuthAvailable(nsISupports *aContext,
 
     nsAuthInformationHolder* holder =
             static_cast<nsAuthInformationHolder*>(aAuthInfo);
-    ident->Set(holder->Domain().get(),
-               holder->User().get(),
-               holder->Password().get());
+    rv = ident->Set(holder->Domain().get(),
+                    holder->User().get(),
+                    holder->Password().get());
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
 
     nsAutoCString unused;
     nsCOMPtr<nsIHttpAuthenticator> auth;
@@ -1354,15 +1363,16 @@ NS_IMETHODIMP nsHttpChannelAuthProvider::OnAuthCancelled(nsISupports *aContext,
     // When user cancels or auth fails we want to close the connection for
     // connection based schemes like NTLM.  Some servers don't like re-negotiation
     // on the same connection.
+    nsresult rv;
     if (mConnectionBased) {
-        mAuthChannel->CloseStickyConnection();
+        rv = mAuthChannel->CloseStickyConnection();
+        MOZ_ASSERT(NS_SUCCEEDED(rv));
         mConnectionBased = false;
     }
 
     if (userCancel) {
         if (!mRemainingChallenges.IsEmpty()) {
             // there are still some challenges to process, do so
-            nsresult rv;
 
             // Get rid of current continuationState to avoid reusing it in
             // next challenges since it is no longer relevant.
@@ -1393,7 +1403,8 @@ NS_IMETHODIMP nsHttpChannelAuthProvider::OnAuthCancelled(nsISupports *aContext,
         mRemainingChallenges.Truncate();
     }
 
-    mAuthChannel->OnAuthCancelled(userCancel);
+    rv = mAuthChannel->OnAuthCancelled(userCancel);
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
 
     return NS_OK;
 }
@@ -1447,11 +1458,14 @@ NS_IMETHODIMP nsHttpChannelAuthProvider::OnCredsGenerated(const char *aGenerated
                                  directory, ident, unusedContinuationState);
     if (NS_FAILED(rv)) return rv;
 
-    UpdateCache(auth, scheme.get(), host, port, directory.get(), realm.get(),
-            mCurrentChallenge.get(), *ident, aGeneratedCreds, aFlags, aSessionState);
+    rv = UpdateCache(auth, scheme.get(), host, port, directory.get(),
+                     realm.get(), mCurrentChallenge.get(), *ident,
+                     aGeneratedCreds, aFlags, aSessionState);
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
     mCurrentChallenge.Truncate();
 
-    ContinueOnAuthAvailable(nsDependentCString(aGeneratedCreds));
+    rv = ContinueOnAuthAvailable(nsDependentCString(aGeneratedCreds));
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
     return NS_OK;
 }
 
@@ -1471,7 +1485,7 @@ nsHttpChannelAuthProvider::ContinueOnAuthAvailable(const nsCSubstring& creds)
     // authentication it'll respond with failure and resend the challenge list
     mRemainingChallenges.Truncate();
 
-    mAuthChannel->OnAuthAvailable();
+    Unused << mAuthChannel->OnAuthAvailable();
 
     return NS_OK;
 }
@@ -1627,7 +1641,8 @@ nsHttpChannelAuthProvider::SetAuthorizationHeader(nsHttpAuthCache    *authCache,
         }
         bool identFromURI;
         if (ident.IsEmpty()) {
-            ident.Set(entry->Identity());
+            rv = ident.Set(entry->Identity());
+            MOZ_ASSERT(NS_SUCCEEDED(rv));
             identFromURI = false;
         }
         else
@@ -1659,10 +1674,14 @@ nsHttpChannelAuthProvider::SetAuthorizationHeader(nsHttpAuthCache    *authCache,
         }
         if (creds[0]) {
             LOG(("   adding \"%s\" request header\n", header.get()));
-            if (header == nsHttp::Proxy_Authorization)
-                mAuthChannel->SetProxyCredentials(nsDependentCString(creds));
-            else
-                mAuthChannel->SetWWWCredentials(nsDependentCString(creds));
+            if (header == nsHttp::Proxy_Authorization) {
+                rv = mAuthChannel->SetProxyCredentials(nsDependentCString(creds));
+                MOZ_ASSERT(NS_SUCCEEDED(rv));
+            }
+            else {
+                rv = mAuthChannel->SetWWWCredentials(nsDependentCString(creds));
+                MOZ_ASSERT(NS_SUCCEEDED(rv));
+            }
 
             // suppress defensive auth prompting for this channel since we know
             // that we already prompted at least once this session.  we only do
