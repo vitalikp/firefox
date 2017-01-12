@@ -12,6 +12,7 @@
 #include "mozilla/layers/APZCTreeManager.h"
 #include "mozilla/layers/APZCTreeManagerChild.h"
 #include "mozilla/layers/CompositorBridgeParent.h"
+#include "mozilla/layers/CompositorOptions.h"
 #include "mozilla/layers/ImageBridgeChild.h"
 #include "mozilla/layers/ImageBridgeParent.h"
 #include "mozilla/layers/InProcessCompositorSession.h"
@@ -455,7 +456,7 @@ RefPtr<CompositorSession>
 GPUProcessManager::CreateTopLevelCompositor(nsBaseWidget* aWidget,
                                             LayerManager* aLayerManager,
                                             CSSToLayoutDeviceScale aScale,
-                                            bool aUseAPZ,
+                                            const CompositorOptions& aOptions,
                                             bool aUseExternalSurfaceSize,
                                             const gfx::IntSize& aSurfaceSize)
 {
@@ -470,7 +471,7 @@ GPUProcessManager::CreateTopLevelCompositor(nsBaseWidget* aWidget,
       aLayerManager,
       layerTreeId,
       aScale,
-      aUseAPZ,
+      aOptions,
       aUseExternalSurfaceSize,
       aSurfaceSize);
     if (session) {
@@ -486,7 +487,7 @@ GPUProcessManager::CreateTopLevelCompositor(nsBaseWidget* aWidget,
     aLayerManager,
     layerTreeId,
     aScale,
-    aUseAPZ,
+    aOptions,
     aUseExternalSurfaceSize,
     aSurfaceSize);
 }
@@ -496,7 +497,7 @@ GPUProcessManager::CreateRemoteSession(nsBaseWidget* aWidget,
                                        LayerManager* aLayerManager,
                                        const uint64_t& aRootLayerTreeId,
                                        CSSToLayoutDeviceScale aScale,
-                                       bool aUseAPZ,
+                                       const CompositorOptions& aOptions,
                                        bool aUseExternalSurfaceSize,
                                        const gfx::IntSize& aSurfaceSize)
 {
@@ -552,7 +553,7 @@ GPUProcessManager::CreateRemoteSession(nsBaseWidget* aWidget,
   }
 
   RefPtr<APZCTreeManagerChild> apz = nullptr;
-  if (aUseAPZ) {
+  if (aOptions.UseAPZ()) {
     PAPZCTreeManagerChild* papz = child->SendPAPZCTreeManagerConstructor(0);
     if (!papz) {
       return nullptr;

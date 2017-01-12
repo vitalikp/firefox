@@ -24,6 +24,7 @@ class nsBaseWidget;
 namespace mozilla {
 namespace layers {
 class IAPZCTreeManager;
+class CompositorOptions;
 class CompositorSession;
 class CompositorUpdateObserver;
 class PCompositorBridgeChild;
@@ -55,6 +56,7 @@ class GPUProcessManager final : public GPUProcessHost::Listener
 {
   friend class layers::RemoteCompositorSession;
 
+  typedef layers::CompositorOptions CompositorOptions;
   typedef layers::CompositorSession CompositorSession;
   typedef layers::CompositorUpdateObserver CompositorUpdateObserver;
   typedef layers::IAPZCTreeManager IAPZCTreeManager;
@@ -82,7 +84,7 @@ public:
     nsBaseWidget* aWidget,
     LayerManager* aLayerManager,
     CSSToLayoutDeviceScale aScale,
-    bool aUseAPZ,
+    const CompositorOptions& aOptions,
     bool aUseExternalSurfaceSize,
     const gfx::IntSize& aSurfaceSize);
 
@@ -192,7 +194,7 @@ private:
     LayerManager* aLayerManager,
     const uint64_t& aRootLayerTreeId,
     CSSToLayoutDeviceScale aScale,
-    bool aUseAPZ,
+    const CompositorOptions& aOptions,
     bool aUseExternalSurfaceSize,
     const gfx::IntSize& aSurfaceSize);
 
