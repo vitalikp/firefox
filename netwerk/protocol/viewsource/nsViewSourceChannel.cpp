@@ -939,8 +939,7 @@ nsViewSourceChannel::GetOriginalResponseHeader(const nsACString & aHeader,
     if (NS_FAILED(rv)) {
         return rv;
     }
-    aVisitor->VisitHeader(aHeader, value);
-    return NS_OK;
+    return aVisitor->VisitHeader(aHeader, value);
 }
 
 NS_IMETHODIMP
