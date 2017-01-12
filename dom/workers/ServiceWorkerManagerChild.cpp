@@ -33,7 +33,7 @@ ServiceWorkerManagerChild::RecvNotifyRegister(
 
 mozilla::ipc::IPCResult
 ServiceWorkerManagerChild::RecvNotifySoftUpdate(
-                                      const PrincipalOriginAttributes& aOriginAttributes,
+                                      const OriginAttributes& aOriginAttributes,
                                       const nsString& aScope)
 {
   if (mShuttingDown) {

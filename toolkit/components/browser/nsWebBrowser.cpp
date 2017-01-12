@@ -391,7 +391,7 @@ nsWebBrowser::SetIsActive(bool aIsActive)
 }
 
 void
-nsWebBrowser::SetOriginAttributes(const DocShellOriginAttributes& aAttrs)
+nsWebBrowser::SetOriginAttributes(const OriginAttributes& aAttrs)
 {
   mOriginAttributes = aAttrs;
 }

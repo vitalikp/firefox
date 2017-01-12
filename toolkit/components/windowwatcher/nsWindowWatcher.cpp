@@ -1104,8 +1104,8 @@ nsWindowWatcher::OpenWindowInternal(mozIDOMWindowProxy* aParent,
     if (subjectPrincipal &&
         !nsContentUtils::IsSystemOrExpandedPrincipal(subjectPrincipal) &&
         docShell->ItemType() != nsIDocShellTreeItem::typeChrome) {
-      DocShellOriginAttributes attrs;
-      attrs.InheritFromDocToChildDocShell(subjectPrincipal->OriginAttributesRef());
+      OriginAttributes attrs;
+      attrs.Inherit(subjectPrincipal->OriginAttributesRef());
       isPrivateBrowsingWindow = !!attrs.mPrivateBrowsingId;
       docShell->SetOriginAttributes(attrs);
     } else {

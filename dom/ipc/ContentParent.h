@@ -529,7 +529,7 @@ public:
                    const bool& aSizeSpecified,
                    const nsCString& aFeatures,
                    const nsCString& aBaseURI,
-                   const DocShellOriginAttributes& aOpenerOriginAttributes,
+                   const OriginAttributes& aOpenerOriginAttributes,
                    const float& aFullZoom,
                    nsresult* aResult,
                    bool* aWindowIsNew,
@@ -547,7 +547,7 @@ public:
     const URIParams& aURIToLoad,
     const nsCString& aFeatures,
     const nsCString& aBaseURI,
-    const DocShellOriginAttributes& aOpenerOriginAttributes,
+    const OriginAttributes& aOpenerOriginAttributes,
     const float& aFullZoom) override;
 
   static bool AllocateLayerTreeId(TabParent* aTabParent, uint64_t* aId);
@@ -632,7 +632,7 @@ private:
                      nsIURI* aURIToLoad,
                      const nsCString& aFeatures,
                      const nsCString& aBaseURI,
-                     const DocShellOriginAttributes& aOpenerOriginAttributes,
+                     const OriginAttributes& aOpenerOriginAttributes,
                      const float& aFullZoom,
                      nsresult& aResult,
                      nsCOMPtr<nsITabParent>& aNewTabParent,

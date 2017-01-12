@@ -804,7 +804,7 @@ public:
     return mLoadInfo.mStorageAllowed;
   }
 
-  const PrincipalOriginAttributes&
+  const OriginAttributes&
   GetOriginAttributes() const
   {
     return mLoadInfo.mOriginAttributes;
