@@ -61,6 +61,7 @@ NS_IMPL_CYCLE_COLLECTING_RELEASE(Rule)
 
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(Rule)
   NS_WRAPPERCACHE_INTERFACE_MAP_ENTRY
+  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_INTERFACE_MAP_ENTRY(nsISupports)
 NS_INTERFACE_MAP_END
 
@@ -117,7 +118,7 @@ Rule::SetStyleSheet(StyleSheet* aSheet)
   mSheet = aSheet;
 }
 
-nsresult
+NS_IMETHODIMP
 Rule::GetParentRule(nsIDOMCSSRule** aParentRule)
 {
   if (mParentRule) {
@@ -128,7 +129,7 @@ Rule::GetParentRule(nsIDOMCSSRule** aParentRule)
   return NS_OK;
 }
 
-nsresult
+NS_IMETHODIMP
 Rule::GetParentStyleSheet(nsIDOMCSSStyleSheet** aSheet)
 {
   NS_ENSURE_ARG_POINTER(aSheet);
@@ -137,7 +138,7 @@ Rule::GetParentStyleSheet(nsIDOMCSSStyleSheet** aSheet)
   return NS_OK;
 }
 
-css::Rule*
+/* virtual */ css::Rule*
 Rule::GetCSSRule()
 {
   return this;
@@ -268,7 +269,6 @@ ImportRule::IsCCLeaf() const
 
 // QueryInterface implementation for ImportRule
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(ImportRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSImportRule)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(CSSImportRule)
 NS_INTERFACE_MAP_END_INHERITING(Rule)
@@ -686,7 +686,6 @@ NS_IMPL_RELEASE_INHERITED(MediaRule, GroupRule)
 
 // QueryInterface implementation for MediaRule
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(MediaRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSGroupingRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSConditionRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSMediaRule)
@@ -917,7 +916,6 @@ NS_IMPL_RELEASE_INHERITED(DocumentRule, GroupRule)
 
 // QueryInterface implementation for DocumentRule
 NS_INTERFACE_MAP_BEGIN(DocumentRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSGroupingRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSConditionRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSMozDocumentRule)
@@ -1199,7 +1197,6 @@ NS_INTERFACE_MAP_BEGIN(NameSpaceRule)
     return NS_OK;
   }
   else
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(CSSNameSpaceRule)
 NS_INTERFACE_MAP_END_INHERITING(Rule)
 
@@ -1668,7 +1665,6 @@ nsCSSFontFaceRule::IsCCLeaf() const
 // QueryInterface implementation for nsCSSFontFaceRule
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsCSSFontFaceRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSFontFaceRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(CSSFontFaceRule)
 NS_INTERFACE_MAP_END_INHERITING(Rule)
 
@@ -1823,7 +1819,6 @@ NS_IMPL_RELEASE_INHERITED(nsCSSFontFeatureValuesRule, mozilla::css::Rule)
 // implementation.
 NS_INTERFACE_MAP_BEGIN(nsCSSFontFeatureValuesRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSFontFeatureValuesRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(CSSFontFeatureValuesRule)
 NS_INTERFACE_MAP_END_INHERITING(mozilla::css::Rule)
 
@@ -2182,7 +2177,6 @@ nsCSSKeyframeRule::IsCCLeaf() const
 // QueryInterface implementation for nsCSSKeyframeRule
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsCSSKeyframeRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSKeyframeRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(CSSKeyframeRule)
 NS_INTERFACE_MAP_END_INHERITING(mozilla::css::Rule)
 
@@ -2391,7 +2385,6 @@ NS_IMPL_RELEASE_INHERITED(nsCSSKeyframesRule, css::GroupRule)
 
 // QueryInterface implementation for nsCSSKeyframesRule
 NS_INTERFACE_MAP_BEGIN(nsCSSKeyframesRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSKeyframesRule)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(CSSKeyframesRule)
 NS_INTERFACE_MAP_END_INHERITING(GroupRule)
@@ -2743,7 +2736,6 @@ nsCSSPageRule::IsCCLeaf() const
 // QueryInterface implementation for nsCSSPageRule
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsCSSPageRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSPageRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(CSSPageRule)
 NS_INTERFACE_MAP_END_INHERITING(mozilla::css::Rule)
 
@@ -2921,7 +2913,6 @@ NS_IMPL_RELEASE_INHERITED(CSSSupportsRule, css::GroupRule)
 
 // QueryInterface implementation for CSSSupportsRule
 NS_INTERFACE_MAP_BEGIN(CSSSupportsRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSGroupingRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSConditionRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSSupportsRule)
@@ -3061,7 +3052,6 @@ NS_IMPL_RELEASE_INHERITED(nsCSSCounterStyleRule, mozilla::css::Rule)
 // If this ever gets its own cycle-collection bits, reevaluate our IsCCLeaf
 // implementation.
 NS_INTERFACE_MAP_BEGIN(nsCSSCounterStyleRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSRule)
   NS_INTERFACE_MAP_ENTRY(nsIDOMCSSCounterStyleRule)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(CSSCounterStyleRule)
 NS_INTERFACE_MAP_END_INHERITING(mozilla::css::Rule)
