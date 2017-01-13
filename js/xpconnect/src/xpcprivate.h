@@ -1426,26 +1426,6 @@ class XPCNativeSet final
     XPCNativeInterface*     mInterfaces[1];
 };
 
-/***************************************************************************/
-// XPCNativeScriptableCreateInfo is used in creating new wrapper and protos.
-// It abstracts out the scriptable interface pointer and the flags.
-
-class MOZ_STACK_CLASS XPCNativeScriptableCreateInfo final
-{
-public:
-    XPCNativeScriptableCreateInfo() {}
-
-    nsIXPCScriptable*
-    GetCallback() const {return mCallback;}
-
-    void
-    SetCallback(already_AddRefed<nsIXPCScriptable>&& callback)
-        {mCallback = callback;}
-
-private:
-    nsCOMPtr<nsIXPCScriptable>  mCallback;
-};
-
 /***********************************************/
 // XPCWrappedNativeProto hold the additional shared wrapper data
 // for XPCWrappedNative whose native objects expose nsIClassInfo.
@@ -1456,7 +1436,7 @@ public:
     static XPCWrappedNativeProto*
     GetNewOrUsed(XPCWrappedNativeScope* scope,
                  nsIClassInfo* classInfo,
-                 const XPCNativeScriptableCreateInfo* scriptableCreateInfo,
+                 nsIXPCScriptable* scriptable,
                  bool callPostCreatePrototype = true);
 
     XPCWrappedNativeScope*
@@ -1524,8 +1504,7 @@ protected:
                           nsIClassInfo* ClassInfo,
                           already_AddRefed<XPCNativeSet>&& Set);
 
-    bool Init(const XPCNativeScriptableCreateInfo* scriptableCreateInfo,
-              bool callPostCreatePrototype);
+    bool Init(nsIXPCScriptable* scriptable, bool callPostCreatePrototype);
 
 private:
 #ifdef DEBUG
@@ -1794,8 +1773,7 @@ public:
     // Returns a string that shuld be free'd using JS_smprintf_free (or null).
     char* ToString(XPCWrappedNativeTearOff* to = nullptr) const;
 
-    static void GatherProtoScriptableCreateInfo(nsIClassInfo* classInfo,
-                                                XPCNativeScriptableCreateInfo& sciProto);
+    static nsIXPCScriptable* GatherProtoScriptable(nsIClassInfo* classInfo);
 
     bool HasExternalReference() const {return mRefCnt > 1;}
 
@@ -1824,7 +1802,7 @@ private:
         FLAT_JS_OBJECT_VALID = JS_BIT(0)
     };
 
-    bool Init(const XPCNativeScriptableCreateInfo* sci);
+    bool Init(nsIXPCScriptable* scriptable);
     bool FinishInit();
 
     bool ExtendSet(XPCNativeInterface* aInterface);
@@ -1836,10 +1814,10 @@ private:
     bool InitTearOffJSObject(XPCWrappedNativeTearOff* to);
 
 public:
-    static const XPCNativeScriptableCreateInfo& GatherScriptableCreateInfo(nsISupports* obj,
-                                                                           nsIClassInfo* classInfo,
-                                                                           XPCNativeScriptableCreateInfo& sciProto,
-                                                                           XPCNativeScriptableCreateInfo& sciWrapper);
+    static void GatherScriptable(nsISupports* obj,
+                                 nsIClassInfo* classInfo,
+                                 nsIXPCScriptable** scrProto,
+                                 nsIXPCScriptable** scrWrapper);
 
 private:
     union
