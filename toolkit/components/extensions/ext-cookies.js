@@ -423,7 +423,7 @@ extensions.registerSchemaAPI("cookies", "addon_parent", context => {
             if (!(tab.cookieStoreId in data)) {
               data[tab.cookieStoreId] = [];
             }
-            data[tab.cookieStoreId].push(tab);
+            data[tab.cookieStoreId].push(tab.id);
           }
         }
 
