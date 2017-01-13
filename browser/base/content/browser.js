@@ -988,7 +988,7 @@ var gBrowserInit = {
     LanguageDetectionListener.init();
     BrowserOnClick.init();
     FeedHandler.init();
-    DevEdition.init();
+    CompactTheme.init();
     AboutPrivateBrowsingListener.init();
     TrackingProtection.init();
     RefreshBlocker.init();
@@ -1504,7 +1504,7 @@ var gBrowserInit = {
 
     FeedHandler.uninit();
 
-    DevEdition.uninit();
+    CompactTheme.uninit();
 
     TrackingProtection.uninit();
 
