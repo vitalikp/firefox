@@ -391,7 +391,7 @@ this.TabCrashHandler = {
     };
 
     if (emailMe) {
-      data.email = this.prefs.getCharPref("email", "");
+      data.email = this.prefs.getCharPref("email");
     }
 
     // Make sure to only count once even if there are multiple windows
