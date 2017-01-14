@@ -57,6 +57,8 @@ EXPORTS += [
     'nsIStyleRule.h',
     'nsIStyleRuleProcessor.h',
     'nsLayoutStylesheetCache.h',
+    'nsMediaFeatures.h',
+    'nsMediaList.h',
     'nsRuleData.h',
     'nsRuleNode.h',
     'nsRuleProcessorData.h',
