@@ -1883,7 +1883,6 @@ CASE(EnableInterruptsPseudoOpcode)
 /* Various 1-byte no-ops. */
 CASE(JSOP_NOP)
 CASE(JSOP_NOP_DESTRUCTURING)
-CASE(JSOP_UNUSED187)
 CASE(JSOP_UNUSED192)
 CASE(JSOP_UNUSED209)
 CASE(JSOP_UNUSED210)
@@ -2177,6 +2176,13 @@ CASE(JSOP_ENDITER)
         goto error;
 }
 END_CASE(JSOP_ENDITER)
+
+CASE(JSOP_ISGENCLOSING)
+{
+    bool b = REGS.sp[-1].isMagic(JS_GENERATOR_CLOSING);
+    PUSH_BOOLEAN(b);
+}
+END_CASE(JSOP_ISGENCLOSING)
 
 CASE(JSOP_DUP)
 {
@@ -5072,6 +5078,10 @@ js::ThrowCheckIsObject(JSContext* cx, CheckIsObjectKind kind)
       case CheckIsObjectKind::IteratorReturn:
         JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr,
                                   JSMSG_ITER_METHOD_RETURNED_PRIMITIVE, "return");
+        break;
+      case CheckIsObjectKind::IteratorThrow:
+        JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr,
+                                  JSMSG_ITER_METHOD_RETURNED_PRIMITIVE, "throw");
         break;
       case CheckIsObjectKind::GetIterator:
         JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr, JSMSG_GET_ITER_RETURNED_PRIMITIVE);
