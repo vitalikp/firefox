@@ -7,8 +7,7 @@
 const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu, manager: Cm} =
   Components;
 
-this.EXPORTED_SYMBOLS = [ "EME_ADOBE_ID",
-                          "GMP_PLUGIN_IDS",
+this.EXPORTED_SYMBOLS = [ "GMP_PLUGIN_IDS",
                           "GMPPrefs",
                           "GMPUtils",
                           "WIDEVINE_ID" ];
@@ -18,9 +17,8 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/AppConstants.jsm");
 
 // GMP IDs
-const EME_ADOBE_ID  = "gmp-eme-adobe";
 const WIDEVINE_ID   = "gmp-widevinecdm";
-const GMP_PLUGIN_IDS = [ EME_ADOBE_ID, WIDEVINE_ID ];
+const GMP_PLUGIN_IDS = [ WIDEVINE_ID ];
 
 var GMPPluginUnsupportedReason = {
   NOT_WINDOWS: 1,
@@ -66,14 +64,11 @@ this.GMPUtils = {
    * @param   aPlugin
    *          The plugin to check.
    */
-  _isPluginSupported: function(aPlugin) {
+  _isPluginSupported(aPlugin) {
     if (this._isPluginForceSupported(aPlugin)) {
       return true;
     }
-    if (aPlugin.id == EME_ADOBE_ID) {
-      // Windows Vista and later only supported by Adobe EME.
-      return AppConstants.isPlatformAndVersionAtLeast("win", "6");
-    } else if (aPlugin.id == WIDEVINE_ID) {
+    if (aPlugin.id == WIDEVINE_ID) {
       // The Widevine plugin is available for Windows versions Vista and later,
       // Mac OSX, and Linux.
       return AppConstants.isPlatformAndVersionAtLeast("win", "6") ||
