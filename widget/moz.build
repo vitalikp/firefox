@@ -8,7 +8,7 @@ toolkit = CONFIG['MOZ_WIDGET_TOOLKIT']
 
 if toolkit in ('cocoa', 'android', 'uikit'):
     DIRS += [toolkit]
-if toolkit in ('android', 'gtk2', 'gtk3'):
+if toolkit in ('android', 'cocoa', 'gtk2', 'gtk3'):
     EXPORTS += ['nsIPrintDialogService.h']
 
 if toolkit == 'windows':
@@ -38,7 +38,6 @@ elif toolkit == 'cocoa':
     ]
     EXPORTS += [
         'nsINativeMenuService.h',
-        'nsIPrintDialogService.h',
     ]
 
 # Don't build the DSO under the 'build' directory as windows does.
