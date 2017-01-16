@@ -993,7 +993,7 @@ Http2Session::VerifyStream(Http2Stream *aStream, uint32_t aOptionalID = 0)
 #ifndef DEBUG
   // Only do the real verification in debug builds
   return true;
-#endif
+#else //DEBUG
 
   if (!aStream)
     return true;
@@ -1039,6 +1039,7 @@ Http2Session::VerifyStream(Http2Stream *aStream, uint32_t aOptionalID = 0)
 
   MOZ_ASSERT(false, "VerifyStream");
   return false;
+#endif //DEBUG
 }
 
 void
