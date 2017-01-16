@@ -1292,8 +1292,6 @@ nsIDocument::nsIDocument()
     mUpgradeInsecurePreloads(false),
     mCharacterSet(NS_LITERAL_CSTRING("ISO-8859-1")),
     mNodeInfoManager(nullptr),
-    mCompatMode(eCompatibility_FullStandards),
-    mVisibilityState(dom::VisibilityState::Hidden),
     mIsInitialDocumentInWindow(false),
     mMayStartLayout(true),
     mVisible(true),
@@ -1308,11 +1306,13 @@ nsIDocument::nsIDocument()
     mFontFaceSetDirty(true),
     mGetUserFontSetCalled(false),
     mPostedFlushUserFontSet(false),
+    mCompatMode(eCompatibility_FullStandards),
+    mVisibilityState(dom::VisibilityState::Hidden),
+    mBidiOptions(IBMBIDI_DEFAULT_BIDI_OPTIONS),
+    mPartID(0),
     mDidFireDOMContentLoaded(true),
     mHasScrollLinkedEffect(false),
     mFrameRequestCallbacksScheduled(false),
-    mBidiOptions(IBMBIDI_DEFAULT_BIDI_OPTIONS),
-    mPartID(0),
     mUserHasInteracted(false)
 {
   SetIsInDocument();
