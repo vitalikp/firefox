@@ -4,7 +4,6 @@
 
 "use strict";
 
-const {Ci} = require("chrome");
 const Services = require("Services");
 const protocol = require("devtools/shared/protocol");
 const promise = require("promise");
@@ -15,7 +14,7 @@ const {deviceSpec} = require("devtools/shared/specs/device");
 const FileReader = require("FileReader");
 const {PermissionsTable} = require("resource://gre/modules/PermissionsTable.jsm");
 
-var DeviceActor = exports.DeviceActor = protocol.ActorClassWithSpec(deviceSpec, {
+exports.DeviceActor = protocol.ActorClassWithSpec(deviceSpec, {
   _desc: null,
 
   getDescription: function () {
@@ -41,7 +40,7 @@ var DeviceActor = exports.DeviceActor = protocol.ActorClassWithSpec(deviceSpec, 
 
   screenshotToDataURL: function () {
     let window = Services.wm.getMostRecentWindow(DebuggerServer.chromeWindowType);
-    var devicePixelRatio = window.devicePixelRatio;
+    let { devicePixelRatio } = window;
     let canvas = window.document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
     let width = window.innerWidth;
     let height = window.innerHeight;

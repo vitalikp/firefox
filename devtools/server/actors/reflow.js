@@ -197,7 +197,7 @@ Observable.prototype = {
 var gIgnoreLayoutChanges = false;
 exports.setIgnoreLayoutChanges = function (ignore, syncReflowNode) {
   if (syncReflowNode) {
-    let forceSyncReflow = syncReflowNode.offsetWidth;
+    let forceSyncReflow = syncReflowNode.offsetWidth; // eslint-disable-line
   }
   gIgnoreLayoutChanges = ignore;
 };
