@@ -2749,9 +2749,6 @@ MediaFormatReader::SetBlankDecode(TrackType aTrack, bool aIsBlankDecode)
   decoder.mIsBlankDecode = aIsBlankDecode;
   decoder.Flush();
   decoder.ShutdownDecoder();
-  ScheduleUpdate(TrackInfo::kVideoTrack);
-
-  return;
 }
 
 void
