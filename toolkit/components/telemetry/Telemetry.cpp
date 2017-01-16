@@ -43,6 +43,7 @@
 #include "Telemetry.h"
 #include "TelemetryCommon.h"
 #include "TelemetryHistogram.h"
+#include "TelemetryIPCAccumulator.h"
 #include "TelemetryScalar.h"
 #include "TelemetryEvent.h"
 #include "WebrtcTelemetry.h"
@@ -2164,6 +2165,7 @@ TelemetryImpl::ShutdownTelemetry()
   TelemetryHistogram::DeInitializeGlobalState();
   TelemetryScalar::DeInitializeGlobalState();
   TelemetryEvent::DeInitializeGlobalState();
+  TelemetryIPCAccumulator::DeInitializeGlobalState();
 }
 
 void
@@ -2638,7 +2640,7 @@ TelemetryImpl::ClearEvents()
 NS_IMETHODIMP
 TelemetryImpl::FlushBatchedChildTelemetry()
 {
-  TelemetryHistogram::IPCTimerFired(nullptr, nullptr);
+  TelemetryIPCAccumulator::IPCTimerFired(nullptr, nullptr);
   return NS_OK;
 }
 
