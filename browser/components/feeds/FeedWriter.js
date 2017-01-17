@@ -105,7 +105,7 @@ FeedWriter.prototype = {
       element.removeChild(element.firstChild);
     element.appendChild(textNode);
     if (text.base) {
-      element.setAttributeNS(XML_NS, 'base', text.base.spec);
+      element.setAttributeNS(XML_NS, "base", text.base.spec);
     }
   },
 
@@ -196,8 +196,8 @@ FeedWriter.prototype = {
       const locale = Cc["@mozilla.org/chrome/chrome-registry;1"]
                      .getService(Ci.nsIXULChromeRegistry)
                      .getSelectedLocale("global", true);
-      const dtOptions = { year: 'numeric', month: 'long', day: 'numeric',
-                          hour: 'numeric', minute: 'numeric' };
+      const dtOptions = { year: "numeric", month: "long", day: "numeric",
+                          hour: "numeric", minute: "numeric" };
       this.__dateFormatter = new Intl.DateTimeFormat(locale, dtOptions);
     }
     return this.__dateFormatter;
@@ -263,8 +263,8 @@ FeedWriter.prototype = {
 
       // Fix the margin on the main title, so that the image doesn't run over
       // the underline
-      feedTitleLink.setAttribute('title', titleText);
-      feedTitleText.style.marginRight = titleImageWidth + 'px';
+      feedTitleLink.setAttribute("title", titleText);
+      feedTitleText.style.marginRight = titleImageWidth + "px";
 
       this._safeSetURIAttribute(feedTitleLink, "href",
                                 parts.getPropertyAsAString("link"));
@@ -628,15 +628,15 @@ FeedWriter.prototype = {
     let header = this._document.getElementById("feedHeader");
     switch (feedType) {
       case Ci.nsIFeed.TYPE_VIDEO:
-        header.className = 'videoPodcastBackground';
+        header.className = "videoPodcastBackground";
         break;
 
       case Ci.nsIFeed.TYPE_AUDIO:
-        header.className = 'audioPodcastBackground';
+        header.className = "audioPodcastBackground";
         break;
 
       default:
-        header.className = 'feedBackground';
+        header.className = "feedBackground";
     }
 
     let liveBookmarksMenuItem = this._document.getElementById("liveBookmarksMenuItem");
@@ -742,7 +742,7 @@ FeedWriter.prototype = {
       feedinfo1.textContent = feedinfo1Str;
       feedinfo2.textContent = feedinfo2Str;
 
-      header.setAttribute('firstrun', 'true');
+      header.setAttribute("firstrun", "true");
 
       this._mm.sendAsyncMessage("FeedWriter:ShownFirstRun");
     }

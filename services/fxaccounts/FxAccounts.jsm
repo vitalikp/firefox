@@ -714,8 +714,8 @@ FxAccountsInternal.prototype = {
     });
   },
 
-  checkVerificationStatus: function() {
-    log.trace('checkVerificationStatus');
+  checkVerificationStatus() {
+    log.trace("checkVerificationStatus");
     let currentState = this.currentAccountState;
     return currentState.getUserAccountData().then(data => {
       if (!data) {
@@ -891,7 +891,7 @@ FxAccountsInternal.prototype = {
             }
           );
         } else {
-          currentState.whenKeysReadyDeferred.reject('No keyFetchToken');
+          currentState.whenKeysReadyDeferred.reject("No keyFetchToken");
         }
       }
       return currentState.whenKeysReadyDeferred.promise;
@@ -1597,8 +1597,8 @@ FxAccountsInternal.prototype = {
       // if we were able to obtain a subscription
       if (subscription && subscription.endpoint) {
         deviceOptions.pushCallback = subscription.endpoint;
-        let publicKey = subscription.getKey('p256dh');
-        let authKey = subscription.getKey('auth');
+        let publicKey = subscription.getKey("p256dh");
+        let authKey = subscription.getKey("auth");
         if (publicKey && authKey) {
           deviceOptions.pushPublicKey = urlsafeBase64Encode(publicKey);
           deviceOptions.pushAuthKey = urlsafeBase64Encode(authKey);

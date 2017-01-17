@@ -7,7 +7,7 @@
 const { utils: Cu, interfaces: Ci, classes: Cc, results: Cr } = Components;
 
 Cu.import("resource://gre/modules/Services.jsm");
-Cu.import('resource://gre/modules/Preferences.jsm');
+Cu.import("resource://gre/modules/Preferences.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
@@ -71,7 +71,7 @@ function reportTestReason(val) {
 }
 
 function setTimeout(aMs, aCallback) {
-  var timer = Cc['@mozilla.org/timer;1'].
+  var timer = Cc["@mozilla.org/timer;1"].
                 createInstance(Ci.nsITimer);
   timer.initWithCallback(aCallback, aMs, Ci.nsITimer.TYPE_ONE_SHOT);
 }

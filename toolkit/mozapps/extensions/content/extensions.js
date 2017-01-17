@@ -1509,7 +1509,7 @@ function formatDate(aDate) {
   const locale = Cc["@mozilla.org/chrome/chrome-registry;1"]
                  .getService(Ci.nsIXULChromeRegistry)
                  .getSelectedLocale("global", true);
-  const dtOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+  const dtOptions = { year: "numeric", month: "long", day: "numeric" };
   return aDate.toLocaleDateString(locale, dtOptions);
 }
 
@@ -2971,7 +2971,7 @@ var gDetailView = {
 
       menulist.disabled = !hasActivatePermission;
       menulist.hidden = false;
-      menulist.classList.add('no-auto-hide');
+      menulist.classList.add("no-auto-hide");
     } else {
       menulist.hidden = true;
     }
@@ -3035,7 +3035,7 @@ var gDetailView = {
     // removing any child elements. Removing the text nodes ensures any XBL
     // bindings apply properly.
     function stripTextNodes(aNode) {
-      var text = '';
+      var text = "";
       for (var i = 0; i < aNode.childNodes.length; i++) {
         if (aNode.childNodes[i].nodeType != document.ELEMENT_NODE) {
           text += aNode.childNodes[i].textContent;

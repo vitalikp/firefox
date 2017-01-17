@@ -89,11 +89,11 @@ this.Credentials = Object.freeze({
    * Note that PROTOCOL_VERSION does not refer in any way to the version of the
    * Firefox Accounts API.
    */
-  keyWordExtended: function(name, email) {
-    return CommonUtils.stringToBytes(PROTOCOL_VERSION + name + ':' + email);
+  keyWordExtended(name, email) {
+    return CommonUtils.stringToBytes(PROTOCOL_VERSION + name + ":" + email);
   },
 
-  setup: function(emailInput, passwordInput, options={}) {
+  setup(emailInput, passwordInput, options = {}) {
     let deferred = Promise.defer();
     log.debug("setup credentials for " + emailInput);
 

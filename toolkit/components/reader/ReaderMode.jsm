@@ -158,8 +158,8 @@ this.ReaderMode = {
     let originalUrl = searchParams.get("url");
     if (outerHash) {
       try {
-        let uriObj = Services.io.newURI(originalUrl, null, null);
-        uriObj = Services.io.newURI('#' + outerHash, null, uriObj);
+        let uriObj = Services.io.newURI(originalUrl);
+        uriObj = Services.io.newURI("#" + outerHash, null, uriObj);
         originalUrl = uriObj.spec;
       } catch (ex) {}
     }

@@ -93,9 +93,9 @@ PlacesItem.prototype = {
     "toolbar": "toolbarFolder",
   },
 
-  toString: function() {
+  toString() {
     var that = this;
-    var props = ['uri', 'title', 'location', 'folder', 'feedUri', 'siteUri', 'livemark'];
+    var props = ["uri", "title", "location", "folder", "feedUri", "siteUri", "livemark"];
     var string = (this.props.type ? this.props.type + " " : "") +
       "(" +
       (function() {
