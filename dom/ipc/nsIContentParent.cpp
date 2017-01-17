@@ -226,12 +226,12 @@ nsIContentParent::RecvSyncMessage(const nsString& aMsg,
                                   const IPC::Principal& aPrincipal,
                                   nsTArray<ipc::StructuredCloneData>* aRetvals)
 {
+  CrossProcessCpowHolder cpows(this, aCpows);
   RefPtr<nsFrameMessageManager> ppm = mMessageManager;
   if (ppm) {
     ipc::StructuredCloneData data;
     ipc::UnpackClonedMessageDataForParent(aData, data);
 
-    CrossProcessCpowHolder cpows(this, aCpows);
     ppm->ReceiveMessage(static_cast<nsIContentFrameMessageManager*>(ppm.get()), nullptr,
                         aMsg, true, &data, &cpows, aPrincipal, aRetvals);
   }
@@ -245,12 +245,12 @@ nsIContentParent::RecvRpcMessage(const nsString& aMsg,
                                  const IPC::Principal& aPrincipal,
                                  nsTArray<ipc::StructuredCloneData>* aRetvals)
 {
+  CrossProcessCpowHolder cpows(this, aCpows);
   RefPtr<nsFrameMessageManager> ppm = mMessageManager;
   if (ppm) {
     ipc::StructuredCloneData data;
     ipc::UnpackClonedMessageDataForParent(aData, data);
 
-    CrossProcessCpowHolder cpows(this, aCpows);
     ppm->ReceiveMessage(static_cast<nsIContentFrameMessageManager*>(ppm.get()), nullptr,
                         aMsg, true, &data, &cpows, aPrincipal, aRetvals);
   }
@@ -302,12 +302,12 @@ nsIContentParent::RecvAsyncMessage(const nsString& aMsg,
                                    const IPC::Principal& aPrincipal,
                                    const ClonedMessageData& aData)
 {
+  CrossProcessCpowHolder cpows(this, aCpows);
   RefPtr<nsFrameMessageManager> ppm = mMessageManager;
   if (ppm) {
     ipc::StructuredCloneData data;
     ipc::UnpackClonedMessageDataForParent(aData, data);
 
-    CrossProcessCpowHolder cpows(this, aCpows);
     ppm->ReceiveMessage(static_cast<nsIContentFrameMessageManager*>(ppm.get()), nullptr,
                         aMsg, false, &data, &cpows, aPrincipal, nullptr);
   }
