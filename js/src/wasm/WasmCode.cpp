@@ -162,7 +162,7 @@ SendCodeRangesToProfiler(CodeSegment& cs, const Bytes& bytecode, const Metadata&
     enabled |= PerfFuncEnabled();
 #endif
 #ifdef MOZ_VTUNE
-    enabled |= IsVTuneProfilingActive();
+    enabled |= vtune::IsProfilingActive();
 #endif
     if (!enabled)
         return;
@@ -194,21 +194,9 @@ SendCodeRangesToProfiler(CodeSegment& cs, const Bytes& bytecode, const Metadata&
         }
 #endif
 #ifdef MOZ_VTUNE
-        if (IsVTuneProfilingActive()) {
-            unsigned method_id = iJIT_GetNewMethodID();
-            if (method_id == 0)
-                return;
-            iJIT_Method_Load method;
-            method.method_id = method_id;
-            method.method_name = name.begin();
-            method.method_load_address = (void*)start;
-            method.method_size = size;
-            method.line_number_size = 0;
-            method.line_number_table = nullptr;
-            method.class_id = 0;
-            method.class_file_name = nullptr;
-            method.source_file_name = nullptr;
-            iJIT_NotifyEvent(iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void*)&method);
+        if (vtune::IsProfilingActive()) {
+            cs.vtune_method_id_ = vtune::GenerateUniqueMethodID();
+            vtune::MarkWasm(cs, name.begin(), (void*)start, size);
         }
 #endif
     }
@@ -273,6 +261,7 @@ CodeSegment::~CodeSegment()
     if (!bytes_)
         return;
 
+
     MOZ_ASSERT(wasmCodeAllocations > 0);
     wasmCodeAllocations--;
 
@@ -280,7 +269,11 @@ CodeSegment::~CodeSegment()
 
     // Match AllocateCodeSegment.
     uint32_t size = JS_ROUNDUP(length(), ExecutableCodePageSize);
+#ifdef MOZ_VTUNE
+    vtune::UnmarkBytes(bytes_, size);
+#endif
     DeallocateExecutableMemory(bytes_, size);
+
 }
 
 void
