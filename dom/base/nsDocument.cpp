@@ -5280,7 +5280,7 @@ nsDocument::UnblockDOMContentLoaded()
     MOZ_RELEASE_ASSERT(NS_IsMainThread());
     nsCOMPtr<nsIRunnable> ev =
       NewRunnableMethod(this, &nsDocument::DispatchContentLoadedEvents);
-    Dispatch("DispatchContentLoadedEvents", TaskCategory::Other, ev.forget());
+    Dispatch("nsDocument::DispatchContentLoadedEvents", TaskCategory::Other, ev.forget());
   } else {
     DispatchContentLoadedEvents();
   }
@@ -12015,7 +12015,7 @@ nsDocument::PostVisibilityUpdateEvent()
 {
   nsCOMPtr<nsIRunnable> event =
     NewRunnableMethod(this, &nsDocument::UpdateVisibilityState);
-  Dispatch("UpdateVisibility", TaskCategory::Other, event.forget());
+  Dispatch("nsDocument::UpdateVisibilityState", TaskCategory::Other, event.forget());
 }
 
 void
