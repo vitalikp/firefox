@@ -58,8 +58,6 @@ GMPParent::GMPParent()
   , mIsBlockingDeletion(false)
   , mCanDecrypt(false)
   , mGMPContentChildCount(0)
-  , mAsyncShutdownRequired(false)
-  , mAsyncShutdownInProgress(false)
   , mChildPid(0)
   , mHoldingSelfRef(false)
 {
@@ -206,50 +204,6 @@ GMPParent::LoadProcess()
   return NS_OK;
 }
 
-// static
-void
-GMPParent::AbortWaitingForGMPAsyncShutdown(nsITimer* aTimer, void* aClosure)
-{
-  NS_WARNING("Timed out waiting for GMP async shutdown!");
-  GMPParent* parent = reinterpret_cast<GMPParent*>(aClosure);
-  MOZ_ASSERT(parent->mService);
-  parent->mService->AsyncShutdownComplete(parent);
-}
-
-nsresult
-GMPParent::EnsureAsyncShutdownTimeoutSet()
-{
-  MOZ_ASSERT(mAsyncShutdownRequired);
-  if (mAsyncShutdownTimeout) {
-    return NS_OK;
-  }
-
-  nsresult rv;
-  mAsyncShutdownTimeout = do_CreateInstance(NS_TIMER_CONTRACTID, &rv);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  // Set timer to abort waiting for plugin to shutdown if it takes
-  // too long.
-  rv = mAsyncShutdownTimeout->SetTarget(mGMPThread);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-   return rv;
-  }
-
-  int32_t timeout = MediaPrefs::GMPAsyncShutdownTimeout();
-  RefPtr<GeckoMediaPluginServiceParent> service =
-    GeckoMediaPluginServiceParent::GetSingleton();
-  if (service) {
-    timeout = service->AsyncShutdownTimeoutMs();
-  }
-  rv = mAsyncShutdownTimeout->InitWithFuncCallback(
-    &AbortWaitingForGMPAsyncShutdown, this, timeout,
-    nsITimer::TYPE_ONE_SHOT);
-  Unused << NS_WARN_IF(NS_FAILED(rv));
-  return rv;
-}
-
 mozilla::ipc::IPCResult
 GMPParent::RecvPGMPContentChildDestroyed()
 {
@@ -264,7 +218,7 @@ void
 GMPParent::CloseIfUnused()
 {
   MOZ_ASSERT(GMPThread() == NS_GetCurrentThread());
-  LOGD("%s: mAsyncShutdownRequired=%d", __FUNCTION__, mAsyncShutdownRequired);
+  LOGD("%s", __FUNCTION__);
 
   if ((mDeleteProcessOnlyOnUnload ||
        mState == GMPStateLoaded ||
@@ -275,48 +229,13 @@ GMPParent::CloseIfUnused()
       mTimers[i - 1]->Shutdown();
     }
 
-    if (mAsyncShutdownRequired) {
-      if (!mAsyncShutdownInProgress) {
-        LOGD("%s: sending async shutdown notification", __FUNCTION__);
-        mAsyncShutdownInProgress = true;
-        if (!SendBeginAsyncShutdown()) {
-          AbortAsyncShutdown();
-        } else if (NS_FAILED(EnsureAsyncShutdownTimeoutSet())) {
-          AbortAsyncShutdown();
-        }
-      }
-    } else {
-      // No async-shutdown, kill async-shutdown timer started in CloseActive().
-      AbortAsyncShutdown();
-      // Any async shutdown must be complete. Shutdown GMPStorage.
-      for (size_t i = mStorage.Length(); i > 0; i--) {
-        mStorage[i - 1]->Shutdown();
-      }
-      Shutdown();
+    // Shutdown GMPStorage. Given that all protocol actors must be shutdown
+    // (!Used() is true), all storage operations should be complete.
+    for (size_t i = mStorage.Length(); i > 0; i--) {
+      mStorage[i - 1]->Shutdown();
     }
+    Shutdown();
   }
-}
-
-void
-GMPParent::AbortAsyncShutdown()
-{
-  MOZ_ASSERT(GMPThread() == NS_GetCurrentThread());
-  LOGD("%s", __FUNCTION__);
-
-  if (mAsyncShutdownTimeout) {
-    mAsyncShutdownTimeout->Cancel();
-    mAsyncShutdownTimeout = nullptr;
-  }
-
-  if (!mAsyncShutdownRequired || !mAsyncShutdownInProgress) {
-    return;
-  }
-
-  RefPtr<GMPParent> kungFuDeathGrip(this);
-  mService->AsyncShutdownComplete(this);
-  mAsyncShutdownRequired = false;
-  mAsyncShutdownInProgress = false;
-  CloseIfUnused();
 }
 
 void
@@ -332,23 +251,8 @@ GMPParent::CloseActive(bool aDieWhenUnloaded)
     mState = GMPStateUnloading;
   }
   if (mState != GMPStateNotLoaded && IsUsed()) {
-    if (!SendCloseActive()) {
-      AbortAsyncShutdown();
-    } else if (IsUsed()) {
-      // We're expecting RecvPGMPContentChildDestroyed's -> Start async-shutdown timer now if needed.
-      if (mAsyncShutdownRequired && NS_FAILED(EnsureAsyncShutdownTimeoutSet())) {
-        AbortAsyncShutdown();
-      }
-    } else {
-      // We're not expecting any RecvPGMPContentChildDestroyed
-      // -> Call CloseIfUnused() now, to run async shutdown if necessary.
-      // Note that CloseIfUnused() may have already been called from a prior
-      // RecvPGMPContentChildDestroyed(), however depending on the state at
-      // that time, it might not have proceeded with shutdown; And calling it
-      // again after shutdown is fine because after the first one we'll be in
-      // GMPStateNotLoaded.
-      CloseIfUnused();
-    }
+    Unused << SendCloseActive();
+    CloseIfUnused();
   }
 }
 
@@ -370,8 +274,6 @@ GMPParent::Shutdown()
 {
   LOGD("%s", __FUNCTION__);
   MOZ_ASSERT(GMPThread() == NS_GetCurrentThread());
-
-  MOZ_ASSERT(!mAsyncShutdownTimeout, "Should have canceled shutdown timeout");
 
   if (mAbnormalShutdownInProgress) {
     return;
@@ -548,10 +450,6 @@ GMPParent::ActorDestroy(ActorDestroyReason aWhy)
   // Normal Shutdown() will delete the process on unwind.
   if (AbnormalShutdown == aWhy) {
     RefPtr<GMPParent> self(this);
-    if (mAsyncShutdownRequired) {
-      mService->AsyncShutdownComplete(this);
-      mAsyncShutdownRequired = false;
-    }
     // Must not call Close() again in DeleteProcess(), as we'll recurse
     // infinitely if we do.
     MOZ_ASSERT(mState == GMPStateClosing);
@@ -721,8 +619,7 @@ GMPParent::ReadGMPInfoFile(nsIFile* aFile)
 bool
 GMPParent::CanBeSharedCrossNodeIds() const
 {
-  return !mAsyncShutdownInProgress &&
-         mNodeId.IsEmpty() &&
+  return mNodeId.IsEmpty() &&
          // We don't want to use CDM decoders for non-encrypted playback
          // just yet; especially not for WebRTC. Don't allow CDMs to be used
          // without a node ID.
@@ -732,7 +629,7 @@ GMPParent::CanBeSharedCrossNodeIds() const
 bool
 GMPParent::CanBeUsedFrom(const nsACString& aNodeId) const
 {
-  return !mAsyncShutdownInProgress && mNodeId == aNodeId;
+  return mNodeId == aNodeId;
 }
 
 void
@@ -758,29 +655,6 @@ uint32_t
 GMPParent::GetPluginId() const
 {
   return mPluginId;
-}
-
-mozilla::ipc::IPCResult
-GMPParent::RecvAsyncShutdownRequired()
-{
-  LOGD("%s", __FUNCTION__);
-  if (mAsyncShutdownRequired) {
-    NS_WARNING("Received AsyncShutdownRequired message more than once!");
-    return IPC_OK();
-  }
-  mAsyncShutdownRequired = true;
-  mService->AsyncShutdownNeeded(this);
-  return IPC_OK();
-}
-
-mozilla::ipc::IPCResult
-GMPParent::RecvAsyncShutdownComplete()
-{
-  LOGD("%s", __FUNCTION__);
-
-  MOZ_ASSERT(mAsyncShutdownRequired);
-  AbortAsyncShutdown();
-  return IPC_OK();
 }
 
 void
