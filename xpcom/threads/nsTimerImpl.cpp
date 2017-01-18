@@ -547,7 +547,7 @@ nsTimerImpl::LogFiring(const Callback& aCallback, uint8_t aType, uint32_t aDelay
 
       } else if (aCallback.mName.is<Callback::NameFunc>()) {
         aCallback.mName.as<Callback::NameFunc>()(
-            mITimer, aCallback.mClosure, buf, buflen);
+            mITimer, /* aAnonymize = */ false, aCallback.mClosure, buf, buflen);
         name = buf;
 
       } else {
@@ -641,7 +641,7 @@ nsTimerImpl::GetName(nsACString& aName)
         static const size_t buflen = 1024;
         char buf[buflen];
         cb.mName.as<Callback::NameFunc>()(
-            mITimer, cb.mClosure, buf, buflen);
+            mITimer, /* aAnonymize = */ true, cb.mClosure, buf, buflen);
         aName.Assign(buf);
       } else {
         MOZ_ASSERT(cb.mName.is<Callback::NameNothing>());
