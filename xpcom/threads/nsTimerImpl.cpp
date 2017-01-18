@@ -645,24 +645,28 @@ nsTimerImpl::GetName(nsACString& aName)
         aName.Assign(buf);
       } else {
         MOZ_ASSERT(cb.mName.is<Callback::NameNothing>());
-        aName.Truncate();
+        aName.AssignLiteral("Anonymous callback timer");
       }
       break;
 
     case Callback::Type::Interface:
       if (nsCOMPtr<nsINamed> named = do_QueryInterface(cb.mCallback.i)) {
         named->GetName(aName);
+      } else {
+        aName.AssignLiteral("Anonymous interface timer");
       }
       break;
 
     case Callback::Type::Observer:
       if (nsCOMPtr<nsINamed> named = do_QueryInterface(cb.mCallback.o)) {
         named->GetName(aName);
+      } else {
+        aName.AssignLiteral("Anonymous observer timer");
       }
       break;
 
     case Callback::Type::Unknown:
-      aName.Truncate();
+      aName.AssignLiteral("Anonymous timer");
       break;
   }
 }
