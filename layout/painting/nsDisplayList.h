@@ -1339,6 +1339,11 @@ public:
   void EnterSVGEffectsContents(nsDisplayList* aHoistedItemsStorage);
   void ExitSVGEffectsContents();
 
+  /**
+   * Note: if changing the conditions under which scroll info layers
+   * are created, make a corresponding change to
+   * ScrollFrameWillBuildScrollInfoLayer() in nsSliderFrame.cpp.
+   */
   bool ShouldBuildScrollInfoItemsForHoisting() const
   { return mSVGEffectsBuildingDepth > 0; }
 
