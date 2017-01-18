@@ -11,9 +11,11 @@ XPCOMUtils.defineLazyModuleGetter(this, "Services",
   "resource://gre/modules/Services.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "NetUtil",
   "resource://gre/modules/NetUtil.jsm");
+XPCOMUtils.defineLazyModuleGetter(this, "Utils",
+  "resource://gre/modules/sessionstore/Utils.jsm");
 
 function makeURI(url) {
-  return Services.io.newURI(url, null, null);
+  return Services.io.newURI(url);
 }
 
 function readInputStreamToString(aStream) {
@@ -73,7 +75,7 @@ RemoteWebNavigation.prototype = {
                             aPostData, aHeaders, null);
   },
   loadURIWithOptions(aURI, aLoadFlags, aReferrer, aReferrerPolicy,
-                               aPostData, aHeaders, aBaseURI) {
+                     aPostData, aHeaders, aBaseURI, aTriggeringPrincipal) {
     this._sendMessage("WebNavigation:LoadURI", {
       uri: aURI,
       flags: aLoadFlags,
@@ -82,6 +84,9 @@ RemoteWebNavigation.prototype = {
       postData: aPostData ? readInputStreamToString(aPostData) : null,
       headers: aHeaders ? readInputStreamToString(aHeaders) : null,
       baseURI: aBaseURI ? aBaseURI.spec : null,
+      triggeringPrincipal: aTriggeringPrincipal
+                           ? Utils.serializePrincipal(aTriggeringPrincipal)
+                           : null,
     });
   },
   setOriginAttributesBeforeLoading(aOriginAttributes) {

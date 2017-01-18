@@ -17,6 +17,9 @@ Cu.import("resource://gre/modules/Timer.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "PageThumbUtils",
   "resource://gre/modules/PageThumbUtils.jsm");
 
+XPCOMUtils.defineLazyModuleGetter(this, "Utils",
+  "resource://gre/modules/sessionstore/Utils.jsm");
+
 function makeInputStream(aString) {
   let stream = Cc["@mozilla.org/io/string-input-stream;1"].
                createInstance(Ci.nsISupportsCString);
@@ -254,7 +257,7 @@ var WebNavigation =  {
         this.loadURI(message.data.uri, message.data.flags,
                      message.data.referrer, message.data.referrerPolicy,
                      message.data.postData, message.data.headers,
-                     message.data.baseURI);
+                     message.data.baseURI, message.data.triggeringPrincipal);
         break;
       case "WebNavigation:SetOriginAttributes":
         this.setOriginAttributes(message.data.originAttributes);
@@ -294,18 +297,20 @@ var WebNavigation =  {
     this._wrapURIChangeCall(() => this.webNavigation.gotoIndex(index));
   },
 
-  loadURI(uri, flags, referrer, referrerPolicy, postData, headers, baseURI) {
+  loadURI(uri, flags, referrer, referrerPolicy, postData, headers, baseURI, triggeringPrincipal) {
     if (referrer)
-      referrer = Services.io.newURI(referrer, null, null);
+      referrer = Services.io.newURI(referrer);
     if (postData)
       postData = makeInputStream(postData);
     if (headers)
       headers = makeInputStream(headers);
     if (baseURI)
-      baseURI = Services.io.newURI(baseURI, null, null);
+      baseURI = Services.io.newURI(baseURI);
+    if (triggeringPrincipal)
+      triggeringPrincipal = Utils.deserializePrincipal(triggeringPrincipal)
     this._wrapURIChangeCall(() => {
       return this.webNavigation.loadURIWithOptions(uri, flags, referrer, referrerPolicy,
-                                                   postData, headers, baseURI);
+                                                   postData, headers, baseURI, triggeringPrincipal);
     });
   },
 
