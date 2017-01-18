@@ -1345,7 +1345,7 @@ protected:
 
 public:
   void GetTextContent(nsAString& aTextContent,
-                      mozilla::ErrorResult& aError)
+                      mozilla::OOMReporter& aError)
   {
     GetTextContentInternal(aTextContent, aError);
   }
@@ -1976,7 +1976,7 @@ protected:
   }
 
   virtual void GetTextContentInternal(nsAString& aTextContent,
-                                      mozilla::ErrorResult& aError);
+                                      mozilla::OOMReporter& aError);
   virtual void SetTextContentInternal(const nsAString& aTextContent,
                                       mozilla::ErrorResult& aError)
   {
