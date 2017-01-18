@@ -43,14 +43,14 @@ public:
         ::CGFontRelease(mFontRef);
     }
 
-    virtual CGFontRef GetFontRef();
+    CGFontRef GetFontRef();
 
     // override gfxFontEntry table access function to bypass table cache,
     // use CGFontRef API to get direct access to system font data
-    virtual hb_blob_t *GetFontTable(uint32_t aTag) override;
+    hb_blob_t *GetFontTable(uint32_t aTag) override;
 
-    virtual void AddSizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf,
-                                        FontListSizes* aSizes) const override;
+    void AddSizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf,
+                                FontListSizes* aSizes) const override;
 
     nsresult ReadCMAP(FontInfoData *aFontInfoData = nullptr) override;
 
@@ -60,9 +60,10 @@ public:
     bool IsCFF();
 
 protected:
-    virtual gfxFont* CreateFontInstance(const gfxFontStyle *aFontStyle, bool aNeedsBold) override;
+    gfxFont* CreateFontInstance(const gfxFontStyle *aFontStyle,
+                                bool aNeedsBold) override;
 
-    virtual bool HasFontTable(uint32_t aTableTag) override;
+    bool HasFontTable(uint32_t aTableTag) override;
 
     static void DestroyBlobFunc(void* aUserData);
 
@@ -128,7 +129,7 @@ public:
         InfallibleTArray<mozilla::dom::FontFamilyListEntry>* aList);
 
 protected:
-    virtual gfxFontFamily*
+    gfxFontFamily*
     GetDefaultFontForPlatform(const gfxFontStyle* aStyle) override;
 
 private:
@@ -138,7 +139,7 @@ private:
     virtual ~gfxMacPlatformFontList();
 
     // initialize font lists
-    virtual nsresult InitFontListForPlatform() override;
+    nsresult InitFontListForPlatform() override;
 
     // special case font faces treated as font families (set via prefs)
     void InitSingleFaceList();
@@ -149,11 +150,12 @@ private:
     // helper function to lookup in both hidden system fonts and normal fonts
     gfxFontFamily* FindSystemFontFamily(const nsAString& aFamily);
 
-    static void RegisteredFontsChangedNotificationCallback(CFNotificationCenterRef center,
-                                                           void *observer,
-                                                           CFStringRef name,
-                                                           const void *object,
-                                                           CFDictionaryRef userInfo);
+    static void
+    RegisteredFontsChangedNotificationCallback(CFNotificationCenterRef center,
+                                               void *observer,
+                                               CFStringRef name,
+                                               const void *object,
+                                               CFDictionaryRef userInfo);
 
     // attempt to use platform-specific fallback for the given character
     // return null if no usable result found
