@@ -76,7 +76,6 @@ if CONFIG['MOZ_GECKO_PROFILER']:
         ]
     elif CONFIG['OS_TARGET'] == 'WINNT':
         SOURCES += [
-            'core/IntelPowerGadget.cpp',
             'core/platform-win32.cc',
             'core/shared-libraries-win32.cc',
         ]

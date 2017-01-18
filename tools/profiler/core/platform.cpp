@@ -776,10 +776,6 @@ profiler_get_features()
     // Start profiling with feature TaskTracer.
     "tasktracer",
 #endif
-#if defined(XP_WIN)
-    // Add power collection
-    "power",
-#endif
     nullptr
   };
 
