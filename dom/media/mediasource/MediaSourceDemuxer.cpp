@@ -247,7 +247,7 @@ MediaSourceDemuxer::~MediaSourceDemuxer()
 }
 
 void
-MediaSourceDemuxer::GetMozDebugReaderData(nsAString& aString)
+MediaSourceDemuxer::GetMozDebugReaderData(nsACString& aString)
 {
   MonitorAutoLock mon(mMonitor);
   nsAutoCString result;
@@ -280,7 +280,7 @@ MediaSourceDemuxer::GetMozDebugReaderData(nsAString& aString)
     result += nsPrintfCString("\t\tBuffered: ranges=%s\n",
                               DumpTimeRanges(mVideoTrack->SafeBuffered(TrackInfo::kVideoTrack)).get());
   }
-  aString += NS_ConvertUTF8toUTF16(result);
+  aString += result;
 }
 
 MediaSourceTrackDemuxer::MediaSourceTrackDemuxer(MediaSourceDemuxer* aParent,

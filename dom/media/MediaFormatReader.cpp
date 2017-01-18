@@ -2666,7 +2666,7 @@ MediaFormatReader::GetImageContainer()
 }
 
 void
-MediaFormatReader::GetMozDebugReaderData(nsAString& aString)
+MediaFormatReader::GetMozDebugReaderData(nsACString& aString)
 {
   nsAutoCString result;
   const char* audioName = "unavailable";
@@ -2726,7 +2726,7 @@ MediaFormatReader::GetMozDebugReaderData(nsAString& aString)
                               mVideo.mWaitingForData, mVideo.mWaitingForKey,
                               mVideo.mLastStreamSourceID);
   }
-  aString += NS_ConvertUTF8toUTF16(result);
+  aString += result;
 }
 
 void

@@ -256,7 +256,7 @@ MediaSourceDecoder::SetMediaSourceDuration(double aDuration)
 }
 
 void
-MediaSourceDecoder::GetMozDebugReaderData(nsAString& aString)
+MediaSourceDecoder::GetMozDebugReaderData(nsACString& aString)
 {
   if (mReader && mDemuxer) {
     mReader->GetMozDebugReaderData(aString);
