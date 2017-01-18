@@ -117,6 +117,7 @@ ImageBridgeParent::ActorDestroy(ActorDestroyReason aWhy)
 {
   // Can't alloc/dealloc shmems from now on.
   mClosed = true;
+  mCompositables.clear();
   {
     MonitorAutoLock lock(*sImageBridgesLock);
     sImageBridges.erase(OtherPid());
