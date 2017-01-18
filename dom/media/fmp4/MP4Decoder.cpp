@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "MP4Decoder.h"
-#include "MediaContentType.h"
+#include "MediaContainerType.h"
 #include "MediaDecoderStateMachine.h"
 #include "MP4Demuxer.h"
 #include "mozilla/Preferences.h"
@@ -78,7 +78,7 @@ IsWhitelistedH264Codec(const nsAString& aCodec)
 
 /* static */
 bool
-MP4Decoder::IsSupportedType(const MediaContentType& aType,
+MP4Decoder::IsSupportedType(const MediaContainerType& aType,
                             DecoderDoctorDiagnostics* aDiagnostics)
 {
   if (!IsEnabled()) {
@@ -107,12 +107,12 @@ MP4Decoder::IsSupportedType(const MediaContentType& aType,
     // No codecs specified. Assume H.264
     if (isAudio) {
       trackInfos.AppendElement(
-        CreateTrackInfoWithMIMETypeAndContentTypeExtraParameters(
+        CreateTrackInfoWithMIMETypeAndContainerTypeExtraParameters(
           NS_LITERAL_CSTRING("audio/mp4a-latm"), aType));
     } else {
       MOZ_ASSERT(isVideo);
       trackInfos.AppendElement(
-        CreateTrackInfoWithMIMETypeAndContentTypeExtraParameters(
+        CreateTrackInfoWithMIMETypeAndContainerTypeExtraParameters(
           NS_LITERAL_CSTRING("video/avc"), aType));
     }
   } else {
@@ -121,25 +121,25 @@ MP4Decoder::IsSupportedType(const MediaContentType& aType,
     for (const auto& codec : aType.ExtendedType().Codecs().Range()) {
       if (IsAACCodecString(codec)) {
         trackInfos.AppendElement(
-          CreateTrackInfoWithMIMETypeAndContentTypeExtraParameters(
+          CreateTrackInfoWithMIMETypeAndContainerTypeExtraParameters(
             NS_LITERAL_CSTRING("audio/mp4a-latm"), aType));
         continue;
       }
       if (codec.EqualsLiteral("mp3")) {
         trackInfos.AppendElement(
-          CreateTrackInfoWithMIMETypeAndContentTypeExtraParameters(
+          CreateTrackInfoWithMIMETypeAndContainerTypeExtraParameters(
             NS_LITERAL_CSTRING("audio/mpeg"), aType));
         continue;
       }
       if (codec.EqualsLiteral("opus")) {
         trackInfos.AppendElement(
-          CreateTrackInfoWithMIMETypeAndContentTypeExtraParameters(
+          CreateTrackInfoWithMIMETypeAndContainerTypeExtraParameters(
             NS_LITERAL_CSTRING("audio/opus"), aType));
         continue;
       }
       if (codec.EqualsLiteral("flac")) {
         trackInfos.AppendElement(
-          CreateTrackInfoWithMIMETypeAndContentTypeExtraParameters(
+          CreateTrackInfoWithMIMETypeAndContainerTypeExtraParameters(
             NS_LITERAL_CSTRING("audio/flac"), aType));
         continue;
       }
@@ -147,7 +147,7 @@ MP4Decoder::IsSupportedType(const MediaContentType& aType,
       // content type.
       if (IsWhitelistedH264Codec(codec) && isVideo) {
         trackInfos.AppendElement(
-          CreateTrackInfoWithMIMETypeAndContentTypeExtraParameters(
+          CreateTrackInfoWithMIMETypeAndContainerTypeExtraParameters(
             NS_LITERAL_CSTRING("video/avc"), aType));
         continue;
       }
