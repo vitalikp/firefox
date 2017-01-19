@@ -1033,7 +1033,8 @@ TabParent::SendMouseEvent(const nsAString& aType, float aX, float aY,
   if (!mIsDestroyed) {
     Unused << PBrowserParent::SendMouseEvent(nsString(aType), aX, aY,
                                              aButton, aClickCount,
-                                             aModifiers, aIgnoreRootScrollFrame);
+                                             aModifiers,
+                                             aIgnoreRootScrollFrame);
   }
 }
 
@@ -1044,10 +1045,11 @@ TabParent::SendKeyEvent(const nsAString& aType,
                         int32_t aModifiers,
                         bool aPreventDefault)
 {
-  if (!mIsDestroyed) {
-    Unused << PBrowserParent::SendKeyEvent(nsString(aType), aKeyCode, aCharCode,
-                                           aModifiers, aPreventDefault);
+  if (mIsDestroyed) {
+    return;
   }
+  Unused << PBrowserParent::SendKeyEvent(nsString(aType), aKeyCode, aCharCode,
+                                         aModifiers, aPreventDefault);
 }
 
 bool
@@ -1065,7 +1067,8 @@ TabParent::SendRealMouseEvent(WidgetMouseEvent& aEvent)
     if (eMouseEnterIntoWidget == aEvent.mMessage) {
       mTabSetsCursor = true;
       if (mCustomCursor) {
-        widget->SetCursor(mCustomCursor, mCustomCursorHotspotX, mCustomCursorHotspotY);
+        widget->SetCursor(mCustomCursor,
+                          mCustomCursorHotspotX, mCustomCursorHotspotY);
       } else if (mCursor != nsCursor(-1)) {
         widget->SetCursor(mCursor);
       }
@@ -1183,7 +1186,8 @@ TabParent::RecvDispatchKeyboardEvent(const mozilla::WidgetKeyboardEvent& aEvent)
 static void
 DoCommandCallback(mozilla::Command aCommand, void* aData)
 {
-  static_cast<InfallibleTArray<mozilla::CommandInt>*>(aData)->AppendElement(aCommand);
+  static_cast<InfallibleTArray<mozilla::CommandInt>*>(aData)->
+    AppendElement(aCommand);
 }
 
 mozilla::ipc::IPCResult
@@ -1207,12 +1211,15 @@ TabParent::RecvRequestNativeKeyBindings(const WidgetKeyboardEvent& aEvent,
     return IPC_OK();
   }
 
-  widget->ExecuteNativeKeyBinding(nsIWidget::NativeKeyBindingsForSingleLineEditor,
-                                  localEvent, DoCommandCallback, &singleLine);
-  widget->ExecuteNativeKeyBinding(nsIWidget::NativeKeyBindingsForMultiLineEditor,
-                                  localEvent, DoCommandCallback, &multiLine);
-  widget->ExecuteNativeKeyBinding(nsIWidget::NativeKeyBindingsForRichTextEditor,
-                                  localEvent, DoCommandCallback, &richText);
+  widget->ExecuteNativeKeyBinding(
+            nsIWidget::NativeKeyBindingsForSingleLineEditor,
+            localEvent, DoCommandCallback, &singleLine);
+  widget->ExecuteNativeKeyBinding(
+            nsIWidget::NativeKeyBindingsForMultiLineEditor,
+            localEvent, DoCommandCallback, &multiLine);
+  widget->ExecuteNativeKeyBinding(
+            nsIWidget::NativeKeyBindingsForRichTextEditor,
+            localEvent, DoCommandCallback, &richText);
 
   if (!singleLine.IsEmpty() || !multiLine.IsEmpty() || !richText.IsEmpty()) {
     *aBindings = NativeKeyBinding(singleLine, multiLine, richText);
@@ -1243,7 +1250,8 @@ public:
       return NS_OK;
     }
 
-    if (!mTabParent->SendNativeSynthesisResponse(mObserverId, nsCString(aTopic))) {
+    if (!mTabParent->SendNativeSynthesisResponse(mObserverId,
+                                                 nsCString(aTopic))) {
       NS_WARNING("Unable to send native event synthesization response!");
     }
     // Null out tabparent to indicate we already sent the response
@@ -1298,8 +1306,9 @@ TabParent::RecvSynthesizeNativeKeyEvent(const int32_t& aNativeKeyboardLayout,
   nsCOMPtr<nsIWidget> widget = GetWidget();
   if (widget) {
     widget->SynthesizeNativeKeyEvent(aNativeKeyboardLayout, aNativeKeyCode,
-      aModifierFlags, aCharacters, aUnmodifiedCharacters,
-      responder.GetObserver());
+                                     aModifierFlags, aCharacters,
+                                     aUnmodifiedCharacters,
+                                     responder.GetObserver());
   }
   return IPC_OK();
 }
@@ -1314,7 +1323,7 @@ TabParent::RecvSynthesizeNativeMouseEvent(const LayoutDeviceIntPoint& aPoint,
   nsCOMPtr<nsIWidget> widget = GetWidget();
   if (widget) {
     widget->SynthesizeNativeMouseEvent(aPoint, aNativeMessage, aModifierFlags,
-      responder.GetObserver());
+                                       responder.GetObserver());
   }
   return IPC_OK();
 }
@@ -1332,38 +1341,42 @@ TabParent::RecvSynthesizeNativeMouseMove(const LayoutDeviceIntPoint& aPoint,
 }
 
 mozilla::ipc::IPCResult
-TabParent::RecvSynthesizeNativeMouseScrollEvent(const LayoutDeviceIntPoint& aPoint,
-                                                const uint32_t& aNativeMessage,
-                                                const double& aDeltaX,
-                                                const double& aDeltaY,
-                                                const double& aDeltaZ,
-                                                const uint32_t& aModifierFlags,
-                                                const uint32_t& aAdditionalFlags,
-                                                const uint64_t& aObserverId)
+TabParent::RecvSynthesizeNativeMouseScrollEvent(
+             const LayoutDeviceIntPoint& aPoint,
+             const uint32_t& aNativeMessage,
+             const double& aDeltaX,
+             const double& aDeltaY,
+             const double& aDeltaZ,
+             const uint32_t& aModifierFlags,
+             const uint32_t& aAdditionalFlags,
+             const uint64_t& aObserverId)
 {
   AutoSynthesizedEventResponder responder(this, aObserverId, "mousescrollevent");
   nsCOMPtr<nsIWidget> widget = GetWidget();
   if (widget) {
     widget->SynthesizeNativeMouseScrollEvent(aPoint, aNativeMessage,
-      aDeltaX, aDeltaY, aDeltaZ, aModifierFlags, aAdditionalFlags,
-      responder.GetObserver());
+                                             aDeltaX, aDeltaY, aDeltaZ,
+                                             aModifierFlags, aAdditionalFlags,
+                                             responder.GetObserver());
   }
   return IPC_OK();
 }
 
 mozilla::ipc::IPCResult
-TabParent::RecvSynthesizeNativeTouchPoint(const uint32_t& aPointerId,
-                                          const TouchPointerState& aPointerState,
-                                          const LayoutDeviceIntPoint& aPoint,
-                                          const double& aPointerPressure,
-                                          const uint32_t& aPointerOrientation,
-                                          const uint64_t& aObserverId)
+TabParent::RecvSynthesizeNativeTouchPoint(
+             const uint32_t& aPointerId,
+             const TouchPointerState& aPointerState,
+             const LayoutDeviceIntPoint& aPoint,
+             const double& aPointerPressure,
+             const uint32_t& aPointerOrientation,
+             const uint64_t& aObserverId)
 {
   AutoSynthesizedEventResponder responder(this, aObserverId, "touchpoint");
   nsCOMPtr<nsIWidget> widget = GetWidget();
   if (widget) {
     widget->SynthesizeNativeTouchPoint(aPointerId, aPointerState, aPoint,
-      aPointerPressure, aPointerOrientation, responder.GetObserver());
+                                       aPointerPressure, aPointerOrientation,
+                                       responder.GetObserver());
   }
   return IPC_OK();
 }
@@ -1480,8 +1493,8 @@ TabParent::SendHandleTap(TapType aType,
     GetRenderFrame()->TakeFocusForClickFromTap();
   }
   LayoutDeviceIntPoint offset = GetChildProcessOffset();
-  return PBrowserParent::SendHandleTap(aType, aPoint + offset, aModifiers, aGuid,
-      aInputBlockId);
+  return PBrowserParent::SendHandleTap(aType, aPoint + offset, aModifiers,
+                                       aGuid, aInputBlockId);
 }
 
 mozilla::ipc::IPCResult
@@ -1688,13 +1701,14 @@ TabParent::RecvNotifyIMETextChange(const ContentCache& aContentCache,
                                    const IMENotification& aIMENotification)
 {
   nsCOMPtr<nsIWidget> widget = GetWidget();
-  if (!widget)
+  if (!widget) {
     return IPC_OK();
+  }
 
 #ifdef DEBUG
   nsIMEUpdatePreference updatePreference = widget->GetIMEUpdatePreference();
   NS_ASSERTION(updatePreference.WantTextChange(),
-               "Don't call Send/RecvNotifyIMETextChange without NOTIFY_TEXT_CHANGE");
+    "Don't call Send/RecvNotifyIMETextChange without NOTIFY_TEXT_CHANGE");
 #endif
 
   mContentCache.AssignContent(aContentCache, widget, &aIMENotification);
@@ -1711,7 +1725,6 @@ TabParent::RecvNotifyIMECompositionUpdate(
   if (!widget) {
     return IPC_OK();
   }
-
   mContentCache.AssignContent(aContentCache, widget, &aIMENotification);
   mContentCache.MaybeNotifyIME(widget, aIMENotification);
   return IPC_OK();
@@ -1722,9 +1735,9 @@ TabParent::RecvNotifyIMESelection(const ContentCache& aContentCache,
                                   const IMENotification& aIMENotification)
 {
   nsCOMPtr<nsIWidget> widget = GetWidget();
-  if (!widget)
+  if (!widget) {
     return IPC_OK();
-
+  }
   mContentCache.AssignContent(aContentCache, widget, &aIMENotification);
   mContentCache.MaybeNotifyIME(widget, aIMENotification);
   return IPC_OK();
@@ -1766,7 +1779,6 @@ TabParent::RecvNotifyIMEPositionChange(const ContentCache& aContentCache,
   if (!widget) {
     return IPC_OK();
   }
-
   mContentCache.AssignContent(aContentCache, widget, &aIMENotification);
   mContentCache.MaybeNotifyIME(widget, aIMENotification);
   return IPC_OK();
