@@ -163,6 +163,7 @@ public:
   };
 
   void DumpDebugInfo();
+  RefPtr<MediaDecoder::DebugInfoPromise> RequestDebugInfo();
 
   void AddOutputStream(ProcessedMediaStream* aStream,
                        TrackID aNextAvailableTrackID,
