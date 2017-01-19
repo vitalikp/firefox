@@ -3085,7 +3085,7 @@ template <typename ParseHandler>
 typename ParseHandler::Node
 Parser<ParseHandler>::templateLiteral(YieldHandling yieldHandling)
 {
-    Node pn = noSubstitutionTemplate();
+    Node pn = noSubstitutionUntaggedTemplate();
     if (!pn)
         return null();
 
@@ -3098,7 +3098,7 @@ Parser<ParseHandler>::templateLiteral(YieldHandling yieldHandling)
         if (!addExprAndGetNextTemplStrToken(yieldHandling, nodeList, &tt))
             return null();
 
-        pn = noSubstitutionTemplate();
+        pn = noSubstitutionUntaggedTemplate();
         if (!pn)
             return null();
 
@@ -3321,7 +3321,7 @@ template <typename ParseHandler>
 bool
 Parser<ParseHandler>::appendToCallSiteObj(Node callSiteObj)
 {
-    Node cookedNode = noSubstitutionTemplate();
+    Node cookedNode = noSubstitutionTaggedTemplate();
     if (!cookedNode)
         return false;
 
@@ -8704,8 +8704,23 @@ Parser<ParseHandler>::stringLiteral()
 
 template <typename ParseHandler>
 typename ParseHandler::Node
-Parser<ParseHandler>::noSubstitutionTemplate()
+Parser<ParseHandler>::noSubstitutionTaggedTemplate()
 {
+    if (tokenStream.hasInvalidTemplateEscape()) {
+        tokenStream.clearInvalidTemplateEscape();
+        return handler.newRawUndefinedLiteral(pos());
+    }
+
+    return handler.newTemplateStringLiteral(stopStringCompression(), pos());
+}
+
+template <typename ParseHandler>
+typename ParseHandler::Node
+Parser<ParseHandler>::noSubstitutionUntaggedTemplate()
+{
+    if (!tokenStream.checkForInvalidTemplateEscapeError())
+        return null();
+
     return handler.newTemplateStringLiteral(stopStringCompression(), pos());
 }
 
@@ -9434,7 +9449,7 @@ Parser<ParseHandler>::primaryExpr(YieldHandling yieldHandling, TripledotHandling
         return templateLiteral(yieldHandling);
 
       case TOK_NO_SUBS_TEMPLATE:
-        return noSubstitutionTemplate();
+        return noSubstitutionUntaggedTemplate();
 
       case TOK_STRING:
         return stringLiteral();
