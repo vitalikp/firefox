@@ -3022,7 +3022,7 @@ nsIDocument::EventTargetFor(TaskCategory aCategory) const
 }
 
 AbstractThread*
-nsIDocument::AbstractMainThreadFor(mozilla::dom::TaskCategory aCategory)
+nsIDocument::AbstractMainThreadFor(mozilla::TaskCategory aCategory)
 {
   MOZ_ASSERT(NS_IsMainThread());
   if (mDocGroup) {

@@ -2844,14 +2844,14 @@ public:
 
   // Dispatch a runnable related to the document.
   virtual nsresult Dispatch(const char* aName,
-                            mozilla::dom::TaskCategory aCategory,
+                            mozilla::TaskCategory aCategory,
                             already_AddRefed<nsIRunnable>&& aRunnable) override;
 
   virtual nsIEventTarget*
-  EventTargetFor(mozilla::dom::TaskCategory aCategory) const override;
+  EventTargetFor(mozilla::TaskCategory aCategory) const override;
 
   virtual mozilla::AbstractThread*
-  AbstractMainThreadFor(mozilla::dom::TaskCategory aCategory) override;
+  AbstractMainThreadFor(mozilla::TaskCategory aCategory) override;
 
   bool PrerenderHref(nsIURI* aHref);
 
