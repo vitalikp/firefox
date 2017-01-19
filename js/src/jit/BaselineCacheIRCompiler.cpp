@@ -1340,7 +1340,7 @@ jit::AttachBaselineCacheIRStub(JSContext* cx, const CacheIRWriter& writer,
             auto otherStub = iter->toCacheIR_Monitored();
             if (otherStub->stubInfo() != stubInfo)
                 continue;
-            if (!writer.stubDataEquals(otherStub->stubDataStart()))
+            if (!writer.stubDataEqualsMaybeUpdate(otherStub->stubDataStart()))
                 continue;
             break;
           }
@@ -1350,7 +1350,7 @@ jit::AttachBaselineCacheIRStub(JSContext* cx, const CacheIRWriter& writer,
             auto otherStub = iter->toCacheIR_Updated();
             if (otherStub->stubInfo() != stubInfo)
                 continue;
-            if (!writer.stubDataEquals(otherStub->stubDataStart()))
+            if (!writer.stubDataEqualsMaybeUpdate(otherStub->stubDataStart()))
                 continue;
             break;
           }
