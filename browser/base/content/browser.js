@@ -4811,8 +4811,8 @@ var TabsProgressListener = {
     let tab = gBrowser.getTabForBrowser(aBrowser);
     if (tab && tab._sharingState) {
       gBrowser.setBrowserSharing(aBrowser, {});
-      webrtcUI.forgetStreamsFromBrowser(aBrowser);
     }
+    webrtcUI.forgetStreamsFromBrowser(aBrowser);
 
     gBrowser.getNotificationBox(aBrowser).removeTransientNotifications();
 
@@ -7401,6 +7401,7 @@ var gIdentityHandler = {
           }
         }
         browser.messageManager.sendAsyncMessage("webrtc:StopSharing", windowId);
+        webrtcUI.forgetActivePermissionsFromBrowser(gBrowser.selectedBrowser);
       }
       SitePermissions.remove(gBrowser.currentURI, aPermission.id, browser);
 
