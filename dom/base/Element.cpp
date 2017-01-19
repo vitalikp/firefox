@@ -2026,6 +2026,12 @@ Element::GetInlineStyleDeclaration() const
   return nullptr;
 }
 
+const nsMappedAttributes*
+Element::GetMappedAttributes() const
+{
+  return mAttrsAndChildren.GetMapped();
+}
+
 nsresult
 Element::SetInlineStyleDeclaration(DeclarationBlock* aDeclaration,
                                    const nsAString* aSerialized,
