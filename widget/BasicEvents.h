@@ -518,6 +518,10 @@ public:
   bool HasPluginActivationEventMessage() const;
 
   /**
+   * Returns true if the event can be sent to remote process.
+   */
+  bool CanBeSentToRemoteProcess() const;
+  /**
    * Returns true if the event is native event deliverer event for plugin and
    * it should be retarted to focused document.
    */
