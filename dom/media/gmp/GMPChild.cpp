@@ -245,18 +245,6 @@ GMPChild::Init(const nsAString& aPluginPath,
   return true;
 }
 
-mozilla::ipc::IPCResult
-GMPChild::RecvSetNodeId(const nsCString& aNodeId)
-{
-  LOGD("%s nodeId=%s", __FUNCTION__, aNodeId.Data());
-
-  // Store the per origin salt for the node id. Note: we do this in a
-  // separate message than RecvStartPlugin() so that the string is not
-  // sitting in a string on the IPC code's call stack.
-  mNodeId = aNodeId;
-  return IPC_OK();
-}
-
 GMPErr
 GMPChild::GetAPI(const char* aAPIName,
                  void* aHostAPI,
@@ -364,8 +352,6 @@ GMPChild::AnswerStartPlugin(const nsString& aAdapter)
   GMPAdapter* adapter = nullptr;
   if (!mGMPLoader->Load(libPath.get(),
                         libPath.Length(),
-                        mNodeId.BeginWriting(),
-                        mNodeId.Length(),
                         platformAPI,
                         adapter)) {
     NS_WARNING("Failed to load GMP");
