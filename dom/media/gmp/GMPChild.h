@@ -73,7 +73,7 @@ private:
   MessageLoop* mGMPMessageLoop;
   nsString mPluginPath;
   nsCString mNodeId;
-  GMPLoader* mGMPLoader;
+  UniquePtr<GMPLoader> mGMPLoader;
 };
 
 } // namespace gmp

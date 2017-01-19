@@ -67,7 +67,6 @@
 #include "mozilla/WindowsDllBlocklist.h"
 
 #include "GMPProcessChild.h"
-#include "GMPLoader.h"
 #include "mozilla/gfx/GPUProcessImpl.h"
 
 #include "GeckoProfiler.h"
@@ -112,8 +111,6 @@ using mozilla::dom::ContentProcess;
 using mozilla::dom::ContentParent;
 using mozilla::dom::ContentChild;
 
-using mozilla::gmp::GMPLoader;
-using mozilla::gmp::CreateGMPLoader;
 using mozilla::gmp::GMPProcessChild;
 
 using mozilla::ipc::TestShellParent;
@@ -274,32 +271,6 @@ SetTaskbarGroupId(const nsString& aId)
 }
 #endif
 
-#if defined (XP_LINUX) && defined(MOZ_GMP_SANDBOX)
-namespace {
-class LinuxSandboxStarter : public mozilla::gmp::SandboxStarter {
-private:
-  LinuxSandboxStarter() { }
-  friend mozilla::detail::UniqueSelector<LinuxSandboxStarter>::SingleObject mozilla::MakeUnique<LinuxSandboxStarter>();
-
-public:
-  static UniquePtr<SandboxStarter> Make() {
-    if (mozilla::SandboxInfo::Get().CanSandboxMedia()) {
-      return MakeUnique<LinuxSandboxStarter>();
-    } else {
-      // Sandboxing isn't possible, but the parent has already
-      // checked that this plugin doesn't require it.  (Bug 1074561)
-      return nullptr;
-    }
-    return nullptr;
-  }
-  virtual bool Start(const char *aLibPath) override {
-    mozilla::SetMediaPluginSandbox(aLibPath);
-    return true;
-  }
-};
-} // anonymous namespace
-#endif // XP_LINUX && MOZ_GMP_SANDBOX
-
 nsresult
 XRE_InitChildProcess(int aArgc,
                      char* aArgv[],
@@ -318,26 +289,6 @@ XRE_InitChildProcess(int aArgc,
 #ifdef MOZ_JPROF
   // Call the code to install our handler
   setupProfilingStuff();
-#endif
-
-#ifdef XP_LINUX
-  // On Fennec, the GMPLoader's code resides inside XUL (because for the time
-  // being GMPLoader relies upon NSPR, which we can't use in plugin-container
-  // on Android), so we create it here inside XUL and pass it to the GMP code.
-  //
-  // On desktop Linux, the sandbox code lives in a shared library, and
-  // the GMPLoader is in libxul instead of executables to avoid unwanted
-  // library dependencies.
-  UniquePtr<mozilla::gmp::SandboxStarter> starter;
-#ifdef MOZ_GMP_SANDBOX
-  starter = LinuxSandboxStarter::Make();
-#endif
-  UniquePtr<GMPLoader> loader = CreateGMPLoader(Move(starter));
-  GMPProcessChild::SetGMPLoader(loader.get());
-#else
-  // On non-Linux platforms, the GMPLoader code resides in plugin-container,
-  // and we must forward it through to the GMP code here.
-  GMPProcessChild::SetGMPLoader(aChildData->gmpLoader.get());
 #endif
 
 #if defined(XP_WIN)
@@ -464,7 +415,7 @@ XRE_InitChildProcess(int aArgc,
 
 #endif
 
-  SetupErrorHandling(aArgv[0]);  
+  SetupErrorHandling(aArgv[0]);
 
   gArgv = aArgv;
   gArgc = aArgc;
@@ -623,8 +574,8 @@ XRE_InitChildProcess(int aArgc,
       case GeckoProcessType_IPDLUnitTest:
 #ifdef MOZ_IPDL_TESTS
         process = new IPDLUnitTestProcessChild(parentPID);
-#else 
-        NS_RUNTIMEABORT("rebuild with --enable-ipdl-tests");
+#else
+        MOZ_CRASH("rebuild with --enable-ipdl-tests");
 #endif
         break;
 
@@ -700,7 +651,7 @@ public:
                        void* aData)
   : mFunction(aFunction),
     mData(aData)
-  { 
+  {
     NS_ASSERTION(aFunction, "Don't give me a null pointer!");
   }
 
@@ -797,7 +748,7 @@ XRE_RunAppShell()
       // Cocoa nsAppShell impl, however, implements its own Run()
       // that's unaware of MessagePump.  That's all rather suboptimal,
       // but oddly enough not a problem... usually.
-      // 
+      //
       // The problem with this setup comes during startup.
       // XPCOM-in-subprocesses depends on IPC, e.g. to init the pref
       // service, so we have to init IPC first.  But, IPC also
@@ -813,7 +764,7 @@ XRE_RunAppShell()
       // run], because it's not aware that MessagePump has work that
       // needs to be processed; that was supposed to be signaled by
       // nsIRunnable(s).
-      // 
+      //
       // So instead of hacking Cocoa nsAppShell or rewriting the
       // event-loop system, we compromise here by processing any tasks
       // that might have been enqueued on MessagePump, *before*
