@@ -39,7 +39,8 @@ public:
 
   bool HasRules() const;
 
-  void SetOwningDocument(nsIDocument* aDocument);
+  void SetAssociatedDocument(nsIDocument* aDocument,
+                             DocumentAssociationMode aAssociationMode);
 
   ServoStyleSheet* GetParentSheet() const;
   void AppendStyleSheet(ServoStyleSheet* aSheet);
