@@ -71,9 +71,6 @@ if CONFIG['OS_ARCH'] == 'Linux':
     SOURCES += [
       'GMPLoader.cpp',
     ]
-    USE_LIBS += [
-        'rlz',
-    ]
 
 UNIFIED_SOURCES += [
     'GMPCDMCallbackProxy.cpp',
@@ -108,10 +105,6 @@ UNIFIED_SOURCES += [
     'GMPVideoHost.cpp',
     'GMPVideoi420FrameImpl.cpp',
     'GMPVideoPlaneImpl.cpp',
-]
-
-DIRS += [
-    'rlz',
 ]
 
 IPDL_SOURCES += [
