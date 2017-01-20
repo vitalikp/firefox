@@ -520,14 +520,14 @@ ModuleEnvironmentObject::fixEnclosingEnvironmentAfterCompartmentMerge(GlobalObje
 
 /* static */ bool
 ModuleEnvironmentObject::lookupProperty(JSContext* cx, HandleObject obj, HandleId id,
-                                        MutableHandleObject objp, MutableHandleShape propp)
+                                        MutableHandleObject objp, MutableHandle<PropertyResult> propp)
 {
     const IndirectBindingMap& bindings = obj->as<ModuleEnvironmentObject>().importBindings();
     Shape* shape;
     ModuleEnvironmentObject* env;
     if (bindings.lookup(id, &env, &shape)) {
         objp.set(env);
-        propp.set(shape);
+        propp.setNativeProperty(shape);
         return true;
     }
 
@@ -690,13 +690,13 @@ CheckUnscopables(JSContext *cx, HandleObject obj, HandleId id, bool *scopable)
 
 static bool
 with_LookupProperty(JSContext* cx, HandleObject obj, HandleId id,
-                    MutableHandleObject objp, MutableHandleShape propp)
+                    MutableHandleObject objp, MutableHandle<PropertyResult> propp)
 {
     // SpiderMonkey-specific: consider internal '.generator' and '.this' names
     // to be unscopable.
     if (IsUnscopableDotName(cx, id)) {
         objp.set(nullptr);
-        propp.set(nullptr);
+        propp.setNotFound();
         return true;
     }
 
@@ -710,7 +710,7 @@ with_LookupProperty(JSContext* cx, HandleObject obj, HandleId id,
             return false;
         if (!scopable) {
             objp.set(nullptr);
-            propp.set(nullptr);
+            propp.setNotFound();
         }
     }
     return true;
@@ -1107,7 +1107,7 @@ ReportRuntimeLexicalErrorId(JSContext* cx, unsigned errorNumber, HandleId id)
 
 static bool
 lexicalError_LookupProperty(JSContext* cx, HandleObject obj, HandleId id,
-                            MutableHandleObject objp, MutableHandleShape propp)
+                            MutableHandleObject objp, MutableHandle<PropertyResult> propp)
 {
     ReportRuntimeLexicalErrorId(cx, obj->as<RuntimeLexicalErrorObject>().errorNumber(), id);
     return false;
