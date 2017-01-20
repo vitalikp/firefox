@@ -1230,8 +1230,6 @@ var gBrowserInit = {
     PanelUI.init();
     LightweightThemeListener.init();
 
-    Services.telemetry.getHistogramById("E10S_WINDOW").add(gMultiProcessBrowser);
-
     SidebarUI.startDelayedLoad();
 
     UpdateUrlbarSearchSplitterState();
