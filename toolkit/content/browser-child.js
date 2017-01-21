@@ -20,13 +20,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "PageThumbUtils",
 XPCOMUtils.defineLazyModuleGetter(this, "Utils",
   "resource://gre/modules/sessionstore/Utils.jsm");
 
-function makeInputStream(aString) {
-  let stream = Cc["@mozilla.org/io/string-input-stream;1"].
-               createInstance(Ci.nsISupportsCString);
-  stream.data = aString;
-  return stream; // XPConnect will QI this to nsIInputStream for us.
-}
-
 var WebProgressListener = {
   init() {
     this._filter = Cc["@mozilla.org/appshell/component/browser-status-filter;1"]
@@ -301,9 +294,9 @@ var WebNavigation =  {
     if (referrer)
       referrer = Services.io.newURI(referrer);
     if (postData)
-      postData = makeInputStream(postData);
+      postData = Utils.makeInputStream(postData);
     if (headers)
-      headers = makeInputStream(headers);
+      headers = Utils.makeInputStream(headers);
     if (baseURI)
       baseURI = Services.io.newURI(baseURI);
     if (triggeringPrincipal)
