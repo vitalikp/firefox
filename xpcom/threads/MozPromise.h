@@ -426,21 +426,15 @@ protected:
       }
 
       // Invoke the resolve or reject method.
-      RefPtr<MozPromise> p = DoResolveOrRejectInternal(aValue);
+      RefPtr<MozPromise> result = DoResolveOrRejectInternal(aValue);
 
       // If there's a completion promise, resolve it appropriately with the
       // result of the method.
-      //
-      // We jump through some hoops to cast to MozPromise::Private here. This
-      // can go away when we can just declare mCompletionPromise as
-      // MozPromise::Private. See the declaration below.
-      RefPtr<MozPromise::Private> completionPromise =
-        dont_AddRef(static_cast<MozPromise::Private*>(mCompletionPromise.forget().take()));
-      if (completionPromise) {
-        if (p) {
-          p->ChainTo(completionPromise.forget(), "<chained completion promise>");
+      if (RefPtr<Private> p = mCompletionPromise.forget()) {
+        if (result) {
+          result->ChainTo(p.forget(), "<chained completion promise>");
         } else {
-          completionPromise->ResolveOrReject(aValue, "<completion of non-promise-returning method>");
+          p->ResolveOrReject(aValue, "<completion of non-promise-returning method>");
         }
       }
     }
@@ -449,11 +443,7 @@ protected:
 #ifdef PROMISE_DEBUG
     uint32_t mMagic1 = sMagic;
 #endif
-    // Declaring RefPtr<MozPromise::Private> here causes build failures
-    // on MSVC because MozPromise::Private is only forward-declared at this
-    // point. This hack can go away when we inline-declare MozPromise::Private,
-    // which is blocked on the B2G ICS compiler being too old.
-    RefPtr<MozPromise> mCompletionPromise;
+    RefPtr<Private> mCompletionPromise;
 #ifdef PROMISE_DEBUG
     uint32_t mMagic2 = sMagic;
 #endif
@@ -761,7 +751,7 @@ private:
     {
       RefPtr<ThenValueBase> thenValue = mThenValue.forget();
       // mCompletionPromise must be created before ThenInternal() to avoid race.
-      RefPtr<MozPromise> p = new MozPromise::Private(
+      RefPtr<MozPromise::Private> p = new MozPromise::Private(
         "<completion promise>", true /* aIsCompletionPromise */);
       thenValue->mCompletionPromise = p;
       // Note ThenInternal() might nullify mCompletionPromise before return.
