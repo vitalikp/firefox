@@ -2366,6 +2366,8 @@ public:
     }
   }
 
+  const nsTArray<GlyphArray>& GetGlyphs() { return mGlyphs; }
+
   gfx::ScaledFont* GetScaledFont() { return mFont; }
 
   MOZ_LAYER_DECL_NAME("TextLayer", TYPE_TEXT)
