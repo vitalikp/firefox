@@ -675,8 +675,6 @@ class MOZ_STACK_CLASS MaybeAutoWritableJitCode
     }
 };
 
-static const bool EnableIonCacheIR = true;
-
 } // namespace jit
 } // namespace js
 
