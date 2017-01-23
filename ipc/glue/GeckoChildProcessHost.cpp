@@ -315,7 +315,7 @@ GeckoChildProcessHost::PrepareLaunch()
   if (mProcessType == GeckoProcessType_Content) {
     mSandboxLevel = Preferences::GetInt("security.sandbox.content.level");
     mEnableSandboxLogging =
-      Preferences::GetBool("security.sandbox.windows.log");
+      Preferences::GetBool("security.sandbox.logging.enabled");
   }
 #endif
 
@@ -324,7 +324,7 @@ GeckoChildProcessHost::PrepareLaunch()
   // thread and they may not have access to prefs in the child process, so allow
   // them to turn on logging via an environment variable.
   mEnableSandboxLogging = mEnableSandboxLogging
-                          || !!PR_GetEnv("MOZ_WIN_SANDBOX_LOGGING");
+                          || !!PR_GetEnv("MOZ_SANDBOX_LOGGING");
 #endif
 #endif
 }
