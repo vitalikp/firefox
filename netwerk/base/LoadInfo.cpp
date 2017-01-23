@@ -900,6 +900,12 @@ LoadInfo::SetIsPreflight()
   mIsPreflight = true;
 }
 
+void
+LoadInfo::SetUpgradeInsecureRequests()
+{
+  mUpgradeInsecureRequests = true;
+}
+
 NS_IMETHODIMP
 LoadInfo::GetIsPreflight(bool* aIsPreflight)
 {
