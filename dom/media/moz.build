@@ -38,7 +38,6 @@ DIRS += [
     'webrtc',
     'webspeech',
     'webvtt',
-    'standalone',
 ]
 
 if CONFIG['MOZ_DIRECTSHOW']:
