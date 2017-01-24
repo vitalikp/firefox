@@ -105,6 +105,9 @@ SERVO_BINDING_FUNC(Servo_AnimationValues_Populate, void,
                    ServoComputedValuesBorrowed,
                    ServoComputedValuesBorrowedOrNull,
                    RawGeckoPresContextBorrowed)
+SERVO_BINDING_FUNC(Servo_AnimationValues_Uncompute,
+                   RawServoDeclarationBlockStrong,
+                   RawServoAnimationValueBorrowedListBorrowed value)
 
 // Style attribute
 SERVO_BINDING_FUNC(Servo_ParseStyleAttribute, RawServoDeclarationBlockStrong,
