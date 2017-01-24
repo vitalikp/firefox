@@ -37,6 +37,7 @@ namespace jit {
     _(LoadInt32ArrayLengthResult)         \
     _(LoadUnboxedArrayLengthResult)       \
     _(LoadArgumentsObjectLengthResult)    \
+    _(LoadFunctionLengthResult)           \
     _(LoadStringLengthResult)             \
     _(LoadStringCharResult)               \
     _(LoadArgumentsObjectArgResult)       \
