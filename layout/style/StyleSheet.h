@@ -127,7 +127,7 @@ public:
                                     DocumentAssociationMode aMode);
   inline void ClearAssociatedDocument();
   nsINode* GetOwnerNode() const { return mOwningNode; }
-  inline StyleSheet* GetParentSheet() const;
+  inline StyleSheet* GetParentSheet() const { return mParent; }
 
   inline void AppendStyleSheet(StyleSheet* aSheet);
 
@@ -229,6 +229,8 @@ protected:
 
   // Called from SetEnabled when the enabled state changed.
   void EnabledStateChanged();
+
+  StyleSheet*           mParent;    // weak ref
 
   nsString              mTitle;
   nsIDocument*          mDocument; // weak ref; parents maintain this for their children
