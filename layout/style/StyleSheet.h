@@ -131,7 +131,7 @@ public:
   nsINode* GetOwnerNode() const { return mOwningNode; }
   inline StyleSheet* GetParentSheet() const { return mParent; }
 
-  inline void AppendStyleSheet(StyleSheet* aSheet);
+  void AppendStyleSheet(StyleSheet* aSheet);
 
   StyleSheet* GetFirstChild() const;
 
