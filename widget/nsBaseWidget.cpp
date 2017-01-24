@@ -364,7 +364,7 @@ nsBaseWidget::OnRenderingDeviceReset(uint64_t aSeqNo)
   FrameLayerBuilder::InvalidateAllLayers(mLayerManager);
 
   // Update the texture factory identifier.
-  clm->UpdateTextureFactoryIdentifier(identifier);
+  clm->UpdateTextureFactoryIdentifier(identifier, aSeqNo);
   ImageBridgeChild::IdentifyCompositorTextureHost(identifier);
 }
 
@@ -1348,7 +1348,7 @@ void nsBaseWidget::CreateCompositor(int aWidth, int aHeight)
 
     lf->SetShadowManager(shadowManager);
     if (ClientLayerManager* clm = lm->AsClientLayerManager()) {
-      clm->UpdateTextureFactoryIdentifier(textureFactoryIdentifier);
+      clm->UpdateTextureFactoryIdentifier(textureFactoryIdentifier, 0);
     }
     // Some popup or transparent widgets may use a different backend than the
     // compositors used with ImageBridge and VR (and more generally web content).
