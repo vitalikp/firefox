@@ -43,6 +43,7 @@
 #include "mozilla/dom/ServiceWorkerContainer.h"
 #include "mozilla/dom/StorageManager.h"
 #include "mozilla/dom/TCPSocket.h"
+#include "mozilla/dom/URLSearchParams.h"
 #include "mozilla/dom/WebAuthentication.h"
 #include "mozilla/dom/workers/RuntimeService.h"
 #include "mozilla/Hal.h"
@@ -1100,12 +1101,12 @@ Navigator::SendBeacon(const nsAString& aUrl,
   }
 
   if (aData.Value().IsBlob()) {
-    BodyExtractor<Blob> body(&aData.Value().GetAsBlob());
+    BodyExtractor<nsIXHRSendable> body(&aData.Value().GetAsBlob());
     return SendBeaconInternal(aUrl, &body, /* isBlob */ true, aRv);
   }
 
   if (aData.Value().IsFormData()) {
-    BodyExtractor<FormData> body(&aData.Value().GetAsFormData());
+    BodyExtractor<nsIXHRSendable> body(&aData.Value().GetAsFormData());
     return SendBeaconInternal(aUrl, &body, /* isBlob */ false, aRv);
   }
 
@@ -1115,7 +1116,7 @@ Navigator::SendBeacon(const nsAString& aUrl,
   }
 
   if (aData.Value().IsURLSearchParams()) {
-    BodyExtractor<URLSearchParams> body(&aData.Value().GetAsURLSearchParams());
+    BodyExtractor<nsIXHRSendable> body(&aData.Value().GetAsURLSearchParams());
     return SendBeaconInternal(aUrl, &body, /* isBlob */ false, aRv);
   }
 
