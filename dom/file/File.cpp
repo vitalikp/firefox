@@ -443,9 +443,9 @@ File::CreateMemoryFile(nsISupports* aParent, void* aMemoryBuffer,
 }
 
 /* static */ already_AddRefed<File>
-File::CreateFromFile(nsISupports* aParent, nsIFile* aFile, bool aTemporary)
+File::CreateFromFile(nsISupports* aParent, nsIFile* aFile)
 {
-  RefPtr<File> file = new File(aParent, new BlobImplFile(aFile, aTemporary));
+  RefPtr<File> file = new File(aParent, new BlobImplFile(aFile));
   return file.forget();
 }
 
