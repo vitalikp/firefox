@@ -1290,13 +1290,6 @@ ContentChild::RecvReinitRendering(Endpoint<PCompositorBridgeChild>&& aCompositor
   return IPC_OK();
 }
 
-PBackgroundChild*
-ContentChild::AllocPBackgroundChild(Transport* aTransport,
-                                    ProcessId aOtherProcess)
-{
-  return BackgroundChild::Alloc(aTransport, aOtherProcess);
-}
-
 #if defined(XP_MACOSX) && defined(MOZ_CONTENT_SANDBOX)
 
 #include <stdlib.h>
