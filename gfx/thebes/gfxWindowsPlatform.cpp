@@ -463,7 +463,6 @@ gfxWindowsPlatform::HandleDeviceReset()
 
   InitializeDevices();
   UpdateANGLEConfig();
-  BumpDeviceCounter();
   return true;
 }
 

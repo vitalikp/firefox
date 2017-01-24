@@ -100,7 +100,6 @@ ClientLayerManager::ClientLayerManager(nsIWidget* aWidget)
   , mNeedsComposite(false)
   , mPaintSequenceNumber(0)
   , mForwarder(new ShadowLayerForwarder(this))
-  , mDeviceCounter(gfxPlatform::GetPlatform()->GetDeviceCounter())
 {
   MOZ_COUNT_CTOR(ClientLayerManager);
   mMemoryPressureObserver = new MemoryPressureObserver(this);
@@ -224,11 +223,6 @@ ClientLayerManager::BeginTransactionWithTarget(gfxContext* aTarget)
 
   NS_ASSERTION(!InTransaction(), "Nested transactions not allowed");
   mPhase = PHASE_CONSTRUCTION;
-
-  if (DependsOnStaleDevice()) {
-    FrameLayerBuilder::InvalidateAllLayers(this);
-    mDeviceCounter = gfxPlatform::GetPlatform()->GetDeviceCounter();
-  }
 
   MOZ_ASSERT(mKeepAlive.IsEmpty(), "uncommitted txn?");
 
@@ -849,13 +843,6 @@ ClientLayerManager::RemoveDidCompositeObserver(DidCompositeObserver* aObserver)
 {
   mDidCompositeObservers.RemoveElement(aObserver);
 }
-
-bool
-ClientLayerManager::DependsOnStaleDevice() const
-{
-  return gfxPlatform::GetPlatform()->GetDeviceCounter() != mDeviceCounter;
-}
-
 
 already_AddRefed<PersistentBufferProvider>
 ClientLayerManager::CreatePersistentBufferProvider(const gfx::IntSize& aSize,
