@@ -150,10 +150,6 @@ public:
 
   RefPtr<ContentBridgeParent> mLastBridge;
 
-  PPluginModuleParent *
-  AllocPPluginModuleParent(mozilla::ipc::Transport* transport,
-                           base::ProcessId otherProcess) override;
-
   PContentBridgeParent*
   AllocPContentBridgeParent(mozilla::ipc::Transport* transport,
                             base::ProcessId otherProcess) override;
