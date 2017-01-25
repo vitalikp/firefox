@@ -4203,6 +4203,21 @@ DisableForEach(JSContext* cx, unsigned argc, Value* vp)
     return true;
 }
 
+#if defined(FUZZING) && defined(__AFL_COMPILER)
+static bool
+AflLoop(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    uint32_t max_cnt;
+    if (!ToUint32(cx, args.get(0), &max_cnt))
+        return false;
+
+    args.rval().setBoolean(!!__AFL_LOOP(max_cnt));
+    return true;
+}
+#endif
+
 static bool
 TimeSinceCreation(JSContext* cx, unsigned argc, Value* vp)
 {
@@ -4761,6 +4776,12 @@ gc::ZealModeHelpText),
     JS_FN_HELP("disableForEach", DisableForEach, 0, 0,
 "disableForEach()",
 "  Disables the deprecated, non-standard for-each.\n"),
+
+#if defined(FUZZING) && defined(__AFL_COMPILER)
+    JS_FN_HELP("aflloop", AflLoop, 1, 0,
+"aflloop(max_cnt)",
+"  Call the __AFL_LOOP() runtime function (see AFL docs)\n"),
+#endif
 
     JS_FN_HELP("timeSinceCreation", TimeSinceCreation, 0, 0,
 "TimeSinceCreation()",

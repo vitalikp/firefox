@@ -1209,6 +1209,14 @@ class JS_PUBLIC_API(ContextOptions) {
         return *this;
     }
 
+#ifdef FUZZING
+    bool fuzzing() const { return fuzzing_; }
+    ContextOptions& setFuzzing(bool flag) {
+        fuzzing_ = flag;
+        return *this;
+    }
+#endif
+
   private:
     bool baseline_ : 1;
     bool ion_ : 1;
@@ -1225,6 +1233,10 @@ class JS_PUBLIC_API(ContextOptions) {
     bool strictMode_ : 1;
     bool extraWarnings_ : 1;
     bool forEachStatement_: 1;
+#ifdef FUZZING
+    bool fuzzing_ : 1;
+#endif
+
 };
 
 JS_PUBLIC_API(ContextOptions&)
