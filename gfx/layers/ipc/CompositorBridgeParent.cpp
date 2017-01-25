@@ -1258,14 +1258,6 @@ CompositorBridgeParent::RecvGetFrameUniformity(FrameUniformityData* aOutData)
   return IPC_OK();
 }
 
-mozilla::ipc::IPCResult
-CompositorBridgeParent::RecvRequestOverfill()
-{
-  uint32_t overfillRatio = mCompositor->GetFillRatio();
-  Unused << SendOverfill(overfillRatio);
-  return IPC_OK();
-}
-
 void
 CompositorBridgeParent::FlushApzRepaints(const LayerTransactionParent* aLayerTree)
 {
