@@ -26,6 +26,7 @@
 #include "mozilla/dom/CloseEvent.h"
 #include "mozilla/dom/CustomEvent.h"
 #include "mozilla/dom/DeviceOrientationEvent.h"
+#include "mozilla/dom/ErrorEvent.h"
 #include "mozilla/dom/EventTarget.h"
 #include "mozilla/dom/FocusEvent.h"
 #include "mozilla/dom/HashChangeEvent.h"
@@ -1153,6 +1154,13 @@ EventDispatcher::CreateEvent(EventTarget* aOwner,
     LOG_EVENT_CREATION(STORAGEEVENT);
     RefPtr<Event> event =
       StorageEvent::Constructor(aOwner, EmptyString(), StorageEventInit());
+    event->MarkUninitialized();
+    return event.forget();
+  }
+  if (aEventType.LowerCaseEqualsLiteral("errorevent")) {
+    LOG_EVENT_CREATION(ERROREVENT);
+    RefPtr<Event> event =
+      ErrorEvent::Constructor(aOwner, EmptyString(), ErrorEventInit());
     event->MarkUninitialized();
     return event.forget();
   }
