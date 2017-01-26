@@ -991,6 +991,7 @@ class WorkerPrivate : public WorkerPrivateParent<WorkerPrivate>
   uint32_t mDebuggerEventLoopLevel;
   RefPtr<ThrottledEventQueue> mMainThreadThrottledEventQueue;
   nsCOMPtr<nsIEventTarget> mMainThreadEventTarget;
+  RefPtr<WorkerControlEventTarget> mWorkerControlEventTarget;
 
   struct SyncLoopInfo
   {
