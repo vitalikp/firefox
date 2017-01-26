@@ -5211,6 +5211,12 @@ WorkerPrivate::DispatchToMainThread(already_AddRefed<nsIRunnable> aRunnable,
   return mMainThreadEventTarget->Dispatch(runnable.forget(), aFlags);
 }
 
+nsIEventTarget*
+WorkerPrivate::ControlEventTarget()
+{
+  return mWorkerControlEventTarget;
+}
+
 void
 WorkerPrivate::InitializeGCTimers()
 {
