@@ -444,8 +444,9 @@ HTMLTextAreaElement::ParseAttribute(int32_t aNamespaceID,
 
 void
 HTMLTextAreaElement::MapAttributesIntoRule(const nsMappedAttributes* aAttributes,
-                                           nsRuleData* aData)
+                                           GenericSpecifiedValues* aGenericData)
 {
+  nsRuleData* aData = aGenericData->AsRuleData();
   if (aData->mSIDs & NS_STYLE_INHERIT_BIT(Text)) {
     // wrap=off
     nsCSSValue* whiteSpace = aData->ValueForWhiteSpace();
@@ -458,8 +459,8 @@ HTMLTextAreaElement::MapAttributesIntoRule(const nsMappedAttributes* aAttributes
     }
   }
 
-  nsGenericHTMLFormElementWithState::MapDivAlignAttributeInto(aAttributes, aData);
-  nsGenericHTMLFormElementWithState::MapCommonAttributesInto(aAttributes, aData);
+  nsGenericHTMLFormElementWithState::MapDivAlignAttributeInto(aAttributes, aGenericData);
+  nsGenericHTMLFormElementWithState::MapCommonAttributesInto(aAttributes, aGenericData);
 }
 
 nsChangeHint
