@@ -857,16 +857,6 @@ LegacyIntlInitialize(JSContext* cx, HandleObject obj, Handle<PropertyName*> init
     return true;
 }
 
-static bool
-CreateDefaultOptions(JSContext* cx, MutableHandleValue defaultOptions)
-{
-    RootedObject options(cx, NewObjectWithGivenProto<PlainObject>(cx, nullptr));
-    if (!options)
-        return false;
-    defaultOptions.setObject(*options);
-    return true;
-}
-
 // CountAvailable and GetAvailable describe the signatures used for ICU API
 // to determine available locales for various functionality.
 typedef int32_t
@@ -1122,12 +1112,9 @@ CreateCollatorPrototype(JSContext* cx, HandleObject Intl, Handle<GlobalObject*> 
     if (!ctor)
         return nullptr;
 
-    Rooted<CollatorObject*> proto(cx);
-    proto = GlobalObject::createBlankPrototype<CollatorObject>(cx, global);
+    RootedObject proto(cx, GlobalObject::createBlankPrototype<PlainObject>(cx, global));
     if (!proto)
         return nullptr;
-    proto->setReservedSlot(CollatorObject::INTERNALS_SLOT, NullValue());
-    proto->setReservedSlot(CollatorObject::UCOLLATOR_SLOT, PrivateValue(nullptr));
 
     if (!LinkConstructorAndPrototype(cx, ctor, proto))
         return nullptr;
@@ -1142,14 +1129,6 @@ CreateCollatorPrototype(JSContext* cx, HandleObject Intl, Handle<GlobalObject*> 
 
     // 10.3.2 and 10.3.3
     if (!JS_DefineProperties(cx, proto, collator_properties))
-        return nullptr;
-
-    RootedValue options(cx);
-    if (!CreateDefaultOptions(cx, &options))
-        return nullptr;
-
-    // 10.2.1 and 10.3
-    if (!IntlInitialize(cx, proto, cx->names().InitializeCollator, UndefinedHandleValue, options))
         return nullptr;
 
     // 8.1
@@ -1569,12 +1548,9 @@ CreateNumberFormatPrototype(JSContext* cx, HandleObject Intl, Handle<GlobalObjec
     if (!ctor)
         return nullptr;
 
-    RootedNativeObject proto(cx);
-    proto = GlobalObject::createBlankPrototype<NumberFormatObject>(cx, global);
+    RootedObject proto(cx, GlobalObject::createBlankPrototype<PlainObject>(cx, global));
     if (!proto)
         return nullptr;
-    proto->setReservedSlot(NumberFormatObject::INTERNALS_SLOT, NullValue());
-    proto->setReservedSlot(NumberFormatObject::UNUMBER_FORMAT_SLOT, PrivateValue(nullptr));
 
     if (!LinkConstructorAndPrototype(cx, ctor, proto))
         return nullptr;
@@ -1608,19 +1584,6 @@ CreateNumberFormatPrototype(JSContext* cx, HandleObject Intl, Handle<GlobalObjec
             return nullptr;
     }
 #endif // defined(ICU_UNUM_HAS_FORMATDOUBLEFORFIELDS)
-
-    RootedValue options(cx);
-    if (!CreateDefaultOptions(cx, &options))
-        return nullptr;
-
-    // 11.2.1 and 11.3
-    RootedValue thisOrResult(cx, ObjectValue(*proto));
-    if (!LegacyIntlInitialize(cx, proto, cx->names().InitializeNumberFormat, thisOrResult,
-                              UndefinedHandleValue, options, &thisOrResult))
-    {
-        return nullptr;
-    }
-    MOZ_ASSERT(&thisOrResult.toObject() == proto);
 
     // 8.1
     RootedValue ctorValue(cx, ObjectValue(*ctor));
@@ -2481,12 +2444,9 @@ CreateDateTimeFormatPrototype(JSContext* cx, HandleObject Intl, Handle<GlobalObj
     if (!ctor)
         return nullptr;
 
-    Rooted<DateTimeFormatObject*> proto(cx);
-    proto = GlobalObject::createBlankPrototype<DateTimeFormatObject>(cx, global);
+    RootedObject proto(cx, GlobalObject::createBlankPrototype<PlainObject>(cx, global));
     if (!proto)
         return nullptr;
-    proto->setReservedSlot(DateTimeFormatObject::INTERNALS_SLOT, NullValue());
-    proto->setReservedSlot(DateTimeFormatObject::UDATE_FORMAT_SLOT, PrivateValue(nullptr));
 
     if (!LinkConstructorAndPrototype(cx, ctor, proto))
         return nullptr;
@@ -2502,19 +2462,6 @@ CreateDateTimeFormatPrototype(JSContext* cx, HandleObject Intl, Handle<GlobalObj
     // 12.4.2 and 12.4.3
     if (!JS_DefineProperties(cx, proto, dateTimeFormat_properties))
         return nullptr;
-
-    RootedValue options(cx);
-    if (!CreateDefaultOptions(cx, &options))
-        return nullptr;
-
-    // 12.2.1 and 12.3
-    RootedValue thisOrResult(cx, ObjectValue(*proto));
-    if (!LegacyIntlInitialize(cx, proto, cx->names().InitializeDateTimeFormat, thisOrResult,
-                              UndefinedHandleValue, options, &thisOrResult))
-    {
-        return nullptr;
-    }
-    MOZ_ASSERT(&thisOrResult.toObject() == proto);
 
     // 8.1
     RootedValue ctorValue(cx, ObjectValue(*ctor));
@@ -3448,12 +3395,9 @@ CreatePluralRulesPrototype(JSContext* cx, HandleObject Intl, Handle<GlobalObject
     if (!ctor)
         return nullptr;
 
-    Rooted<PluralRulesObject*> proto(cx);
-    proto = GlobalObject::createBlankPrototype<PluralRulesObject>(cx, global);
+    RootedObject proto(cx, GlobalObject::createBlankPrototype<PlainObject>(cx, global));
     if (!proto)
         return nullptr;
-    proto->setReservedSlot(PluralRulesObject::INTERNALS_SLOT, NullValue());
-    proto->setReservedSlot(PluralRulesObject::UPLURAL_RULES_SLOT, PrivateValue(nullptr));
 
     if (!LinkConstructorAndPrototype(cx, ctor, proto))
         return nullptr;
@@ -3463,16 +3407,6 @@ CreatePluralRulesPrototype(JSContext* cx, HandleObject Intl, Handle<GlobalObject
 
     if (!JS_DefineFunctions(cx, proto, pluralRules_methods))
         return nullptr;
-
-    RootedValue options(cx);
-    if (!CreateDefaultOptions(cx, &options))
-        return nullptr;
-
-    if (!IntlInitialize(cx, proto, cx->names().InitializePluralRules, UndefinedHandleValue,
-                        options))
-    {
-        return nullptr;
-    }
 
     RootedValue ctorValue(cx, ObjectValue(*ctor));
     if (!DefineProperty(cx, Intl, cx->names().PluralRules, ctorValue, nullptr, nullptr, 0))
