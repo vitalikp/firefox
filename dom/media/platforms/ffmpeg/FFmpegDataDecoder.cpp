@@ -21,16 +21,13 @@ namespace mozilla
 
 StaticMutex FFmpegDataDecoder::sMonitor;
 
-  FFmpegDataDecoder::FFmpegDataDecoder(TaskQueue* aTaskQueue,
-                                       MediaDataDecoderCallback* aCallback,
-                                       AVCodecID aCodecID)
-  : mCallback(aCallback)
-  , mCodecContext(nullptr)
+FFmpegDataDecoder::FFmpegDataDecoder(TaskQueue* aTaskQueue,
+                                     AVCodecID aCodecID)
+  : mCodecContext(nullptr)
   , mFrame(NULL)
   , mExtraData(nullptr)
   , mCodecID(aCodecID)
   , mTaskQueue(aTaskQueue)
-  , mIsFlushing(false)
 {
   MOZ_ASSERT(aLib);
   MOZ_COUNT_CTOR(FFmpegDataDecoder);
@@ -88,67 +85,49 @@ FFmpegDataDecoder::InitDecoder()
   return NS_OK;
 }
 
-void
+RefPtr<ShutdownPromise>
 FFmpegDataDecoder::Shutdown()
 {
   if (mTaskQueue) {
-    nsCOMPtr<nsIRunnable> runnable =
-      NewRunnableMethod(this, &FFmpegDataDecoder::ProcessShutdown);
-    mTaskQueue->Dispatch(runnable.forget());
-  } else {
-    ProcessShutdown();
+    RefPtr<FFmpegDataDecoder> self = this;
+    return InvokeAsync(mTaskQueue, __func__, [self, this]() {
+      ProcessShutdown();
+      return ShutdownPromise::CreateAndResolve(true, __func__);
+    });
   }
+  ProcessShutdown();
+  return ShutdownPromise::CreateAndResolve(true, __func__);
 }
 
-void
-FFmpegDataDecoder::ProcessDecode(MediaRawData* aSample)
+RefPtr<MediaDataDecoder::DecodePromise>
+FFmpegDataDecoder::Decode(MediaRawData* aSample)
 {
-  MOZ_ASSERT(mTaskQueue->IsCurrentThreadIn());
-  if (mIsFlushing) {
-    return;
-  }
-  MediaResult rv = DoDecode(aSample);
-  if (NS_FAILED(rv)) {
-    mCallback->Error(rv);
-  } else {
-    mCallback->InputExhausted();
-  }
+  return InvokeAsync<MediaRawData*>(mTaskQueue, this, __func__,
+                                    &FFmpegDataDecoder::ProcessDecode, aSample);
 }
 
-void
-FFmpegDataDecoder::Input(MediaRawData* aSample)
-{
-  mTaskQueue->Dispatch(NewRunnableMethod<RefPtr<MediaRawData>>(
-    this, &FFmpegDataDecoder::ProcessDecode, aSample));
-}
-
-void
+RefPtr<MediaDataDecoder::FlushPromise>
 FFmpegDataDecoder::Flush()
 {
-  MOZ_ASSERT(mCallback->OnReaderTaskQueue());
-  mIsFlushing = true;
-  nsCOMPtr<nsIRunnable> runnable =
-    NewRunnableMethod(this, &FFmpegDataDecoder::ProcessFlush);
-  SyncRunnable::DispatchToThread(mTaskQueue, runnable);
-  mIsFlushing = false;
+  return InvokeAsync(mTaskQueue, this, __func__,
+                     &FFmpegDataDecoder::ProcessFlush);
 }
 
-void
+RefPtr<MediaDataDecoder::DecodePromise>
 FFmpegDataDecoder::Drain()
 {
-  MOZ_ASSERT(mCallback->OnReaderTaskQueue());
-  nsCOMPtr<nsIRunnable> runnable =
-    NewRunnableMethod(this, &FFmpegDataDecoder::ProcessDrain);
-  mTaskQueue->Dispatch(runnable.forget());
+  return InvokeAsync(mTaskQueue, this, __func__,
+                     &FFmpegDataDecoder::ProcessDrain);
 }
 
-void
+RefPtr<MediaDataDecoder::FlushPromise>
 FFmpegDataDecoder::ProcessFlush()
 {
   MOZ_ASSERT(mTaskQueue->IsCurrentThreadIn());
   if (mCodecContext) {
     avcodec_flush_buffers(mCodecContext);
   }
+  return FlushPromise::CreateAndResolve(true, __func__);
 }
 
 void

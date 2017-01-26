@@ -102,9 +102,8 @@ FFmpegVideoDecoder::PtsCorrectionContext::Reset()
 }
 
 FFmpegVideoDecoder::FFmpegVideoDecoder(TaskQueue* aTaskQueue,
-  MediaDataDecoderCallback* aCallback, const VideoInfo& aConfig,
-  ImageContainer* aImageContainer)
-  : FFmpegDataDecoder(aTaskQueue, aCallback, GetCodecId(aConfig.mMimeType))
+  const VideoInfo& aConfig, ImageContainer* aImageContainer)
+  : FFmpegDataDecoder(aTaskQueue, GetCodecId(aConfig.mMimeType))
   , mImageContainer(aImageContainer)
   , mInfo(aConfig)
   , mCodecParser(nullptr)
@@ -160,15 +159,21 @@ FFmpegVideoDecoder::InitCodecContext()
   }
 }
 
-MediaResult
-FFmpegVideoDecoder::DoDecode(MediaRawData* aSample)
+RefPtr<MediaDataDecoder::DecodePromise>
+FFmpegVideoDecoder::ProcessDecode(MediaRawData* aSample)
 {
   bool gotFrame = false;
-  return DoDecode(aSample, &gotFrame);
+  DecodedData results;
+  MediaResult rv = DoDecode(aSample, &gotFrame, results);
+  if (NS_FAILED(rv)) {
+    return DecodePromise::CreateAndReject(rv, __func__);
+  }
+  return DecodePromise::CreateAndResolve(Move(results), __func__);
 }
 
 MediaResult
-FFmpegVideoDecoder::DoDecode(MediaRawData* aSample, bool* aGotFrame)
+FFmpegVideoDecoder::DoDecode(MediaRawData* aSample, bool* aGotFrame,
+                                        MediaDataDecoder::DecodedData& aResults)
 {
   uint8_t* inputData = const_cast<uint8_t*>(aSample->Data());
   size_t inputSize = aSample->Size();
@@ -193,7 +198,7 @@ FFmpegVideoDecoder::DoDecode(MediaRawData* aSample, bool* aGotFrame)
       inputSize -= len;
       if (size) {
         bool gotFrame = false;
-        MediaResult rv = DoDecode(aSample, data, size, &gotFrame);
+        MediaResult rv = DoDecode(aSample, data, size, &gotFrame, aResults);
         if (NS_FAILED(rv)) {
           return rv;
         }
@@ -205,13 +210,14 @@ FFmpegVideoDecoder::DoDecode(MediaRawData* aSample, bool* aGotFrame)
     return NS_OK;
   }
 #endif
-  return DoDecode(aSample, inputData, inputSize, aGotFrame);
+  return DoDecode(aSample, inputData, inputSize, aGotFrame, aResults);
 }
 
 MediaResult
 FFmpegVideoDecoder::DoDecode(MediaRawData* aSample,
                                         uint8_t* aData, int aSize,
-                                        bool* aGotFrame)
+                                        bool* aGotFrame,
+                                        MediaDataDecoder::DecodedData& aResults)
 {
   AVPacket packet;
   av_init_packet(&packet);
@@ -329,29 +335,31 @@ FFmpegVideoDecoder::DoDecode(MediaRawData* aSample,
     return MediaResult(NS_ERROR_OUT_OF_MEMORY,
                        RESULT_DETAIL("image allocation error"));
   }
-  mCallback->Output(v);
+  aResults.AppendElement(Move(v));
   if (aGotFrame) {
     *aGotFrame = true;
   }
   return NS_OK;
 }
 
-void
+RefPtr<MediaDataDecoder::DecodePromise>
 FFmpegVideoDecoder::ProcessDrain()
 {
   RefPtr<MediaRawData> empty(new MediaRawData());
   empty->mTimecode = mLastInputDts;
   bool gotFrame = false;
-  while (NS_SUCCEEDED(DoDecode(empty, &gotFrame)) && gotFrame);
-  mCallback->DrainComplete();
+  DecodedData results;
+  while (NS_SUCCEEDED(DoDecode(empty, &gotFrame, results)) && gotFrame) {
+  }
+  return DecodePromise::CreateAndResolve(Move(results), __func__);
 }
 
-void
+RefPtr<MediaDataDecoder::FlushPromise>
 FFmpegVideoDecoder::ProcessFlush()
 {
   mPtsContext.Reset();
   mDurationMap.Clear();
-  FFmpegDataDecoder::ProcessFlush();
+  return FFmpegDataDecoder::ProcessFlush();
 }
 
 FFmpegVideoDecoder::~FFmpegVideoDecoder()

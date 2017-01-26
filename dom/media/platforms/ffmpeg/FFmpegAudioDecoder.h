@@ -16,7 +16,6 @@ class FFmpegAudioDecoder : public FFmpegDataDecoder
 {
 public:
   FFmpegAudioDecoder(TaskQueue* aTaskQueue,
-                     MediaDataDecoderCallback* aCallback,
                      const AudioInfo& aConfig);
   virtual ~FFmpegAudioDecoder();
 
@@ -29,8 +28,8 @@ public:
   }
 
 private:
-  MediaResult DoDecode(MediaRawData* aSample) override;
-  void ProcessDrain() override;
+  RefPtr<DecodePromise> ProcessDecode(MediaRawData* aSample) override;
+  RefPtr<DecodePromise> ProcessDrain() override;
 };
 
 } // namespace mozilla

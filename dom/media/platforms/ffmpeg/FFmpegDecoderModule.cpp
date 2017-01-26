@@ -36,7 +36,6 @@ FFmpegDecoderModule::CreateVideoDecoder(const CreateDecoderParams& aParams)
   }
   RefPtr<MediaDataDecoder> decoder =
     new FFmpegVideoDecoder(aParams.mTaskQueue,
-                           aParams.mCallback,
                            aParams.VideoConfig(),
                            aParams.mImageContainer);
   return decoder.forget();
@@ -47,7 +46,6 @@ FFmpegDecoderModule::CreateAudioDecoder(const CreateDecoderParams& aParams)
 {
   RefPtr<MediaDataDecoder> decoder =
     new FFmpegAudioDecoder(aParams.mTaskQueue,
-                           aParams.mCallback,
                            aParams.AudioConfig());
   return decoder.forget();
 }
