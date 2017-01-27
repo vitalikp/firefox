@@ -14,16 +14,17 @@
 #include "mozilla/Assertions.h"
 #include "mozilla/Telemetry.h"
 #include "mozilla/TimeStamp.h"
+#include "mozilla/dom/MemoryReportRequest.h"
+#include "mozilla/dom/VideoDecoderManagerChild.h"
+#include "mozilla/dom/VideoDecoderManagerParent.h"
 #include "mozilla/gfx/2D.h"
 #include "mozilla/gfx/gfxVars.h"
 #include "mozilla/ipc/ProcessChild.h"
 #include "mozilla/layers/APZThreadUtils.h"
 #include "mozilla/layers/APZCTreeManager.h"
 #include "mozilla/layers/CompositorBridgeParent.h"
-#include "mozilla/dom/VideoDecoderManagerParent.h"
 #include "mozilla/layers/CompositorThread.h"
 #include "mozilla/layers/ImageBridgeParent.h"
-#include "mozilla/dom/VideoDecoderManagerChild.h"
 #include "mozilla/layers/LayerTreeOwnerTracker.h"
 #include "mozilla/layers/UiCompositorControllerParent.h"
 #include "nsDebugImpl.h"
@@ -34,6 +35,7 @@
 #if defined(XP_WIN)
 # include "DeviceManagerD3D9.h"
 # include "mozilla/gfx/DeviceManagerDx.h"
+# include <process.h>
 #endif
 #ifdef MOZ_WIDGET_GTK
 # include <gtk/gtk.h>
@@ -343,6 +345,19 @@ GPUParent::RecvNotifyGpuObservers(const nsCString& aTopic)
   if (obsSvc) {
     obsSvc->NotifyObservers(nullptr, aTopic.get(), nullptr);
   }
+  return IPC_OK();
+}
+
+mozilla::ipc::IPCResult
+GPUParent::RecvRequestMemoryReport(const uint32_t& aGeneration,
+                                   const bool& aAnonymize,
+                                   const bool& aMinimizeMemoryUsage,
+                                   const MaybeFileDesc& aDMDFile)
+{
+  nsPrintfCString processName("GPU (pid %u)", (unsigned)getpid());
+
+  mozilla::dom::MemoryReportRequestClient::Start(
+    aGeneration, aAnonymize, aMinimizeMemoryUsage, aDMDFile, processName);
   return IPC_OK();
 }
 
