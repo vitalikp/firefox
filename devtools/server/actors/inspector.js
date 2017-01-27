@@ -1804,7 +1804,7 @@ var WalkerActor = protocol.ActorClassWithSpec(walkerSpec, {
     if (!this.installedHelpers) {
       this.installedHelpers = new WeakMap();
     }
-    let win = node.rawNode.ownerDocument.defaultView;
+    let win = node.rawNode.ownerGlobal;
     if (!this.installedHelpers.has(win)) {
       let { Style } = require("sdk/stylesheet/style");
       let { attach } = require("sdk/content/mod");
@@ -3102,7 +3102,7 @@ function nodeHasSize(node) {
  * fails to load or the load takes too long, the promise is rejected.
  */
 function ensureImageLoaded(image, timeout) {
-  let { HTMLImageElement } = image.ownerDocument.defaultView;
+  let { HTMLImageElement } = image.ownerGlobal;
   if (!(image instanceof HTMLImageElement)) {
     return promise.reject("image must be an HTMLImageELement");
   }
@@ -3157,7 +3157,7 @@ function ensureImageLoaded(image, timeout) {
  * If something goes wrong, the promise is rejected.
  */
 var imageToImageData = Task.async(function* (node, maxDim) {
-  let { HTMLCanvasElement, HTMLImageElement } = node.ownerDocument.defaultView;
+  let { HTMLCanvasElement, HTMLImageElement } = node.ownerGlobal;
 
   let isImg = node instanceof HTMLImageElement;
   let isCanvas = node instanceof HTMLCanvasElement;

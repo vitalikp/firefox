@@ -10,12 +10,12 @@ this.EXPORTED_SYMBOLS = [ "WindowDraggingElement" ];
 
 this.WindowDraggingElement = function WindowDraggingElement(elem) {
   this._elem = elem;
-  this._window = elem.ownerDocument.defaultView;
+  this._window = elem.ownerGlobal;
   if (HAVE_CSS_WINDOW_DRAG_SUPPORT && !this.isPanel()) {
     return;
   }
 
-  this._elem.addEventListener("mousedown", this, false);
+  this._elem.addEventListener("mousedown", this);
 };
 
 WindowDraggingElement.prototype = {
@@ -33,7 +33,7 @@ WindowDraggingElement.prototype = {
     let target = aEvent.originalTarget, parent = aEvent.originalTarget;
 
     // The target may be inside an embedded iframe or browser. (bug 615152)
-    if (target.ownerDocument.defaultView != this._window)
+    if (target.ownerGlobal != this._window)
       return false;
 
     while (parent != this._elem) {
