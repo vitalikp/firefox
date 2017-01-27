@@ -219,7 +219,8 @@ class SamplerThread
     sample->timestamp = mozilla::TimeStamp::Now();
     sample->threadProfile = thread_profile;
 
-    if (isFirstProfiledThread && Sampler::GetActiveSampler()->ProfileMemory()) {
+    // XXX: this is an off-main-thread use of gSampler
+    if (isFirstProfiledThread && gSampler->ProfileMemory()) {
       sample->rssMemory = nsMemoryReporterManager::ResidentFast();
     } else {
       sample->rssMemory = 0;

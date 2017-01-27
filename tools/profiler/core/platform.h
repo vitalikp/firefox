@@ -302,9 +302,6 @@ class Sampler {
   // Should only be called on shutdown
   static void Shutdown();
 
-  static GeckoSampler* GetActiveSampler() { return sActiveSampler; }
-  static void SetActiveSampler(GeckoSampler* sampler) { sActiveSampler = sampler; }
-
   static mozilla::UniquePtr<mozilla::Mutex> sRegisteredThreadsMutex;
 
   static bool CanNotifyObservers() {
@@ -322,7 +319,6 @@ class Sampler {
 
  protected:
   static std::vector<ThreadInfo*>* sRegisteredThreads;
-  static GeckoSampler* sActiveSampler;
 
  private:
   void SetActive(bool value) { NoBarrier_Store(&active_, value); }
