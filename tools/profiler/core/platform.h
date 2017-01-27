@@ -303,9 +303,6 @@ public:
   // xxxehsan sucky hack :(
   static uintptr_t GetThreadHandle(PlatformData*);
 #endif
-#ifdef XP_MACOSX
-  static pthread_t GetProfiledThread(PlatformData*);
-#endif
 
   static const std::vector<ThreadInfo*>& GetRegisteredThreads() {
     return *sRegisteredThreads;
