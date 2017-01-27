@@ -18,12 +18,17 @@ XPCOMUtils.defineLazyModuleGetter(this, "NetUtil",
 XPCOMUtils.defineLazyServiceGetter(this, "serializationHelper",
                                    "@mozilla.org/network/serialization-helper;1",
                                    "nsISerializationHelper");
+XPCOMUtils.defineLazyGetter(this, "SERIALIZED_SYSTEMPRINCIPAL", function() {
+  return Utils.serializePrincipal(Services.scriptSecurityManager.getSystemPrincipal());
+});
 
 function debug(msg) {
   Services.console.logStringMessage("Utils: " + msg);
 }
 
 this.Utils = Object.freeze({
+  get SERIALIZED_SYSTEMPRINCIPAL() { return SERIALIZED_SYSTEMPRINCIPAL; },
+
   makeURI(url) {
     return Services.io.newURI(url);
   },
