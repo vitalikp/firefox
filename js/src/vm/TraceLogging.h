@@ -211,6 +211,8 @@ class TraceLoggerThread
     bool disable(bool force = false, const char* = "");
     bool enabled() { return enabled_ > 0; }
 
+    void silentFail(const char* error);
+
   private:
     bool fail(JSContext* cx, const char* error);
 
@@ -418,6 +420,12 @@ inline bool TraceLoggerDisable(TraceLoggerThread* logger) {
         return logger->disable();
 #endif
     return false;
+}
+inline void TraceLoggerSilentFail(TraceLoggerThread* logger, const char* error) {
+#ifdef JS_TRACE_LOGGING
+    if (logger)
+        logger->silentFail(error);
+#endif
 }
 
 #ifdef JS_TRACE_LOGGING
