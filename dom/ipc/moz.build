@@ -70,6 +70,7 @@ SOURCES += [
 
 IPDL_SOURCES += [
     'DOMTypes.ipdlh',
+    'MemoryReportTypes.ipdlh',
     'PBrowser.ipdl',
     'PBrowserOrId.ipdlh',
     'PColorPicker.ipdl',
@@ -80,7 +81,6 @@ IPDL_SOURCES += [
     'PCycleCollectWithLogs.ipdl',
     'PDatePicker.ipdl',
     'PFilePicker.ipdl',
-    'PMemoryReportRequest.ipdl',
     'PPluginWidget.ipdl',
     'PProcessHangMonitor.ipdl',
     'PScreenManager.ipdl',
