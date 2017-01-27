@@ -4,6 +4,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+XPIDL_SOURCES += [
+    'nsIScriptError.idl'
+]
+
+XPIDL_MODULE = 'dom_bindings'
+
 EXPORTS.ipc += [
     'ErrorIPCUtils.h',
 ]
@@ -92,6 +98,8 @@ UNIFIED_SOURCES += [
     'DOMJSProxyHandler.cpp',
     'Exceptions.cpp',
     'IterableIterator.cpp',
+    'nsScriptError.cpp',
+    'nsScriptErrorWithStack.cpp',
     'SimpleGlobalObject.cpp',
     'ToJSValue.cpp',
     'WebIDLGlobalNameHash.cpp',
