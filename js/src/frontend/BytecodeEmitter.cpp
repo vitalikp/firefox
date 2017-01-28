@@ -2714,6 +2714,9 @@ NonLocalExitControl::prepareForNonLocalJump(BytecodeEmitter::NestableControl* ta
         }
     }
 
+    if (!flushPops(bce_))
+        return false;
+
     if (target && target->is<ForOfLoopControl>() && emitIteratorCloseAtTarget) {
         hasForOfLoopsWithIteratorClose = true;
         if (!target->as<ForOfLoopControl>().finishIterCloseTryNote(bce_))
@@ -2734,9 +2737,6 @@ NonLocalExitControl::prepareForNonLocalJump(BytecodeEmitter::NestableControl* ta
         if (!leaveScope(es))
             return false;
     }
-
-    if (!flushPops(bce_))
-        return false;
 
     // See comment in ForOfLoopControl.
     if (hasForOfLoopsWithIteratorClose) {
