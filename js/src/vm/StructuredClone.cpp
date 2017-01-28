@@ -40,6 +40,7 @@
 #include "jsdate.h"
 #include "jswrapper.h"
 
+#include "builtin/DataViewObject.h"
 #include "builtin/MapObject.h"
 #include "js/Date.h"
 #include "js/GCHashTable.h"
