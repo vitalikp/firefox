@@ -99,7 +99,6 @@
 #include <intrin.h>
 #include <math.h>
 #include "cairo/cairo-features.h"
-#include "mozilla/WindowsVersion.h"
 #include "mozilla/WindowsDllBlocklist.h"
 #include "mozilla/mscom/MainThreadRuntime.h"
 #include "mozilla/widget/AudioSession.h"
@@ -2860,9 +2859,7 @@ XREMain::XRE_mainInit(bool* aExitFlag)
     // dwrite library and create a factory as early as possible so that the
     // FntCache service is ready by the time it's needed.
 
-    if (IsVistaOrLater()) {
-      CreateThread(nullptr, 0, &InitDwriteBG, nullptr, 0, nullptr);
-    }
+    CreateThread(nullptr, 0, &InitDwriteBG, nullptr, 0, nullptr);
   }
 #endif
 
@@ -4318,7 +4315,7 @@ enum {
   kE10sDisabledForAddons = 7,
   kE10sForceDisabled = 8,
   // kE10sDisabledForXPAcceleration = 9, removed in bug 1296353
-  kE10sDisabledForOperatingSystem = 10,
+  // kE10sDisabledForOperatingSystem = 10, removed due to xp-eol
 };
 
 const char* kAccessibilityLastRunDatePref = "accessibility.lastLoadDate";
@@ -4353,54 +4350,6 @@ MultiprocessBlockPolicy() {
     gMultiprocessBlockPolicy = kE10sDisabledForAddons;
     return gMultiprocessBlockPolicy;
   }
-
-#if defined(XP_WIN)
-  bool disabledForA11y = false;
-  /**
-    * Avoids enabling e10s if accessibility has recently loaded. Performs the
-    * following checks:
-    * 1) Checks a pref indicating if a11y loaded in the last session. This pref
-    * is set in nsBrowserGlue.js. If a11y was loaded in the last session we
-    * do not enable e10s in this session.
-    * 2) Accessibility stores a last run date (PR_IntervalNow) when it is
-    * initialized (see nsBaseWidget.cpp). We check if this pref exists and
-    * compare it to now. If a11y hasn't run in an extended period of time or
-    * if the date pref does not exist we load e10s.
-    */
-  disabledForA11y = Preferences::GetBool(kAccessibilityLoadedLastSessionPref, false);
-  if (!disabledForA11y  &&
-      Preferences::HasUserValue(kAccessibilityLastRunDatePref)) {
-    #define ONE_WEEK_IN_SECONDS (60*60*24*7)
-    uint32_t a11yRunDate = Preferences::GetInt(kAccessibilityLastRunDatePref, 0);
-    MOZ_ASSERT(0 != a11yRunDate);
-    // If a11y hasn't run for a period of time, clear the pref and load e10s
-    uint32_t now = PRTimeToSeconds(PR_Now());
-    uint32_t difference = now - a11yRunDate;
-    if (difference > ONE_WEEK_IN_SECONDS || !a11yRunDate) {
-      Preferences::ClearUser(kAccessibilityLastRunDatePref);
-    } else {
-      disabledForA11y = true;
-    }
-  }
-
-  if (disabledForA11y) {
-    gMultiprocessBlockPolicy = kE10sDisabledForAccessibility;
-    return gMultiprocessBlockPolicy;
-  }
-#endif
-
-  /**
-   * Avoids enabling e10s for Windows XP users on the release channel.
-   */
-#if defined(XP_WIN)
-  if (!IsVistaOrLater()) {
-    nsAdoptingCString channelName = Preferences::GetDefaultCString("app.update.channel");
-    if (channelName.EqualsLiteral("release") || channelName.EqualsLiteral("esr")) {
-      gMultiprocessBlockPolicy = kE10sDisabledForOperatingSystem;
-      return gMultiprocessBlockPolicy;
-    }
-  }
-#endif // XP_WIN
 
   /*
    * None of the blocking policies matched, so e10s is allowed to run.
