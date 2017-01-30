@@ -195,10 +195,7 @@
 #include "mozilla/StyleSheet.h"
 #include "mozilla/StyleSheetInlines.h"
 #include "mozilla/dom/ImageTracker.h"
-
-#ifdef ANDROID
 #include "nsIDocShellTreeOwner.h"
-#endif
 
 #ifdef MOZ_B2G
 #include "nsIHardwareKeyHandler.h"
@@ -6417,6 +6414,10 @@ PresShell::Paint(nsView*        aViewToPaint,
 {
 #ifdef MOZ_GECKO_PROFILER
   nsIURI* uri = mDocument->GetDocumentURI();
+  nsIDocument* contentRoot = GetPrimaryContentDocument();
+  if (contentRoot) {
+    uri = contentRoot->GetDocumentURI();
+  }
   PROFILER_LABEL_PRINTF("PresShell", "Paint",
     js::ProfileEntry::Category::GRAPHICS, "(%s)",
     uri ? uri->GetSpecOrDefault().get() : "N/A");
@@ -7284,7 +7285,7 @@ PresShell::HandleEvent(nsIFrame* aFrame,
     } else if ((aEvent->mClass == eTouchEventClass) ||
                (aEvent->mClass == eMouseEventClass) ||
                (aEvent->mClass == eWheelEventClass)) {
-      retargetEventDoc = GetTouchEventTargetDocument();
+      retargetEventDoc = GetPrimaryContentDocument();
 #endif
     }
 
@@ -7851,9 +7852,8 @@ PresShell::HandleEvent(nsIFrame* aFrame,
   return rv;
 }
 
-#ifdef ANDROID
 nsIDocument*
-PresShell::GetTouchEventTargetDocument()
+PresShell::GetPrimaryContentDocument()
 {
   nsPresContext* context = GetPresContext();
   if (!context || !context->IsRoot()) {
@@ -7881,7 +7881,6 @@ PresShell::GetTouchEventTargetDocument()
 
   return childDocShell->GetDocument();
 }
-#endif
 
 #ifdef DEBUG
 void
