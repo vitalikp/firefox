@@ -116,6 +116,9 @@ struct SignedCertificateTimestamp
 
 inline pkix::Result BufferToInput(const Buffer& buffer, pkix::Input& input)
 {
+  if (buffer.length() == 0) {
+    return pkix::Result::FATAL_ERROR_LIBRARY_FAILURE;
+  }
   return input.Init(buffer.begin(), buffer.length());
 }
 
