@@ -30,6 +30,5 @@ DevToolsModules(
     'sort-predicates.js',
     'statistics-view.js',
     'store.js',
-    'toolbar-view.js',
     'waterfall-background.js',
 )
