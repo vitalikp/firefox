@@ -374,6 +374,11 @@ class LexicalScope : public Scope
         return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
     }
 
+    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
+        *names = data->names;
+        *length = data->length;
+    }
+
     static LexicalScope* create(ExclusiveContext* cx, ScopeKind kind, Handle<Data*> data,
                                 uint32_t firstFrameSlot, HandleScope enclosing);
 
@@ -490,6 +495,11 @@ class FunctionScope : public Scope
         return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
     }
 
+    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
+        *names = data->names;
+        *length = data->length;
+    }
+
     static FunctionScope* create(ExclusiveContext* cx, Handle<Data*> data,
                                  bool hasParameterExprs, bool needsEnvironment,
                                  HandleFunction fun, HandleScope enclosing);
@@ -584,6 +594,11 @@ class VarScope : public Scope
         return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
     }
 
+    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
+        *names = data->names;
+        *length = data->length;
+    }
+
     static VarScope* create(ExclusiveContext* cx, ScopeKind kind, Handle<Data*> data,
                             uint32_t firstFrameSlot, bool needsEnvironment,
                             HandleScope enclosing);
@@ -671,6 +686,11 @@ class GlobalScope : public Scope
 
     static size_t sizeOfData(uint32_t length) {
         return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
+    }
+
+    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
+        *names = data->names;
+        *length = data->length;
     }
 
     static GlobalScope* create(ExclusiveContext* cx, ScopeKind kind, Handle<Data*> data);
@@ -773,6 +793,11 @@ class EvalScope : public Scope
         return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
     }
 
+    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
+        *names = data->names;
+        *length = data->length;
+    }
+
     static EvalScope* create(ExclusiveContext* cx, ScopeKind kind, Handle<Data*> data,
                              HandleScope enclosing);
 
@@ -872,6 +897,11 @@ class ModuleScope : public Scope
 
     static size_t sizeOfData(uint32_t length) {
         return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
+    }
+
+    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
+        *names = data->names;
+        *length = data->length;
     }
 
     static ModuleScope* create(ExclusiveContext* cx, Handle<Data*> data,

@@ -783,6 +783,18 @@ JS_GetCompartmentPrivate(JSCompartment* compartment)
     return compartment->data;
 }
 
+JS_PUBLIC_API(void)
+JS_MarkCrossZoneId(JSContext* cx, jsid id)
+{
+    cx->markId(id);
+}
+
+JS_PUBLIC_API(void)
+JS_MarkCrossZoneIdValue(JSContext* cx, const Value& value)
+{
+    cx->markAtomValue(value);
+}
+
 JS_PUBLIC_API(JSAddonId*)
 JS::NewAddonId(JSContext* cx, HandleString str)
 {
@@ -1143,6 +1155,7 @@ JS_IdToProtoKey(JSContext* cx, HandleId id)
 {
     AssertHeapIsIdle(cx);
     CHECK_REQUEST(cx);
+    assertSameCompartment(cx, id);
 
     if (!JSID_IS_ATOM(id))
         return JSProto_Null;
@@ -1568,6 +1581,7 @@ JS_IdToValue(JSContext* cx, jsid id, MutableHandleValue vp)
 {
     AssertHeapIsIdle(cx);
     CHECK_REQUEST(cx);
+    assertSameCompartment(cx, id);
     vp.set(IdToValue(id));
     assertSameCompartment(cx, vp);
     return true;
@@ -2019,7 +2033,7 @@ JS_PUBLIC_API(bool)
 JS_GetPropertyDescriptorById(JSContext* cx, HandleObject obj, HandleId id,
                              MutableHandle<PropertyDescriptor> desc)
 {
-    assertSameCompartment(cx, obj);
+    assertSameCompartment(cx, obj, id);
     return GetPropertyDescriptor(cx, obj, id, desc);
 }
 
@@ -3404,6 +3418,7 @@ JS::GetSelfHostedFunction(JSContext* cx, const char* selfHostedName, HandleId id
     MOZ_ASSERT(!cx->runtime()->isAtomsCompartment(cx->compartment()));
     AssertHeapIsIdle(cx);
     CHECK_REQUEST(cx);
+    assertSameCompartment(cx, id);
 
     RootedAtom name(cx, IdToFunctionName(cx, id));
     if (!name)
@@ -3422,6 +3437,8 @@ JS::GetSelfHostedFunction(JSContext* cx, const char* selfHostedName, HandleId id
 JS_PUBLIC_API(JSFunction*)
 JS::NewFunctionFromSpec(JSContext* cx, const JSFunctionSpec* fs, HandleId id)
 {
+    assertSameCompartment(cx, id);
+
     // Delay cloning self-hosted functions until they are called. This is
     // achieved by passing DefineFunction a nullptr JSNative which produces an
     // interpreted JSFunction where !hasScript. Interpreted call paths then
@@ -3708,7 +3725,7 @@ JS_DefineFunctionById(JSContext* cx, HandleObject obj, HandleId id, JSNative cal
     MOZ_ASSERT(!cx->runtime()->isAtomsCompartment(cx->compartment()));
     AssertHeapIsIdle(cx);
     CHECK_REQUEST(cx);
-    assertSameCompartment(cx, obj);
+    assertSameCompartment(cx, obj, id);
     return DefineFunction(cx, obj, id, call, nargs, attrs);
 }
 
