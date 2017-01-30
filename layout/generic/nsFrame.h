@@ -688,6 +688,8 @@ protected:
   // Fire DOM event. If no aContent argument use frame's mContent.
   void FireDOMEvent(const nsAString& aDOMEventName, nsIContent *aContent = nullptr);
 
+  mozilla::WritingMode GetWritingModeDeferringToRootElem() const;
+
   // A helper for implementing UpdateStyleOfOwnedAnonBoxes for the specific case
   // of the owned anon box being a child of this frame.
   void UpdateStyleOfChildAnonBox(nsIFrame* aChildFrame,
