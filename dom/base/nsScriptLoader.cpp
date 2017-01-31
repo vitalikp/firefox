@@ -1527,8 +1527,8 @@ nsScriptLoader::ProcessScriptElement(nsIScriptElement *aElement)
                                integrity);
         if (!integrity.IsEmpty()) {
           MOZ_LOG(SRILogHelper::GetSriLog(), mozilla::LogLevel::Debug,
-                 ("nsScriptLoader::ProcessScriptElement, integrity=%s",
-                  NS_ConvertUTF16toUTF8(integrity).get()));
+                  ("nsScriptLoader::ProcessScriptElement, integrity=%s",
+                   NS_ConvertUTF16toUTF8(integrity).get()));
           nsAutoCString sourceUri;
           if (mDocument->GetDocumentURI()) {
             mDocument->GetDocumentURI()->GetAsciiSpec(sourceUri);
@@ -2491,7 +2491,7 @@ nsScriptLoader::OnStreamComplete(nsIIncrementalStreamLoader* aLoader,
 
     if (loadInfo->GetEnforceSRI()) {
       MOZ_LOG(SRILogHelper::GetSriLog(), mozilla::LogLevel::Debug,
-             ("nsScriptLoader::OnStreamComplete, required SRI not found"));
+              ("nsScriptLoader::OnStreamComplete, required SRI not found"));
       nsCOMPtr<nsIContentSecurityPolicy> csp;
       loadInfo->LoadingPrincipal()->GetCsp(getter_AddRefs(csp));
       nsAutoCString violationURISpec;
@@ -2771,8 +2771,8 @@ nsScriptLoader::PreloadURI(nsIURI *aURI, const nsAString &aCharset,
   SRIMetadata sriMetadata;
   if (!aIntegrity.IsEmpty()) {
     MOZ_LOG(SRILogHelper::GetSriLog(), mozilla::LogLevel::Debug,
-           ("nsScriptLoader::PreloadURI, integrity=%s",
-            NS_ConvertUTF16toUTF8(aIntegrity).get()));
+            ("nsScriptLoader::PreloadURI, integrity=%s",
+             NS_ConvertUTF16toUTF8(aIntegrity).get()));
     nsAutoCString sourceUri;
     if (mDocument->GetDocumentURI()) {
       mDocument->GetDocumentURI()->GetAsciiSpec(sourceUri);
