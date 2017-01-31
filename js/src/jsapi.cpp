@@ -4932,7 +4932,7 @@ ResolveOrRejectPromise(JSContext* cx, JS::HandleObject promiseObj, JS::HandleVal
     if (IsWrapper(promiseObj)) {
         JSObject* unwrappedPromiseObj = CheckedUnwrap(promiseObj);
         if (!unwrappedPromiseObj) {
-            JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr, JSMSG_OBJECT_ACCESS_DENIED);
+            ReportAccessDenied(cx);
             return false;
         }
         promise = &unwrappedPromiseObj->as<PromiseObject>();
@@ -4944,8 +4944,8 @@ ResolveOrRejectPromise(JSContext* cx, JS::HandleObject promiseObj, JS::HandleVal
     }
 
     return reject
-           ? promise->reject(cx, resultOrReason)
-           : promise->resolve(cx, resultOrReason);
+           ? PromiseObject::reject(cx, promise, resultOrReason)
+           : PromiseObject::resolve(cx, promise, resultOrReason);
 }
 
 JS_PUBLIC_API(bool)
@@ -4980,7 +4980,7 @@ CallOriginalPromiseThenImpl(JSContext* cx, JS::HandleObject promiseObj,
         if (IsWrapper(promiseObj)) {
             JSObject* unwrappedPromiseObj = CheckedUnwrap(promiseObj);
             if (!unwrappedPromiseObj) {
-                JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr, JSMSG_OBJECT_ACCESS_DENIED);
+                ReportAccessDenied(cx);
                 return false;
             }
             promise = &unwrappedPromiseObj->as<PromiseObject>();
