@@ -49,6 +49,10 @@
 #endif
 #endif
 
+#if defined(XP_LINUX) && defined(MOZ_SANDBOX)
+#include "mozilla/SandboxReporter.h"
+#endif
+
 #include "nsTArray.h"
 #include "nsClassHashtable.h"
 #include "nsHashKeys.h"
@@ -894,6 +898,15 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
   AddAppDirToCommandLine(childArgv);
 
   childArgv.push_back(pidstring);
+
+#if defined(XP_LINUX) && defined(MOZ_SANDBOX)
+  {
+    int srcFd, dstFd;
+    SandboxReporter::Singleton()
+      ->GetClientFileDescriptorMapping(&srcFd, &dstFd);
+    mFileMap.push_back(std::make_pair(srcFd, dstFd));
+  }
+#endif
 
 #ifdef MOZ_WIDGET_COCOA
   // Add a mach port to the command line so the child can communicate its
