@@ -18,11 +18,13 @@
 #include "mozilla/SizePrintfMacros.h"
 #include "mozilla/Sprintf.h"
 #include "mozilla/Telemetry.h"
+#include "mozilla/TimeStamp.h"
 #include "nsAppRunner.h"
 #include "nsAutoPtr.h"
 #include "nsDebug.h"
 #include "nsISupportsImpl.h"
 #include "nsContentUtils.h"
+#include <math.h>
 
 #ifdef MOZ_TASK_TRACER
 #include "GeckoTaskTracer.h"
@@ -1212,6 +1214,7 @@ MessageChannel::ProcessPendingRequests(AutoEnterTransaction& aTransaction)
 bool
 MessageChannel::Send(Message* aMsg, Message* aReply)
 {
+    mozilla::TimeStamp start = TimeStamp::Now();
     if (aMsg->size() >= kMinTelemetryMessageSize) {
         Telemetry::Accumulate(Telemetry::IPC_MESSAGE_SIZE,
                               nsDependentCString(aMsg->name()), aMsg->size());
@@ -1393,7 +1396,9 @@ MessageChannel::Send(Message* aMsg, Message* aReply)
         return false;
     }
 
-    IPC_LOG("Got reply: seqno=%d, xid=%d", seqno, transaction);
+    uint32_t latencyMs = round((TimeStamp::Now() - start).ToMilliseconds());
+    IPC_LOG("Got reply: seqno=%d, xid=%d, msgName=%s, latency=%ums",
+            seqno, transaction, msgName, latencyMs);
 
     nsAutoPtr<Message> reply = transact.GetReply();
 
