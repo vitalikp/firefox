@@ -1142,7 +1142,7 @@ js::CloneObject(JSContext* cx, HandleObject obj, Handle<js::TaggedProto> proto)
 }
 
 static bool
-GetScriptArrayObjectElements(JSContext* cx, HandleObject obj, MutableHandle<GCVector<Value>> values)
+GetScriptArrayObjectElements(ExclusiveContext* cx, HandleObject obj, MutableHandle<GCVector<Value>> values)
 {
     MOZ_ASSERT(!obj->isSingleton());
     MOZ_ASSERT(obj->is<ArrayObject>() || obj->is<UnboxedArrayObject>());
@@ -1160,7 +1160,7 @@ GetScriptArrayObjectElements(JSContext* cx, HandleObject obj, MutableHandle<GCVe
 }
 
 static bool
-GetScriptPlainObjectProperties(JSContext* cx, HandleObject obj,
+GetScriptPlainObjectProperties(ExclusiveContext* cx, HandleObject obj,
                                MutableHandle<IdValueVector> properties)
 {
     if (obj->is<PlainObject>()) {
@@ -1335,7 +1335,8 @@ js::XDRObjectLiteral(XDRState<mode>* xdr, MutableHandleObject obj)
 {
     /* NB: Keep this in sync with DeepCloneObjectLiteral. */
 
-    JSContext* cx = xdr->cx();
+    ExclusiveContext* cx = xdr->cx();
+    assertSameCompartment(cx, obj);
     MOZ_ASSERT_IF(mode == XDR_ENCODE && obj->isSingleton(),
                   cx->compartment()->behaviors().getSingletonsAsTemplates());
 
