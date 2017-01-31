@@ -177,7 +177,6 @@ function CssRuleView(inspector, document, store, pageStyle) {
 
   // Add the tooltips and highlighters to the view
   this.tooltips = new TooltipsOverlay(this);
-  this.tooltips.addToView();
 
   this.highlighters.addToView(this);
 
