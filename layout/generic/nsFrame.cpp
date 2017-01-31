@@ -85,7 +85,6 @@
 #include "gfxContext.h"
 #include "nsRenderingContext.h"
 #include "nsAbsoluteContainingBlock.h"
-#include "DisplayItemScrollClip.h"
 #include "StickyScrollContainer.h"
 #include "nsFontInflationData.h"
 #include "nsRegion.h"
@@ -2291,7 +2290,6 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
     eOwnLayerIfNeeded,
     eBlendMode,
     eFixedPosition,
-    eStickyPosition,
     eOwnLayerForTransformWithRoundedClip,
     ePerspective,
     eTransform,
@@ -2300,6 +2298,8 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
     eFilter,
     eBlendContainer
   };
+
+  nsDisplayListBuilder::AutoContainerASRTracker contASRTracker(aBuilder);
 
   DisplayListClipState::AutoSaveRestore clipState(aBuilder);
 
@@ -2314,10 +2314,11 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
   ContainerItemType clipCapturedBy = ContainerItemType::eNone;
   if (useFixedPosition) {
     clipCapturedBy = ContainerItemType::eFixedPosition;
-  } else if (useStickyPosition) {
-    clipCapturedBy = ContainerItemType::eStickyPosition;
   } else if (isTransformed) {
-    if ((hasPerspective || extend3DContext) && clipState.SavedStateHasRoundedCorners()) {
+    const DisplayItemClipChain* currentClip =
+      aBuilder->ClipState().GetCurrentCombinedClipChain(aBuilder);
+    if ((hasPerspective || extend3DContext) &&
+        (currentClip && currentClip->HasRoundedCorners())) {
       // If we're creating an nsDisplayTransform item that is going to combine
       // its transform with its children (preserve-3d or perspective), then we
       // can't have an intermediate surface. Mask layers force an intermediate
@@ -2333,17 +2334,9 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
     clipCapturedBy = ContainerItemType::eFilter;
   }
 
-  bool clearClip = false;
   if (clipCapturedBy != ContainerItemType::eNone) {
-    // We don't need to pass ancestor clipping down to our children;
-    // everything goes inside a display item's child list, and the display
-    // item itself will be clipped.
-    // For transforms we also need to clear ancestor clipping because it's
-    // relative to the wrong display item reference frame anyway.
-    clearClip = true;
+    clipState.Clear();
   }
-
-  clipState.EnterStackingContextContents(clearClip);
 
   nsDisplayListCollection set;
   {
@@ -2355,11 +2348,13 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
 
     CheckForApzAwareEventHandlers(aBuilder, this);
 
-    Maybe<nsRect> clipPropClip = GetClipPropClipRect(disp, effects, GetSize());
-    if (clipPropClip) {
-      dirtyRect.IntersectRect(dirtyRect, *clipPropClip);
-      nestedClipState.ClipContentDescendants(
-        *clipPropClip + aBuilder->ToReferenceFrame(this));
+    Maybe<nsRect> contentClip =
+      GetClipPropClipRect(disp, effects, GetSize());
+
+    if (contentClip) {
+      dirtyRect.IntersectRect(dirtyRect, *contentClip);
+      nestedClipState.ClipContentDescendants(*contentClip +
+                                             aBuilder->ToReferenceFrame(this));
     }
 
     // extend3DContext also guarantees that applyAbsPosClipping and usingSVGEffects are false
@@ -2449,12 +2444,8 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
   // 8, 9: non-negative z-index children
   resultList.AppendToTop(set.PositionedDescendants());
 
-  // Get the scroll clip to use for the container items that we create here.
-  // If we cleared the clip, and we create multiple container items, then the
-  // items we create before we restore the clip will have a different scroll
-  // clip from the items we create after we restore the clip.
-  const DisplayItemScrollClip* containerItemScrollClip =
-    aBuilder->ClipState().CurrentAncestorScrollClipForStackingContextContents();
+  // Get the ASR to use for the container items that we create here.
+  const ActiveScrolledRoot* containerItemASR = contASRTracker.GetContainerASR();
 
   /* If adding both a nsDisplayBlendContainer and a nsDisplayBlendMode to the
    * same list, the nsDisplayBlendContainer should be added first. This only
@@ -2463,13 +2454,12 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
    * The nsDisplayBlendContainer must be added to the list first, so it does not
    * isolate the containing element blending as well.
    */
-
   if (aBuilder->ContainsBlendMode()) {
     DisplayListClipState::AutoSaveRestore blendContainerClipState(aBuilder);
-    blendContainerClipState.Clear();
+    blendContainerClipState.ClearUpToASR(containerItemASR);
     resultList.AppendNewToTop(
       nsDisplayBlendContainer::CreateForMixBlendMode(aBuilder, this, &resultList,
-                                                     containerItemScrollClip));
+                                                     containerItemASR));
   }
 
   /* If there are any SVG effects, wrap the list up in an SVG effects item
@@ -2482,7 +2472,7 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
                "Beside filter & mask/clip-path, what else effect do we have?");
 
     if (clipCapturedBy == ContainerItemType::eFilter) {
-      clipState.ExitStackingContextContents(&containerItemScrollClip);
+      clipState.Restore();
     }
     // Revert to the post-filter dirty rect.
     buildingDisplayList.SetDirtyRect(dirtyRectOutsideSVGEffects);
@@ -2502,11 +2492,11 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
 
     if (usingMask) {
       DisplayListClipState::AutoSaveRestore maskClipState(aBuilder);
-      maskClipState.Clear();
+      maskClipState.ClearUpToASR(containerItemASR);
       /* List now emptied, so add the new list to the top. */
       resultList.AppendNewToTop(
           new (aBuilder) nsDisplayMask(aBuilder, this, &resultList,
-                                       !useOpacity, containerItemScrollClip));
+                                       !useOpacity, containerItemASR));
     }
 
     // Also add the hoisted scroll info items. We need those for APZ scrolling
@@ -2523,10 +2513,11 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
     // The clip we would set on an element with opacity would clip
     // all descendant content, but some should not be clipped.
     DisplayListClipState::AutoSaveRestore opacityClipState(aBuilder);
-    opacityClipState.Clear();
+    opacityClipState.ClearUpToASR(containerItemASR);
     resultList.AppendNewToTop(
         new (aBuilder) nsDisplayOpacity(aBuilder, this, &resultList,
-                                        containerItemScrollClip, opacityItemForEventsAndPluginsOnly));
+                                        containerItemASR,
+                                        opacityItemForEventsAndPluginsOnly));
   }
 
   /* If we're going to apply a transformation and don't have preserve-3d set, wrap
@@ -2572,7 +2563,7 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
   if (isTransformed && !resultList.IsEmpty()) {
     if (clipCapturedBy == ContainerItemType::eTransform) {
       // Restore clip state now so nsDisplayTransform is clipped properly.
-      clipState.ExitStackingContextContents(&containerItemScrollClip);
+      clipState.Restore();
     }
     // Revert to the dirtyrect coming in from the parent, without our transform
     // taken into account.
@@ -2598,7 +2589,7 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
 
     if (hasPerspective) {
       if (clipCapturedBy == ContainerItemType::ePerspective) {
-        clipState.ExitStackingContextContents(&containerItemScrollClip);
+        clipState.Restore();
       }
       resultList.AppendNewToTop(
         new (aBuilder) nsDisplayPerspective(
@@ -2608,9 +2599,10 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
   }
 
   if (clipCapturedBy == ContainerItemType::eOwnLayerForTransformWithRoundedClip) {
-    clipState.ExitStackingContextContents(&containerItemScrollClip);
+    clipState.Restore();
     resultList.AppendNewToTop(
-      new (aBuilder) nsDisplayOwnLayer(aBuilder, this, &resultList, 0,
+      new (aBuilder) nsDisplayOwnLayer(aBuilder, this, &resultList,
+                                       aBuilder->CurrentActiveScrolledRoot(), 0,
                                        mozilla::layers::FrameMetrics::NULL_SCROLL_ID,
                                        0.0f, /* aForceActive = */ false));
   }
@@ -2619,16 +2611,29 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
    */
   if (useFixedPosition) {
     if (clipCapturedBy == ContainerItemType::eFixedPosition) {
-      clipState.ExitStackingContextContents(&containerItemScrollClip);
+      clipState.Restore();
     }
+    // The ASR for the fixed item should be the ASR of our containing block,
+    // which has been set as the builder's current ASR, unless this frame is
+    // invisible and we hadn't saved display item data for it. In that case,
+    // we need to take the containerItemASR since we might have fixed children.
+    const ActiveScrolledRoot* fixedASR =
+      ActiveScrolledRoot::PickAncestor(containerItemASR, aBuilder->CurrentActiveScrolledRoot());
     resultList.AppendNewToTop(
-        new (aBuilder) nsDisplayFixedPosition(aBuilder, this, &resultList));
+        new (aBuilder) nsDisplayFixedPosition(aBuilder, this, &resultList, fixedASR));
   } else if (useStickyPosition) {
-    if (clipCapturedBy == ContainerItemType::eStickyPosition) {
-      clipState.ExitStackingContextContents(&containerItemScrollClip);
-    }
+    // For position:sticky, the clip needs to be applied both to the sticky
+    // container item and to the contents. The container item needs the clip
+    // because a scrolled clip needs to move independently from the sticky
+    // contents, and the contents need the clip so that they have finite
+    // clipped bounds with respect to the container item's ASR. The latter is
+    // a little tricky in the case where the sticky item has both fixed and
+    // non-fixed descendants, because that means that the sticky container
+    // item's ASR is the ASR of the fixed descendant.
+    const ActiveScrolledRoot* stickyASR =
+      ActiveScrolledRoot::PickAncestor(containerItemASR, aBuilder->CurrentActiveScrolledRoot());
     resultList.AppendNewToTop(
-        new (aBuilder) nsDisplayStickyPosition(aBuilder, this, &resultList));
+        new (aBuilder) nsDisplayStickyPosition(aBuilder, this, &resultList, stickyASR));
   }
 
   /* If there's blending, wrap up the list in a blend-mode item. Note
@@ -2637,12 +2642,12 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
    */
 
   if (useBlendMode && !resultList.IsEmpty()) {
-    DisplayListClipState::AutoSaveRestore mixBlendClipState(aBuilder);
-    mixBlendClipState.Clear();
+    DisplayListClipState::AutoSaveRestore blendModeClipState(aBuilder);
+    blendModeClipState.ClearUpToASR(containerItemASR);
     resultList.AppendNewToTop(
         new (aBuilder) nsDisplayBlendMode(aBuilder, this, &resultList,
                                           effects->mMixBlendMode,
-                                          containerItemScrollClip));
+                                          containerItemASR));
   }
 
   CreateOwnLayerIfNeeded(aBuilder, &resultList);
@@ -2653,7 +2658,7 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
 static nsDisplayItem*
 WrapInWrapList(nsDisplayListBuilder* aBuilder,
                nsIFrame* aFrame, nsDisplayList* aList,
-               const DisplayItemScrollClip* aScrollClip)
+               const ActiveScrolledRoot* aContainerASR)
 {
   nsDisplayItem* item = aList->GetBottom();
   if (!item) {
@@ -2671,7 +2676,7 @@ WrapInWrapList(nsDisplayListBuilder* aBuilder,
   }
 
   if (item->GetAbove() || itemFrame != aFrame) {
-    return new (aBuilder) nsDisplayWrapList(aBuilder, aFrame, aList, aScrollClip);
+    return new (aBuilder) nsDisplayWrapList(aBuilder, aFrame, aList, aContainerASR);
   }
   aList->RemoveBottom();
   return item;
@@ -2848,15 +2853,16 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
   nsDisplayListBuilder::AutoBuildingDisplayList
     buildingForChild(aBuilder, child, dirty, pseudoStackingContext);
   DisplayListClipState::AutoClipMultiple clipState(aBuilder);
+  nsDisplayListBuilder::AutoCurrentActiveScrolledRootSetter asrSetter(aBuilder);
   CheckForApzAwareEventHandlers(aBuilder, child);
 
   if (savedOutOfFlowData) {
     aBuilder->SetBuildingInvisibleItems(false);
 
-    clipState.SetClipForContainingBlockDescendants(
-      &savedOutOfFlowData->mContainingBlockClip);
-    clipState.SetScrollClipForContainingBlockDescendants(
-      savedOutOfFlowData->mContainingBlockScrollClip);
+    clipState.SetClipChainForContainingBlockDescendants(
+      savedOutOfFlowData->mContainingBlockClipChain);
+    asrSetter.SetCurrentActiveScrolledRoot(
+      savedOutOfFlowData->mContainingBlockActiveScrolledRoot);
   } else if (GetStateBits() & NS_FRAME_FORCE_DISPLAY_LIST_DESCEND_INTO &&
              isPlaceholder) {
     NS_ASSERTION(dirty.IsEmpty(), "should have empty dirty rect");
@@ -2869,8 +2875,7 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
     // then we won't have stored clip data for it. We can just clear the clip
     // instead since we know we won't render anything, and the inner out-of-flow
     // frame will setup the correct clip for itself.
-    clipState.SetClipForContainingBlockDescendants(nullptr);
-    clipState.SetScrollClipForContainingBlockDescendants(nullptr);
+    clipState.SetClipChainForContainingBlockDescendants(nullptr);
   }
 
   // Setup clipping for the parent's overflow:-moz-hidden-unscrollable,
@@ -2888,6 +2893,7 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
 
   nsDisplayList list;
   nsDisplayList extraPositionedDescendants;
+  const ActiveScrolledRoot* wrapListASR = aBuilder->CurrentActiveScrolledRoot();
   if (isStackingContext) {
     if (effects->mMixBlendMode != NS_STYLE_BLEND_NORMAL) {
       aBuilder->SetContainsBlendMode(true);
@@ -2895,7 +2901,9 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
     // True stacking context.
     // For stacking contexts, BuildDisplayListForStackingContext handles
     // clipping and MarkAbsoluteFramesForDisplayList.
+    nsDisplayListBuilder::AutoContainerASRTracker contASRTracker(aBuilder);
     child->BuildDisplayListForStackingContext(aBuilder, dirty, &list);
+    wrapListASR = contASRTracker.GetContainerASR();
     aBuilder->DisplayCaret(child, dirty, &list);
   } else {
     Maybe<nsRect> clipPropClip =
@@ -2952,8 +2960,10 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
     // z-index:non-auto
     nsDisplayListCollection pseudoStack;
     aBuilder->AdjustWindowDraggingRegion(child);
+    nsDisplayListBuilder::AutoContainerASRTracker contASRTracker(aBuilder);
     child->BuildDisplayList(aBuilder, dirty, pseudoStack);
     aBuilder->DisplayCaret(child, dirty, pseudoStack.Content());
+    wrapListASR = contASRTracker.GetContainerASR();
 
     list.AppendToTop(pseudoStack.BorderBackground());
     list.AppendToTop(pseudoStack.BlockBorderBackgrounds());
@@ -2970,17 +2980,14 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
  
   // Clear clip rect for the construction of the items below. Since we're
   // clipping all their contents, they themselves don't need to be clipped.
-  clipState.Clear();
-
-  const DisplayItemScrollClip* containerItemScrollClip =
-    aBuilder->ClipState().CurrentAncestorScrollClipForStackingContextContents();
+  clipState.ClearUpToASR(wrapListASR);
 
   if (isPositioned || isVisuallyAtomic ||
       (aFlags & DISPLAY_CHILD_FORCE_STACKING_CONTEXT)) {
     // Genuine stacking contexts, and positioned pseudo-stacking-contexts,
     // go in this level.
     if (!list.IsEmpty()) {
-      nsDisplayItem* item = WrapInWrapList(aBuilder, child, &list, containerItemScrollClip);
+      nsDisplayItem* item = WrapInWrapList(aBuilder, child, &list, wrapListASR);
       if (isSVG) {
         aLists.Content()->AppendNewToTop(item);
       } else {
@@ -2989,7 +2996,7 @@ nsIFrame::BuildDisplayListForChild(nsDisplayListBuilder*   aBuilder,
     }
   } else if (!isSVG && disp->IsFloating(child)) {
     if (!list.IsEmpty()) {
-      aLists.Floats()->AppendNewToTop(WrapInWrapList(aBuilder, child, &list, containerItemScrollClip));
+      aLists.Floats()->AppendNewToTop(WrapInWrapList(aBuilder, child, &list, wrapListASR));
     }
   } else {
     aLists.Content()->AppendToTop(&list);
@@ -10035,7 +10042,7 @@ nsIFrame::CreateOwnLayerIfNeeded(nsDisplayListBuilder* aBuilder,
       GetContent()->IsXULElement() &&
       GetContent()->HasAttr(kNameSpaceID_None, nsGkAtoms::layer)) {
     aList->AppendNewToTop(new (aBuilder) 
-        nsDisplayOwnLayer(aBuilder, this, aList));
+        nsDisplayOwnLayer(aBuilder, this, aList, aBuilder->CurrentActiveScrolledRoot()));
   }
 }
 
