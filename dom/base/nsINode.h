@@ -84,6 +84,7 @@ class Text;
 class TextOrElementOrDocument;
 struct DOMPointInit;
 struct GetRootNodeOptions;
+enum class CallerType : uint32_t;
 } // namespace dom
 } // namespace mozilla
 
@@ -287,6 +288,7 @@ public:
   typedef mozilla::dom::DOMRectReadOnly DOMRectReadOnly;
   typedef mozilla::dom::OwningNodeOrString OwningNodeOrString;
   typedef mozilla::dom::TextOrElementOrDocument TextOrElementOrDocument;
+  typedef mozilla::dom::CallerType CallerType;
   typedef mozilla::ErrorResult ErrorResult;
 
   template<class T>
@@ -1819,7 +1821,9 @@ public:
   // The returned value may differ if the document is loaded via XHR, and
   // when accessed from chrome privileged script and
   // from content privileged script for compatibility.
-  void GetBaseURIFromJS(nsAString& aBaseURI, mozilla::ErrorResult& aRv) const;
+  void GetBaseURIFromJS(nsAString& aBaseURI,
+                        CallerType aCallerType,
+                        ErrorResult& aRv) const;
   bool HasChildNodes() const
   {
     return HasChildren();
