@@ -119,8 +119,8 @@ RenderFrameParent::Init(nsFrameLoader* aFrameLoader)
     // Our remote frame will push layers updates to the compositor,
     // and we'll keep an indirect reference to that tree.
     browser->Manager()->AsContentParent()->AllocateLayerTreeId(browser, &mLayersId);
-    if (lm && lm->AsClientLayerManager()) {
-      lm->AsClientLayerManager()->GetRemoteRenderer()->SendNotifyChildCreated(mLayersId);
+    if (lm && lm->GetCompositorBridgeChild()) {
+      lm->GetCompositorBridgeChild()->SendNotifyChildCreated(mLayersId);
     }
   } else if (XRE_IsContentProcess()) {
     ContentChild::GetSingleton()->SendAllocateLayerTreeId(browser->Manager()->ChildID(), browser->GetTabId(), &mLayersId);
@@ -210,8 +210,8 @@ RenderFrameParent::OwnerContentChanged(nsIContent* aContent)
 
   RefPtr<LayerManager> lm = mFrameLoader ? GetFrom(mFrameLoader) : nullptr;
   // Perhaps the document containing this frame currently has no presentation?
-  if (lm && lm->AsClientLayerManager()) {
-    lm->AsClientLayerManager()->GetRemoteRenderer()->SendAdoptChild(mLayersId);
+  if (lm && lm->GetCompositorBridgeChild()) {
+    lm->GetCompositorBridgeChild()->SendAdoptChild(mLayersId);
     FrameLayerBuilder::InvalidateAllLayers(lm);
   }
 }
@@ -317,12 +317,11 @@ RenderFrameParent::EnsureLayersConnected()
     return;
   }
 
-  ClientLayerManager* client = lm->AsClientLayerManager();
-  if (!client) {
+  if (!lm->GetCompositorBridgeChild()) {
     return;
   }
 
-  client->GetRemoteRenderer()->SendNotifyChildRecreated(mLayersId);
+  lm->GetCompositorBridgeChild()->SendNotifyChildRecreated(mLayersId);
 }
 
 } // namespace layout

@@ -87,6 +87,7 @@ class PaintedLayer;
 class ContainerLayer;
 class ImageLayer;
 class ColorLayer;
+class CompositorBridgeChild;
 class TextLayer;
 class CanvasLayer;
 class BorderLayer;
@@ -679,6 +680,8 @@ public:
                             const mozilla::TimeStamp& aCompositeEnd) {}
 
   virtual uint64_t GetLastTransactionId() { return 0; }
+
+  virtual CompositorBridgeChild* GetCompositorBridgeChild() { return nullptr; }
 
 protected:
   RefPtr<Layer> mRoot;
