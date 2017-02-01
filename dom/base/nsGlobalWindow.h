@@ -1177,7 +1177,7 @@ public:
 
   void Get_content(JSContext* aCx,
                    JS::MutableHandle<JSObject*> aRetval,
-                   mozilla::dom::CallerType aCallerType,
+                   mozilla::dom::SystemCallerGuarantee aCallerType,
                    mozilla::ErrorResult& aError)
   {
     if (mDoc) {

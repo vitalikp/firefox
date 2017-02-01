@@ -6941,6 +6941,7 @@ class CGCallGenerator(CGThing):
     value, resultVar can be omitted.
     """
     def __init__(self, isFallible, needsSubjectPrincipal, needsCallerType,
+                 isChromeOnly,
                  arguments, argsPre, returnType, extendedAttributes, descriptor,
                  nativeMethodName, static, object="self", argsPost=[],
                  resultVar=None):
@@ -7004,7 +7005,10 @@ class CGCallGenerator(CGThing):
             args.append(CGGeneric("subjectPrincipal"))
 
         if needsCallerType:
-            args.append(CGGeneric(callerTypeGetterForDescriptor(descriptor)))
+            if isChromeOnly:
+                args.append(CGGeneric("SystemCallerGuarantee()"))
+            else:
+                args.append(CGGeneric(callerTypeGetterForDescriptor(descriptor)))
 
         canOOM = "canOOM" in extendedAttributes
         if isFallible or canOOM:
@@ -7551,6 +7555,7 @@ class CGPerSignatureCall(CGThing):
                 self.isFallible(),
                 idlNode.getExtendedAttribute('NeedsSubjectPrincipal'),
                 needsCallerType(idlNode),
+                isChromeOnly(idlNode),
                 self.getArguments(), argsPre, returnType,
                 self.extendedAttributes, descriptor,
                 nativeMethodName,
