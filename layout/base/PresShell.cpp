@@ -8040,7 +8040,8 @@ PresShell::HandleEventInternal(WidgetEvent* aEvent,
           // pointer lock.
           isHandlingUserInput = true;
           mPresContext->RecordInteractionTime(
-            nsPresContext::InteractionType::eKeyInteraction);
+            nsPresContext::InteractionType::eKeyInteraction,
+            aEvent->mTimeStamp);
         }
         break;
       }
@@ -8048,7 +8049,8 @@ PresShell::HandleEventInternal(WidgetEvent* aEvent,
       case eMouseUp:
         isHandlingUserInput = true;
         mPresContext->RecordInteractionTime(
-          nsPresContext::InteractionType::eClickInteraction);
+          nsPresContext::InteractionType::eClickInteraction,
+          aEvent->mTimeStamp);
         break;
 
       case eDrop: {
@@ -8094,7 +8096,8 @@ PresShell::HandleEventInternal(WidgetEvent* aEvent,
         EventStateManager::GetActiveEventStateManager() == manager);
 
       mPresContext->RecordInteractionTime(
-        nsPresContext::InteractionType::eMouseMoveInteraction);
+        nsPresContext::InteractionType::eMouseMoveInteraction,
+        aEvent->mTimeStamp);
     }
 
     nsAutoPopupStatePusher popupStatePusher(
