@@ -69,8 +69,6 @@
 #include <windows.h>
 #endif
 
-#define ASSERT(a) MOZ_ASSERT(a)
-
 bool profiler_verbose();
 
 #ifdef ANDROID
