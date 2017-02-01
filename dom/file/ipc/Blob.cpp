@@ -2090,7 +2090,8 @@ public:
   SetLastModified(int64_t aLastModified) override;
 
   void
-  GetMozFullPath(nsAString& aName, ErrorResult& aRv) const override;
+  GetMozFullPath(nsAString& aName, SystemCallerGuarantee aGuarantee,
+                 ErrorResult& aRv) const override;
 
   void
   GetMozFullPathInternal(nsAString& aFileName, ErrorResult& aRv) const override;
@@ -2877,9 +2878,11 @@ RemoteBlobImpl::SetLastModified(int64_t aLastModified)
 
 void
 BlobParent::
-RemoteBlobImpl::GetMozFullPath(nsAString& aName, ErrorResult& aRv) const
+RemoteBlobImpl::GetMozFullPath(nsAString& aName,
+                               SystemCallerGuarantee aGuarantee,
+                               ErrorResult& aRv) const
 {
-  mBlobImpl->GetMozFullPath(aName, aRv);
+  mBlobImpl->GetMozFullPath(aName, aGuarantee, aRv);
 }
 
 void
