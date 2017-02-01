@@ -5389,7 +5389,7 @@ def getJSToNativeConversionInfo(type, descriptorProvider, failureCode=None,
                 holderType = "RefPtr<" + typeName + ">"
             templateBody += (
                 "JS::Rooted<JSObject*> source(cx, &${val}.toObject());\n" +
-                "if (NS_FAILED(UnwrapArg<" + typeName + ">(source, getter_AddRefs(${holderName})))) {\n")
+                "if (NS_FAILED(UnwrapArg<" + typeName + ">(cx, source, getter_AddRefs(${holderName})))) {\n")
             templateBody += CGIndenter(onFailureBadType(failureCode,
                                                         descriptor.interface.identifier.name)).define()
             templateBody += ("}\n"
