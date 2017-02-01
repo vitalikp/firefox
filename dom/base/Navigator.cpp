@@ -1277,6 +1277,7 @@ void
 Navigator::MozGetUserMedia(const MediaStreamConstraints& aConstraints,
                            NavigatorUserMediaSuccessCallback& aOnSuccess,
                            NavigatorUserMediaErrorCallback& aOnError,
+                           CallerType aCallerType,
                            ErrorResult& aRv)
 {
   CallbackObjectHolder<NavigatorUserMediaSuccessCallback,
@@ -1295,7 +1296,8 @@ Navigator::MozGetUserMedia(const MediaStreamConstraints& aConstraints,
   }
 
   MediaManager* manager = MediaManager::Get();
-  aRv = manager->GetUserMedia(mWindow, aConstraints, onsuccess, onerror);
+  aRv = manager->GetUserMedia(mWindow, aConstraints, onsuccess, onerror,
+                              aCallerType);
 }
 
 void
