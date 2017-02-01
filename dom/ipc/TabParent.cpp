@@ -3223,6 +3223,18 @@ TabParent::RecvRequestCrossBrowserNavigation(const uint32_t& aGlobalIndex)
   return IPC_OK();
 }
 
+void
+TabParent::LiveResizeStarted()
+{
+  SuppressDisplayport(true);
+}
+
+void
+TabParent::LiveResizeStopped()
+{
+  SuppressDisplayport(false);
+}
+
 NS_IMETHODIMP
 FakeChannel::OnAuthAvailable(nsISupports *aContext, nsIAuthInformation *aAuthInfo)
 {
