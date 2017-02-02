@@ -847,8 +847,7 @@ ToDisassemblySource(JSContext* cx, HandleValue v, JSAutoByteString* bytes)
         return true;
     }
 
-    JSRuntime* rt = cx->runtime();
-    if (rt->isHeapBusy() || !rt->gc.isAllocAllowed()) {
+    if (JS::CurrentThreadIsHeapBusy() || !cx->isAllocAllowed()) {
         char* source = JS_sprintf_append(nullptr, "<value>");
         if (!source) {
             ReportOutOfMemory(cx);
@@ -1019,7 +1018,7 @@ js::Disassemble1(JSContext* cx, HandleScript script, jsbytecode* pc,
 
       case JOF_ENVCOORD: {
         RootedValue v(cx,
-            StringValue(EnvironmentCoordinateName(cx->caches.envCoordinateNameCache, script, pc)));
+            StringValue(EnvironmentCoordinateName(cx->caches().envCoordinateNameCache, script, pc)));
         JSAutoByteString bytes;
         if (!ToDisassemblySource(cx, v, &bytes))
             return 0;
@@ -1288,7 +1287,7 @@ ExpressionDecompiler::decompilePC(jsbytecode* pc)
         return write(atom);
       }
       case JSOP_GETALIASEDVAR: {
-        JSAtom* atom = EnvironmentCoordinateName(cx->caches.envCoordinateNameCache, script, pc);
+        JSAtom* atom = EnvironmentCoordinateName(cx->caches().envCoordinateNameCache, script, pc);
         MOZ_ASSERT(atom);
         return write(atom);
       }
@@ -1779,10 +1778,10 @@ static void
 ReleaseScriptCounts(FreeOp* fop)
 {
     JSRuntime* rt = fop->runtime();
-    MOZ_ASSERT(rt->scriptAndCountsVector);
+    MOZ_ASSERT(rt->zoneGroupFromMainThread()->scriptAndCountsVector);
 
-    fop->delete_(rt->scriptAndCountsVector);
-    rt->scriptAndCountsVector = nullptr;
+    fop->delete_(rt->zoneGroupFromMainThread()->scriptAndCountsVector.ref());
+    rt->zoneGroupFromMainThread()->scriptAndCountsVector = nullptr;
 }
 
 JS_FRIEND_API(void)
@@ -1790,15 +1789,15 @@ js::StartPCCountProfiling(JSContext* cx)
 {
     JSRuntime* rt = cx->runtime();
 
-    if (rt->profilingScripts)
+    if (rt->zoneGroupFromMainThread()->profilingScripts)
         return;
 
-    if (rt->scriptAndCountsVector)
+    if (rt->zoneGroupFromMainThread()->scriptAndCountsVector)
         ReleaseScriptCounts(rt->defaultFreeOp());
 
     ReleaseAllJITCode(rt->defaultFreeOp());
 
-    rt->profilingScripts = true;
+    rt->zoneGroupFromMainThread()->profilingScripts = true;
 }
 
 JS_FRIEND_API(void)
@@ -1806,9 +1805,9 @@ js::StopPCCountProfiling(JSContext* cx)
 {
     JSRuntime* rt = cx->runtime();
 
-    if (!rt->profilingScripts)
+    if (!rt->zoneGroupFromMainThread()->profilingScripts)
         return;
-    MOZ_ASSERT(!rt->scriptAndCountsVector);
+    MOZ_ASSERT(!rt->zoneGroupFromMainThread()->scriptAndCountsVector);
 
     ReleaseAllJITCode(rt->defaultFreeOp());
 
@@ -1826,8 +1825,8 @@ js::StopPCCountProfiling(JSContext* cx)
         }
     }
 
-    rt->profilingScripts = false;
-    rt->scriptAndCountsVector = vec;
+    rt->zoneGroupFromMainThread()->profilingScripts = false;
+    rt->zoneGroupFromMainThread()->scriptAndCountsVector = vec;
 }
 
 JS_FRIEND_API(void)
@@ -1835,9 +1834,9 @@ js::PurgePCCounts(JSContext* cx)
 {
     JSRuntime* rt = cx->runtime();
 
-    if (!rt->scriptAndCountsVector)
+    if (!rt->zoneGroupFromMainThread()->scriptAndCountsVector)
         return;
-    MOZ_ASSERT(!rt->profilingScripts);
+    MOZ_ASSERT(!rt->zoneGroupFromMainThread()->profilingScripts);
 
     ReleaseScriptCounts(rt->defaultFreeOp());
 }
@@ -1847,10 +1846,10 @@ js::GetPCCountScriptCount(JSContext* cx)
 {
     JSRuntime* rt = cx->runtime();
 
-    if (!rt->scriptAndCountsVector)
+    if (!rt->zoneGroupFromMainThread()->scriptAndCountsVector)
         return 0;
 
-    return rt->scriptAndCountsVector->length();
+    return rt->zoneGroupFromMainThread()->scriptAndCountsVector->length();
 }
 
 enum MaybeComma {NO_COMMA, COMMA};
@@ -1871,12 +1870,14 @@ js::GetPCCountScriptSummary(JSContext* cx, size_t index)
 {
     JSRuntime* rt = cx->runtime();
 
-    if (!rt->scriptAndCountsVector || index >= rt->scriptAndCountsVector->length()) {
+    if (!rt->zoneGroupFromMainThread()->scriptAndCountsVector ||
+        index >= rt->zoneGroupFromMainThread()->scriptAndCountsVector->length())
+    {
         JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr, JSMSG_BUFFER_TOO_SMALL);
         return nullptr;
     }
 
-    const ScriptAndCounts& sac = (*rt->scriptAndCountsVector)[index];
+    const ScriptAndCounts& sac = (*rt->zoneGroupFromMainThread()->scriptAndCountsVector)[index];
     RootedScript script(cx, sac.script);
 
     /*
@@ -2155,12 +2156,14 @@ js::GetPCCountScriptContents(JSContext* cx, size_t index)
 {
     JSRuntime* rt = cx->runtime();
 
-    if (!rt->scriptAndCountsVector || index >= rt->scriptAndCountsVector->length()) {
+    if (!rt->zoneGroupFromMainThread()->scriptAndCountsVector ||
+        index >= rt->zoneGroupFromMainThread()->scriptAndCountsVector->length())
+    {
         JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr, JSMSG_BUFFER_TOO_SMALL);
         return nullptr;
     }
 
-    const ScriptAndCounts& sac = (*rt->scriptAndCountsVector)[index];
+    const ScriptAndCounts& sac = (*rt->zoneGroupFromMainThread()->scriptAndCountsVector)[index];
     JSScript* script = sac.script;
 
     StringBuffer buf(cx);

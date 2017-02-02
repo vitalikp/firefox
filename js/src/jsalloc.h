@@ -27,8 +27,6 @@ enum class AllocFunction {
     Realloc
 };
 
-struct ContextFriendFields;
-
 /* Policy for using system memory functions and doing no error reporting. */
 class SystemAllocPolicy
 {
@@ -50,8 +48,7 @@ class SystemAllocPolicy
     }
 };
 
-class ExclusiveContext;
-JS_FRIEND_API(void) ReportOutOfMemory(ExclusiveContext* cxArg);
+JS_FRIEND_API(void) ReportOutOfMemory(JSContext* cx);
 
 /*
  * Allocation policy that calls the system memory functions and reports errors
@@ -64,7 +61,7 @@ JS_FRIEND_API(void) ReportOutOfMemory(ExclusiveContext* cxArg);
  */
 class TempAllocPolicy
 {
-    ContextFriendFields* const cx_;
+    JSContext* const cx_;
 
     /*
      * Non-inline helper to call JSRuntime::onOutOfMemory with minimal
@@ -82,8 +79,7 @@ class TempAllocPolicy
     }
 
   public:
-    MOZ_IMPLICIT TempAllocPolicy(JSContext* cx) : cx_((ContextFriendFields*) cx) {} // :(
-    MOZ_IMPLICIT TempAllocPolicy(ContextFriendFields* cx) : cx_(cx) {}
+    MOZ_IMPLICIT TempAllocPolicy(JSContext* cx) : cx_(cx) {}
 
     template <typename T>
     T* maybe_pod_malloc(size_t numElems) {
@@ -132,7 +128,7 @@ class TempAllocPolicy
 
     bool checkSimulatedOOM() const {
         if (js::oom::ShouldFailWithOOM()) {
-            js::ReportOutOfMemory(reinterpret_cast<ExclusiveContext*>(cx_));
+            ReportOutOfMemory(cx_);
             return false;
         }
 
