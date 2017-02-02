@@ -2312,7 +2312,7 @@ EditorBase::CloneAttributes(Element* aDest,
   }
 }
 
-NS_IMETHODIMP
+nsresult
 EditorBase::ScrollSelectionIntoView(bool aScrollToAnchor)
 {
   nsCOMPtr<nsISelectionController> selCon;
@@ -2594,7 +2594,7 @@ EditorBase::GetFirstEditableNode(nsINode* aRoot)
   return (node != aRoot) ? node : nullptr;
 }
 
-NS_IMETHODIMP
+nsresult
 EditorBase::NotifyDocumentListeners(
               TDocumentListenerNotification aNotificationType)
 {
