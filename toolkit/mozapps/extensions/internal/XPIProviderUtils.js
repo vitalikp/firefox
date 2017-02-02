@@ -81,7 +81,7 @@ const DB_BOOL_METADATA   = ["visible", "active", "userDisabled", "appDisabled",
 // Properties to save in JSON file
 const PROP_JSON_FIELDS = ["id", "syncGUID", "location", "version", "type",
                           "internalName", "updateURL", "updateKey", "optionsURL",
-                          "optionsType", "aboutURL", "icons", "iconURL", "icon64URL",
+                          "optionsType", "optionsBrowserStyle", "aboutURL",
                           "defaultLocale", "visible", "active", "userDisabled",
                           "appDisabled", "pendingUninstall", "descriptor", "installDate",
                           "updateDate", "applyBackgroundUpdates", "bootstrap",
@@ -89,7 +89,8 @@ const PROP_JSON_FIELDS = ["id", "syncGUID", "location", "version", "type",
                           "softDisabled", "foreignInstall", "hasBinaryComponents",
                           "strictCompatibility", "locales", "targetApplications",
                           "targetPlatforms", "multiprocessCompatible", "signedState",
-                          "seen", "dependencies", "hasEmbeddedWebExtension", "mpcOptedOut"];
+                          "seen", "dependencies", "hasEmbeddedWebExtension", "mpcOptedOut",
+                          "icons", "iconURL", "icon64URL"];
 
 // Properties that should be migrated where possible from an old database. These
 // shouldn't include properties that can be read directly from install.rdf files
