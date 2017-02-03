@@ -221,18 +221,6 @@ WorkerGlobalScope::GetExistingNavigator() const
   return navigator.forget();
 }
 
-void
-WorkerGlobalScope::Close(JSContext* aCx, ErrorResult& aRv)
-{
-  mWorkerPrivate->AssertIsOnWorkerThread();
-
-  if (mWorkerPrivate->IsServiceWorker()) {
-    aRv.Throw(NS_ERROR_DOM_INVALID_ACCESS_ERR);
-  } else {
-    mWorkerPrivate->CloseInternal(aCx);
-  }
-}
-
 OnErrorEventHandlerNonNull*
 WorkerGlobalScope::GetOnerror()
 {
@@ -544,6 +532,13 @@ DedicatedWorkerGlobalScope::PostMessage(JSContext* aCx,
   mWorkerPrivate->PostMessageToParent(aCx, aMessage, aTransferable, aRv);
 }
 
+void
+DedicatedWorkerGlobalScope::Close(JSContext* aCx)
+{
+  mWorkerPrivate->AssertIsOnWorkerThread();
+  mWorkerPrivate->CloseInternal(aCx);
+}
+
 SharedWorkerGlobalScope::SharedWorkerGlobalScope(WorkerPrivate* aWorkerPrivate,
                                                  const nsCString& aName)
 : WorkerGlobalScope(aWorkerPrivate), mName(aName)
@@ -563,6 +558,13 @@ SharedWorkerGlobalScope::WrapGlobalObject(JSContext* aCx,
   return SharedWorkerGlobalScopeBinding::Wrap(aCx, this, this, options,
                                               GetWorkerPrincipal(),
                                               true, aReflector);
+}
+
+void
+SharedWorkerGlobalScope::Close(JSContext* aCx)
+{
+  mWorkerPrivate->AssertIsOnWorkerThread();
+  mWorkerPrivate->CloseInternal(aCx);
 }
 
 NS_IMPL_CYCLE_COLLECTION_INHERITED(ServiceWorkerGlobalScope, WorkerGlobalScope,
