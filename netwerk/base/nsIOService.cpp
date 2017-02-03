@@ -1812,6 +1812,8 @@ nsIOService::SpeculativeConnectInternal(nsIURI *aURI,
 
     nsCOMPtr<nsIPrincipal> loadingPrincipal = aPrincipal;
 
+    NS_ASSERTION(aPrincipal, "We expect passing a principal here.");
+
     // If the principal is given, we use this prinicpal directly. Otherwise,
     // we fallback to use the system principal.
     if (!aPrincipal) {
