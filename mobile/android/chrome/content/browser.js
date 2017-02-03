@@ -5890,7 +5890,8 @@ var SearchEngines = {
     });
 
     // Send a speculative connection to the default engine.
-    Services.search.defaultEngine.speculativeConnect({window: window});
+    Services.search.defaultEngine.speculativeConnect({ window: window,
+                                                       originAttributes: {} });
   },
 
   // Helper method to extract the engine name from a JSON. Simplifies the observe function.
