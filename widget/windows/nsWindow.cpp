@@ -776,6 +776,7 @@ nsWindow::Create(nsIWidget* aParent,
   }
 
   mIsRTL = aInitData->mRTL;
+  mOpeningAnimationSuppressed = aInitData->mIsAnimationSuppressed;
 
   DWORD style = WindowStyle();
   DWORD extendedStyle = WindowExStyle();
@@ -845,6 +846,12 @@ nsWindow::Create(nsIWidget* aParent,
   if (mIsRTL && WinUtils::dwmSetWindowAttributePtr) {
     DWORD dwAttribute = TRUE;    
     WinUtils::dwmSetWindowAttributePtr(mWnd, DWMWA_NONCLIENT_RTL_LAYOUT, &dwAttribute, sizeof dwAttribute);
+  }
+
+  if (mOpeningAnimationSuppressed && WinUtils::dwmSetWindowAttributePtr) {
+    DWORD dwAttribute = TRUE;
+    WinUtils::dwmSetWindowAttributePtr(mWnd, DWMWA_TRANSITIONS_FORCEDISABLED,
+                                       &dwAttribute, sizeof dwAttribute);
   }
 
   if (!IsPlugin() &&
@@ -1616,6 +1623,12 @@ nsWindow::Show(bool bState)
     }
   }
 #endif
+
+  if (mOpeningAnimationSuppressed && WinUtils::dwmSetWindowAttributePtr) {
+    DWORD dwAttribute = FALSE;
+    WinUtils::dwmSetWindowAttributePtr(mWnd, DWMWA_TRANSITIONS_FORCEDISABLED,
+                                       &dwAttribute, sizeof dwAttribute);
+  }
 }
 
 /**************************************************************
