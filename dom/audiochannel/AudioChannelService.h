@@ -296,9 +296,10 @@ private:
 
     void NotifyChannelActive(uint64_t aWindowID, AudioChannel aChannel,
                              bool aActive);
-    void MaybeNotifyMediaBlocked(AudioChannelAgent* aAgent);
+    void MaybeNotifyMediaBlockStart(AudioChannelAgent* aAgent);
 
     void RequestAudioFocus(AudioChannelAgent* aAgent);
+
     // We need to do audio competing only when the new incoming agent started.
     void NotifyAudioCompetingChanged(AudioChannelAgent* aAgent);
 
