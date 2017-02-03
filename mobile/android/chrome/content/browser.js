@@ -4487,7 +4487,9 @@ var BrowserEventHandler = {
     let uri = this._getLinkURI(target);
     if (uri) {
       try {
-        Services.io.QueryInterface(Ci.nsISpeculativeConnect).speculativeConnect(uri, null);
+        Services.io.QueryInterface(Ci.nsISpeculativeConnect).speculativeConnect2(uri,
+                                                                                 target.ownerDocument.nodePrincipal,
+                                                                                 null);
       } catch (e) {}
     }
     this._doTapHighlight(target);
@@ -6648,9 +6650,13 @@ var Tabs = {
       case "Session:Prefetch":
         if (aData) {
           try {
-            let uri = Services.io.newURI(aData, null, null);
+            let uri = Services.io.newURI(aData);
             if (uri && !this._domains.has(uri.host)) {
-              Services.io.QueryInterface(Ci.nsISpeculativeConnect).speculativeConnect(uri, null);
+              Services.io.QueryInterface(Ci.nsISpeculativeConnect).speculativeConnect2(uri,
+                                                                                       BrowserApp.selectedBrowser
+                                                                                                 .contentDocument
+                                                                                                 .nodePrincipal,
+                                                                                       null);
               this._domains.add(uri.host);
             }
           } catch (e) {}
