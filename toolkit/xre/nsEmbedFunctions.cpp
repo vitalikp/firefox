@@ -522,56 +522,15 @@ XRE_InitChildProcess(int aArgc,
 
       switch (XRE_GetProcessType()) {
       case GeckoProcessType_Default:
-        NS_RUNTIMEABORT("This makes no sense");
+        MOZ_CRASH("This makes no sense");
         break;
 
       case GeckoProcessType_Plugin:
         process = new PluginProcessChild(parentPID);
         break;
 
-      case GeckoProcessType_Content: {
-          process = new ContentProcess(parentPID);
-          // If passed in grab the application path for xpcom init
-          bool foundAppdir = false;
-
-#if defined(XP_MACOSX) && defined(MOZ_CONTENT_SANDBOX)
-          // If passed in grab the profile path for sandboxing
-          bool foundProfile = false;
-#endif
-
-          for (int idx = aArgc; idx > 0; idx--) {
-            if (aArgv[idx] && !strcmp(aArgv[idx], "-appdir")) {
-              MOZ_ASSERT(!foundAppdir);
-              if (foundAppdir) {
-                  continue;
-              }
-              nsCString appDir;
-              appDir.Assign(nsDependentCString(aArgv[idx+1]));
-              static_cast<ContentProcess*>(process.get())->SetAppDir(appDir);
-              foundAppdir = true;
-            }
-
-#if defined(XP_MACOSX) && defined(MOZ_CONTENT_SANDBOX)
-            if (aArgv[idx] && !strcmp(aArgv[idx], "-profile")) {
-              MOZ_ASSERT(!foundProfile);
-              if (foundProfile) {
-                continue;
-              }
-              nsCString profile;
-              profile.Assign(nsDependentCString(aArgv[idx+1]));
-              static_cast<ContentProcess*>(process.get())->SetProfile(profile);
-              foundProfile = true;
-            }
-            if (foundProfile && foundAppdir) {
-              break;
-            }
-#else
-            if (foundAppdir) {
-              break;
-            }
-#endif /* XP_MACOSX && MOZ_CONTENT_SANDBOX */
-          }
-        }
+      case GeckoProcessType_Content:
+        process = new ContentProcess(parentPID);
         break;
 
       case GeckoProcessType_IPDLUnitTest:
@@ -591,10 +550,10 @@ XRE_InitChildProcess(int aArgc,
         break;
 
       default:
-        NS_RUNTIMEABORT("Unknown main thread class");
+        MOZ_CRASH("Unknown main thread class");
       }
 
-      if (!process->Init()) {
+      if (!process->Init(aArgc, aArgv)) {
         return NS_ERROR_FAILURE;
       }
 

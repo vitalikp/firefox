@@ -713,24 +713,6 @@ private:
 
   virtual mozilla::ipc::IPCResult RecvInitBackground(Endpoint<mozilla::ipc::PBackgroundParent>&& aEndpoint) override;
 
-  virtual mozilla::ipc::IPCResult RecvGetProcessAttributes(ContentParentId* aCpId,
-                                                           bool* aIsForBrowser) override;
-
-  virtual mozilla::ipc::IPCResult
-  RecvGetXPCOMProcessAttributes(bool* aIsOffline,
-                                bool* aIsConnected,
-                                int32_t* aCaptivePortalState,
-                                bool* aIsLangRTL,
-                                bool* aHaveBidiKeyboards,
-                                InfallibleTArray<nsString>* dictionaries,
-                                ClipboardCapabilities* clipboardCaps,
-                                DomainPolicyClone* domainPolicy,
-                                StructuredCloneData* initialData,
-                                InfallibleTArray<FontFamilyListEntry>* fontFamilies,
-                                OptionalURIParams* aUserContentSheetURL,
-                                nsTArray<LookAndFeelInt>* aLookAndFeelIntCache) override;
-
-
   mozilla::ipc::IPCResult RecvAddMemoryReport(const MemoryReport& aReport) override;
   mozilla::ipc::IPCResult RecvFinishMemoryReport(const uint32_t& aGeneration) override;
 
@@ -856,7 +838,6 @@ private:
   virtual bool
   DeallocPWebBrowserPersistDocumentParent(PWebBrowserPersistDocumentParent* aActor) override;
 
-  virtual mozilla::ipc::IPCResult RecvReadPrefsArray(InfallibleTArray<PrefSetting>* aPrefs) override;
   virtual mozilla::ipc::IPCResult RecvGetGfxVars(InfallibleTArray<GfxVarUpdate>* aVars) override;
 
   virtual mozilla::ipc::IPCResult RecvReadFontList(InfallibleTArray<FontListEntry>* retValue) override;
