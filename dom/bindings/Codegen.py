@@ -15657,6 +15657,7 @@ class CGCallback(CGClass):
 
         setupCall = fill(
             """
+            MOZ_ASSERT(!aRv.Failed(), "Don't pass an already-failed ErrorResult to a callback!");
             if (!aExecutionReason) {
               aExecutionReason = "${executionReason}";
             }
