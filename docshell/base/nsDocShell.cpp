@@ -14215,7 +14215,6 @@ nsDocShell::ShouldBlockLoadingForBackButton()
 bool
 nsDocShell::PluginsAllowedInCurrentDoc()
 {
-  bool pluginsAllowed = false;
 
   if (!mContentViewer) {
     return false;
@@ -14226,8 +14225,7 @@ nsDocShell::PluginsAllowedInCurrentDoc()
     return false;
   }
 
-  doc->GetAllowPlugins(&pluginsAllowed);
-  return pluginsAllowed;
+  return doc->GetAllowPlugins();
 }
 
 //----------------------------------------------------------------------
