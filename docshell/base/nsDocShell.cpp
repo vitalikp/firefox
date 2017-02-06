@@ -7512,7 +7512,13 @@ nsDocShell::EndPageLoad(nsIWebProgress* aProgress,
 
   nsCOMPtr<nsIConsoleReportCollector> reporter = do_QueryInterface(aChannel);
   if (reporter) {
-    reporter->FlushConsoleReports(GetDocument());
+    nsCOMPtr<nsILoadGroup> loadGroup;
+    aChannel->GetLoadGroup(getter_AddRefs(loadGroup));
+    if (loadGroup) {
+      reporter->FlushConsoleReports(loadGroup);
+    } else {
+      reporter->FlushConsoleReports(GetDocument());
+    }
   }
 
   nsCOMPtr<nsIURI> url;
