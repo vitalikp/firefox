@@ -757,7 +757,9 @@ NewImageChannel(nsIChannel** aResult,
       attrs.Inherit(aLoadingPrincipal->OriginAttributesRef());
 
       nsCOMPtr<nsILoadInfo> loadInfo = (*aResult)->GetLoadInfo();
-      rv = loadInfo->SetOriginAttributes(attrs);
+      if (loadInfo) {
+        rv = loadInfo->SetOriginAttributes(attrs);
+      }
     }
   } else {
     // either we are loading something inside a document, in which case
@@ -789,7 +791,9 @@ NewImageChannel(nsIChannel** aResult,
     attrs.mPrivateBrowsingId = aRespectPrivacy ? 1 : 0;
 
     nsCOMPtr<nsILoadInfo> loadInfo = (*aResult)->GetLoadInfo();
-    rv = loadInfo->SetOriginAttributes(attrs);
+    if (loadInfo) {
+      rv = loadInfo->SetOriginAttributes(attrs);
+    }
   }
 
   if (NS_FAILED(rv)) {
