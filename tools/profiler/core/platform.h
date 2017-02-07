@@ -226,8 +226,6 @@ class SpliceableJSONWriter;
 class SyncProfile;
 
 namespace mozilla {
-class ProfileGatherer;
-
 namespace dom {
 class Promise;
 }
@@ -322,11 +320,7 @@ public:
 
   void ToStreamAsJSON(std::ostream& stream, double aSinceTime = 0);
   JSObject *ToJSObject(JSContext *aCx, double aSinceTime = 0);
-  void GetGatherer(nsISupports** aRetVal);
   mozilla::UniquePtr<char[]> ToJSON(double aSinceTime = 0);
-  void ToJSObjectAsync(double aSinceTime = 0,
-                       mozilla::dom::Promise* aPromise = 0);
-  void ToFileAsync(const nsACString& aFileName, double aSinceTime = 0);
   void StreamMetaJSCustomObject(SpliceableJSONWriter& aWriter);
   void StreamTaskTracer(SpliceableJSONWriter& aWriter);
   void FlushOnJSShutdown(JSContext* aContext);
@@ -378,8 +372,6 @@ private:
   bool mAddMainThreadIO;
   bool mProfileMemory;
   bool mTaskTracer;
-
-  RefPtr<mozilla::ProfileGatherer> mGatherer;
 };
 
 #endif /* ndef TOOLS_PLATFORM_H_ */
