@@ -615,7 +615,10 @@ public:
   }
 
   void
-  SetPrincipal(nsIPrincipal* aPrincipal, nsILoadGroup* aLoadGroup);
+  SetPrincipalOnMainThread(nsIPrincipal* aPrincipal, nsILoadGroup* aLoadGroup);
+
+  nsresult
+  SetPrincipalFromChannel(nsIChannel* aChannel);
 
   bool
   UsesSystemPrincipal() const
