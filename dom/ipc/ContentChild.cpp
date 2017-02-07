@@ -195,6 +195,11 @@
 #include "gfxPlatform.h"
 #include "nscore.h" // for NS_FREE_PERMANENT_DATA
 
+#ifdef MOZ_WIDGET_GTK
+#include "nsAppRunner.h"
+#endif
+
+
 using namespace mozilla;
 using namespace mozilla::docshell;
 using namespace mozilla::dom::ipc;
@@ -511,7 +516,7 @@ ContentChild::Init(MessageLoop* aIOLoop,
   // to use, and when starting under XWayland, it may choose to start with
   // the wayland backend instead of the x11 backend.
   // The DISPLAY environment variable is normally set by the parent process.
-  char* display_name = PR_GetEnv("DISPLAY");
+  const char* display_name = DetectDisplay();
   if (display_name) {
     int argc = 3;
     char option_name[] = "--display";
@@ -520,7 +525,7 @@ ContentChild::Init(MessageLoop* aIOLoop,
       // XRE_InitChildProcess().
       nullptr,
       option_name,
-      display_name,
+      const_cast<char*>(display_name),
       nullptr
     };
     char** argvp = argv;
