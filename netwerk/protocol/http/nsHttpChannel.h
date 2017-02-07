@@ -468,6 +468,19 @@ private:
     void SetDoNotTrack();
 
 private:
+    // this section is for main-thread-only object
+    // all the references need to be proxy released on main thread.
+    nsCOMPtr<nsIApplicationCache> mApplicationCacheForWrite;
+    // auth specific data
+    nsCOMPtr<nsIHttpChannelAuthProvider> mAuthProvider;
+    nsCOMPtr<nsIURI> mRedirectURI;
+    nsCOMPtr<nsIChannel> mRedirectChannel;
+    nsCOMPtr<nsIChannel> mPreflightChannel;
+
+    // Proxy release all members above on main thread.
+    void ReleaseMainThreadOnlyReferences();
+
+private:
     nsCOMPtr<nsICancelable>           mProxyRequest;
 
     RefPtr<nsInputStreamPump>       mTransactionPump;
@@ -493,10 +506,6 @@ private:
 
     nsCOMPtr<nsICacheEntry> mOfflineCacheEntry;
     uint32_t                          mOfflineCacheLastModifiedTime;
-    nsCOMPtr<nsIApplicationCache>     mApplicationCacheForWrite;
-
-    // auth specific data
-    nsCOMPtr<nsIHttpChannelAuthProvider> mAuthProvider;
 
     mozilla::TimeStamp                mOnStartRequestTimestamp;
 
@@ -522,8 +531,6 @@ private:
     friend class AutoRedirectVetoNotifier;
     friend class HttpAsyncAborter<nsHttpChannel>;
 
-    nsCOMPtr<nsIURI>                  mRedirectURI;
-    nsCOMPtr<nsIChannel>              mRedirectChannel;
     uint32_t                          mRedirectType;
 
     static const uint32_t WAIT_FOR_CACHE_ENTRY = 1;
@@ -587,8 +594,6 @@ private:
 
     // the next authentication request can be sent on a whole new connection
     uint32_t                          mAuthConnectionRestartable : 1;
-
-    nsCOMPtr<nsIChannel>              mPreflightChannel;
 
     nsTArray<nsContinueRedirectionFunc> mRedirectFuncStack;
 
