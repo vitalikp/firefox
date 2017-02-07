@@ -9,8 +9,7 @@
 
 #include "FFmpegDataDecoder.h"
 
-namespace mozilla
-{
+namespace mozilla {
 
 class FFmpegAudioDecoder : public FFmpegDataDecoder
 {

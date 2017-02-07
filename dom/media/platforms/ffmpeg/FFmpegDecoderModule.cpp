@@ -65,9 +65,9 @@ bool FFmpegDecoderModule::SupportsMimeType(const nsACString& aMimeType,
 PlatformDecoderModule::ConversionRequired
 FFmpegDecoderModule::DecoderNeedsConversion(const TrackInfo& aConfig) const
 {
-  if (aConfig.IsVideo() &&
-      (aConfig.mMimeType.EqualsLiteral("video/avc") ||
-       aConfig.mMimeType.EqualsLiteral("video/mp4"))) {
+  if (aConfig.IsVideo()
+      && (aConfig.mMimeType.EqualsLiteral("video/avc")
+          || aConfig.mMimeType.EqualsLiteral("video/mp4"))) {
     return ConversionRequired::kNeedAVCC;
   } else {
     return ConversionRequired::kNeedNone;

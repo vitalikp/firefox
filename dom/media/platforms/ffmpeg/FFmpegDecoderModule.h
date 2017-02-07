@@ -9,14 +9,13 @@
 
 #include "PlatformDecoderModule.h"
 
-namespace mozilla
-{
+namespace mozilla {
 
 class FFmpegDecoderModule : public PlatformDecoderModule
 {
 public:
-  FFmpegDecoderModule() {}
-  virtual ~FFmpegDecoderModule() {}
+  FFmpegDecoderModule() { }
+  virtual ~FFmpegDecoderModule() { }
 
   already_AddRefed<MediaDataDecoder>
   CreateVideoDecoder(const CreateDecoderParams& aParams) override;

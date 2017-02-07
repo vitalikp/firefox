@@ -11,15 +11,15 @@
 
 #define MAX_CHANNELS 16
 
-namespace mozilla
-{
+namespace mozilla {
 
 FFmpegAudioDecoder::FFmpegAudioDecoder(TaskQueue* aTaskQueue,
   const AudioInfo& aConfig)
   : FFmpegDataDecoder(aTaskQueue, GetCodecId(aConfig.mMimeType))
 {
   MOZ_COUNT_CTOR(FFmpegAudioDecoder);
-  // Use a new MediaByteBuffer as the object will be modified during initialization.
+  // Use a new MediaByteBuffer as the object will be modified during
+  // initialization.
   if (aConfig.mCodecSpecificConfig && aConfig.mCodecSpecificConfig->Length()) {
     mExtraData = new MediaByteBuffer;
     mExtraData->AppendElements(*aConfig.mCodecSpecificConfig);
@@ -31,8 +31,10 @@ FFmpegAudioDecoder::Init()
 {
   nsresult rv = InitDecoder();
 
-  return rv == NS_OK ? InitPromise::CreateAndResolve(TrackInfo::kAudioTrack, __func__)
-                     : InitPromise::CreateAndReject(NS_ERROR_DOM_MEDIA_FATAL_ERR, __func__);
+  return rv == NS_OK
+         ? InitPromise::CreateAndResolve(TrackInfo::kAudioTrack, __func__)
+         : InitPromise::CreateAndReject(NS_ERROR_DOM_MEDIA_FATAL_ERR,
+                                        __func__);
 }
 
 void

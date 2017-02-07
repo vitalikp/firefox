@@ -11,8 +11,7 @@
 #include "mozilla/StaticMutex.h"
 #include "FFmpegLibs.h"
 
-namespace mozilla
-{
+namespace mozilla {
 
 class FFmpegDataDecoder : public MediaDataDecoder
 {
@@ -35,7 +34,7 @@ protected:
   // Flush and Drain operation, always run
   virtual RefPtr<FlushPromise> ProcessFlush();
   virtual void ProcessShutdown();
-  virtual void InitCodecContext() {}
+  virtual void InitCodecContext() { }
   AVFrame*        PrepareFrame();
   nsresult        InitDecoder();
 
