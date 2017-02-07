@@ -473,6 +473,12 @@ NS_ProcessNextEvent(nsIThread* aThread, bool aMayWait)
   return NS_SUCCEEDED(aThread->ProcessNextEvent(aMayWait, &val)) && val;
 }
 
+void
+NS_SetCurrentThreadName(const char* aName)
+{
+  PR_SetCurrentThreadName(aName);
+}
+
 #ifdef MOZILLA_INTERNAL_API
 nsIThread*
 NS_GetCurrentThread()

@@ -15,6 +15,7 @@
 #include "mozilla/StaticPtr.h"
 #include "mozilla/UniquePtr.h"
 #include "nsReadableUtils.h"
+#include "nsThreadUtils.h"
 #include "mozilla/StackWalk.h"
 #include "nsThreadUtils.h"
 #include "nsXULAppAPI.h"
@@ -184,7 +185,7 @@ void
 ThreadMain(void*)
 {
   AutoProfilerRegister registerThread("Hang Monitor");
-  PR_SetCurrentThreadName("Hang Monitor");
+  NS_SetCurrentThreadName("Hang Monitor");
 
   MonitorAutoLock lock(*gMonitor);
 

@@ -329,6 +329,15 @@ do_GetMainThread()
 // AddRef it.  Otherwise, you should only consider this pointer valid from code
 // running on the current thread.
 extern nsIThread* NS_GetCurrentThread();
+
+/**
+ * Set the name of the current thread. Prefer this function over
+ * PR_SetCurrentThreadName() if possible.
+ *
+ * @param aName
+ *   Name of the thread. A C language null-terminated string.
+ */
+extern void NS_SetCurrentThreadName(const char* aName);
 #endif
 
 //-----------------------------------------------------------------------------
