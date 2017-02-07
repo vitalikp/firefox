@@ -1765,8 +1765,8 @@ Interpret(JSContext* cx, RunState& state)
     RootedScript script(cx);
     SET_SCRIPT(REGS.fp()->script());
 
-    TraceLoggerThread* logger = TraceLoggerForMainThread(cx->runtime());
-    TraceLoggerEvent scriptEvent(logger, TraceLogger_Scripts, script);
+    TraceLoggerThread* logger = TraceLoggerForCurrentThread(cx);
+    TraceLoggerEvent scriptEvent(TraceLogger_Scripts, script);
     TraceLogStartEvent(logger, scriptEvent);
     TraceLogStartEvent(logger, TraceLogger_Interpreter);
 
@@ -3020,7 +3020,7 @@ CASE(JSOP_FUNCALL)
     SET_SCRIPT(REGS.fp()->script());
 
     {
-        TraceLoggerEvent event(logger, TraceLogger_Scripts, script);
+        TraceLoggerEvent event(TraceLogger_Scripts, script);
         TraceLogStartEvent(logger, event);
         TraceLogStartEvent(logger, TraceLogger_Interpreter);
     }
@@ -3964,8 +3964,8 @@ CASE(JSOP_RESUME)
         bool ok = GeneratorObject::resume(cx, activation, gen, val, resumeKind);
         SET_SCRIPT(REGS.fp()->script());
 
-        TraceLoggerThread* logger = TraceLoggerForMainThread(cx->runtime());
-        TraceLoggerEvent scriptEvent(logger, TraceLogger_Scripts, script);
+        TraceLoggerThread* logger = TraceLoggerForCurrentThread(cx);
+        TraceLoggerEvent scriptEvent(TraceLogger_Scripts, script);
         TraceLogStartEvent(logger, scriptEvent);
         TraceLogStartEvent(logger, TraceLogger_Interpreter);
 

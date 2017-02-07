@@ -994,7 +994,7 @@ bool
 RegExpShared::compile(JSContext* cx, HandleLinearString input,
                       CompilationMode mode, ForceByteCodeEnum force)
 {
-    TraceLoggerThread* logger = TraceLoggerForMainThread(cx->runtime());
+    TraceLoggerThread* logger = TraceLoggerForCurrentThread(cx);
     AutoTraceLog logCompile(logger, TraceLogger_IrregexpCompile);
 
     RootedAtom pattern(cx, source);
@@ -1061,7 +1061,7 @@ RegExpShared::execute(JSContext* cx, HandleLinearString input, size_t start,
 {
     MOZ_ASSERT_IF(matches, !endIndex);
     MOZ_ASSERT_IF(!matches, endIndex);
-    TraceLoggerThread* logger = TraceLoggerForMainThread(cx->runtime());
+    TraceLoggerThread* logger = TraceLoggerForCurrentThread(cx);
 
     CompilationMode mode = matches ? Normal : MatchOnly;
 
