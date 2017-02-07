@@ -1584,7 +1584,7 @@ var collatorInternalProperties = {
     sortLocaleData: collatorSortLocaleData,
     searchLocaleData: collatorSearchLocaleData,
     _availableLocales: null,
-    availableLocales: function()
+    availableLocales: function() // eslint-disable-line object-shorthand
     {
         var locales = this._availableLocales;
         if (locales)
@@ -1707,7 +1707,7 @@ function Intl_Collator_resolvedOptions() {
 var numberFormatInternalProperties = {
     localeData: numberFormatLocaleData,
     _availableLocales: null,
-    availableLocales: function()
+    availableLocales: function() // eslint-disable-line object-shorthand
     {
         var locales = this._availableLocales;
         if (locales)
@@ -2799,7 +2799,7 @@ function Intl_DateTimeFormat_supportedLocalesOf(locales /*, options*/) {
 var dateTimeFormatInternalProperties = {
     localeData: dateTimeFormatLocaleData,
     _availableLocales: null,
-    availableLocales: function()
+    availableLocales: function() // eslint-disable-line object-shorthand
     {
         var locales = this._availableLocales;
         if (locales)
@@ -3013,7 +3013,7 @@ function resolveICUPattern(pattern, result) {
  */
 var pluralRulesInternalProperties = {
     _availableLocales: null,
-    availableLocales: function()
+    availableLocales: function() // eslint-disable-line object-shorthand
     {
         var locales = this._availableLocales;
         if (locales)
