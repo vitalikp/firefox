@@ -6445,7 +6445,7 @@ DrawImageInternal(gfxContext&            aContext,
                   const nsRect&          aFill,
                   const nsPoint&         aAnchor,
                   const nsRect&          aDirty,
-                  const Maybe<const SVGImageContext>& aSVGContext,
+                  const Maybe<SVGImageContext>& aSVGContext,
                   uint32_t               aImageFlags,
                   ExtendMode             aExtendMode = ExtendMode::CLAMP,
                   float                  aOpacity = 1.0)
@@ -6479,7 +6479,7 @@ DrawImageInternal(gfxContext&            aContext,
 
     destCtx->SetMatrix(params.imageSpaceToDeviceSpace);
 
-    Maybe<const SVGImageContext> fallbackContext;
+    Maybe<SVGImageContext> fallbackContext;
     if (!aSVGContext) {
       // Use the default viewport.
       fallbackContext.emplace(Some(params.svgViewportSize));
@@ -6540,7 +6540,7 @@ nsLayoutUtils::DrawSingleImage(gfxContext&            aContext,
                                const SamplingFilter   aSamplingFilter,
                                const nsRect&          aDest,
                                const nsRect&          aDirty,
-                               const Maybe<const SVGImageContext>& aSVGContext,
+                               const Maybe<SVGImageContext>& aSVGContext,
                                uint32_t               aImageFlags,
                                const nsPoint*         aAnchorPoint,
                                const nsRect*          aSourceArea)
