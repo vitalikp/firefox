@@ -231,9 +231,6 @@ class Promise;
 }
 }
 
-extern int sFrameNumber;
-extern int sLastFrameNumber;
-
 class Sampler {
 public:
   // Initialize sampler.
