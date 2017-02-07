@@ -44,10 +44,10 @@
 #include "MainThreadUtils.h"
 #include "mozilla/StaticMutex.h"
 #include "ThreadResponsiveness.h"
+#include "mozilla/MemoryReporting.h"
 #include "mozilla/TimeStamp.h"
 #include "mozilla/UniquePtr.h"
 #include "mozilla/Unused.h"
-#include "mozilla/Vector.h"
 #include "PlatformMacros.h"
 #include "v8-support.h"
 #include <vector>
@@ -231,9 +231,6 @@ class Promise;
 }
 }
 
-typedef mozilla::Vector<std::string> ThreadNameFilterList;
-typedef mozilla::Vector<std::string> FeatureList;
-
 extern int sFrameNumber;
 extern int sLastFrameNumber;
 
@@ -242,7 +239,7 @@ public:
   // Initialize sampler.
   Sampler(double aInterval, int aEntrySize,
           const char** aFeatures, uint32_t aFeatureCount,
-          const char** aThreadNameFilters, uint32_t aFilterCount);
+          uint32_t aFilterCount);
   ~Sampler();
 
   double interval() const { return interval_; }
@@ -315,8 +312,6 @@ public:
   bool LayersDump() const { return mLayersDump; }
   bool DisplayListDump() const { return mDisplayListDump; }
   bool ProfileRestyle() const { return mProfileRestyle; }
-  const ThreadNameFilterList& ThreadNameFilters() { return mThreadNameFilters; }
-  const FeatureList& Features() { return mFeatures; }
 
   void ToStreamAsJSON(std::ostream& stream, double aSinceTime = 0);
   JSObject *ToJSObject(JSContext *aCx, double aSinceTime = 0);
@@ -363,11 +358,6 @@ private:
   bool mLayersDump;
   bool mDisplayListDump;
   bool mProfileRestyle;
-
-  // Keep the thread filter to check against new thread that
-  // are started while profiling
-  ThreadNameFilterList mThreadNameFilters;
-  FeatureList mFeatures;
   bool mPrivacyMode;
   bool mAddMainThreadIO;
   bool mProfileMemory;
