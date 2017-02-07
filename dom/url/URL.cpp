@@ -1751,6 +1751,9 @@ URL::CreateObjectURL(const GlobalObject& aGlobal, DOMMediaStream& aStream,
                      nsAString& aResult, ErrorResult& aRv)
 {
   MOZ_ASSERT(NS_IsMainThread());
+
+  DeprecationWarning(aGlobal, nsIDocument::eURLCreateObjectURL_MediaStream);
+
   URLMainThread::CreateObjectURL(aGlobal, aStream, aResult, aRv);
 }
 
