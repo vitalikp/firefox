@@ -1418,9 +1418,12 @@ EditorBase::CreateNode(nsIAtom* aTag,
 
   AutoRules beginRulesSniffing(this, EditAction::createNode, nsIEditor::eNext);
 
-  for (auto& listener : mActionListeners) {
-    listener->WillCreateNode(nsDependentAtomString(aTag),
-                             GetAsDOMNode(aParent), aPosition);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->WillCreateNode(nsDependentAtomString(aTag),
+                               GetAsDOMNode(aParent), aPosition);
+    }
   }
 
   nsCOMPtr<Element> ret;
@@ -1435,9 +1438,12 @@ EditorBase::CreateNode(nsIAtom* aTag,
 
   mRangeUpdater.SelAdjCreateNode(aParent, aPosition);
 
-  for (auto& listener : mActionListeners) {
-    listener->DidCreateNode(nsDependentAtomString(aTag), GetAsDOMNode(ret),
-                            GetAsDOMNode(aParent), aPosition, rv);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->DidCreateNode(nsDependentAtomString(aTag), GetAsDOMNode(ret),
+                              GetAsDOMNode(aParent), aPosition, rv);
+    }
   }
 
   return ret.forget();
@@ -1462,9 +1468,12 @@ EditorBase::InsertNode(nsIContent& aNode,
 {
   AutoRules beginRulesSniffing(this, EditAction::insertNode, nsIEditor::eNext);
 
-  for (auto& listener : mActionListeners) {
-    listener->WillInsertNode(aNode.AsDOMNode(), aParent.AsDOMNode(),
-                             aPosition);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->WillInsertNode(aNode.AsDOMNode(), aParent.AsDOMNode(),
+                               aPosition);
+    }
   }
 
   RefPtr<InsertNodeTransaction> transaction =
@@ -1473,9 +1482,12 @@ EditorBase::InsertNode(nsIContent& aNode,
 
   mRangeUpdater.SelAdjInsertNode(aParent.AsDOMNode(), aPosition);
 
-  for (auto& listener : mActionListeners) {
-    listener->DidInsertNode(aNode.AsDOMNode(), aParent.AsDOMNode(), aPosition,
-                            rv);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->DidInsertNode(aNode.AsDOMNode(), aParent.AsDOMNode(), aPosition,
+                              rv);
+    }
   }
 
   return rv;
@@ -1501,8 +1513,11 @@ EditorBase::SplitNode(nsIContent& aNode,
 {
   AutoRules beginRulesSniffing(this, EditAction::splitNode, nsIEditor::eNext);
 
-  for (auto& listener : mActionListeners) {
-    listener->WillSplitNode(aNode.AsDOMNode(), aOffset);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->WillSplitNode(aNode.AsDOMNode(), aOffset);
+    }
   }
 
   RefPtr<SplitNodeTransaction> transaction =
@@ -1515,9 +1530,12 @@ EditorBase::SplitNode(nsIContent& aNode,
   mRangeUpdater.SelAdjSplitNode(aNode, aOffset, newNode);
 
   nsresult rv = aResult.StealNSResult();
-  for (auto& listener : mActionListeners) {
-    listener->DidSplitNode(aNode.AsDOMNode(), aOffset, GetAsDOMNode(newNode),
-                           rv);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->DidSplitNode(aNode.AsDOMNode(), aOffset, GetAsDOMNode(newNode),
+                             rv);
+    }
   }
   // Note: result might be a success code, so we can't use Throw() to
   // set it on aResult.
@@ -1553,9 +1571,12 @@ EditorBase::JoinNodes(nsINode& aLeftNode,
   // Find the number of children of the lefthand node
   uint32_t oldLeftNodeLen = aLeftNode.Length();
 
-  for (auto& listener : mActionListeners) {
-    listener->WillJoinNodes(aLeftNode.AsDOMNode(), aRightNode.AsDOMNode(),
-                            parent->AsDOMNode());
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->WillJoinNodes(aLeftNode.AsDOMNode(), aRightNode.AsDOMNode(),
+                              parent->AsDOMNode());
+    }
   }
 
   nsresult rv = NS_OK;
@@ -1568,9 +1589,12 @@ EditorBase::JoinNodes(nsINode& aLeftNode,
   mRangeUpdater.SelAdjJoinNodes(aLeftNode, aRightNode, *parent, offset,
                                 (int32_t)oldLeftNodeLen);
 
-  for (auto& listener : mActionListeners) {
-    listener->DidJoinNodes(aLeftNode.AsDOMNode(), aRightNode.AsDOMNode(),
-                           parent->AsDOMNode(), rv);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->DidJoinNodes(aLeftNode.AsDOMNode(), aRightNode.AsDOMNode(),
+                             parent->AsDOMNode(), rv);
+    }
   }
 
   return rv;
@@ -1591,8 +1615,11 @@ EditorBase::DeleteNode(nsINode* aNode)
                                nsIEditor::ePrevious);
 
   // save node location for selection updating code.
-  for (auto& listener : mActionListeners) {
-    listener->WillDeleteNode(aNode->AsDOMNode());
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->WillDeleteNode(aNode->AsDOMNode());
+    }
   }
 
   RefPtr<DeleteNodeTransaction> transaction;
@@ -1601,8 +1628,11 @@ EditorBase::DeleteNode(nsINode* aNode)
     rv = DoTransaction(transaction);
   }
 
-  for (auto& listener : mActionListeners) {
-    listener->DidDeleteNode(aNode->AsDOMNode(), rv);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->DidDeleteNode(aNode->AsDOMNode(), rv);
+    }
   }
 
   NS_ENSURE_SUCCESS(rv, rv);
@@ -2514,10 +2544,13 @@ EditorBase::InsertTextIntoTextNodeImpl(const nsAString& aStringToInsert,
   }
 
   // Let listeners know what's up
-  for (auto& listener : mActionListeners) {
-    listener->WillInsertText(
-      static_cast<nsIDOMCharacterData*>(insertedTextNode->AsDOMNode()),
-      insertedOffset, aStringToInsert);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->WillInsertText(
+        static_cast<nsIDOMCharacterData*>(insertedTextNode->AsDOMNode()),
+        insertedOffset, aStringToInsert);
+    }
   }
 
   // XXX We may not need these view batches anymore.  This is handled at a
@@ -2527,10 +2560,13 @@ EditorBase::InsertTextIntoTextNodeImpl(const nsAString& aStringToInsert,
   EndUpdateViewBatch();
 
   // let listeners know what happened
-  for (auto& listener : mActionListeners) {
-    listener->DidInsertText(
-      static_cast<nsIDOMCharacterData*>(insertedTextNode->AsDOMNode()),
-      insertedOffset, aStringToInsert, rv);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->DidInsertText(
+        static_cast<nsIDOMCharacterData*>(insertedTextNode->AsDOMNode()),
+        insertedOffset, aStringToInsert, rv);
+    }
   }
 
   // Added some cruft here for bug 43366.  Layout was crashing because we left
@@ -2727,19 +2763,25 @@ EditorBase::DeleteText(nsGenericDOMDataNode& aCharData,
                                nsIEditor::ePrevious);
 
   // Let listeners know what's up
-  for (auto& listener : mActionListeners) {
-    listener->WillDeleteText(
-        static_cast<nsIDOMCharacterData*>(GetAsDOMNode(&aCharData)), aOffset,
-        aLength);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->WillDeleteText(
+          static_cast<nsIDOMCharacterData*>(GetAsDOMNode(&aCharData)), aOffset,
+          aLength);
+    }
   }
 
   nsresult rv = DoTransaction(transaction);
 
   // Let listeners know what happened
-  for (auto& listener : mActionListeners) {
-    listener->DidDeleteText(
-        static_cast<nsIDOMCharacterData*>(GetAsDOMNode(&aCharData)), aOffset,
-        aLength, rv);
+  {
+    AutoActionListenerArray listeners(mActionListeners);
+    for (auto& listener : listeners) {
+      listener->DidDeleteText(
+          static_cast<nsIDOMCharacterData*>(GetAsDOMNode(&aCharData)), aOffset,
+          aLength, rv);
+    }
   }
 
   return rv;
@@ -4015,17 +4057,20 @@ EditorBase::DeleteSelectionImpl(EDirection aAction,
   if (NS_SUCCEEDED(rv)) {
     AutoRules beginRulesSniffing(this, EditAction::deleteSelection, aAction);
     // Notify nsIEditActionListener::WillDelete[Selection|Text|Node]
-    if (!deleteNode) {
-      for (auto& listener : mActionListeners) {
-        listener->WillDeleteSelection(selection);
-      }
-    } else if (deleteCharData) {
-      for (auto& listener : mActionListeners) {
-        listener->WillDeleteText(deleteCharData, deleteCharOffset, 1);
-      }
-    } else {
-      for (auto& listener : mActionListeners) {
-        listener->WillDeleteNode(deleteNode->AsDOMNode());
+    {
+      AutoActionListenerArray listeners(mActionListeners);
+      if (!deleteNode) {
+        for (auto& listener : listeners) {
+          listener->WillDeleteSelection(selection);
+        }
+      } else if (deleteCharData) {
+        for (auto& listener : listeners) {
+          listener->WillDeleteText(deleteCharData, deleteCharOffset, 1);
+        }
+      } else {
+        for (auto& listener : listeners) {
+          listener->WillDeleteNode(deleteNode->AsDOMNode());
+        }
       }
     }
 
@@ -4033,17 +4078,20 @@ EditorBase::DeleteSelectionImpl(EDirection aAction,
     rv = DoTransaction(transaction);
 
     // Notify nsIEditActionListener::DidDelete[Selection|Text|Node]
-    if (!deleteNode) {
-      for (auto& listener : mActionListeners) {
-        listener->DidDeleteSelection(selection);
-      }
-    } else if (deleteCharData) {
-      for (auto& listener : mActionListeners) {
-        listener->DidDeleteText(deleteCharData, deleteCharOffset, 1, rv);
-      }
-    } else {
-      for (auto& listener : mActionListeners) {
-        listener->DidDeleteNode(deleteNode->AsDOMNode(), rv);
+    {
+      AutoActionListenerArray listeners(mActionListeners);
+      if (!deleteNode) {
+        for (auto& listener : mActionListeners) {
+          listener->DidDeleteSelection(selection);
+        }
+      } else if (deleteCharData) {
+        for (auto& listener : mActionListeners) {
+          listener->DidDeleteText(deleteCharData, deleteCharOffset, 1, rv);
+        }
+      } else {
+        for (auto& listener : mActionListeners) {
+          listener->DidDeleteNode(deleteNode->AsDOMNode(), rv);
+        }
       }
     }
   }
