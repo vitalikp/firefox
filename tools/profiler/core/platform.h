@@ -284,7 +284,6 @@ public:
   mozilla::UniquePtr<char[]> ToJSON(double aSinceTime = 0);
   void StreamMetaJSCustomObject(SpliceableJSONWriter& aWriter);
   void StreamTaskTracer(SpliceableJSONWriter& aWriter);
-  void FlushOnJSShutdown(JSContext* aContext);
 
   size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const;
 
