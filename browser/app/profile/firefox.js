@@ -1515,3 +1515,4 @@ pref("services.sync.validation.enabled", true);
 
 // Preferences for the form autofill system extension
 pref("browser.formautofill.experimental", false);
+pref("browser.formautofill.enabled", false);
