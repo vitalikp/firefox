@@ -622,7 +622,7 @@ EditorEventListener::KeyPress(nsIDOMKeyEvent* aKeyEvent)
     return NS_OK;
   }
 
-  if (!ShouldHandleNativeKeyBindings(aKeyEvent)) {
+  if (!ShouldHandleNativeKeyBindings(keypressEvent)) {
     return NS_OK;
   }
 
@@ -1239,7 +1239,8 @@ EditorEventListener::IsFileControlTextBox()
 }
 
 bool
-EditorEventListener::ShouldHandleNativeKeyBindings(nsIDOMKeyEvent* aKeyEvent)
+EditorEventListener::ShouldHandleNativeKeyBindings(
+                       WidgetKeyboardEvent* aKeyboardEvent)
 {
   MOZ_ASSERT(!DetachedFromEditor());
 
@@ -1251,8 +1252,7 @@ EditorEventListener::ShouldHandleNativeKeyBindings(nsIDOMKeyEvent* aKeyEvent)
   // unnecessary.  IsAcceptableInputEvent currently makes a similar check for
   // mouse events.
 
-  nsCOMPtr<nsIDOMEventTarget> target;
-  aKeyEvent->AsEvent()->GetTarget(getter_AddRefs(target));
+  nsCOMPtr<nsIDOMEventTarget> target = aKeyboardEvent->GetDOMEventTarget();
   nsCOMPtr<nsIContent> targetContent = do_QueryInterface(target);
   if (!targetContent) {
     return false;
