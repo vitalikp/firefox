@@ -707,7 +707,9 @@ Location::SetProtocol(const nsAString& aProtocol)
 
   rv = uri->SetScheme(NS_ConvertUTF16toUTF8(Substring(start, iter)));
   if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
+    // Oh, I wish nsStandardURL returned NS_ERROR_MALFORMED_URI for _all_ the
+    // malformed cases, not just some of them!
+    return NS_ERROR_DOM_SYNTAX_ERR;
   }
   nsAutoCString newSpec;
   rv = uri->GetSpec(newSpec);
@@ -717,6 +719,9 @@ Location::SetProtocol(const nsAString& aProtocol)
   // We may want a new URI class for the new URI, so recreate it:
   rv = NS_NewURI(getter_AddRefs(uri), newSpec);
   if (NS_FAILED(rv)) {
+    if (rv == NS_ERROR_MALFORMED_URI) {
+      rv = NS_ERROR_DOM_SYNTAX_ERR;
+    }
     return rv;
   }
 
