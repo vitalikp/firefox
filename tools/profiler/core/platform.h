@@ -205,10 +205,6 @@ public:
   Sampler();
   ~Sampler();
 
-  // Start and stop sampler.
-  void Start();
-  void Stop();
-
   // We can't new/delete the type safely without defining it
   // (-Wdelete-incomplete).  Use these to hide the details from
   // clients.
