@@ -34,7 +34,6 @@ class nsIDOMDocument;
 class nsIDOMEvent;
 class nsIDOMEventListener;
 class nsIDOMEventTarget;
-class nsIDOMKeyEvent;
 class nsIDOMNode;
 class nsIDocument;
 class nsIDocumentStateListener;
@@ -738,7 +737,7 @@ public:
 
   bool GetShouldTxnSetSelection();
 
-  virtual nsresult HandleKeyPressEvent(nsIDOMKeyEvent* aKeyEvent);
+  virtual nsresult HandleKeyPressEvent(WidgetKeyboardEvent* aKeyboardEvent);
 
   nsresult HandleInlineSpellCheck(EditAction action,
                                   Selection* aSelection,
