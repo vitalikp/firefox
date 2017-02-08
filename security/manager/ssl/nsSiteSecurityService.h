@@ -143,6 +143,8 @@ private:
                             uint64_t* aMaxAge, bool* aIncludeSubdomains,
                             uint32_t* aFailureResult);
   nsresult SetHPKPState(const char* aHost, SiteHPKPState& entry, uint32_t flags);
+  nsresult IsSecureHost(uint32_t aType, const nsACString& aHost,
+                        uint32_t aFlags, bool* aCached, bool* aResult);
 
   uint64_t mMaxMaxAge;
   int64_t mPreloadListTimeOffset;

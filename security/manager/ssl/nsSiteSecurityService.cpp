@@ -410,26 +410,6 @@ nsSiteSecurityService::ProcessHeader(uint32_t aType,
                                aFailureResult);
 }
 
-NS_IMETHODIMP
-nsSiteSecurityService::UnsafeProcessHeader(uint32_t aType,
-                                           nsIURI* aSourceURI,
-                                           const nsACString& aHeader,
-                                           uint32_t aFlags,
-                                           uint64_t* aMaxAge,
-                                           bool* aIncludeSubdomains,
-                                           uint32_t* aFailureResult)
-{
-  // Child processes are not allowed direct access to this.
-  if (!XRE_IsParentProcess()) {
-    MOZ_CRASH("Child process: no direct access to "
-              "nsISiteSecurityService::UnsafeProcessHeader");
-  }
-
-  return ProcessHeaderInternal(aType, aSourceURI, PromiseFlatCString(aHeader),
-                               nullptr, aFlags, aMaxAge, aIncludeSubdomains,
-                               aFailureResult);
-}
-
 nsresult
 nsSiteSecurityService::ProcessHeaderInternal(uint32_t aType,
                                              nsIURI* aSourceURI,
@@ -912,7 +892,7 @@ nsSiteSecurityService::IsSecureURI(uint32_t aType, nsIURI* aURI,
   return IsSecureHost(aType, hostname, aFlags, aCached, aResult);
 }
 
-NS_IMETHODIMP
+nsresult
 nsSiteSecurityService::IsSecureHost(uint32_t aType, const nsACString& aHost,
                                     uint32_t aFlags, bool* aCached,
                                     bool* aResult)
