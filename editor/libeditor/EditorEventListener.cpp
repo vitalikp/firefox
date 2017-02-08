@@ -653,7 +653,7 @@ EditorEventListener::MouseClick(nsIDOMMouseEvent* aMouseEvent)
     nsPresContext* presContext = GetPresContext();
     if (presContext) {
       IMEStateManager::OnClickInEditor(presContext, GetFocusedRootContent(),
-                                       aMouseEvent);
+                                       clickEvent);
       if (DetachedFromEditor()) {
         return NS_OK;
       }
