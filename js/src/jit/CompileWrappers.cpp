@@ -100,7 +100,7 @@ CompileRuntime::wellKnownSymbols()
 const void*
 CompileRuntime::addressOfActiveJSContext()
 {
-    return &runtime()->activeContext;
+    return runtime()->addressOfActiveContext();
 }
 
 #ifdef DEBUG
