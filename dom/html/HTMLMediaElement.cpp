@@ -7316,6 +7316,11 @@ HTMLMediaElement::AsyncRejectPendingPlayPromises(nsresult aError)
                        event.forget());
 }
 
+bool HasDebuggerPrivilege(JSContext* aCx, JSObject* aObj)
+{
+  return nsContentUtils::CallerHasPermission(aCx,
+                                             NS_LITERAL_STRING("debugger"));
+ }
 
 } // namespace dom
 } // namespace mozilla
