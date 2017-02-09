@@ -630,8 +630,8 @@ ValidateSVGFrame(nsIFrame* aFrame)
   bool hasSVGLayout = (aFrame->GetStateBits() & NS_FRAME_SVG_LAYOUT);
   if (hasSVGLayout) {
 #ifdef DEBUG
-    nsISVGChildFrame *svgChildFrame = do_QueryFrame(aFrame);
-    MOZ_ASSERT(svgChildFrame && aFrame->GetContent()->IsSVGElement(),
+    nsSVGDisplayableFrame* svgFrame = do_QueryFrame(aFrame);
+    MOZ_ASSERT(svgFrame && aFrame->GetContent()->IsSVGElement(),
                "A non-SVG frame carries NS_FRAME_SVG_LAYOUT flag?");
 #endif
 
@@ -1274,7 +1274,7 @@ nsSVGIntegrationUtils::DrawableFromPaintServer(nsIFrame*         aFrame,
   }
 
   if (aFrame->IsFrameOfType(nsIFrame::eSVG) &&
-      !static_cast<nsISVGChildFrame*>(do_QueryFrame(aFrame))) {
+      !static_cast<nsSVGDisplayableFrame*>(do_QueryFrame(aFrame))) {
     MOZ_ASSERT_UNREACHABLE("We should prevent painting of unpaintable SVG "
                            "before we get here");
     return nullptr;

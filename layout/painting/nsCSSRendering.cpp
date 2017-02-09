@@ -18,7 +18,7 @@
 #include "mozilla/MathAlgorithms.h"
 
 #include "BorderConsts.h"
-#include "nsISVGChildFrame.h"
+#include "nsSVGDisplayableFrame.h"
 #include "nsStyleConsts.h"
 #include "nsPresContext.h"
 #include "nsIFrame.h"
@@ -5373,7 +5373,7 @@ nsImageRenderer::PrepareImage()
         if (!paintServerFrame ||
             (paintServerFrame->IsFrameOfType(nsIFrame::eSVG) &&
              !paintServerFrame->IsFrameOfType(nsIFrame::eSVGPaintServer) &&
-             !static_cast<nsISVGChildFrame*>(do_QueryFrame(paintServerFrame)))) {
+             !static_cast<nsSVGDisplayableFrame*>(do_QueryFrame(paintServerFrame)))) {
           mPrepareResult = DrawResult::BAD_IMAGE;
           return false;
         }
