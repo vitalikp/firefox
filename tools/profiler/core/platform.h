@@ -177,27 +177,9 @@ bool set_profiler_scan(const char*);
 bool is_native_unwinding_avail();
 
 // ----------------------------------------------------------------------------
-// Sampler
-//
-// A sampler periodically samples the state of the VM and optionally
-// (if used for profiling) the program counter and stack pointer for
-// the thread that created it.
+// Miscellaneous
 
-class ThreadInfo;
-
-struct JSContext;
-class JSObject;
 class PlatformData;
-class ProfileBuffer;
-struct PseudoStack;
-class SpliceableJSONWriter;
-class SyncProfile;
-
-namespace mozilla {
-namespace dom {
-class Promise;
-}
-}
 
 // We can't new/delete the type safely without defining it
 // (-Wdelete-incomplete).  Use these to hide the details from clients.
@@ -210,12 +192,5 @@ typedef mozilla::UniquePtr<PlatformData, PlatformDataDestructor>
 UniquePlatformData AllocPlatformData(int aThreadId);
 
 mozilla::UniquePtr<char[]> ToJSON(double aSinceTime);
-
-class Sampler {
-public:
-  // Initialize sampler.
-  Sampler();
-  ~Sampler();
-};
 
 #endif /* ndef TOOLS_PLATFORM_H_ */
