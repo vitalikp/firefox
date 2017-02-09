@@ -670,10 +670,10 @@ Layer::GetTransformTyped() const
 Matrix4x4
 Layer::GetLocalTransform()
 {
-  if (HostLayer* shadow = AsHostLayer())
+  if (HostLayer* shadow = AsHostLayer()) {
     return shadow->GetShadowTransform();
-  else
-    return GetTransform();
+  }
+  return GetTransform();
 }
 
 const LayerToParentLayerMatrix4x4
@@ -1099,10 +1099,8 @@ ContainerLayer::Collect3DContextLeaves(nsTArray<Layer*>& aToSort)
             !container->UseIntermediateSurface())) {
           return TraversalFlag::Continue;
         }
-        else {
-          aToSort.AppendElement(layer);
-          return TraversalFlag::Skip;
-        }
+        aToSort.AppendElement(layer);
+        return TraversalFlag::Skip;
       }
   );
 }
