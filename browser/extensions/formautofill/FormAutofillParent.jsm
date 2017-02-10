@@ -199,18 +199,6 @@ FormAutofillParent.prototype = {
   },
 
   /**
-   * Transforms a word with hyphen into camel case.
-   * (e.g. transforms "address-type" into "addressType".)
-   *
-   * @private
-   * @param   {string} str The original string with hyphen.
-   * @returns {string} The camel-cased output string.
-   */
-  _camelCase(str) {
-    return str.toLowerCase().replace(/-([a-z])/g, s => s[1].toUpperCase());
-  },
-
-  /**
    * Get the corresponding value from the specified profile according to a valid
    * @autocomplete field name.
    *
@@ -226,11 +214,8 @@ FormAutofillParent.prototype = {
    *                    no matching field.
    */
   _getDataByFieldName(profile, fieldName) {
-    let key = this._camelCase(fieldName);
-
     // TODO: Transform the raw profile data to fulfill "fieldName" here.
-
-    return profile[key];
+    return profile[fieldName];
   },
 
   /**
