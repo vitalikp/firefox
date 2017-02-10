@@ -723,7 +723,7 @@ BasePrincipal::CloneStrippingUserContextIdAndFirstPartyDomain()
 }
 
 bool
-BasePrincipal::AddonAllowsLoad(nsIURI* aURI)
+BasePrincipal::AddonAllowsLoad(nsIURI* aURI, bool aExplicit /* = false */)
 {
   if (mOriginAttributes.mAddonId.IsEmpty()) {
     return false;
@@ -733,7 +733,7 @@ BasePrincipal::AddonAllowsLoad(nsIURI* aURI)
   NS_ENSURE_TRUE(aps, false);
 
   bool allowed = false;
-  nsresult rv = aps->AddonMayLoadURI(mOriginAttributes.mAddonId, aURI, &allowed);
+  nsresult rv = aps->AddonMayLoadURI(mOriginAttributes.mAddonId, aURI, aExplicit, &allowed);
   return NS_SUCCEEDED(rv) && allowed;
 }
 
