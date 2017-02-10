@@ -109,7 +109,6 @@ UNIFIED_SOURCES += [
     'nsNSSCertHelper.cpp',
     'nsNSSCertificate.cpp',
     'nsNSSCertificateDB.cpp',
-    'nsNSSCertificateFakeTransport.cpp',
     'nsNSSCertTrust.cpp',
     'nsNSSCertValidity.cpp',
     'nsNSSComponent.cpp',
