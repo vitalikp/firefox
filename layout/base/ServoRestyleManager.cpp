@@ -42,7 +42,7 @@ ServoRestyleManager::PostRestyleEvent(Element* aElement,
     return;
   }
 
-  if (aRestyleHint == 0 && !aMinChangeHint && !HasPendingRestyles()) {
+  if (aRestyleHint == 0 && !aMinChangeHint) {
     return; // Nothing to do.
   }
 
