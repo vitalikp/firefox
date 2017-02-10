@@ -471,6 +471,7 @@ class Nursery
     void minimizeAllocableSpace();
 
     /* Profile recording and printing. */
+    void maybeClearProfileDurations();
     void startProfile(ProfileKey key);
     void endProfile(ProfileKey key);
     void maybeStartProfile(ProfileKey key);
