@@ -799,6 +799,7 @@ nsIPresShell::nsIPresShell()
     , mScrollPositionClampingScrollPortSizeSet(false)
     , mNeedLayoutFlush(true)
     , mNeedStyleFlush(true)
+    , mNeedThrottledAnimationFlush(true)
     , mPresShellId(0)
     , mFontSizeInflationEmPerLine(0)
     , mFontSizeInflationMinTwips(0)
@@ -4160,6 +4161,8 @@ PresShell::FlushPendingNotifications(mozilla::ChangesToFlush aFlush)
   mInFlush = true;
 
   mNeedStyleFlush = false;
+  mNeedThrottledAnimationFlush =
+    mNeedThrottledAnimationFlush && !aFlush.mFlushAnimations;
   mNeedLayoutFlush =
     mNeedLayoutFlush && (flushType < FlushType::InterruptibleLayout);
 
@@ -4287,6 +4290,9 @@ PresShell::FlushPendingNotifications(mozilla::ChangesToFlush aFlush)
 
   if (!didStyleFlush && flushType >= FlushType::Style && !mIsDestroying) {
     SetNeedStyleFlush();
+    if (aFlush.mFlushAnimations) {
+      SetNeedThrottledAnimationFlush();
+    }
   }
 
   if (!didLayoutFlush && !mIsDestroying &&
