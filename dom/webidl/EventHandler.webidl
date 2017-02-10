@@ -124,6 +124,7 @@ interface GlobalEventHandlers {
            attribute EventHandler onmozfullscreenerror;
 
            // CSS-Animation and CSS-Transition handlers.
+           attribute EventHandler onanimationcancel;
            attribute EventHandler onanimationend;
            attribute EventHandler onanimationiteration;
            attribute EventHandler onanimationstart;
