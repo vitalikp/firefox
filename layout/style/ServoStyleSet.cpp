@@ -639,15 +639,6 @@ ServoStyleSet::RebuildData()
   Servo_StyleSet_RebuildData(mRawSet.get());
 }
 
-ServoComputedValuesStrong
-ServoStyleSet::RestyleWithAddedDeclaration(RawServoDeclarationBlock* aDeclarations,
-                                           const ServoComputedValues* aPreviousStyle)
-{
-  return Servo_RestyleWithAddedDeclaration(mRawSet.get(), aDeclarations,
-                                           aPreviousStyle);
-}
-
-
 already_AddRefed<ServoComputedValues>
 ServoStyleSet::ResolveServoStyle(Element* aElement)
 {
