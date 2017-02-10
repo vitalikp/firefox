@@ -796,7 +796,7 @@ IDBFactory::BackgroundActorCreated(PBackgroundChild* aBackgroundActor,
     // Set EventTarget for the top-level actor.
     // All child actors created later inherit the same event target.
     aBackgroundActor->SetEventTargetForActor(actor, EventTarget());
-
+    MOZ_ASSERT(actor->GetActorEventTarget());
     mBackgroundActor =
       static_cast<BackgroundFactoryChild*>(
         aBackgroundActor->SendPBackgroundIDBFactoryConstructor(actor,
@@ -892,6 +892,9 @@ IDBFactory::InitiateRequest(IDBOpenDBRequest* aRequest,
     aRequest->DispatchNonTransactionError(NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR);
     return NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR;
   }
+
+  MOZ_ASSERT(actor->GetActorEventTarget(),
+    "The event target shall be inherited from its manager actor.");
 
   return NS_OK;
 }
