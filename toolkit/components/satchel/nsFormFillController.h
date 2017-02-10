@@ -6,6 +6,7 @@
 #ifndef __nsFormFillController__
 #define __nsFormFillController__
 
+#include "mozilla/TimeStamp.h"
 #include "nsIFormFillController.h"
 #include "nsIAutoCompleteInput.h"
 #include "nsIAutoCompleteSearch.h"
@@ -30,6 +31,7 @@
 class nsFormHistory;
 class nsINode;
 class nsPIDOMWindowOuter;
+class nsIFormControl;
 
 class nsFormFillController final : public nsIFormFillController,
                                    public nsIAutoCompleteInput,
@@ -86,6 +88,9 @@ protected:
 
   void RemoveForDocument(nsIDocument* aDoc);
   bool IsEventTrusted(nsIDOMEvent *aEvent);
+
+  void FocusEventDelayedCallback(nsIFormControl* formControl);
+
   // members //////////////////////////////////////////
 
   nsCOMPtr<nsIAutoCompleteController> mController;
@@ -112,10 +117,11 @@ protected:
   nsDataHashtable<nsPtrHashKey<const nsINode>, bool> mPwmgrInputs;
   nsDataHashtable<nsPtrHashKey<const nsINode>, bool> mAutofillInputs;
 
+  uint16_t mFocusAfterContextMenuThreshold;
   uint32_t mTimeout;
   uint32_t mMinResultsForPopup;
   uint32_t mMaxRows;
-  bool mContextMenuFiredBeforeFocus;
+  mozilla::TimeStamp mLastContextMenuEventTimeStamp;
   bool mDisableAutoComplete;
   bool mCompleteDefaultIndex;
   bool mCompleteSelectedIndex;
