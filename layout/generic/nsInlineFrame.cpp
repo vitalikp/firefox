@@ -824,7 +824,7 @@ nsInlineFrame::ReflowInlineFrame(nsPresContext* aPresContext,
   }
 
   // Create a next-in-flow if needed.
-  if (!NS_FRAME_IS_FULLY_COMPLETE(aStatus)) {
+  if (!aStatus.IsFullyComplete()) {
     CreateNextInFlow(aFrame);
   }
 
@@ -849,7 +849,7 @@ nsInlineFrame::ReflowInlineFrame(nsPresContext* aPresContext,
     return;
   }
 
-  if (!NS_FRAME_IS_FULLY_COMPLETE(aStatus) && !reflowingFirstLetter) {
+  if (!aStatus.IsFullyComplete() && !reflowingFirstLetter) {
     nsIFrame* nextFrame = aFrame->GetNextSibling();
     if (nextFrame) {
       PushFrames(aPresContext, nextFrame, aFrame, irs);
