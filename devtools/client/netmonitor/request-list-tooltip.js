@@ -11,8 +11,8 @@ const {
   setImageTooltip,
   getImageDimensions,
 } = require("devtools/client/shared/widgets/tooltip/ImageTooltipHelper");
-const { WEBCONSOLE_L10N } = require("../l10n");
-const { formDataURI } = require("../request-utils");
+const { WEBCONSOLE_L10N } = require("./l10n");
+const { formDataURI } = require("./request-utils");
 
 // px
 const REQUESTS_TOOLTIP_IMAGE_MAX_DIM = 400;
@@ -93,7 +93,7 @@ const setTooltipStackTraceContent = Task.async(function* (tooltip, requestItem) 
       // hide the tooltip immediately, not after delay
       tooltip.hide();
       NetMonitorController.viewSourceInDebugger(filename, lineNumber);
-    }, false);
+    });
 
     el.appendChild(frameEl);
   }
