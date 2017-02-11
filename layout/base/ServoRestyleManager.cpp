@@ -371,11 +371,11 @@ ServoRestyleManager::ProcessPendingRestyles()
     mReentrantChanges = nullptr;
 
     styleSet->AssertTreeIsClean();
+
+    IncrementRestyleGeneration();
   }
 
   mInStyleRefresh = false;
-
-  IncrementRestyleGeneration();
 
   // Note: We are in the scope of |animationsWithDestroyedFrame|, so
   //       |mAnimationsWithDestroyedFrame| is still valid.
