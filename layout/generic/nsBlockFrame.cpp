@@ -1262,7 +1262,7 @@ nsBlockFrame::Reflow(nsPresContext*           aPresContext,
   if (NS_UNCONSTRAINEDSIZE != reflowInput->AvailableBSize() &&
       state.mReflowStatus.IsComplete() &&
       state.FloatManager()->ClearContinues(FindTrailingClear())) {
-    NS_FRAME_SET_INCOMPLETE(state.mReflowStatus);
+    state.mReflowStatus.SetIncomplete();
   }
 
   if (!state.mReflowStatus.IsFullyComplete()) {
@@ -2571,7 +2571,7 @@ nsBlockFrame::ReflowDirtyLines(BlockReflowInput& aState)
     if (IS_TRUE_OVERFLOW_CONTAINER(aState.mNextInFlow))
       NS_FRAME_SET_OVERFLOW_INCOMPLETE(aState.mReflowStatus);
     else
-      NS_FRAME_SET_INCOMPLETE(aState.mReflowStatus);
+      aState.mReflowStatus.SetIncomplete();
   }
 
   if (!skipPull && aState.mNextInFlow) {
@@ -2648,7 +2648,7 @@ nsBlockFrame::ReflowDirtyLines(BlockReflowInput& aState)
           if (aState.mReflowInput.WillReflowAgainForClearance()) {
             line->MarkDirty();
             keepGoing = false;
-            NS_FRAME_SET_INCOMPLETE(aState.mReflowStatus);
+            aState.mReflowStatus.SetIncomplete();
             break;
           }
 
@@ -3400,7 +3400,7 @@ nsBlockFrame::ReflowBlockFrame(BlockReflowInput& aState,
         aState.mReflowStatus = NS_INLINE_LINE_BREAK_BEFORE();
       } else {
         PushLines(aState, aLine.prev());
-        NS_FRAME_SET_INCOMPLETE(aState.mReflowStatus);
+        aState.mReflowStatus.SetIncomplete();
       }
       return;
     }
@@ -3577,7 +3577,7 @@ nsBlockFrame::ReflowBlockFrame(BlockReflowInput& aState,
         aState.mReflowStatus = NS_INLINE_LINE_BREAK_BEFORE();
       } else {
         PushLines(aState, aLine.prev());
-        NS_FRAME_SET_INCOMPLETE(aState.mReflowStatus);
+        aState.mReflowStatus.SetIncomplete();
       }
     }
     else {
@@ -3653,7 +3653,7 @@ nsBlockFrame::ReflowBlockFrame(BlockReflowInput& aState,
             }
 
             PushLines(aState, aLine);
-            NS_FRAME_SET_INCOMPLETE(aState.mReflowStatus);
+            aState.mReflowStatus.SetIncomplete();
 
             // If we need to reflow the continuation of the block child,
             // then we'd better reflow our continuation
@@ -3753,7 +3753,7 @@ nsBlockFrame::ReflowBlockFrame(BlockReflowInput& aState,
           // Push the line that didn't fit and any lines that follow it
           // to our next-in-flow.
           PushLines(aState, aLine.prev());
-          NS_FRAME_SET_INCOMPLETE(aState.mReflowStatus);
+          aState.mReflowStatus.SetIncomplete();
         }
       }
     }
@@ -3856,7 +3856,7 @@ nsBlockFrame::PushTruncatedLine(BlockReflowInput& aState,
 {
   PushLines(aState, aLine.prev());
   *aKeepReflowGoing = false;
-  NS_FRAME_SET_INCOMPLETE(aState.mReflowStatus);
+  aState.mReflowStatus.SetIncomplete();
 }
 
 void
@@ -7424,7 +7424,7 @@ nsBlockFrame::ComputeFinalBSize(const ReflowInput& aReflowInput,
       // border/padding to the next page/column.
       aFinalSize.BSize(wm) = std::max(aReflowInput.AvailableBSize(),
                                       aContentBSize);
-      NS_FRAME_SET_INCOMPLETE(*aStatus);
+      aStatus->SetIncomplete();
       if (!GetNextInFlow())
         *aStatus |= NS_FRAME_REFLOW_NEXTINFLOW;
     }
