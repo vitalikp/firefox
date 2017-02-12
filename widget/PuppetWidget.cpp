@@ -18,6 +18,7 @@
 #include "mozilla/TextComposition.h"
 #include "mozilla/TextEvents.h"
 #include "mozilla/Unused.h"
+#include "BasicLayers.h"
 #include "PuppetWidget.h"
 #include "nsContentUtils.h"
 #include "nsIWidgetListener.h"
@@ -588,12 +589,23 @@ PuppetWidget::GetLayerManager(PLayerTransactionChild* aShadowManager,
                               LayerManagerPersistence aPersistence)
 {
   if (!mLayerManager) {
+    if (XRE_IsParentProcess()) {
+      // On the parent process there is no CompositorBridgeChild which confuses
+      // some layers code, so we use basic layers instead. Note that we create
+      // a non-retaining layer manager since we don't care about performance.
+      mLayerManager = new BasicLayerManager(BasicLayerManager::BLM_OFFSCREEN);
+      return mLayerManager;
+    }
+
     mLayerManager = new ClientLayerManager(this);
   }
+
+  // Attach a shadow forwarder if none exists.
   ShadowLayerForwarder* lf = mLayerManager->AsShadowForwarder();
   if (lf && !lf->HasShadowManager() && aShadowManager) {
     lf->SetShadowManager(aShadowManager);
   }
+
   return mLayerManager;
 }
 
