@@ -159,7 +159,7 @@ struct PreparedLayer
 {
   PreparedLayer(Layer *aLayer,
                 RenderTargetIntRect aClipRect,
-                Maybe<gfx::Polygon> aGeometry)
+                const Maybe<gfx::Polygon>& aGeometry)
   : mLayer(aLayer), mClipRect(aClipRect), mGeometry(aGeometry) {}
 
   RefPtr<Layer> mLayer;

@@ -1671,7 +1671,7 @@ nsIFrame::DisableVisibilityTracking()
 }
 
 void
-nsIFrame::DecApproximateVisibleCount(Maybe<OnNonvisible> aNonvisibleAction
+nsIFrame::DecApproximateVisibleCount(const Maybe<OnNonvisible>& aNonvisibleAction
                                        /* = Nothing() */)
 {
   MOZ_ASSERT(GetStateBits() & NS_FRAME_VISIBILITY_IS_TRACKED);
@@ -1719,7 +1719,7 @@ nsIFrame::IncApproximateVisibleCount()
 
 void
 nsIFrame::OnVisibilityChange(Visibility aNewVisibility,
-                             Maybe<OnNonvisible> aNonvisibleAction
+                             const Maybe<OnNonvisible>& aNonvisibleAction
                                /* = Nothing() */)
 {
   // XXX(seth): In bug 1218990 we'll implement visibility tracking for CSS

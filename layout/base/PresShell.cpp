@@ -5972,7 +5972,7 @@ NotifyCompositorOfVisibleRegionsChange(PresShell* aPresShell,
 
 /* static */ void
 PresShell::DecApproximateVisibleCount(VisibleFrames& aFrames,
-                                      Maybe<OnNonvisible> aNonvisibleAction
+                                      const Maybe<OnNonvisible>& aNonvisibleAction
                                         /* = Nothing() */)
 {
   for (auto iter = aFrames.Iter(); !iter.Done(); iter.Next()) {
@@ -6030,7 +6030,7 @@ PresShell::ClearApproximateFrameVisibilityVisited(nsView* aView, bool aClear)
 }
 
 void
-PresShell::ClearApproximatelyVisibleFramesList(Maybe<OnNonvisible> aNonvisibleAction
+PresShell::ClearApproximatelyVisibleFramesList(const Maybe<OnNonvisible>& aNonvisibleAction
                                                  /* = Nothing() */)
 {
   DecApproximateVisibleCount(mApproximatelyVisibleFrames, aNonvisibleAction);
