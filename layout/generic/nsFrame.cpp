@@ -10442,7 +10442,7 @@ nsFrame::Trace(const char* aMethod, bool aEnter, nsReflowStatus aStatus)
     printf_stderr("%s: %s %s, status=%scomplete%s",
                 tagbuf, aEnter ? "enter" : "exit", aMethod,
                 aStatus.IsIncomplete() ? "not" : "",
-                (aStatus & NS_FRAME_REFLOW_NEXTINFLOW) ? "+reflow" : "");
+                (aStatus.NextInFlowNeedsReflow()) ? "+reflow" : "");
   }
 }
 
