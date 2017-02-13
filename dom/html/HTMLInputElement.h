@@ -675,7 +675,7 @@ public:
 
   Nullable<Date> GetValueAsDate(ErrorResult& aRv);
 
-  void SetValueAsDate(Nullable<Date>, ErrorResult& aRv);
+  void SetValueAsDate(const Nullable<Date>& aDate, ErrorResult& aRv);
 
   double ValueAsNumber() const
   {
