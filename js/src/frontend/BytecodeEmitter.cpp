@@ -1797,7 +1797,7 @@ class MOZ_STACK_CLASS TryEmitter
     }
 
   public:
-    bool emitFinally(Maybe<uint32_t> finallyPos = Nothing()) {
+    bool emitFinally(const Maybe<uint32_t>& finallyPos = Nothing()) {
         MOZ_ASSERT(hasFinally());
 
         if (state_ == Try) {
@@ -5180,7 +5180,8 @@ BytecodeEmitter::emitIteratorNext(ParseNode* pn, bool allowSelfHosted)
 }
 
 bool
-BytecodeEmitter::emitIteratorClose(Maybe<JumpTarget> yieldStarTryStart, bool allowSelfHosted)
+BytecodeEmitter::emitIteratorClose(const Maybe<JumpTarget>& yieldStarTryStart,
+                                   bool allowSelfHosted)
 {
     MOZ_ASSERT(allowSelfHosted || emitterMode != BytecodeEmitter::SelfHosting,
                ".close() on iterators is prohibited in self-hosted code because it "
