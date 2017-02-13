@@ -940,7 +940,7 @@ JSType
 js::TypeOfObject(JSObject* obj)
 {
     if (EmulatesUndefined(obj))
-        return JSTYPE_VOID;
+        return JSTYPE_UNDEFINED;
     if (obj->isCallable())
         return JSTYPE_FUNCTION;
     return JSTYPE_OBJECT;
@@ -956,7 +956,7 @@ js::TypeOfValue(const Value& v)
     if (v.isNull())
         return JSTYPE_OBJECT;
     if (v.isUndefined())
-        return JSTYPE_VOID;
+        return JSTYPE_UNDEFINED;
     if (v.isObject())
         return TypeOfObject(&v.toObject());
     if (v.isBoolean())
