@@ -1399,7 +1399,7 @@ TabClient.prototype = {
   }),
 
   attachWorker: function (workerActor, onResponse) {
-    this.client.attachWorker(workerActor, onResponse);
+    return this.client.attachWorker(workerActor, onResponse);
   },
 
   /**
