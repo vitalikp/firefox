@@ -381,17 +381,6 @@ nsIFrame::ContentStatesChanged(mozilla::EventStates aStates)
 {
 }
 
-void
-NS_MergeReflowStatusInto(nsReflowStatus* aPrimary, nsReflowStatus aSecondary)
-{
-  *aPrimary |= aSecondary &
-    (NS_FRAME_NOT_COMPLETE | NS_FRAME_OVERFLOW_INCOMPLETE |
-     NS_FRAME_TRUNCATED | NS_FRAME_REFLOW_NEXTINFLOW);
-  if (*aPrimary & NS_FRAME_NOT_COMPLETE) {
-    *aPrimary &= ~NS_FRAME_OVERFLOW_INCOMPLETE;
-  }
-}
-
 AutoWeakFrame::AutoWeakFrame(const WeakFrame& aOther)
   : mPrev(nullptr), mFrame(nullptr)
 {
