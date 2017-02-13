@@ -101,6 +101,7 @@ EXPORTS.mozilla += [
     'ServoDeclarationBlock.h',
     'ServoElementSnapshot.h',
     'ServoPropPrefList.h',
+    'ServoSpecifiedValues.h',
     'ServoStyleRule.h',
     'ServoStyleSet.h',
     'ServoStyleSheet.h',
@@ -226,6 +227,7 @@ SOURCES += [
     'BindingStyleRule.cpp',
     'nsCSSRuleProcessor.cpp',
     'nsLayoutStylesheetCache.cpp',
+    'ServoSpecifiedValues.cpp',
 ]
 
 include('/ipc/chromium/chromium-config.mozbuild')
