@@ -1514,6 +1514,8 @@ nsScriptSecurityManager::InitPrefs()
     // set observer callbacks in case the value of the prefs change
     Preferences::AddStrongObservers(this, kObservedPrefs);
 
+    OriginAttributes::InitPrefs();
+
     return NS_OK;
 }
 
