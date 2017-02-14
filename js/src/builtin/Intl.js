@@ -1653,10 +1653,8 @@ var collatorInternalProperties = {
 
 
 function collatorSortLocaleData(locale) {
-    var collations = intl_availableCollations(locale);
-    callFunction(std_Array_unshift, collations, null);
     return {
-        co: collations,
+        co: intl_availableCollations(locale),
         kn: ["false", "true"]
     };
 }
