@@ -2738,6 +2738,27 @@ nsDisplayItem::GetClippedBounds(nsDisplayListBuilder* aBuilder)
   return GetClip().ApplyNonRoundedIntersection(r);
 }
 
+already_AddRefed<Layer>
+nsDisplayItem::BuildDisplayItemLayer(nsDisplayListBuilder* aBuilder,
+                                     LayerManager* aManager,
+                                     const ContainerLayerParameters& aContainerParameters)
+{
+  RefPtr<DisplayItemLayer> layer = static_cast<DisplayItemLayer*>
+    (aManager->GetLayerBuilder()->GetLeafLayerFor(aBuilder, this));
+  if (!layer) {
+    layer = aManager->CreateDisplayItemLayer();
+
+    if (!layer) {
+      return nullptr;
+    }
+  }
+
+  layer->SetDisplayItem(this, aBuilder);
+  layer->SetBaseTransform(gfx::Matrix4x4::Translation(aContainerParameters.mOffset.x,
+                                                      aContainerParameters.mOffset.y, 0));
+  return layer.forget();
+}
+
 nsRect
 nsDisplaySolidColor::GetBounds(nsDisplayListBuilder* aBuilder, bool* aSnap)
 {
@@ -4333,6 +4354,26 @@ nsDisplayCaret::Paint(nsDisplayListBuilder* aBuilder,
   // Note: Because we exist, we know that the caret is visible, so we don't
   // need to check for the caret's visibility.
   mCaret->PaintCaret(*aCtx->GetDrawTarget(), mFrame, ToReferenceFrame());
+}
+
+LayerState
+nsDisplayCaret::GetLayerState(nsDisplayListBuilder* aBuilder,
+                              LayerManager* aManager,
+                              const ContainerLayerParameters& aParameters)
+{
+  if (gfxPrefs::LayersAllowCaretLayers()) {
+    return LAYER_ACTIVE;
+  }
+
+  return LAYER_INACTIVE;
+}
+
+already_AddRefed<Layer>
+nsDisplayCaret::BuildLayer(nsDisplayListBuilder* aBuilder,
+                           LayerManager* aManager,
+                           const ContainerLayerParameters& aContainerParameters)
+{
+  return BuildDisplayItemLayer(aBuilder, aManager, aContainerParameters);
 }
 
 nsDisplayBorder::nsDisplayBorder(nsDisplayListBuilder* aBuilder, nsIFrame* aFrame)

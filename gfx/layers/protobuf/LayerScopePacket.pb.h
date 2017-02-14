@@ -154,7 +154,8 @@ enum LayersPacket_Layer_LayerType {
   LayersPacket_Layer_LayerType_ColorLayer = 6,
   LayersPacket_Layer_LayerType_TextLayer = 7,
   LayersPacket_Layer_LayerType_RefLayer = 8,
-  LayersPacket_Layer_LayerType_ReadbackLayer = 9
+  LayersPacket_Layer_LayerType_ReadbackLayer = 9,
+  LayersPacket_Layer_LayerType_DisplayItemLayer = 10
 };
 bool LayersPacket_Layer_LayerType_IsValid(int value);
 const LayersPacket_Layer_LayerType LayersPacket_Layer_LayerType_LayerType_MIN = LayersPacket_Layer_LayerType_UnknownLayer;
@@ -2071,6 +2072,8 @@ class LayersPacket_Layer : public ::google::protobuf::MessageLite /* @@protoc_in
     LayersPacket_Layer_LayerType_ImageLayer;
   static const LayerType ColorLayer =
     LayersPacket_Layer_LayerType_ColorLayer;
+  static const LayerType DisplayItemLayer =
+    LayersPacket_Layer_LayerType_DisplayItemLayer;
   static const LayerType TextLayer =
     LayersPacket_Layer_LayerType_TextLayer;
   static const LayerType RefLayer =

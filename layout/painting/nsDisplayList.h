@@ -1606,6 +1606,7 @@ public:
   typedef mozilla::LayerState LayerState;
   typedef mozilla::image::imgDrawingParams imgDrawingParams;
   typedef mozilla::image::DrawResult DrawResult;
+  typedef class mozilla::gfx::DrawTarget DrawTarget;
 
   // This is never instantiated directly (it has pure virtual methods), so no
   // need to count constructors and destructors.
@@ -1937,6 +1938,14 @@ public:
                                              LayerManager* aManager,
                                              const ContainerLayerParameters& aContainerParameters)
   { return nullptr; }
+
+  /**
+   * Builds a DisplayItemLayer and sets the display item to this.
+   */
+   already_AddRefed<Layer>
+   BuildDisplayItemLayer(nsDisplayListBuilder* aBuilder,
+                         LayerManager* aManager,
+                         const ContainerLayerParameters& aContainerParameters);
 
   /**
    * On entry, aVisibleRegion contains the region (relative to ReferenceFrame())
@@ -2650,8 +2659,6 @@ public:
  */
 class nsDisplayGeneric : public nsDisplayItem {
 public:
-  typedef class mozilla::gfx::DrawTarget DrawTarget;
-
   typedef void (* PaintCallback)(nsIFrame* aFrame, DrawTarget* aDrawTarget,
                                  const nsRect& aDirtyRect, nsPoint aFramePt);
 
@@ -2831,6 +2838,13 @@ public:
   virtual nsRect GetBounds(nsDisplayListBuilder* aBuilder, bool* aSnap) override;
   virtual void Paint(nsDisplayListBuilder* aBuilder, nsRenderingContext* aCtx) override;
   NS_DISPLAY_DECL_NAME("Caret", TYPE_CARET)
+
+  virtual LayerState GetLayerState(nsDisplayListBuilder* aBuilder,
+                                   LayerManager* aManager,
+                                   const ContainerLayerParameters& aParameters) override;
+  virtual already_AddRefed<Layer> BuildLayer(nsDisplayListBuilder* aBuilder,
+                                             LayerManager* aManager,
+                                             const ContainerLayerParameters& aContainerParameters) override;
 
 protected:
   RefPtr<nsCaret> mCaret;
@@ -4225,7 +4239,6 @@ protected:
 class nsDisplayMask : public nsDisplaySVGEffects {
 public:
   typedef mozilla::layers::ImageLayer ImageLayer;
-  typedef class mozilla::gfx::DrawTarget DrawTarget;
 
   nsDisplayMask(nsDisplayListBuilder* aBuilder, nsIFrame* aFrame,
                 nsDisplayList* aList, bool aHandleOpacity,
