@@ -883,7 +883,7 @@ nsTableCellFrame::Reflow(nsPresContext*           aPresContext,
   // see if a special bsize reflow needs to occur due to having a pct height
   nsTableFrame::CheckRequestSpecialBSizeReflow(aReflowInput);
 
-  aStatus = NS_FRAME_COMPLETE;
+  aStatus.Reset();
   WritingMode wm = aReflowInput.GetWritingMode();
   LogicalSize availSize(wm, aReflowInput.AvailableISize(),
                             aReflowInput.AvailableBSize());

@@ -1848,7 +1848,7 @@ nsTableFrame::Reflow(nsPresContext*           aPresContext,
   bool isPaginated = aPresContext->IsPaginated();
   WritingMode wm = aReflowInput.GetWritingMode();
 
-  aStatus = NS_FRAME_COMPLETE;
+  aStatus.Reset();
   if (!GetPrevInFlow() && !mTableLayoutStrategy) {
     NS_ERROR("strategy should have been created in Init");
     return;
@@ -2051,7 +2051,7 @@ nsTableFrame::FixupPositionedTableParts(nsPresContext*           aPresContext,
     ReflowInput reflowInput(aPresContext, positionedPart,
                                   aReflowInput.mRenderingContext, availSize,
                                   ReflowInput::DUMMY_PARENT_REFLOW_STATE);
-    nsReflowStatus reflowStatus = NS_FRAME_COMPLETE;
+    nsReflowStatus reflowStatus;
 
     // Reflow absolutely-positioned descendants of the positioned part.
     // FIXME: Unconditionally using NS_UNCONSTRAINEDSIZE for the bsize and
@@ -3026,7 +3026,7 @@ nsTableFrame::ReflowChildren(TableReflowInput& aReflowInput,
                              nsIFrame*&          aLastChildReflowed,
                              nsOverflowAreas&    aOverflowAreas)
 {
-  aStatus = NS_FRAME_COMPLETE;
+  aStatus.Reset();
   aLastChildReflowed = nullptr;
 
   nsIFrame* prevKidFrame = nullptr;

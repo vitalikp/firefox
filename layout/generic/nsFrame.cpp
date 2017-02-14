@@ -5792,7 +5792,7 @@ nsFrame::Reflow(nsPresContext*          aPresContext,
   MarkInReflow();
   DO_GLOBAL_REFLOW_COUNT("nsFrame");
   aDesiredSize.ClearSize();
-  aStatus = NS_FRAME_COMPLETE;
+  aStatus.Reset();
   NS_FRAME_SET_TRUNCATION(aStatus, aReflowInput, aDesiredSize);
 }
 
@@ -9775,7 +9775,7 @@ nsFrame::DoXULLayout(nsBoxLayoutState& aState)
     AddStateBits(NS_FRAME_IN_REFLOW);
     // Set up a |reflowStatus| to pass into ReflowAbsoluteFrames
     // (just a dummy value; hopefully that's OK)
-    nsReflowStatus reflowStatus = NS_FRAME_COMPLETE;
+    nsReflowStatus reflowStatus;
     ReflowAbsoluteFrames(aState.PresContext(), desiredSize,
                          reflowInput, reflowStatus);
     RemoveStateBits(NS_FRAME_IN_REFLOW);
@@ -9812,7 +9812,7 @@ nsFrame::BoxReflow(nsBoxLayoutState&        aState,
 #endif
 
   nsBoxLayoutMetrics *metrics = BoxMetrics();
-  nsReflowStatus status = NS_FRAME_COMPLETE;
+  nsReflowStatus status;
   WritingMode wm = aDesiredSize.GetWritingMode();
 
   bool needsReflow = NS_SUBTREE_DIRTY(this);

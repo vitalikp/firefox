@@ -141,7 +141,7 @@ nsFormControlFrame::Reflow(nsPresContext*          aPresContext,
     RegUnRegAccessKey(static_cast<nsIFrame*>(this), true);
   }
 
-  aStatus = NS_FRAME_COMPLETE;
+  aStatus.Reset();
   aDesiredSize.SetSize(aReflowInput.GetWritingMode(),
                        aReflowInput.ComputedSizeWithBorderPadding());
 
