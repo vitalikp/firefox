@@ -8,10 +8,11 @@
  * stylesheet
  */
 
+#include "mozilla/css/Declaration.h"
+
 #include "mozilla/ArrayUtils.h"
 #include "mozilla/MemoryReporting.h"
 
-#include "mozilla/css/Declaration.h"
 #include "nsPrintfCString.h"
 #include "gfxFontConstants.h"
 #include "nsStyleUtil.h"
