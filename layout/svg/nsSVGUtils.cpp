@@ -148,7 +148,7 @@ nsSVGUtils::Init()
 }
 
 nsIFrame*
-nsSVGUtils::GetNearestSVGParent(nsIFrame *aFrame)
+nsSVGUtils::GetNearestSVGViewport(nsIFrame *aFrame)
 {
   NS_ASSERTION(aFrame->IsFrameOfType(nsIFrame::eSVG), "SVG frame expected");
 
