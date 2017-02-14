@@ -47,6 +47,7 @@ XREAppData::operator=(const XREAppData& aOther)
   UAName = aOther.UAName;
 #if defined(XP_WIN) && defined(MOZ_SANDBOX)
   sandboxBrokerServices = aOther.sandboxBrokerServices;
+  sandboxPermissionsService = aOther.sandboxPermissionsService;
 #endif
   return *this;
 }
