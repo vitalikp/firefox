@@ -57,8 +57,7 @@ module.exports = createClass({
           boxModel,
         })
         :
-        null,
+        null
     );
   },
-
 });
