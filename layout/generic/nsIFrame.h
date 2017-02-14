@@ -212,6 +212,7 @@ public:
     , mTruncated(false)
     , mInlineBreak(false)
     , mInlineBreakAfter(false)
+    , mFirstLetterComplete(false)
   {}
 
   // Reset all the bit-fields.
@@ -223,6 +224,7 @@ public:
     mTruncated = false;
     mInlineBreak = false;
     mInlineBreakAfter = false;
+    mFirstLetterComplete = false;
   }
 
   nsReflowStatus(uint32_t aStatus)
@@ -348,6 +350,11 @@ public:
     mInlineBreakAfter = true;
   }
 
+  // mFirstLetterComplete bit flag means the break was induced by
+  // completion of a first-letter.
+  bool FirstLetterComplete() const { return mFirstLetterComplete; }
+  void SetFirstLetterComplete() { mFirstLetterComplete = true; }
+
 private:
   uint32_t mStatus;
 
@@ -362,14 +369,12 @@ private:
   // Inline break status bit flags.
   bool mInlineBreak : 1;
   bool mInlineBreakAfter : 1;
+  bool mFirstLetterComplete : 1;
 };
 
 #define NS_FRAME_COMPLETE             0       // Note: not a bit!
 #define NS_FRAME_NOT_COMPLETE         0x1
 #define NS_FRAME_OVERFLOW_INCOMPLETE  0x4
-
-// Set when a break was induced by completion of a first-letter
-#define NS_INLINE_BREAK_FIRST_LETTER_COMPLETE 0x10000
 
 #define NS_FRAME_SET_TRUNCATION(aStatus, aReflowInput, aMetrics) \
   aStatus.UpdateTruncated(aReflowInput, aMetrics);
