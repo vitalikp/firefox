@@ -1909,6 +1909,14 @@ WorkerLoadInfo::FinalChannelPrincipalIsValid(nsIChannel* aChannel)
 
   return false;
 }
+
+bool
+WorkerLoadInfo::PrincipalIsValid() const
+{
+  return mPrincipal && mPrincipalInfo &&
+         mPrincipalInfo->type() != PrincipalInfo::T__None &&
+         mPrincipalInfo->type() <= PrincipalInfo::T__Last;
+}
 #endif // defined(DEBUG) || !defined(RELEASE_OR_BETA)
 
 bool
@@ -3959,6 +3967,15 @@ WorkerPrivateParent<Derived>::AssertInnerWindowIsCorrect() const
 
 #endif
 
+#if defined(DEBUG) || !defined(RELEASE_OR_BETA)
+template <class Derived>
+bool
+WorkerPrivateParent<Derived>::PrincipalIsValid() const
+{
+  return mLoadInfo.PrincipalIsValid();
+}
+#endif
+
 class PostDebuggerMessageRunnable final : public Runnable
 {
   WorkerDebugger *mDebugger;
@@ -4539,6 +4556,8 @@ WorkerPrivate::Constructor(JSContext* aCx,
 
   worker->EnableDebugger();
 
+  MOZ_DIAGNOSTIC_ASSERT(worker->PrincipalIsValid());
+
   RefPtr<CompileScriptRunnable> compiler =
     new CompileScriptRunnable(worker, aScriptURL);
   if (!compiler->Dispatch()) {
@@ -4807,6 +4826,8 @@ WorkerPrivate::GetLoadInfo(JSContext* aCx, nsPIDOMWindowInner* aWindow,
     rv = loadInfo.SetPrincipalFromChannel(loadInfo.mChannel);
     NS_ENSURE_SUCCESS(rv, rv);
   }
+
+  MOZ_DIAGNOSTIC_ASSERT(loadInfo.PrincipalIsValid());
 
   aLoadInfo->StealFrom(loadInfo);
   return NS_OK;

@@ -866,6 +866,11 @@ public:
   AssertInnerWindowIsCorrect() const
   { }
 #endif
+
+#if defined(DEBUG) || !defined(RELEASE_OR_BETA)
+  bool
+  PrincipalIsValid() const;
+#endif
 };
 
 class WorkerDebugger : public nsIWorkerDebugger {
