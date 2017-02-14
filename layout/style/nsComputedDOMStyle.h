@@ -511,6 +511,7 @@ private:
   /* Column properties */
   already_AddRefed<CSSValue> DoGetColumnCount();
   already_AddRefed<CSSValue> DoGetColumnFill();
+  already_AddRefed<CSSValue> DoGetColumnSpan();
   already_AddRefed<CSSValue> DoGetColumnWidth();
   already_AddRefed<CSSValue> DoGetColumnGap();
   already_AddRefed<CSSValue> DoGetColumnRuleWidth();
