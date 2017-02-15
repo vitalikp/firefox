@@ -12734,6 +12734,10 @@ nsDocument::RemoveIntersectionObserver(DOMIntersectionObserver* aObserver)
 void
 nsDocument::UpdateIntersectionObservations()
 {
+  if (mIntersectionObservers.IsEmpty()) {
+    return;
+  }
+
   DOMHighResTimeStamp time = 0;
   if (nsPIDOMWindowInner* window = GetInnerWindow()) {
     Performance* perf = window->GetPerformance();
