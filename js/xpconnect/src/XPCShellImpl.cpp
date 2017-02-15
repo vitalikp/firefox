@@ -34,6 +34,7 @@
 #include "nsJSUtils.h"
 #include "gfxPrefs.h"
 #include "nsIXULRuntime.h"
+#include "GeckoProfiler.h"
 
 #include "base/histogram.h"
 
@@ -1276,6 +1277,9 @@ XRE_XPCShellMain(int argc, char** argv, char** envp,
     UniquePtr<base::StatisticsRecorder> telStats =
        MakeUnique<base::StatisticsRecorder>();
 
+    char aLocal;
+    profiler_init(&aLocal);
+
     if (PR_GetEnv("MOZ_CHAOSMODE")) {
         ChaosFeature feature = ChaosFeature::Any;
         long featureInt = strtol(PR_GetEnv("MOZ_CHAOSMODE"), nullptr, 16);
@@ -1604,6 +1608,10 @@ XRE_XPCShellMain(int argc, char** argv, char** envp,
     dirprovider.ClearAppDir();
     dirprovider.ClearPluginDir();
     dirprovider.ClearAppFile();
+
+    // This must precede NS_LogTerm(), otherwise xpcshell return non-zero
+    // during some tests, which causes failures.
+    profiler_shutdown();
 
     NS_LogTerm();
 
