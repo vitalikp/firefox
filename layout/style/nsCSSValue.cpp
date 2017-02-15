@@ -1658,41 +1658,35 @@ nsCSSValue::AppendToString(nsCSSPropertyID aProperty, nsAString& aResult,
         unit == eCSSUnit_RGBColor ||
         unit == eCSSUnit_RGBAColor) {
       nscolor color = GetColorValue();
-      if (aSerialization == eNormalized &&
-          color == NS_RGBA(0, 0, 0, 0)) {
-        // Use the strictest match for 'transparent' so we do correct
-        // round-tripping of all other rgba() values.
-        aResult.AppendLiteral("transparent");
+      // For brevity, we omit the alpha component if it's equal to 255 (full
+      // opaque). Also, we use "rgba" rather than "rgb" when the color includes
+      // the non-opaque alpha value, for backwards-compat (even though they're
+      // aliases as of css-color-4).
+      // e.g.:
+      //   rgba(1, 2, 3, 1.0) => rgb(1, 2, 3)
+      //   rgba(1, 2, 3, 0.5) => rgba(1, 2, 3, 0.5)
+
+      uint8_t a = NS_GET_A(color);
+      bool showAlpha = (a != 255);
+
+      if (showAlpha) {
+        aResult.AppendLiteral("rgba(");
       } else {
-        // For brevity, we omit the alpha component if it's equal to 255 (full
-        // opaque). Also, we use "rgba" rather than "rgb" when the color includes
-        // the non-opaque alpha value, for backwards-compat (even though they're
-        // aliases as of css-color-4).
-        // e.g.:
-        //   rgba(1, 2, 3, 1.0) => rgb(1, 2, 3)
-        //   rgba(1, 2, 3, 0.5) => rgba(1, 2, 3, 0.5)
-        uint8_t a = NS_GET_A(color);
-        bool showAlpha = (a != 255);
-
-        if (showAlpha) {
-          aResult.AppendLiteral("rgba(");
-        } else {
-          aResult.AppendLiteral("rgb(");
-        }
-
-        NS_NAMED_LITERAL_STRING(comma, ", ");
-
-        aResult.AppendInt(NS_GET_R(color), 10);
-        aResult.Append(comma);
-        aResult.AppendInt(NS_GET_G(color), 10);
-        aResult.Append(comma);
-        aResult.AppendInt(NS_GET_B(color), 10);
-        if (showAlpha) {
-          aResult.Append(comma);
-          aResult.AppendFloat(nsStyleUtil::ColorComponentToFloat(a));
-        }
-        aResult.Append(char16_t(')'));
+        aResult.AppendLiteral("rgb(");
       }
+
+      NS_NAMED_LITERAL_STRING(comma, ", ");
+
+      aResult.AppendInt(NS_GET_R(color), 10);
+      aResult.Append(comma);
+      aResult.AppendInt(NS_GET_G(color), 10);
+      aResult.Append(comma);
+      aResult.AppendInt(NS_GET_B(color), 10);
+      if (showAlpha) {
+        aResult.Append(comma);
+        aResult.AppendFloat(nsStyleUtil::ColorComponentToFloat(a));
+      }
+      aResult.Append(char16_t(')'));
     } else if (eCSSUnit_HexColor == unit ||
                eCSSUnit_HexColorAlpha == unit) {
       nscolor color = GetColorValue();
