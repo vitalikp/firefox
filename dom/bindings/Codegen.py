@@ -4466,11 +4466,15 @@ def handleDefaultStringValue(defaultValue, method):
             }
 
 
-def recordKeyDeclType(recordType):
+def recordKeyType(recordType):
     assert recordType.keyType.isString()
     if recordType.keyType.isByteString():
-        return CGGeneric("nsCString")
-    return CGGeneric("nsString")
+        return "nsCString"
+    return "nsString"
+
+
+def recordKeyDeclType(recordType):
+    return CGGeneric(recordKeyType(recordType))
 
 
 # If this function is modified, modify CGNativeMember.getArg and
@@ -4878,6 +4882,15 @@ def getJSToNativeConversionInfo(type, descriptorProvider, failureCode=None,
             "passedToJSImpl": "${passedToJSImpl}"
         })
 
+        keyType = recordKeyType(recordType)
+        if recordType.keyType.isDOMString():
+            keyConversionFunction = "ConvertJSValueToString"
+        elif recordType.keyType.isUSVString():
+            keyConversionFunction = "ConvertJSValueToUSVString"
+        else:
+            assert recordType.keyType.isByteString()
+            keyConversionFunction = "ConvertJSValueToByteString"
+
         templateBody = fill(
             """
             auto& recordEntries = ${recordRef}.Entries();
@@ -4897,6 +4910,7 @@ def getJSToNativeConversionInfo(type, descriptorProvider, failureCode=None,
             JS::Rooted<JS::Value> propNameValue(cx);
             JS::Rooted<JS::Value> temp(cx);
             JS::Rooted<jsid> curId(cx);
+            JS::Rooted<JS::Value> idVal(cx);
             for (size_t i = 0; i < ids.length(); ++i) {
               curId = ids[i];
 
@@ -4913,12 +4927,11 @@ def getJSToNativeConversionInfo(type, descriptorProvider, failureCode=None,
                 continue;
               }
 
-              binding_detail::FakeString propName;
-              bool isSymbol;
-              if (!ConvertIdToString(cx, curId, propName, isSymbol)) {
+              idVal = js::IdToValue(curId);
+              ${keyType} propName;
+              if (!${keyConversionFunction}(cx, idVal, propName)) {
                 $*{exceptionCode}
               }
-              MOZ_ASSERT(!isSymbol, "We said, no symbols!");
 
               if (!JS_GetPropertyById(cx, recordObj, curId, &temp)) {
                 $*{exceptionCode}
@@ -4934,6 +4947,8 @@ def getJSToNativeConversionInfo(type, descriptorProvider, failureCode=None,
             """,
             exceptionCode=exceptionCode,
             recordRef=recordRef,
+            keyType=keyType,
+            keyConversionFunction=keyConversionFunction,
             typeName=typeName,
             valueType=valueInfo.declType.define(),
             valueConversion=valueConversion)
@@ -6557,6 +6572,18 @@ def getWrapTemplateForType(type, descriptorProvider, result, successCode,
                 'typedArraysAreStructs': typedArraysAreStructs
             })
         recordWrapLevel -= 1
+        if type.keyType.isByteString():
+            # There is no length-taking JS_DefineProperty.  So to keep
+            # things sane with embedded nulls, we want to byte-inflate
+            # to an nsAString.  The only byte-inflation function we
+            # have around is AppendASCIItoUTF16, which luckily doesn't
+            # assert anything about the input being ASCII.
+            expandedKeyDecl = "NS_ConvertASCIItoUTF16 expandedKey(entry.mKey);\n"
+            keyName = "expandedKey"
+        else:
+            expandedKeyDecl = ""
+            keyName = "entry.mKey"
+
         code = fill(
             """
 
@@ -6574,9 +6601,10 @@ def getWrapTemplateForType(type, descriptorProvider, result, successCode,
                 do {
                   $*{innerTemplate}
                 } while (0);
+                $*{expandedKeyDecl}
                 if (!JS_DefineUCProperty(cx, returnObj,
-                                         entry.mKey.BeginReading(),
-                                         entry.mKey.Length(), tmp,
+                                         ${keyName}.BeginReading(),
+                                         ${keyName}.Length(), tmp,
                                          JSPROP_ENUMERATE)) {
                   $*{exceptionCode}
                 }
@@ -6588,6 +6616,8 @@ def getWrapTemplateForType(type, descriptorProvider, result, successCode,
             exceptionCode=exceptionCode,
             valueName=valueName,
             innerTemplate=innerTemplate,
+            expandedKeyDecl=expandedKeyDecl,
+            keyName=keyName,
             set=setObject("*returnObj"))
 
         return (code, False)
