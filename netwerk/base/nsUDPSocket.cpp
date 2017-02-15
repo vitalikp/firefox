@@ -57,7 +57,8 @@ PostEvent(nsUDPSocket *s, nsUDPSocketFunc func)
 }
 
 static nsresult
-ResolveHost(const nsACString &host, nsIDNSListener *listener)
+ResolveHost(const nsACString &host, const OriginAttributes& aOriginAttributes,
+            nsIDNSListener *listener)
 {
   nsresult rv;
 
@@ -68,8 +69,8 @@ ResolveHost(const nsACString &host, nsIDNSListener *listener)
   }
 
   nsCOMPtr<nsICancelable> tmpOutstanding;
-  return dns->AsyncResolve(host, 0, listener, nullptr,
-                           getter_AddRefs(tmpOutstanding));
+  return dns->AsyncResolveNative(host, 0, listener, nullptr, aOriginAttributes,
+                                 getter_AddRefs(tmpOutstanding));
 
 }
 
@@ -250,6 +251,7 @@ nsUDPMessage::GetDataAsTArray()
 nsUDPSocket::nsUDPSocket()
   : mLock("nsUDPSocket.mLock")
   , mFD(nullptr)
+  , mOriginAttributes()
   , mAttached(false)
   , mByteReadCount(0)
   , mByteWriteCount(0)
@@ -603,6 +605,9 @@ nsUDPSocket::InitWithAddress(const NetAddr *aAddr, nsIPrincipal *aPrincipal,
 
   bool addressReuse = (aOptionalArgc == 1) ? aAddressReuse : true;
 
+  if (aPrincipal) {
+    mOriginAttributes = aPrincipal->OriginAttributesRef();
+  }
   //
   // configure listening socket...
   //
@@ -1169,7 +1174,7 @@ nsUDPSocket::Send(const nsACString &aHost, uint16_t aPort,
 
   nsCOMPtr<nsIDNSListener> listener = new PendingSend(this, aPort, fallibleArray);
 
-  nsresult rv = ResolveHost(aHost, listener);
+  nsresult rv = ResolveHost(aHost, mOriginAttributes, listener);
   NS_ENSURE_SUCCESS(rv, rv);
 
   *_retval = aDataLength;
@@ -1242,7 +1247,7 @@ nsUDPSocket::SendBinaryStream(const nsACString &aHost, uint16_t aPort,
 
   nsCOMPtr<nsIDNSListener> listener = new PendingSendStream(this, aPort, aStream);
 
-  return ResolveHost(aHost, listener);
+  return ResolveHost(aHost, mOriginAttributes, listener);
 }
 
 NS_IMETHODIMP
