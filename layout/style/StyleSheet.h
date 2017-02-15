@@ -36,6 +36,7 @@ class SRIMetadata;
 } // namespace dom
 
 namespace css {
+class ImportRule;
 class Rule;
 }
 
@@ -110,6 +111,11 @@ public:
    */
   inline bool IsApplicable() const;
   inline bool HasRules() const;
+
+  virtual already_AddRefed<StyleSheet> Clone(StyleSheet* aCloneParent,
+                                             css::ImportRule* aCloneOwnerRule,
+                                             nsIDocument* aCloneDocument,
+                                             nsINode* aCloneOwningNode) const = 0;
 
   virtual bool IsModified() const = 0;
 
