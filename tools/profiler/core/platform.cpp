@@ -2164,9 +2164,6 @@ profiler_stop()
   gProfileThreads   = false;
   gUseStackWalk     = false;
 
-  if (gIsActive)
-    PlatformStop();
-
   // Destroy ThreadInfo for all threads
   {
     StaticMutexAutoLock lock(gRegisteredThreadsMutex);
