@@ -1333,6 +1333,10 @@ class Parser final : public ParserBase, private JS::AutoGCRooter
                                                   uint32_t offset,
                                                   YieldHandling yieldHandling);
 
+    PropertyName* checkBindingIdentifier(PropertyName* ident,
+                                         uint32_t offset,
+                                         YieldHandling yieldHandling);
+
     PropertyName* labelOrIdentifierReference(YieldHandling yieldHandling);
 
     PropertyName* labelIdentifier(YieldHandling yieldHandling) {
@@ -1400,7 +1404,6 @@ class Parser final : public ParserBase, private JS::AutoGCRooter
   private:
     bool checkIncDecOperand(Node operand, uint32_t operandOffset);
     bool checkStrictAssignment(Node lhs);
-    bool checkStrictBinding(PropertyName* name, TokenPos pos);
 
     bool hasValidSimpleStrictParameterNames();
 
