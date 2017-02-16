@@ -43,6 +43,7 @@
 #include "mozilla/dom/DOMTypes.h"
 #include "mozilla/dom/Element.h"
 #include "mozilla/dom/FileSystemSecurity.h"
+#include "mozilla/dom/FileBlobImpl.h"
 #include "mozilla/dom/HTMLMediaElement.h"
 #include "mozilla/dom/HTMLTemplateElement.h"
 #include "mozilla/dom/HTMLContentElement.h"
@@ -7857,7 +7858,7 @@ nsContentUtils::TransferableToIPCTransferable(nsITransferable* aTransferable,
               }
             }
 
-            blobImpl = new BlobImplFile(file);
+            blobImpl = new FileBlobImpl(file);
 
             IgnoredErrorResult rv;
 

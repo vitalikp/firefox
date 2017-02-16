@@ -35,6 +35,7 @@
 #include "mozilla/UniquePtrExtensions.h"
 #include "mozilla/dom/ContentParent.h"
 #include "mozilla/dom/File.h"
+#include "mozilla/dom/FileBlobImpl.h"
 #include "mozilla/dom/StructuredCloneTags.h"
 #include "mozilla/dom/TabParent.h"
 #include "mozilla/dom/filehandle/ActorsParent.h"
@@ -9088,14 +9089,14 @@ private:
 };
 
 class BlobImplStoredFile final
-  : public BlobImplFile
+  : public FileBlobImpl
 {
   RefPtr<FileInfo> mFileInfo;
   const bool mSnapshot;
 
 public:
   BlobImplStoredFile(nsIFile* aFile, FileInfo* aFileInfo, bool aSnapshot)
-    : BlobImplFile(aFile)
+    : FileBlobImpl(aFile)
     , mFileInfo(aFileInfo)
     , mSnapshot(aSnapshot)
   {
@@ -17640,7 +17641,7 @@ FileManager::GetUsage(nsIFile* aDirectory, uint64_t* aUsage)
  ******************************************************************************/
 
 NS_IMPL_ISUPPORTS_INHERITED(BlobImplStoredFile,
-                            BlobImplFile,
+                            FileBlobImpl,
                             BlobImplStoredFile)
 
 /*******************************************************************************

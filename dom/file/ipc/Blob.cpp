@@ -10,6 +10,7 @@
 #include "BackgroundParent.h"
 #include "ContentChild.h"
 #include "ContentParent.h"
+#include "EmptyBlobImpl.h"
 #include "FileDescriptorSetChild.h"
 #include "jsapi.h"
 #include "mozilla/Assertions.h"
@@ -18,7 +19,7 @@
 #include "mozilla/Monitor.h"
 #include "mozilla/Mutex.h"
 #include "mozilla/Unused.h"
-#include "mozilla/dom/File.h"
+#include "mozilla/dom/BaseBlobImpl.h"
 #include "mozilla/dom/nsIContentParent.h"
 #include "mozilla/dom/nsIContentChild.h"
 #include "mozilla/dom/PBlobStreamChild.h"
@@ -46,6 +47,7 @@
 #include "nsStringStream.h"
 #include "nsThreadUtils.h"
 #include "nsXULAppAPI.h"
+#include "StreamBlobImpl.h"
 #include "WorkerPrivate.h"
 #include "WorkerRunnable.h"
 
@@ -660,7 +662,7 @@ CreateBlobImpl(const BlobDataStream& aStream,
   if (!aMetadata.mHasRecursed && aMetadata.IsFile()) {
     if (length) {
       blobImpl =
-        BlobImplStream::Create(inputStream,
+        StreamBlobImpl::Create(inputStream,
                                aMetadata.mName,
                                aMetadata.mContentType,
                                aMetadata.mLastModifiedDate,
@@ -673,7 +675,7 @@ CreateBlobImpl(const BlobDataStream& aStream,
     }
   } else if (length) {
     blobImpl =
-      BlobImplStream::Create(inputStream, aMetadata.mContentType,
+      StreamBlobImpl::Create(inputStream, aMetadata.mContentType,
                              length);
   } else {
     blobImpl = new EmptyBlobImpl(aMetadata.mContentType);
@@ -1793,7 +1795,7 @@ NS_IMPL_ISUPPORTS_INHERITED0(BlobParent::OpenStreamRunnable, Runnable)
  ******************************************************************************/
 
 class BlobChild::RemoteBlobImpl
-  : public BlobImplBase
+  : public BaseBlobImpl
   , public nsIRemoteBlob
 {
 protected:
@@ -2187,7 +2189,7 @@ RemoteBlobImpl::RemoteBlobImpl(BlobChild* aActor,
                                int64_t aModDate,
                                BlobImplIsDirectory aIsDirectory,
                                bool aIsSameProcessBlob)
-  : BlobImplBase(aName, aContentType, aLength, aModDate)
+  : BaseBlobImpl(aName, aContentType, aLength, aModDate)
   , mWorkerPrivate(nullptr)
   , mMutex("BlobChild::RemoteBlobImpl::mMutex")
   , mIsSlice(false), mIsDirectory(aIsDirectory == eDirectory)
@@ -2211,7 +2213,7 @@ RemoteBlobImpl::RemoteBlobImpl(BlobChild* aActor,
                                const nsAString& aContentType,
                                uint64_t aLength,
                                bool aIsSameProcessBlob)
-  : BlobImplBase(aContentType, aLength)
+  : BaseBlobImpl(aContentType, aLength)
   , mWorkerPrivate(nullptr)
   , mMutex("BlobChild::RemoteBlobImpl::mMutex")
   , mIsSlice(false), mIsDirectory(false)
@@ -2229,7 +2231,7 @@ RemoteBlobImpl::RemoteBlobImpl(BlobChild* aActor,
 
 BlobChild::
 RemoteBlobImpl::RemoteBlobImpl(BlobChild* aActor)
-  : BlobImplBase(EmptyString(), EmptyString(), UINT64_MAX, INT64_MAX)
+  : BaseBlobImpl(EmptyString(), EmptyString(), UINT64_MAX, INT64_MAX)
   , mWorkerPrivate(nullptr)
   , mMutex("BlobChild::RemoteBlobImpl::mMutex")
   , mIsSlice(false), mIsDirectory(false)
@@ -2239,7 +2241,7 @@ RemoteBlobImpl::RemoteBlobImpl(BlobChild* aActor)
 
 BlobChild::
 RemoteBlobImpl::RemoteBlobImpl(const nsAString& aContentType, uint64_t aLength)
-  : BlobImplBase(aContentType, aLength)
+  : BaseBlobImpl(aContentType, aLength)
   , mActor(nullptr)
   , mWorkerPrivate(nullptr)
   , mMutex("BlobChild::RemoteBlobImpl::mMutex")
@@ -2485,7 +2487,7 @@ RemoteBlobImpl::SetMutable(bool aMutable)
     AsSlice()->EnsureActorWasCreated();
   }
 
-  nsresult rv = BlobImplBase::SetMutable(aMutable);
+  nsresult rv = BaseBlobImpl::SetMutable(aMutable);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
