@@ -1300,7 +1300,7 @@ var gViewController = {
                 nsIFilePicker.modeOpenMultiple);
         try {
           fp.appendFilter(gStrings.ext.GetStringFromName("installFromFile.filterName"),
-                          "*.xpi;*.jar");
+                          "*.xpi;*.jar;*.zip");
           fp.appendFilters(nsIFilePicker.filterAll);
         } catch (e) { }
 
