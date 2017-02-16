@@ -239,6 +239,9 @@ public:
   virtual void CleanupResources() {}
 
 protected:
+  HostLayerManager* GetLayerManager() const;
+
+protected:
   TextureInfo mTextureInfo;
   AsyncCompositableRef mAsyncRef;
   uint64_t mCompositorID;
