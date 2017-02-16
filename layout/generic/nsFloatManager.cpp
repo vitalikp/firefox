@@ -850,8 +850,8 @@ nsFloatManager::ShapeInfo::CreateCircleOrEllipse(
     aShapeBoxRect.GetPhysicalRect(aWM, aContainerSize);
   nsPoint physicalCenter =
     ShapeUtils::ComputeCircleOrEllipseCenter(aBasicShape, physicalShapeBoxRect);
-  nsPoint center =
-    ConvertPhysicalToLogical(aWM, physicalCenter, aContainerSize);
+  nsPoint logicalCenter =
+    ConvertToFloatLogical(physicalCenter, aWM, aContainerSize);
 
   // Compute the circle or ellipse radii.
   nsSize radii;
@@ -869,7 +869,7 @@ nsFloatManager::ShapeInfo::CreateCircleOrEllipse(
     radii = nsSize(logicalRadii.ISize(aWM), logicalRadii.BSize(aWM));
   }
 
-  return MakeUnique<EllipseShapeInfo>(center, radii);
+  return MakeUnique<EllipseShapeInfo>(logicalCenter, radii);
 }
 
 
@@ -954,9 +954,9 @@ nsFloatManager::ShapeInfo::XInterceptAtY(const nscoord aY,
 }
 
 /* static */ nsPoint
-nsFloatManager::ShapeInfo::ConvertPhysicalToLogical(
-  WritingMode aWM,
+nsFloatManager::ShapeInfo::ConvertToFloatLogical(
   const nsPoint& aPoint,
+  WritingMode aWM,
   const nsSize& aContainerSize)
 {
   LogicalPoint logicalPoint(aWM, aPoint, aContainerSize);
