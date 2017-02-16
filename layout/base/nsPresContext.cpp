@@ -165,7 +165,7 @@ nsPresContext::IsDOMPaintEventPending()
     // Since we're promising that there will be a MozAfterPaint event
     // fired, we record an empty invalidation in case display list
     // invalidation doesn't invalidate anything further.
-    NotifyInvalidation(nsRect(0, 0, 0, 0), 0);
+    NotifyInvalidation(nsRect(0, 0, 0, 0));
     NS_ASSERTION(mFireAfterPaintEvents, "Why aren't we planning to fire the event?");
     return true;
   }
@@ -2328,7 +2328,7 @@ nsPresContext::EnsureSafeToHandOutCSSRules()
 }
 
 void
-nsPresContext::FireDOMPaintEvent(nsInvalidateRequestList* aList, uint64_t aTransactionId,
+nsPresContext::FireDOMPaintEvent(nsTArray<nsRect>* aList, uint64_t aTransactionId,
                                  mozilla::TimeStamp aTimeStamp /* = mozilla::TimeStamp() */)
 {
   nsPIDOMWindowInner* ourWindow = mDocument->GetInnerWindow();
@@ -2460,7 +2460,7 @@ nsPresContext::MayHavePaintEventListenerInSubDocument()
 }
 
 void
-nsPresContext::NotifyInvalidation(const nsIntRect& aRect, uint32_t aFlags)
+nsPresContext::NotifyInvalidation(const nsIntRect& aRect)
 {
   // Prevent values from overflow after DevPixelsToAppUnits().
   //
@@ -2477,11 +2477,11 @@ nsPresContext::NotifyInvalidation(const nsIntRect& aRect, uint32_t aFlags)
               DevPixelsToAppUnits(clampedRect.y),
               DevPixelsToAppUnits(clampedRect.width),
               DevPixelsToAppUnits(clampedRect.height));
-  NotifyInvalidation(rect, aFlags);
+  NotifyInvalidation(rect);
 }
 
 void
-nsPresContext::NotifyInvalidation(const nsRect& aRect, uint32_t aFlags)
+nsPresContext::NotifyInvalidation(const nsRect& aRect)
 {
   MOZ_ASSERT(GetContainerWeak(), "Invalidation in detached pres context");
 
@@ -2504,13 +2504,7 @@ nsPresContext::NotifyInvalidation(const nsRect& aRect, uint32_t aFlags)
     }
   }
 
-  nsInvalidateRequestList::Request* request =
-    mInvalidateRequestsSinceLastPaint.mRequests.AppendElement();
-  if (!request)
-    return;
-
-  request->mRect = aRect;
-  request->mFlags = aFlags;
+  mInvalidateRequestsSinceLastPaint.AppendElement(aRect);
 }
 
 /* static */ void
@@ -2532,7 +2526,7 @@ nsPresContext::NotifySubDocInvalidation(ContainerLayer* aContainer,
     // region. Is this really true? This feels like the wrong way to get the right
     // answer.
     rect.MoveBy(-topLeft);
-    data->mPresContext->NotifyInvalidation(rect, 0);
+    data->mPresContext->NotifyInvalidation(rect);
   }
 }
 
@@ -2578,7 +2572,7 @@ NotifyDidPaintSubdocumentCallback(nsIDocument* aDocument, void* aData)
 class DelayedFireDOMPaintEvent : public Runnable {
 public:
   DelayedFireDOMPaintEvent(nsPresContext* aPresContext,
-                           nsInvalidateRequestList* aList,
+                           nsTArray<nsRect>* aList,
                            uint64_t aTransactionId,
                            const mozilla::TimeStamp& aTimeStamp = mozilla::TimeStamp())
     : mPresContext(aPresContext)
@@ -2587,7 +2581,7 @@ public:
   {
     MOZ_ASSERT(mPresContext->GetContainerWeak(),
                "DOMPaintEvent requested for a detached pres context");
-    mList.TakeFrom(aList);
+    mList.SwapElements(*aList);
   }
   NS_IMETHOD Run() override
   {
@@ -2602,7 +2596,7 @@ public:
   RefPtr<nsPresContext> mPresContext;
   uint64_t mTransactionId;
   const mozilla::TimeStamp mTimeStamp;
-  nsInvalidateRequestList mList;
+  nsTArray<nsRect> mList;
 };
 
 void
@@ -2628,8 +2622,7 @@ nsPresContext::NotifyDidPaintForSubtree(uint32_t aFlags, uint64_t aTransactionId
   // own layer).
 
   if (aFlags & nsIPresShell::PAINT_LAYERS) {
-    mUndeliveredInvalidateRequestsBeforeLastPaint.TakeFrom(
-        &mInvalidateRequestsSinceLastPaint);
+    mUndeliveredInvalidateRequestsBeforeLastPaint.AppendElements(mozilla::Move(mInvalidateRequestsSinceLastPaint));
   }
   if (aFlags & nsIPresShell::PAINT_COMPOSITE) {
     nsCOMPtr<nsIRunnable> ev =
