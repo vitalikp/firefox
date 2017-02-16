@@ -192,6 +192,7 @@ extern const char* CacheKindNames[];
     _(StoreUnboxedProperty)               \
     _(StoreDenseElement)                  \
     _(StoreDenseElementHole)              \
+    _(StoreTypedElement)                  \
     _(StoreUnboxedArrayElement)           \
     _(StoreUnboxedArrayElementHole)       \
     _(CallNativeSetter)                   \
@@ -679,6 +680,16 @@ class MOZ_RAII CacheIRWriter : public JS::CustomAutoRooter
         writeOperandId(index);
         writeOperandId(rhs);
     }
+    void storeTypedElement(ObjOperandId obj, Int32OperandId index, ValOperandId rhs,
+                           TypedThingLayout layout, Scalar::Type elementType, bool handleOOB)
+    {
+        writeOpWithOperandId(CacheOp::StoreTypedElement, obj);
+        writeOperandId(index);
+        writeOperandId(rhs);
+        buffer_.writeByte(uint32_t(layout));
+        buffer_.writeByte(uint32_t(elementType));
+        buffer_.writeByte(uint32_t(handleOOB));
+    }
     void storeUnboxedArrayElement(ObjOperandId obj, Int32OperandId index, ValOperandId rhs,
                                   JSValueType elementType)
     {
@@ -1038,6 +1049,7 @@ class MOZ_RAII SetPropIRGenerator : public IRGenerator
 
     enum class PreliminaryObjectAction { None, Unlink, NotePreliminary };
     PreliminaryObjectAction preliminaryObjectAction_;
+    bool attachedTypedArrayOOBStub_;
 
     // If Baseline needs an update stub, this contains information to create it.
     RootedObjectGroup updateStubGroup_;
@@ -1083,6 +1095,8 @@ class MOZ_RAII SetPropIRGenerator : public IRGenerator
                                   Int32OperandId indexId, ValOperandId rhsId);
     bool tryAttachSetUnboxedArrayElement(HandleObject obj, ObjOperandId objId, uint32_t index,
                                          Int32OperandId indexId, ValOperandId rhsId);    
+    bool tryAttachSetTypedElement(HandleObject obj, ObjOperandId objId, uint32_t index,
+                                  Int32OperandId indexId, ValOperandId rhsId);
 
     bool tryAttachSetDenseElementHole(HandleObject obj, ObjOperandId objId, uint32_t index,
                                       Int32OperandId indexId, ValOperandId rhsId);
@@ -1108,6 +1122,10 @@ class MOZ_RAII SetPropIRGenerator : public IRGenerator
     }
 
     bool needUpdateStub() const { return needUpdateStub_; }
+
+    bool attachedTypedArrayOOBStub() const {
+        return attachedTypedArrayOOBStub_;
+    }
 
     ObjectGroup* updateStubGroup() const {
         MOZ_ASSERT(updateStubGroup_);
