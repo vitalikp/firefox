@@ -2888,7 +2888,8 @@ ContentChild::RecvInvokeDragSession(nsTArray<IPCDataTransfer>&& aTransfers,
 mozilla::ipc::IPCResult
 ContentChild::RecvEndDragSession(const bool& aDoneDrag,
                                  const bool& aUserCancelled,
-                                 const LayoutDeviceIntPoint& aDragEndPoint)
+                                 const LayoutDeviceIntPoint& aDragEndPoint,
+                                 const uint32_t& aKeyModifiers)
 {
   nsCOMPtr<nsIDragService> dragService =
     do_GetService("@mozilla.org/widget/dragservice;1");
@@ -2900,7 +2901,7 @@ ContentChild::RecvEndDragSession(const bool& aDoneDrag,
       }
     }
     static_cast<nsBaseDragService*>(dragService.get())->SetDragEndPoint(aDragEndPoint);
-    dragService->EndDragSession(aDoneDrag);
+    dragService->EndDragSession(aDoneDrag, aKeyModifiers);
   }
   return IPC_OK();
 }
