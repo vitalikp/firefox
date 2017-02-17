@@ -247,6 +247,8 @@ class ElementSpecific
     {
         MOZ_ASSERT(TypeIDOfType<T>::id == target->type(),
                    "calling wrong setFromTypedArray specialization");
+        MOZ_ASSERT(!target->hasDetachedBuffer(), "target isn't detached");
+        MOZ_ASSERT(!source->hasDetachedBuffer(), "source isn't detached");
 
         MOZ_ASSERT(offset <= target->length());
         MOZ_ASSERT(source->length() <= target->length() - offset);
@@ -340,6 +342,7 @@ class ElementSpecific
     {
         MOZ_ASSERT(target->type() == TypeIDOfType<T>::id,
                    "target type and NativeType must match");
+        MOZ_ASSERT(!target->hasDetachedBuffer(), "target isn't detached");
         MOZ_ASSERT(!source->is<TypedArrayObject>(),
                    "use setFromTypedArray instead of this method");
 
@@ -378,7 +381,8 @@ class ElementSpecific
             if (i >= len)
                 break;
 
-            // Compute every iteration in case getElement/valueToNative is wacky.
+            // Compute every iteration in case getElement/valueToNative
+            // detaches the underlying array buffer or GC moves the data.
             SharedMem<T*> dest = target->viewDataEither().template cast<T*>() + offset + i;
             Ops::store(dest, n);
         }
@@ -395,6 +399,7 @@ class ElementSpecific
     {
         MOZ_ASSERT(target->type() == TypeIDOfType<T>::id,
                    "target type and NativeType must match");
+        MOZ_ASSERT(!target->hasDetachedBuffer(), "target isn't detached");
         MOZ_ASSERT(IsPackedArray(source), "source array must be packed");
         MOZ_ASSERT(source->getDenseInitializedLength() <= target->length());
 
@@ -451,6 +456,8 @@ class ElementSpecific
     {
         MOZ_ASSERT(TypeIDOfType<T>::id == target->type(),
                    "calling wrong setFromTypedArray specialization");
+        MOZ_ASSERT(!target->hasDetachedBuffer(), "target isn't detached");
+        MOZ_ASSERT(!source->hasDetachedBuffer(), "source isn't detached");
         MOZ_ASSERT(TypedArrayObject::sameBuffer(target, source),
                    "the provided arrays don't actually overlap, so it's "
                    "undesirable to use this method");
