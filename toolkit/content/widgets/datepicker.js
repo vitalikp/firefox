@@ -46,7 +46,8 @@ function DatePicker(context) {
               weekends,
               monthStrings,
               weekdayStrings,
-              locale } = this.props;
+              locale,
+              dir } = this.props;
       const dateKeeper = new DateKeeper({
         year, month, day
       }, {
@@ -54,6 +55,8 @@ function DatePicker(context) {
         weekends,
         calViewSize: CAL_VIEW_SIZE
       });
+
+      document.dir = dir;
 
       this.state = {
         dateKeeper,
@@ -213,11 +216,11 @@ function DatePicker(context) {
           event.preventDefault();
           event.target.setCapture();
 
-          if (event.target == this.context.buttonLeft) {
+          if (event.target == this.context.buttonPrev) {
             event.target.classList.add("active");
             this.state.dateKeeper.setMonthByOffset(-1);
             this._update();
-          } else if (event.target == this.context.buttonRight) {
+          } else if (event.target == this.context.buttonNext) {
             event.target.classList.add("active");
             this.state.dateKeeper.setMonthByOffset(1);
             this._update();
@@ -225,7 +228,7 @@ function DatePicker(context) {
           break;
         }
         case "mouseup": {
-          if (event.target == this.context.buttonLeft || event.target == this.context.buttonRight) {
+          if (event.target == this.context.buttonPrev || event.target == this.context.buttonNext) {
             event.target.classList.remove("active");
           }
 
