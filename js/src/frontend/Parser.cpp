@@ -8590,6 +8590,8 @@ Parser<ParseHandler, CharT>::comprehensionFor(GeneratorKind comprehensionKind)
 
     MUST_MATCH_TOKEN_FUNC(TokenKindIsPossibleIdentifier, JSMSG_NO_VARIABLE_NAME);
     RootedPropertyName name(context, bindingIdentifier(YieldIsKeyword));
+    if (!name)
+        return null();
     if (name == context->names().let) {
         error(JSMSG_LET_COMP_BINDING);
         return null();
