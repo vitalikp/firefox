@@ -48,19 +48,19 @@
 #  include <unistd.h>
 #  include <sys/syscall.h>
 #  define gettid() static_cast<pid_t>(syscall(SYS_gettid))
-#elif defined(SPS_OS_darwin)
+#elif defined(GP_OS_darwin)
 #  include <unistd.h>
 #  include <sys/syscall.h>
 #  define gettid() static_cast<pid_t>(syscall(SYS_thread_selfid))
 #endif
 
-#if defined(SPS_OS_windows)
+#if defined(GP_OS_windows)
 #include <windows.h>
 #endif
 
 bool profiler_verbose();
 
-#if defined(SPS_OS_android)
+#if defined(GP_OS_android)
 # include <android/log.h>
 # define LOG(text) \
     do { if (profiler_verbose()) \
@@ -83,7 +83,7 @@ bool profiler_verbose();
 
 #endif
 
-#if defined(SPS_OS_android) && !defined(MOZ_WIDGET_GONK)
+#if defined(GP_OS_android) && !defined(MOZ_WIDGET_GONK)
 #define PROFILE_JAVA
 #endif
 
@@ -119,7 +119,7 @@ public:
 
 class Thread {
 public:
-#if defined(SPS_OS_windows)
+#if defined(GP_OS_windows)
   typedef DWORD tid_t;
 #else
   typedef ::pid_t tid_t;
@@ -139,10 +139,10 @@ public:
 
 #undef HAVE_NATIVE_UNWIND
 #if defined(MOZ_PROFILING) && \
-    (defined(SPS_OS_windows) || \
-     defined(SPS_OS_darwin) || \
-     defined(SPS_OS_linux) || \
-     defined(SPS_PLAT_arm_android))
+    (defined(GP_OS_windows) || \
+     defined(GP_OS_darwin) || \
+     defined(GP_OS_linux) || \
+     defined(GP_PLAT_arm_android))
 # define HAVE_NATIVE_UNWIND
 #endif
 

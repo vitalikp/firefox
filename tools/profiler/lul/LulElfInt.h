@@ -49,7 +49,7 @@
 // elfutils.h: Utilities for dealing with ELF files.
 //
 
-#if defined(SPS_OS_android)
+#if defined(GP_OS_android)
 
 // The Android headers don't always define this constant.
 #ifndef EM_X86_64
