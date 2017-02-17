@@ -1079,15 +1079,11 @@ MediaFormatReader::Shutdown()
   mCompositorUpdatedListener.DisconnectIfExists();
   mOnTrackWaitingForKeyListener.Disconnect();
 
-  RefPtr<ShutdownPromise> p = mShutdownPromise.Ensure(__func__);
-  mShutdownPromisePool->Shutdown()
+  mShutdown = true;
+  return mShutdownPromisePool->Shutdown()
     ->Then(OwnerThread(), __func__, this,
            &MediaFormatReader::TearDownDecoders,
            &MediaFormatReader::TearDownDecoders);
-
-  mShutdown = true;
-
-  return p;
 }
 
 RefPtr<ShutdownPromise>
@@ -1140,7 +1136,7 @@ MediaFormatReader::ShutdownDecoder(TrackType aTrack)
   Unused << ShutdownDecoderWithPromise(aTrack);
 }
 
-void
+RefPtr<ShutdownPromise>
 MediaFormatReader::TearDownDecoders()
 {
   if (mAudio.mTaskQueue) {
@@ -1158,12 +1154,7 @@ MediaFormatReader::TearDownDecoders()
   mPlatform = nullptr;
   mVideoFrameContainer = nullptr;
 
-  if (mShutdownPromise.IsEmpty()) {
-    return;
-  }
-
-  MediaDecoderReader::Shutdown();
-  mShutdownPromise.Resolve(true, __func__);
+  return MediaDecoderReader::Shutdown();
 }
 
 void
