@@ -2144,7 +2144,6 @@ HttpChannelChild::ContinueAsyncOpen()
   openArgs.priority() = mPriority;
   openArgs.classOfService() = mClassOfService;
   openArgs.redirectionLimit() = mRedirectionLimit;
-  openArgs.allowPipelining() = mAllowPipelining;
   openArgs.allowSTS() = mAllowSTS;
   openArgs.thirdPartyFlags() = mThirdPartyFlags;
   openArgs.resumeAt() = mSendResumeAt;
