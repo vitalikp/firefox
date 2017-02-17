@@ -2264,7 +2264,7 @@ already_AddRefed<LayerManager> nsDisplayList::PaintRoot(nsDisplayListBuilder* aB
         if (shouldInvalidate) {
           view->GetViewManager()->InvalidateViewNoSuppression(view, rect);
         }
-        presContext->NotifyInvalidation(bounds);
+        presContext->NotifyInvalidation(layerManager->GetLastTransactionId(), bounds);
       }
     } else if (shouldInvalidate) {
       view->GetViewManager()->InvalidateView(view);

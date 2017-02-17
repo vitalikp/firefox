@@ -672,6 +672,8 @@ public:
     return count;
   }
 
+  virtual uint64_t GetLastTransactionId() { return 0; }
+
 protected:
   RefPtr<Layer> mRoot;
   gfx::UserData mUserData;
