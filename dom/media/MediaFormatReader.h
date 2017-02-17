@@ -594,6 +594,9 @@ private:
   class DecoderFactory;
   UniquePtr<DecoderFactory> mDecoderFactory;
 
+  class ShutdownPromisePool;
+  UniquePtr<ShutdownPromisePool> mShutdownPromisePool;
+
   MediaEventListener mCompositorUpdatedListener;
   MediaEventListener mOnTrackWaitingForKeyListener;
 
