@@ -29,16 +29,6 @@
 #ifndef TOOLS_PLATFORM_H_
 #define TOOLS_PLATFORM_H_
 
-#ifdef ANDROID
-#include <android/log.h>
-#else
-#define __android_log_print(a, ...)
-#endif
-
-#ifdef XP_UNIX
-#include <pthread.h>
-#endif
-
 #include <stdint.h>
 #include <math.h>
 #include "MainThreadUtils.h"
@@ -58,19 +48,20 @@
 #  include <unistd.h>
 #  include <sys/syscall.h>
 #  define gettid() static_cast<pid_t>(syscall(SYS_gettid))
-#elif defined(XP_MACOSX)
+#elif defined(SPS_OS_darwin)
 #  include <unistd.h>
 #  include <sys/syscall.h>
 #  define gettid() static_cast<pid_t>(syscall(SYS_thread_selfid))
 #endif
 
-#ifdef XP_WIN
+#if defined(SPS_OS_windows)
 #include <windows.h>
 #endif
 
 bool profiler_verbose();
 
-#ifdef ANDROID
+#if defined(SPS_OS_android)
+# include <android/log.h>
 # define LOG(text) \
     do { if (profiler_verbose()) \
            __android_log_write(ANDROID_LOG_ERROR, "Profiler", text); \
@@ -128,7 +119,7 @@ public:
 
 class Thread {
 public:
-#ifdef XP_WIN
+#if defined(SPS_OS_windows)
   typedef DWORD tid_t;
 #else
   typedef ::pid_t tid_t;
@@ -147,12 +138,11 @@ public:
 // platform.
 
 #undef HAVE_NATIVE_UNWIND
-#if defined(MOZ_PROFILING) \
-    && (defined(SPS_PLAT_amd64_linux) || defined(SPS_PLAT_arm_android) \
-        || (defined(MOZ_WIDGET_ANDROID) && defined(__arm__)) \
-        || defined(SPS_PLAT_x86_linux) \
-        || defined(SPS_OS_windows) \
-        || defined(SPS_OS_darwin))
+#if defined(MOZ_PROFILING) && \
+    (defined(SPS_OS_windows) || \
+     defined(SPS_OS_darwin) || \
+     defined(SPS_OS_linux) || \
+     defined(SPS_PLAT_arm_android))
 # define HAVE_NATIVE_UNWIND
 #endif
 
