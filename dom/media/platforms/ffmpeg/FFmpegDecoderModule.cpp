@@ -61,17 +61,4 @@ bool FFmpegDecoderModule::SupportsMimeType(const nsACString& aMimeType,
   AVCodecID codec = audioCodec != AV_CODEC_ID_NONE ? audioCodec : videoCodec;
   return !!FFmpegDataDecoder::FindAVCodec(codec);
 }
-
-PlatformDecoderModule::ConversionRequired
-FFmpegDecoderModule::DecoderNeedsConversion(const TrackInfo& aConfig) const
-{
-  if (aConfig.IsVideo()
-      && (aConfig.mMimeType.EqualsLiteral("video/avc")
-          || aConfig.mMimeType.EqualsLiteral("video/mp4"))) {
-    return ConversionRequired::kNeedAVCC;
-  } else {
-    return ConversionRequired::kNeedNone;
-  }
-}
-
 } // namespace mozilla
