@@ -1004,15 +1004,9 @@ nsViewSourceChannel::SetIsMainDocumentChannel(bool aValue)
         mHttpChannel->SetIsMainDocumentChannel(aValue);
 }
 
-// Have to manually forward since these are [notxpcom]
+// Have to manually forward SetCorsPreflightParameters since it's [notxpcom]
 void
 nsViewSourceChannel::SetCorsPreflightParameters(const nsTArray<nsCString>& aUnsafeHeaders)
 {
   mHttpChannelInternal->SetCorsPreflightParameters(aUnsafeHeaders);
-}
-
-mozilla::net::nsHttpChannel *
-nsViewSourceChannel::QueryHttpChannelImpl()
-{
-  return mHttpChannelInternal->QueryHttpChannelImpl();
 }
