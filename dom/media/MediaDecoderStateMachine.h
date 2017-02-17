@@ -308,6 +308,9 @@ private:
   // be held.
   bool IsPlaying() const;
 
+  // Sets mMediaSeekable to false.
+  void SetMediaNotSeekable();
+
   // Resets all states related to decoding and aborts all pending requests
   // to the decoders.
   void ResetDecode(TrackSet aTracks = TrackSet(TrackInfo::kAudioTrack,
