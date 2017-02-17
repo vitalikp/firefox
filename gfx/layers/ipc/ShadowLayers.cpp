@@ -719,8 +719,6 @@ ShadowLayerForwarder::EndTransaction(const nsIntRegion& aRegionToClear,
     PlatformSyncBeforeUpdate();
   }
 
-  profiler_tracing("Paint", "Rasterize", TRACING_INTERVAL_END);
-
   AutoTArray<EditReply, 10> replies;
   if (mTxn->mSwapRequired) {
     MOZ_LAYERS_LOG(("[LayersForwarder] sending transaction..."));
