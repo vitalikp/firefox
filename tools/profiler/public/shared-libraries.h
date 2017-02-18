@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <nsID.h>
+#include "nsString.h"
+#include "nsNativeCharsetUtils.h"
 
 class SharedLibrary {
 public:
@@ -24,11 +26,15 @@ public:
   SharedLibrary(uintptr_t aStart,
                 uintptr_t aEnd,
                 uintptr_t aOffset,
-                const std::string& aName)
+                const nsString& aName,
+                const nsString& aDebugName,
+                const std::string& aVersion)
     : mStart(aStart)
     , mEnd(aEnd)
     , mOffset(aOffset)
     , mName(aName)
+    , mDebugName(aDebugName)
+    , mVersion(aVersion)
   {}
 
   SharedLibrary(const SharedLibrary& aEntry)
@@ -36,6 +42,8 @@ public:
     , mEnd(aEntry.mEnd)
     , mOffset(aEntry.mOffset)
     , mName(aEntry.mName)
+    , mDebugName(aEntry.mDebugName)
+    , mVersion(aEntry.mVersion)
   {}
 
   SharedLibrary& operator=(const SharedLibrary& aEntry)
@@ -47,6 +55,8 @@ public:
     mEnd = aEntry.mEnd;
     mOffset = aEntry.mOffset;
     mName = aEntry.mName;
+    mDebugName = aEntry.mDebugName;
+    mVersion = aEntry.mVersion;
     return *this;
   }
 
@@ -55,13 +65,24 @@ public:
     return (mStart == other.mStart) &&
            (mEnd == other.mEnd) &&
            (mOffset == other.mOffset) &&
-           (mName == other.mName);
+           (mName == other.mName) &&
+           (mDebugName == other.mDebugName) &&
+           (mVersion == other.mVersion);
   }
 
   uintptr_t GetStart() const { return mStart; }
   uintptr_t GetEnd() const { return mEnd; }
   uintptr_t GetOffset() const { return mOffset; }
-  const std::string &GetName() const { return mName; }
+  const nsString &GetName() const { return mName; }
+  const std::string GetNativeDebugName() const {
+    nsAutoCString debugNameStr;
+
+    NS_CopyUnicodeToNative(mDebugName, debugNameStr);
+
+    return debugNameStr.get();
+  }
+  const nsString &GetDebugName() const { return mDebugName; }
+  const std::string &GetVersion() const { return mVersion; }
 
 private:
   SharedLibrary() {}
@@ -69,7 +90,9 @@ private:
   uintptr_t mStart;
   uintptr_t mEnd;
   uintptr_t mOffset;
-  std::string mName;
+  nsString mName;
+  nsString mDebugName;
+  std::string mVersion;
 };
 
 static bool

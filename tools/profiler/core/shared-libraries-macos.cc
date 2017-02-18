@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <vector>
 #include <sstream>
+#include "mozilla/Unused.h"
+#include "nsNativeCharsetUtils.h"
 
 #include "shared-libraries.h"
 
@@ -70,7 +72,11 @@ void addSharedLibrary(const platform_mach_header* header, char *name, SharedLibr
     uuid << '0';
   }
 
-  info.AddSharedLibrary(SharedLibrary(start, start + size, 0, name));
+  nsAutoString nameStr;
+  mozilla::Unused << NS_WARN_IF(NS_FAILED(NS_CopyNativeToUnicode(nsDependentCString(name), nameStr)));
+
+  info.AddSharedLibrary(SharedLibrary(start, start + size, 0,
+                                      nameStr, nameStr, ""));
 }
 
 // Use dyld to inspect the macho image information. We can build the SharedLibraryEntry structure

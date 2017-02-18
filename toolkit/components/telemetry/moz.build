@@ -57,6 +57,7 @@ EXTRA_JS_MODULES += [
     'TelemetryController.jsm',
     'TelemetryEnvironment.jsm',
     'TelemetryLog.jsm',
+    'TelemetryModules.jsm',
     'TelemetryReportingPolicy.jsm',
     'TelemetrySend.jsm',
     'TelemetrySession.jsm',
