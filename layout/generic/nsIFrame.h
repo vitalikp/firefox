@@ -289,6 +289,9 @@ public:
   bool NextInFlowNeedsReflow() const { return mNextInFlowNeedsReflow; }
   void SetNextInFlowNeedsReflow() { mNextInFlowNeedsReflow = true; }
 
+  void UpdateTruncated(const mozilla::ReflowInput& aReflowInput,
+                       const mozilla::ReflowOutput& aMetrics);
+
 private:
   uint32_t mStatus;
 
@@ -360,8 +363,8 @@ private:
 #define NS_FRAME_TRUNCATED  0x0010
 #define NS_FRAME_IS_TRUNCATED(status) \
   (0 != ((status) & NS_FRAME_TRUNCATED))
-#define NS_FRAME_SET_TRUNCATION(status, aReflowInput, aMetrics) \
-  aReflowInput.SetTruncated(aMetrics, &status);
+#define NS_FRAME_SET_TRUNCATION(aStatus, aReflowInput, aMetrics) \
+  aStatus.UpdateTruncated(aReflowInput, aMetrics);
 
 // Merge the incompleteness, truncation and NS_FRAME_REFLOW_NEXTINFLOW
 // status from aSecondary into aPrimary.
