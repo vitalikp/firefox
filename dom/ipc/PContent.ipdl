@@ -544,6 +544,12 @@ child:
 
     async BlobURLUnregistration(nsCString aURI);
 
+    async DispatchLocalStorageChange(nsString documentURI,
+                                     nsString key,
+                                     nsString oldValue,
+                                     nsString newValue,
+                                     Principal principal,
+                                     bool isPrivate);
 
     async FileCreationResponse(nsID aID, FileCreationResult aResult);
 
@@ -1012,6 +1018,13 @@ parent:
                                                 Principal principal);
 
      async UnstoreAndBroadcastBlobURLUnregistration(nsCString url);
+
+     async BroadcastLocalStorageChange(nsString documentURI,
+                                       nsString key,
+                                       nsString oldValue,
+                                       nsString newValue,
+                                       Principal principal,
+                                       bool isPrivate);
 
     /**
      * Messages for communicating child Telemetry to the parent process
