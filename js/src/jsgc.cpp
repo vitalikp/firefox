@@ -6293,7 +6293,7 @@ GCRuntime::gcCycle(bool nonincrementalByAPI, SliceBudget& budget, JS::gcreason::
 
     /* Clear gcMallocBytes for all zones. */
     for (ZonesIter zone(rt, WithAtoms); !zone.done(); zone.next())
-        zone->resetGCMallocBytes();
+        zone->resetAllMallocBytes();
 
     resetMallocBytes();
 
