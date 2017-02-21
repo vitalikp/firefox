@@ -3702,6 +3702,7 @@ reflect_parse(JSContext* cx, uint32_t argc, Value* vp)
     CompileOptions options(cx);
     options.setFileAndLine(filename, lineno);
     options.setCanLazilyParse(false);
+    options.allowHTMLComments = target == ParseTarget::Script;
     mozilla::Range<const char16_t> chars = linearChars.twoByteRange();
     UsedNameTracker usedNames(cx);
     if (!usedNames.init())
