@@ -13,10 +13,13 @@ const { InplaceEditor } = require("devtools/client/shared/inplace-editor");
 const { createFactory, createElement } = require("devtools/client/shared/vendor/react");
 const { Provider } = require("devtools/client/shared/vendor/react-redux");
 
+const SwatchColorPickerTooltip = require("devtools/client/shared/widgets/tooltip/SwatchColorPickerTooltip");
+
 const {
   updateLayout,
 } = require("./actions/box-model");
 const {
+  updateGridColor,
   updateGridHighlighted,
   updateGrids,
 } = require("./actions/grids");
@@ -37,6 +40,18 @@ const INSPECTOR_L10N =
 const NUMERIC = /^-?[\d\.]+$/;
 const SHOW_GRID_LINE_NUMBERS = "devtools.gridinspector.showGridLineNumbers";
 const SHOW_INFINITE_LINES_PREF = "devtools.gridinspector.showInfiniteLines";
+
+// Default grid colors.
+const GRID_COLORS = [
+  "#05E4EE",
+  "#BB9DFF",
+  "#FFB53B",
+  "#71F362",
+  "#FF90FF",
+  "#FF90FF",
+  "#1B80FF",
+  "#FF2647"
+];
 
 function LayoutView(inspector, window) {
   this.document = window.document;
@@ -76,7 +91,23 @@ LayoutView.prototype = {
 
     this.loadHighlighterSettings();
 
+    // Create a shared SwatchColorPicker instance to be reused by all GridItem components.
+    this.swatchColorPickerTooltip = new SwatchColorPickerTooltip(
+      this.inspector.toolbox.doc,
+      this.inspector,
+      {
+        supportsCssColor4ColorFunction: () => false
+      }
+    );
+
     let app = App({
+      /**
+       * Retrieve the shared SwatchColorPicker instance.
+       */
+      getSwatchColorPickerTooltip: () => {
+        return this.swatchColorPickerTooltip;
+      },
+
       /**
        * Shows the box model properties under the box model if true, otherwise, hidden by
        * default.
@@ -89,6 +120,29 @@ LayoutView.prototype = {
       onHideBoxModelHighlighter: () => {
         let toolbox = this.inspector.toolbox;
         toolbox.highlighterUtils.unhighlight();
+      },
+
+      /**
+       * Handler for a change in the grid overlay color picker for a grid container.
+       *
+       * @param  {NodeFront} node
+       *         The NodeFront of the grid container element for which the grid color is
+       *         being updated.
+       * @param  {String} color
+       *         A hex string representing the color to use.
+       */
+      onSetGridOverlayColor: (node, color) => {
+        this.store.dispatch(updateGridColor(node, color));
+        let { grids } = this.store.getState();
+
+        // If the grid for which the color was updated currently has a highlighter, update
+        // the color.
+        for (let grid of grids) {
+          if (grid.nodeFront === node && grid.highlighted) {
+            let highlighterSettings = this.getGridHighlighterSettings(node);
+            this.highlighters.showGridHighlighter(node, highlighterSettings);
+          }
+        }
       },
 
       /**
@@ -182,13 +236,13 @@ LayoutView.prototype = {
        *         highlighter is toggled on/off for.
        */
       onToggleGridHighlighter: node => {
-        let { highlighterSettings } = this.store.getState();
+        let highlighterSettings = this.getGridHighlighterSettings(node);
         this.highlighters.toggleGridHighlighter(node, highlighterSettings);
       },
 
       /**
        * Handler for a change in the show grid line numbers checkbox in the
-       * GridDisplaySettings component. TOggles on/off the option to show the grid line
+       * GridDisplaySettings component. Toggles on/off the option to show the grid line
        * numbers in the grid highlighter. Refreshes the shown grid highlighter for the
        * grids currently highlighted.
        *
@@ -199,10 +253,11 @@ LayoutView.prototype = {
         this.store.dispatch(updateShowGridLineNumbers(enabled));
         Services.prefs.setBoolPref(SHOW_GRID_LINE_NUMBERS, enabled);
 
-        let { grids, highlighterSettings } = this.store.getState();
+        let { grids } = this.store.getState();
 
         for (let grid of grids) {
           if (grid.highlighted) {
+            let highlighterSettings = this.getGridHighlighterSettings(grid.nodeFront);
             this.highlighters.showGridHighlighter(grid.nodeFront, highlighterSettings);
           }
         }
@@ -221,14 +276,15 @@ LayoutView.prototype = {
         this.store.dispatch(updateShowInfiniteLines(enabled));
         Services.prefs.setBoolPref(SHOW_INFINITE_LINES_PREF, enabled);
 
-        let { grids, highlighterSettings } = this.store.getState();
+        let { grids } = this.store.getState();
 
         for (let grid of grids) {
           if (grid.highlighted) {
+            let highlighterSettings = this.getGridHighlighterSettings(grid.nodeFront);
             this.highlighters.showGridHighlighter(grid.nodeFront, highlighterSettings);
           }
         }
-      },
+      }
     });
 
     let provider = createElement(Provider, {
@@ -270,6 +326,43 @@ LayoutView.prototype = {
     this.layoutInspector = null;
     this.store = null;
     this.walker = null;
+  },
+
+  /**
+   * Returns the color set for the grid highlighter associated with the provided
+   * nodeFront.
+   *
+   * @param  {NodeFront} nodeFront
+   *         The NodeFront for which we need the color.
+   */
+  getGridColorForNodeFront(nodeFront) {
+    let { grids } = this.store.getState();
+
+    for (let grid of grids) {
+      if (grid.nodeFront === nodeFront) {
+        return grid.color;
+      }
+    }
+
+    return null;
+  },
+
+  /**
+   * Create a highlighter settings object for the provided nodeFront.
+   *
+   * @param  {NodeFront} nodeFront
+   *         The NodeFront for which we need highlighter settings.
+   */
+  getGridHighlighterSettings(nodeFront) {
+    let { highlighterSettings } = this.store.getState();
+
+    // Get the grid color for the provided nodeFront.
+    let color = this.getGridColorForNodeFront(nodeFront);
+
+    // Merge the grid color to the generic highlighter settings.
+    return Object.assign({}, highlighterSettings, {
+      color
+    });
   },
 
   /**
@@ -393,8 +486,12 @@ LayoutView.prototype = {
       let grid = gridFronts[i];
       let nodeFront = yield this.walker.getNodeFromActor(grid.actorID, ["containerEl"]);
 
+      let fallbackColor = GRID_COLORS[i % GRID_COLORS.length];
+      let color = this.getGridColorForNodeFront(nodeFront) || fallbackColor;
+
       grids.push({
         id: i,
+        color,
         gridFragments: grid.gridFragments,
         highlighted: nodeFront == this.highlighters.gridHighlighterShown,
         nodeFront,
