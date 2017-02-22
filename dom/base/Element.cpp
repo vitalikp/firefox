@@ -3892,7 +3892,7 @@ Element::ClearDataset()
   slots->mDataset = nullptr;
 }
 
-nsDataHashtable<nsPtrHashKey<DOMIntersectionObserver>, int32_t>*
+nsDataHashtable<nsRefPtrHashKey<DOMIntersectionObserver>, int32_t>*
 Element::RegisteredIntersectionObservers()
 {
   nsDOMSlots* slots = DOMSlots();
@@ -3902,7 +3902,7 @@ Element::RegisteredIntersectionObservers()
 void
 Element::RegisterIntersectionObserver(DOMIntersectionObserver* aObserver)
 {
-  nsDataHashtable<nsPtrHashKey<DOMIntersectionObserver>, int32_t>* observers =
+  nsDataHashtable<nsRefPtrHashKey<DOMIntersectionObserver>, int32_t>* observers =
     RegisteredIntersectionObservers();
   if (observers->Contains(aObserver)) {
     return;
@@ -3913,7 +3913,7 @@ Element::RegisterIntersectionObserver(DOMIntersectionObserver* aObserver)
 void
 Element::UnregisterIntersectionObserver(DOMIntersectionObserver* aObserver)
 {
-  nsDataHashtable<nsPtrHashKey<DOMIntersectionObserver>, int32_t>* observers =
+  nsDataHashtable<nsRefPtrHashKey<DOMIntersectionObserver>, int32_t>* observers =
     RegisteredIntersectionObservers();
   observers->Remove(aObserver);
 }
@@ -3921,7 +3921,7 @@ Element::UnregisterIntersectionObserver(DOMIntersectionObserver* aObserver)
 bool
 Element::UpdateIntersectionObservation(DOMIntersectionObserver* aObserver, int32_t aThreshold)
 {
-  nsDataHashtable<nsPtrHashKey<DOMIntersectionObserver>, int32_t>* observers =
+  nsDataHashtable<nsRefPtrHashKey<DOMIntersectionObserver>, int32_t>* observers =
     RegisteredIntersectionObservers();
   if (!observers->Contains(aObserver)) {
     return false;
