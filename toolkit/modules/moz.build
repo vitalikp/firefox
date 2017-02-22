@@ -79,7 +79,6 @@ EXTRA_JS_MODULES += [
     'sessionstore/XPathGenerator.jsm',
     'ShortcutUtils.jsm',
     'Sntp.jsm',
-    'SpatialNavigation.jsm',
     'Sqlite.jsm',
     'Task.jsm',
     'Timer.jsm',
