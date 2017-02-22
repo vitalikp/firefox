@@ -2819,8 +2819,7 @@ XMLHttpRequestMainThread::UnsuppressEventHandlingAndResume()
   MOZ_ASSERT(mFlagSynchronous);
 
   if (mSuspendedDoc) {
-    mSuspendedDoc->UnsuppressEventHandlingAndFireEvents(nsIDocument::eEvents,
-                                                         true);
+    mSuspendedDoc->UnsuppressEventHandlingAndFireEvents(true);
     mSuspendedDoc = nullptr;
   }
 
@@ -2954,7 +2953,7 @@ XMLHttpRequestMainThread::SendInternal(const BodyExtractorBase* aBody)
         if (nsCOMPtr<nsPIDOMWindowInner> topInner = topWindow->GetCurrentInnerWindow()) {
           mSuspendedDoc = topWindow->GetExtantDoc();
           if (mSuspendedDoc) {
-            mSuspendedDoc->SuppressEventHandling(nsIDocument::eEvents);
+            mSuspendedDoc->SuppressEventHandling();
           }
           topInner->Suspend();
           mResumeTimeoutRunnable = new nsResumeTimeoutsEvent(topInner);
