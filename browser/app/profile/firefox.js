@@ -1158,20 +1158,8 @@ pref("browser.newtabpage.rows", 5);
 // number of columns of newtab grid
 pref("browser.newtabpage.columns", 5);
 
-// activates the remote-hosted newtab page
-pref("browser.newtabpage.remote", false);
-
-// remote newtab version targeted
-pref("browser.newtabpage.remote.version", "1");
-
-// Toggles endpoints allowed for remote newtab communications
-pref("browser.newtabpage.remote.mode", "production");
-
-// content-signature tests for remote newtab
-pref("browser.newtabpage.remote.content-signing-test", false);
-
-// verification keys for remote-hosted newtab page
-pref("browser.newtabpage.remote.keys", "");
+// activates Activity Stream
+pref("browser.newtabpage.activity-stream.enabled", false);
 
 // Enable the DOM fullscreen API.
 pref("full-screen-api.enabled", true);
