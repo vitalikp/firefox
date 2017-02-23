@@ -11,7 +11,6 @@
 #include "mozilla/Unused.h"
 
 #include "jsnativestack.h"
-#include "jsnum.h" // For FIX_FPU()
 
 #include "builtin/Promise.h"
 #include "frontend/BytecodeCompiler.h"
@@ -1715,12 +1714,6 @@ void
 HelperThread::ThreadMain(void* arg)
 {
     ThisThread::SetName("JS Helper");
-
-    //See bug 1104658.
-    //Set the FPU control word to be the same as the active thread's, or math
-    //computations on this thread may use incorrect precision rules during
-    //Ion compilation.
-    FIX_FPU();
 
     static_cast<HelperThread*>(arg)->threadLoop();
     Mutex::ShutDown();

@@ -331,8 +331,6 @@ SafeMul(int32_t one, int32_t two, int32_t* res)
 #endif
 }
 
-void FIX_FPU();
-
 } /* namespace js */
 
 #endif /* jsnum_h */
