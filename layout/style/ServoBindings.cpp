@@ -334,8 +334,7 @@ Gecko_GetStyleAttrDeclarationBlock(RawGeckoElementBorrowed aElement)
     NS_WARNING("stylo: requesting a Gecko declaration block?");
     return nullptr;
   }
-  return reinterpret_cast<const RawServoDeclarationBlockStrong*>
-    (decl->AsServo()->RefRaw());
+  return decl->AsServo()->RefRawStrong();
 }
 
 RawServoDeclarationBlockStrongBorrowedOrNull
@@ -346,6 +345,12 @@ Gecko_GetHTMLPresentationAttrDeclarationBlock(RawGeckoElementBorrowed aElement)
                 "RefPtr should just be a pointer");
   const nsMappedAttributes* attrs = aElement->GetMappedAttributes();
   if (!attrs) {
+    auto* svg = nsSVGElement::FromContentOrNull(const_cast<dom::Element*>(aElement));
+    if (svg) {
+      if (auto decl = svg->GetContentDeclarationBlock()) {
+        return decl->AsServo()->RefRawStrong();
+      }
+    }
     return nullptr;
   }
 
@@ -754,6 +759,15 @@ ServoBundledURI::IntoCssUrl()
                                                      do_AddRef(mReferrer),
                                                      do_AddRef(mPrincipal));
   return urlValue.forget();
+}
+
+GeckoParserExtraData::GeckoParserExtraData(nsIURI* aBaseURI,
+                                           nsIURI* aReferrer,
+                                           nsIPrincipal* aPrincipal)
+    : mBaseURI(new ThreadSafeURIHolder(aBaseURI)),
+      mReferrer(new ThreadSafeURIHolder(aReferrer)),
+      mPrincipal(new ThreadSafePrincipalHolder(aPrincipal))
+{
 }
 
 void
