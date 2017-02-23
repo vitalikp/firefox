@@ -2151,13 +2151,9 @@ MediaFormatReader::Update(TrackType aTrack)
     return;
   }
 
-  if (decoder.mWaitingForKey) {
-    decoder.mWaitingForKey = false;
-    if (decoder.HasWaitingPromise() && !decoder.IsWaiting()) {
-      LOGV("No longer waiting for key. Resolving waiting promise");
-      decoder.mWaitingPromise.Resolve(decoder.mType, __func__);
-      return;
-    }
+  if (decoder.CancelWaitingForKey()) {
+    LOGV("No longer waiting for key. Resolving waiting promise");
+    return;
   }
 
   if (!needInput) {
