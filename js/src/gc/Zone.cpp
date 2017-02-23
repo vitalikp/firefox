@@ -93,7 +93,8 @@ bool Zone::init(bool isSystemArg)
     return uniqueIds().init() &&
            gcZoneGroupEdges().init() &&
            gcWeakKeys().init() &&
-           typeDescrObjects().init();
+           typeDescrObjects().init() &&
+           markedAtoms().init();
 }
 
 void
