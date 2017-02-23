@@ -115,6 +115,12 @@ SERVO_BINDING_FUNC(Servo_ParseProperty,
                    const nsACString* base_url, ThreadSafeURIHolder* base,
                    ThreadSafeURIHolder* referrer,
                    ThreadSafePrincipalHolder* principal)
+SERVO_BINDING_FUNC(Servo_GetComputedKeyframeValues, void,
+                   RawGeckoKeyframeListBorrowed keyframes,
+                   ServoComputedValuesBorrowed style,
+                   ServoComputedValuesBorrowedOrNull parent_style,
+                   RawGeckoPresContextBorrowed pres_context,
+                   RawGeckoComputedKeyframeValuesListBorrowedMut result)
 
 // AnimationValues handling
 SERVO_BINDING_FUNC(Servo_AnimationValues_Populate, void,
