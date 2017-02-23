@@ -2248,7 +2248,6 @@ PMCGetOpenFileNameW(LPOPENFILENAMEW aLpofn)
 
 PPluginInstanceChild*
 PluginModuleChild::AllocPPluginInstanceChild(const nsCString& aMimeType,
-                                             const uint16_t& aMode,
                                              const InfallibleTArray<nsCString>& aNames,
                                              const InfallibleTArray<nsCString>& aValues)
 {
@@ -2289,7 +2288,7 @@ PluginModuleChild::AllocPPluginInstanceChild(const nsCString& aMimeType,
     }
 #endif
 
-    return new PluginInstanceChild(&mFunctions, aMimeType, aMode, aNames,
+    return new PluginInstanceChild(&mFunctions, aMimeType, aNames,
                                    aValues);
 }
 
@@ -2318,7 +2317,6 @@ PluginModuleChild::AnswerModuleSupportsAsyncRender(bool* aResult)
 mozilla::ipc::IPCResult
 PluginModuleChild::RecvPPluginInstanceConstructor(PPluginInstanceChild* aActor,
                                                   const nsCString& aMimeType,
-                                                  const uint16_t& aMode,
                                                   InfallibleTArray<nsCString>&& aNames,
                                                   InfallibleTArray<nsCString>&& aValues)
 {

@@ -65,7 +65,6 @@ child:
   async AsyncNP_Initialize(PluginSettings settings);
 
   async PPluginInstance(nsCString aMimeType,
-                        uint16_t aMode,
                         nsCString[] aNames,
                         nsCString[] aValues);
 
