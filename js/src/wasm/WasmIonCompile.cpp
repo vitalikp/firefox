@@ -178,7 +178,7 @@ class FunctionCompiler
                      const ValTypeVector& locals,
                      MIRGenerator& mirGen)
       : env_(env),
-        iter_(env, decoder, func.lineOrBytecode()),
+        iter_(env, decoder),
         func_(func),
         locals_(locals),
         lastReadCallSite_(0),
@@ -1550,7 +1550,7 @@ class FunctionCompiler
     uint32_t readCallSiteLineOrBytecode() {
         if (!func_.callSiteLineNums().empty())
             return func_.callSiteLineNums()[lastReadCallSite_++];
-        return iter_.trapOffset().bytecodeOffset;
+        return iter_.errorOffset();
     }
 
     bool done() const { return iter_.done(); }
@@ -3667,7 +3667,7 @@ wasm::IonCompileFunction(CompileTask* task, FuncCompileUnit* unit, UniqueChars* 
     const ModuleEnvironment& env = task->env();
     uint32_t bodySize = func.bytes().length();
 
-    Decoder d(func.bytes(), error);
+    Decoder d(func.bytes().begin(), func.bytes().end(), func.lineOrBytecode(), error);
 
     if (!env.isAsmJS()) {
         if (!ValidateFunctionBody(task->env(), func.index(), bodySize, d))
@@ -3694,17 +3694,11 @@ wasm::IonCompileFunction(CompileTask* task, FuncCompileUnit* unit, UniqueChars* 
                      IonOptimizations.get(OptimizationLevel::Wasm));
     mir.initMinWasmHeapLength(env.minMemoryLength);
 
-    // Capture the prologue's trap site before decoding the function.
-
-    TrapOffset prologueTrapOffset;
-
     // Build MIR graph
     {
         FunctionCompiler f(env, d, func, locals, mir);
         if (!f.init())
             return false;
-
-        prologueTrapOffset = f.iter().trapOffset();
 
         if (!f.startBlock())
             return false;
@@ -3744,6 +3738,7 @@ wasm::IonCompileFunction(CompileTask* task, FuncCompileUnit* unit, UniqueChars* 
 
         CodeGenerator codegen(&mir, lir, &task->masm());
 
+        TrapOffset prologueTrapOffset(func.lineOrBytecode());
         FuncOffsets offsets;
         if (!codegen.generateWasm(sigId, prologueTrapOffset, &offsets))
             return false;
