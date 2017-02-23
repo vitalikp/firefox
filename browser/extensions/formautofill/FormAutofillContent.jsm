@@ -257,7 +257,7 @@ var FormAutofillContent = {
     return info;
   },
 
-  _identifyAutofillFields(doc) {
+  identifyAutofillFields(doc) {
     let forms = [];
 
     // Collects root forms from inputs.
