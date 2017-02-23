@@ -709,6 +709,9 @@ public:
   SetCSPFromHeaderValues(const nsACString& aCSPHeaderValue,
                          const nsACString& aCSPReportOnlyHeaderValue);
 
+  void
+  SetReferrerPolicyFromHeaderValue(const nsACString& aReferrerPolicyHeaderValue);
+
   net::ReferrerPolicy
   GetReferrerPolicy() const
   {

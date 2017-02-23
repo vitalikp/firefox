@@ -470,6 +470,7 @@ private:
   UniquePtr<PrincipalInfo> mPrincipalInfo;
   nsCString mCSPHeaderValue;
   nsCString mCSPReportOnlyHeaderValue;
+  nsCString mReferrerPolicyHeaderValue;
 };
 
 NS_IMPL_ISUPPORTS(CacheScriptLoader, nsIStreamLoaderObserver)
@@ -1173,20 +1174,13 @@ private:
                                                     tCspROHeaderValue);
         NS_ENSURE_SUCCESS(rv, rv);
       }
+
+      mWorkerPrivate->SetReferrerPolicyFromHeaderValue(tRPHeaderCValue);
+
       WorkerPrivate* parent = mWorkerPrivate->GetParent();
       if (parent) {
         // XHR Params Allowed
         mWorkerPrivate->SetXHRParamsAllowed(parent->XHRParamsAllowed());
-      }
-    }
-
-    NS_ConvertUTF8toUTF16 tRPHeaderValue(tRPHeaderCValue);
-    // If there's a Referrer-Policy header, apply it.
-    if (!tRPHeaderValue.IsEmpty()) {
-      net::ReferrerPolicy policy =
-        nsContentUtils::GetReferrerPolicyFromHeader(tRPHeaderValue);
-      if (policy != net::RP_Unset) {
-        mWorkerPrivate->SetReferrerPolicy(policy);
       }
     }
 
@@ -1199,7 +1193,8 @@ private:
                         const mozilla::dom::ChannelInfo& aChannelInfo,
                         UniquePtr<PrincipalInfo> aPrincipalInfo,
                         const nsACString& aCSPHeaderValue,
-                        const nsACString& aCSPReportOnlyHeaderValue)
+                        const nsACString& aCSPReportOnlyHeaderValue,
+                        const nsACString& aReferrerPolicyHeaderValue)
   {
     AssertIsOnMainThread();
     MOZ_ASSERT(aIndex < mLoadInfos.Length());
@@ -1265,6 +1260,8 @@ private:
       rv = mWorkerPrivate->SetCSPFromHeaderValues(aCSPHeaderValue,
                                                   aCSPReportOnlyHeaderValue);
       MOZ_DIAGNOSTIC_ASSERT(NS_SUCCEEDED(rv));
+
+      mWorkerPrivate->SetReferrerPolicyFromHeaderValue(aReferrerPolicyHeaderValue);
     }
 
     if (NS_SUCCEEDED(rv)) {
@@ -1685,6 +1682,8 @@ CacheScriptLoader::ResolvedCallback(JSContext* aCx,
                mCSPHeaderValue, ignored);
   headers->Get(NS_LITERAL_CSTRING("content-security-policy-report-only"),
                mCSPReportOnlyHeaderValue, ignored);
+  headers->Get(NS_LITERAL_CSTRING("referrer-policy"),
+               mReferrerPolicyHeaderValue, ignored);
 
   nsCOMPtr<nsIInputStream> inputStream;
   response->GetBody(getter_AddRefs(inputStream));
@@ -1698,7 +1697,8 @@ CacheScriptLoader::ResolvedCallback(JSContext* aCx,
     mLoadInfo.mCacheStatus = ScriptLoadInfo::Cached;
     mRunnable->DataReceivedFromCache(mIndex, (uint8_t*)"", 0, mChannelInfo,
                                      Move(mPrincipalInfo), mCSPHeaderValue,
-                                     mCSPReportOnlyHeaderValue);
+                                     mCSPReportOnlyHeaderValue,
+                                     mReferrerPolicyHeaderValue);
     return;
   }
 
@@ -1759,7 +1759,8 @@ CacheScriptLoader::OnStreamComplete(nsIStreamLoader* aLoader, nsISupports* aCont
   MOZ_ASSERT(mPrincipalInfo);
   mRunnable->DataReceivedFromCache(mIndex, aString, aStringLen, mChannelInfo,
                                    Move(mPrincipalInfo), mCSPHeaderValue,
-                                   mCSPReportOnlyHeaderValue);
+                                   mCSPReportOnlyHeaderValue,
+                                   mReferrerPolicyHeaderValue);
   return NS_OK;
 }
 
