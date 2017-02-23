@@ -283,6 +283,9 @@ struct WorkerLoadInfo
 
   bool
   PrincipalIsValid() const;
+
+  bool
+  PrincipalURIMatchesScriptURL();
 #endif
 
   bool
