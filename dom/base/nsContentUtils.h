@@ -2836,6 +2836,9 @@ public:
                                     const mozilla::dom::Sequence<JSObject*>& aTransfer,
                                     JS::MutableHandle<JS::Value> aValue);
 
+  static bool
+  IsWebComponentsEnabled() { return sIsWebComponentsEnabled; }
+
 private:
   static bool InitializeEventTable();
 
@@ -2942,6 +2945,7 @@ private:
   static bool sIsUserTimingLoggingEnabled;
   static bool sIsFrameTimingPrefEnabled;
   static bool sIsExperimentalAutocompleteEnabled;
+  static bool sIsWebComponentsEnabled;
   static bool sEncodeDecodeURLHash;
   static bool sGettersDecodeURLHash;
   static bool sPrivacyResistFingerprinting;
