@@ -179,10 +179,12 @@ public:
 public:
   static bool IsCustomElementEnabled(JSContext* aCx = nullptr,
                                      JSObject* aObject = nullptr);
-  static already_AddRefed<CustomElementRegistry> Create(nsPIDOMWindowInner* aWindow);
+
   static void ProcessTopElementQueue();
 
   static void XPCOMShutdown();
+
+  explicit CustomElementRegistry(nsPIDOMWindowInner* aWindow);
 
   /**
    * Looking up a custom element definition.
@@ -228,10 +230,7 @@ public:
   void PopAndInvokeElementQueue();
 
 private:
-  explicit CustomElementRegistry(nsPIDOMWindowInner* aWindow);
   ~CustomElementRegistry();
-
-  bool Init();
 
   /**
    * Registers an unresolved custom element that is a candidate for
