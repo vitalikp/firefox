@@ -855,12 +855,12 @@ ShellFinishAsyncTaskCallback(JS::AsyncTask* task)
     return asyncTasks->finished.append(task);
 }
 
-static bool
+static void
 DrainJobQueue(JSContext* cx)
 {
     ShellContext* sc = GetShellContext(cx);
     if (sc->quitting || sc->drainingJobQueue)
-        return true;
+        return;
 
     while (true) {
         // Wait for any outstanding async tasks to finish so that the
@@ -919,8 +919,6 @@ DrainJobQueue(JSContext* cx)
                 break;
         }
     }
-
-    return true;
 }
 
 static bool
@@ -928,8 +926,8 @@ DrainJobQueue(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
 
-    if (!DrainJobQueue(cx))
-        return false;
+    DrainJobQueue(cx);
+
     args.rval().setUndefined();
     return true;
 }
@@ -7894,8 +7892,6 @@ ProcessArgs(JSContext* cx, OptionParser* op)
             return false;
     }
 
-    DrainJobQueue(cx);
-
     if (op->getBoolOption('i')) {
         if (!Process(cx, nullptr, true))
             return false;
@@ -8263,6 +8259,13 @@ Shell(JSContext* cx, OptionParser* op, char** envp)
         if (!ProcessArgs(cx, op) && !sc->quitting)
             result = EXITCODE_RUNTIME_ERROR;
     }
+
+    /*
+     * The job queue must be drained even on error to finish outstanding async
+     * tasks before the main thread JSRuntime is torn down. Drain after
+     * uncaught exceptions have been reported since draining runs callbacks.
+     */
+    DrainJobQueue(cx);
 
     if (sc->exitCode)
         result = sc->exitCode;
