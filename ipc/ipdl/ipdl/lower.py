@@ -1123,9 +1123,6 @@ class Protocol(ipdl.ast.Protocol):
         return Type(_actorName(self._ipdlmgrtype().name(), side),
                     ptr=ptr)
 
-    def stateMethod(self):
-        return ExprVar('state');
-
     def registerMethod(self):
         return ExprVar('Register')
 
@@ -2777,12 +2774,6 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
             refmeth.addstmt(StmtReturn(p.managedVar(managed, self.side)))
 
             self.cls.addstmts([ meth, refmeth, Whitespace.NL ])
-
-        statemethod = MethodDefn(MethodDecl(
-            p.stateMethod().name,
-            ret=p.fqStateType()))
-        statemethod.addstmt(StmtReturn(p.stateVar()))
-        self.cls.addstmts([ statemethod, Whitespace.NL ])
 
         ## OnMessageReceived()/OnCallReceived()
 
