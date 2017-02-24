@@ -1948,14 +1948,14 @@ nsCSSRendering::GetImageLayerClip(const nsStyleImageLayers::Layer& aLayer,
                                   bool aWillPaintBorder, nscoord aAppUnitsPerPixel,
                                   /* out */ ImageLayerClipState* aClipState)
 {
-  StyleGeometryBox layerClip = ComputeBoxValue(aForFrame, aLayer.mClip);
+  aClipState->mHasRoundedCorners = false;
+  aClipState->mHasAdditionalBGClipArea = false;
+  aClipState->mCustomClip = false;
 
+  StyleGeometryBox layerClip = ComputeBoxValue(aForFrame, aLayer.mClip);
   if (IsSVGStyleGeometryBox(layerClip)) {
     MOZ_ASSERT(aForFrame->IsFrameOfType(nsIFrame::eSVG) &&
                (aForFrame->GetType() != nsGkAtoms::svgOuterSVGFrame));
-
-    aClipState->mHasAdditionalBGClipArea = false;
-    aClipState->mCustomClip = false;
 
     // The coordinate space of clipArea is svg user space.
     nsRect clipArea =
@@ -1985,8 +1985,6 @@ nsCSSRendering::GetImageLayerClip(const nsStyleImageLayers::Layer& aLayer,
 
   if (layerClip == StyleGeometryBox::NoClip) {
     aClipState->mBGClipArea = aCallerDirtyRect;
-    aClipState->mHasAdditionalBGClipArea = false;
-    aClipState->mCustomClip = false;
 
     SetupDirtyRects(aClipState->mBGClipArea, aCallerDirtyRect,
                     aAppUnitsPerPixel, &aClipState->mDirtyRect,
@@ -2018,8 +2016,6 @@ nsCSSRendering::GetImageLayerClip(const nsStyleImageLayers::Layer& aLayer,
   }
 
   aClipState->mBGClipArea = clipBorderArea;
-  aClipState->mHasAdditionalBGClipArea = false;
-  aClipState->mCustomClip = false;
 
   if (aForFrame->GetType() == nsGkAtoms::scrollFrame &&
       NS_STYLE_IMAGELAYER_ATTACHMENT_LOCAL == aLayer.mAttachment) {
@@ -2089,8 +2085,6 @@ nsCSSRendering::GetImageLayerClip(const nsStyleImageLayers::Layer& aLayer,
     auto d2a = aForFrame->PresContext()->AppUnitsPerDevPixel();
     nsCSSRendering::ComputePixelRadii(aClipState->mRadii, d2a, &aClipState->mClippedRadii);
     aClipState->mHasRoundedCorners = true;
-  } else {
-    aClipState->mHasRoundedCorners = false;
   }
 
 
