@@ -425,7 +425,7 @@ TraceLoggerThreadState::getOrCreateEventPayload(TraceLoggerTextId type, const ch
                                                 size_t lineno, size_t colno, const void* ptr)
 {
     MOZ_ASSERT(type == TraceLogger_Scripts || type == TraceLogger_AnnotateScripts ||
-               type == TraceLogger_InlinedScripts);
+               type == TraceLogger_InlinedScripts || type == TraceLogger_Frontend);
 
     if (!filename)
         filename = "<unknown>";
@@ -494,13 +494,6 @@ TraceLoggerThreadState::getOrCreateEventPayload(TraceLoggerTextId type, JSScript
 {
     return getOrCreateEventPayload(type, script->filename(), script->lineno(), script->column(),
                                    nullptr);
-}
-
-TraceLoggerEventPayload*
-TraceLoggerThreadState::getOrCreateEventPayload(TraceLoggerTextId type,
-                                                const JS::ReadOnlyCompileOptions& script)
-{
-    return getOrCreateEventPayload(type, script.filename(), script.lineno, script.column, nullptr);
 }
 
 void
@@ -735,9 +728,9 @@ TraceLoggerThreadState::init()
             "  Default        Output all default. It includes:\n"
             "                 AnnotateScripts, Bailout, Baseline, BaselineCompilation, GC,\n"
             "                 GCAllocation, GCSweeping, Interpreter, IonAnalysis, IonCompilation,\n"
-            "                 IonLinking, IonMonkey, MinorGC, ParserCompileFunction,\n"
-            "                 ParserCompileScript, ParserCompileLazy, ParserCompileModule,\n"
-            "                 IrregexpCompile, IrregexpExecute, Scripts, Engine, WasmCompilation\n"
+            "                 IonLinking, IonMonkey, MinorGC, Frontend, ParsingFull,\n"
+            "                 ParsingSyntax, BytecodeEmission, IrregexpCompile, IrregexpExecute,\n"
+            "                 Scripts, Engine, WasmCompilation\n"
             "\n"
             "  IonCompiler    Output all information about compilation. It includes:\n"
             "                 IonCompilation, IonLinking, PruneUnusedBranches, FoldTests,\n"
@@ -750,8 +743,11 @@ TraceLoggerThreadState::init()
             "                 AddKeepAliveInstructions, GenerateLIR, RegisterAllocation, \n"
             "                 GenerateCode, Scripts, IonBuilderRestartLoop\n"
             "\n"
-            "  VMSpecific     Output the specific name of the VM call"
+            "  VMSpecific     Output the specific name of the VM call\n"
             "\n"
+            "  Frontend       Output all information about frontend compilation. It includes:\n"
+            "                 Frontend, ParsingFull, ParsingSyntax, Tokenizing,\n"
+            "                 BytecodeEmission, BytecodeFoldConstants, BytecodeNameFunctions\n"
             "Specific log items:\n"
         );
         for (uint32_t i = 1; i < TraceLogger_Last; i++) {
@@ -787,10 +783,10 @@ TraceLoggerThreadState::init()
         enabledTextIds[TraceLogger_IonLinking] = true;
         enabledTextIds[TraceLogger_IonMonkey] = true;
         enabledTextIds[TraceLogger_MinorGC] = true;
-        enabledTextIds[TraceLogger_ParserCompileFunction] = true;
-        enabledTextIds[TraceLogger_ParserCompileLazy] = true;
-        enabledTextIds[TraceLogger_ParserCompileScript] = true;
-        enabledTextIds[TraceLogger_ParserCompileModule] = true;
+        enabledTextIds[TraceLogger_Frontend] = true;
+        enabledTextIds[TraceLogger_ParsingFull] = true;
+        enabledTextIds[TraceLogger_ParsingSyntax] = true;
+        enabledTextIds[TraceLogger_BytecodeEmission] = true;
         enabledTextIds[TraceLogger_IrregexpCompile] = true;
         enabledTextIds[TraceLogger_IrregexpExecute] = true;
         enabledTextIds[TraceLogger_Scripts] = true;
@@ -830,6 +826,18 @@ TraceLoggerThreadState::init()
         enabledTextIds[TraceLogger_GenerateCode] = true;
         enabledTextIds[TraceLogger_Scripts] = true;
         enabledTextIds[TraceLogger_IonBuilderRestartLoop] = true;
+    }
+
+    if (ContainsFlag(env, "Frontend")) {
+        enabledTextIds[TraceLogger_Frontend] = true;
+        enabledTextIds[TraceLogger_FrontendNameAnalysis] = true;
+        enabledTextIds[TraceLogger_FrontendTDZAnalysis] = true;
+        enabledTextIds[TraceLogger_ParsingFull] = true;
+        enabledTextIds[TraceLogger_ParsingSyntax] = true;
+        enabledTextIds[TraceLogger_Tokenizing] = true;
+        enabledTextIds[TraceLogger_BytecodeEmission] = true;
+        enabledTextIds[TraceLogger_BytecodeFoldConstants] = true;
+        enabledTextIds[TraceLogger_BytecodeNameFunctions] = true;
     }
 
     enabledTextIds[TraceLogger_Interpreter] = enabledTextIds[TraceLogger_Engine];
@@ -1013,10 +1021,13 @@ TraceLoggerEvent::TraceLoggerEvent(TraceLoggerTextId type, JSScript* script)
     payload_ = traceLoggerState ? traceLoggerState->getOrCreateEventPayload(type, script) : nullptr;
 }
 
-TraceLoggerEvent::TraceLoggerEvent(TraceLoggerTextId type,
-                                   const JS::ReadOnlyCompileOptions& compileOptions)
+TraceLoggerEvent::TraceLoggerEvent(TraceLoggerTextId type, const char* filename, size_t line,
+                                   size_t column)
+
 {
-    payload_ = traceLoggerState ? traceLoggerState->getOrCreateEventPayload(type, compileOptions) : nullptr;
+    payload_ = traceLoggerState
+               ? traceLoggerState->getOrCreateEventPayload(type, filename, line, column, nullptr)
+               : nullptr;
 }
 
 TraceLoggerEvent::TraceLoggerEvent(const char* text)
