@@ -38,7 +38,10 @@ public:
   NS_IMETHOD GetAddonId(nsAString& aAddonId) override;
   nsresult GetOriginInternal(nsACString& aOrigin) override;
 
-  nsSystemPrincipal() {}
+  nsSystemPrincipal()
+    : BasePrincipal(eSystemPrincipal)
+  {
+  }
 
   virtual nsresult GetScriptLocation(nsACString &aStr) override;
 
@@ -54,8 +57,6 @@ protected:
   {
     return true;
   }
-
-  PrincipalKind Kind() override { return eSystemPrincipal; }
 };
 
 #endif // nsSystemPrincipal_h__
