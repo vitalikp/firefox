@@ -1944,9 +1944,9 @@ ComputeBoxValue(nsIFrame* aForFrame, StyleGeometryBox aBox)
 bool
 nsCSSRendering::ImageLayerClipState::IsValid() const
 {
-  // mDirtyRectGfx comes from mDirtyRect. If mDirtyRectGfx is not empty,
-  // mDirtyRect can never be empty.
-  if (!mDirtyRectGfx.IsEmpty() && mDirtyRect.IsEmpty()) {
+  // mDirtyRectInDevPx comes from mDirtyRectInAppUnits. mDirtyRectInAppUnits
+  // can not be empty if mDirtyRectInDevPx is not.
+  if (!mDirtyRectInDevPx.IsEmpty() && mDirtyRectInAppUnits.IsEmpty()) {
     return false;
   }
 
@@ -1995,8 +1995,8 @@ nsCSSRendering::GetImageLayerClip(const nsStyleImageLayers::Layer& aLayer,
       clipAreaRelativeToStrokeBox + aBorderArea.TopLeft();
 
     SetupDirtyRects(aClipState->mBGClipArea, aCallerDirtyRect,
-                    aAppUnitsPerPixel, &aClipState->mDirtyRect,
-                    &aClipState->mDirtyRectGfx);
+                    aAppUnitsPerPixel, &aClipState->mDirtyRectInAppUnits,
+                    &aClipState->mDirtyRectInDevPx);
     MOZ_ASSERT(aClipState->IsValid());
     return;
   }
@@ -2005,8 +2005,8 @@ nsCSSRendering::GetImageLayerClip(const nsStyleImageLayers::Layer& aLayer,
     aClipState->mBGClipArea = aCallerDirtyRect;
 
     SetupDirtyRects(aClipState->mBGClipArea, aCallerDirtyRect,
-                    aAppUnitsPerPixel, &aClipState->mDirtyRect,
-                    &aClipState->mDirtyRectGfx);
+                    aAppUnitsPerPixel, &aClipState->mDirtyRectInAppUnits,
+                    &aClipState->mDirtyRectInDevPx);
     MOZ_ASSERT(aClipState->IsValid());
     return;
   }
@@ -2115,7 +2115,8 @@ nsCSSRendering::GetImageLayerClip(const nsStyleImageLayers::Layer& aLayer,
   }
 
   SetupDirtyRects(aClipState->mBGClipArea, aCallerDirtyRect, aAppUnitsPerPixel,
-                  &aClipState->mDirtyRect, &aClipState->mDirtyRectGfx);
+                  &aClipState->mDirtyRectInAppUnits,
+                  &aClipState->mDirtyRectInDevPx);
 
   MOZ_ASSERT(aClipState->IsValid());
 }
@@ -2125,7 +2126,7 @@ SetupImageLayerClip(nsCSSRendering::ImageLayerClipState& aClipState,
                     gfxContext *aCtx, nscoord aAppUnitsPerPixel,
                     gfxContextAutoSaveRestore* aAutoSR)
 {
-  if (aClipState.mDirtyRectGfx.IsEmpty()) {
+  if (aClipState.mDirtyRectInDevPx.IsEmpty()) {
     // Our caller won't draw anything under this condition, so no need
     // to set more up.
     return;
@@ -2136,8 +2137,6 @@ SetupImageLayerClip(nsCSSRendering::ImageLayerClipState& aClipState,
     // table painting seems to depend on it.
     return;
   }
-
-  DrawTarget* drawTarget = aCtx->GetDrawTarget();
 
   // If we have rounded corners, clip all subsequent drawing to the
   // rounded rectangle defined by bgArea and bgRadii (we don't know
@@ -2164,17 +2163,18 @@ SetupImageLayerClip(nsCSSRendering::ImageLayerClipState& aClipState,
 
     if (bgAreaGfx.IsEmpty()) {
       // I think it's become possible to hit this since
-      // http://hg.mozilla.org/mozilla-central/rev/50e934e4979b landed.
+      // https://hg.mozilla.org/mozilla-central/rev/50e934e4979b landed.
       NS_WARNING("converted background area should not be empty");
       // Make our caller not do anything.
-      aClipState.mDirtyRectGfx.SizeTo(gfxSize(0.0, 0.0));
+      aClipState.mDirtyRectInDevPx.SizeTo(gfxSize(0.0, 0.0));
       return;
     }
 
     aAutoSR->EnsureSaved(aCtx);
 
     RefPtr<Path> roundedRect =
-      MakePathForRoundedRect(*drawTarget, bgAreaGfx, aClipState.mClippedRadii);
+      MakePathForRoundedRect(*aCtx->GetDrawTarget(), bgAreaGfx,
+                             aClipState.mClippedRadii);
     aCtx->Clip(roundedRect);
   }
 }
@@ -2183,7 +2183,7 @@ static void
 DrawBackgroundColor(nsCSSRendering::ImageLayerClipState& aClipState,
                     gfxContext *aCtx, nscoord aAppUnitsPerPixel)
 {
-  if (aClipState.mDirtyRectGfx.IsEmpty()) {
+  if (aClipState.mDirtyRectInDevPx.IsEmpty()) {
     // Our caller won't draw anything under this condition, so no need
     // to set more up.
     return;
@@ -2195,7 +2195,7 @@ DrawBackgroundColor(nsCSSRendering::ImageLayerClipState& aClipState,
   // table painting seems to depend on it.
   if (!aClipState.mHasRoundedCorners || aClipState.mCustomClip) {
     aCtx->NewPath();
-    aCtx->Rectangle(aClipState.mDirtyRectGfx, true);
+    aCtx->Rectangle(aClipState.mDirtyRectInDevPx, true);
     aCtx->Fill();
     return;
   }
@@ -2205,15 +2205,15 @@ DrawBackgroundColor(nsCSSRendering::ImageLayerClipState& aClipState,
 
   if (bgAreaGfx.IsEmpty()) {
     // I think it's become possible to hit this since
-    // http://hg.mozilla.org/mozilla-central/rev/50e934e4979b landed.
+    // https://hg.mozilla.org/mozilla-central/rev/50e934e4979b landed.
     NS_WARNING("converted background area should not be empty");
     // Make our caller not do anything.
-    aClipState.mDirtyRectGfx.SizeTo(gfxSize(0.0, 0.0));
+    aClipState.mDirtyRectInDevPx.SizeTo(gfxSize(0.0, 0.0));
     return;
   }
 
   aCtx->Save();
-  gfxRect dirty = ThebesRect(bgAreaGfx).Intersect(aClipState.mDirtyRectGfx);
+  gfxRect dirty = ThebesRect(bgAreaGfx).Intersect(aClipState.mDirtyRectInDevPx);
 
   aCtx->NewPath();
   aCtx->Rectangle(dirty, true);
@@ -3356,7 +3356,8 @@ nsCSSRendering::PaintStyleImageLayerWithSC(const PaintBGParams& aParams,
     clipState.mCustomClip = true;
     clipState.mHasRoundedCorners = false;
     SetupDirtyRects(clipState.mBGClipArea, aParams.dirtyRect, appUnitsPerPixel,
-                    &clipState.mDirtyRect, &clipState.mDirtyRectGfx);
+                    &clipState.mDirtyRectInAppUnits,
+                    &clipState.mDirtyRectInDevPx);
   } else {
     GetImageLayerClip(layers.BottomLayer(),
                       aParams.frame, aBorder, aParams.borderArea,
@@ -3450,7 +3451,7 @@ nsCSSRendering::PaintStyleImageLayerWithSC(const PaintBGParams& aParams,
         }
       }
       if ((aParams.layer < 0 || i == (uint32_t)startLayer) &&
-          !clipState.mDirtyRectGfx.IsEmpty()) {
+          !clipState.mDirtyRectInDevPx.IsEmpty()) {
         CompositionOp co = DetermineCompositionOp(aParams, layers, i);
         nsBackgroundLayerState state =
           PrepareImageLayer(&aParams.presCtx, aParams.frame,
@@ -3470,7 +3471,7 @@ nsCSSRendering::PaintStyleImageLayerWithSC(const PaintBGParams& aParams,
                                            aParams.renderingCtx,
                                            state.mDestArea, state.mFillArea,
                                            state.mAnchor + paintBorderArea.TopLeft(),
-                                           clipState.mDirtyRect,
+                                           clipState.mDirtyRectInAppUnits,
                                            state.mRepeatSize, aParams.opacity);
 
           if (co != CompositionOp::OP_OVER) {
