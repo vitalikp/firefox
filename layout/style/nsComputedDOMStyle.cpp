@@ -6596,6 +6596,10 @@ nsComputedDOMStyle::AppendTimingFunction(nsDOMCSSValueList *aValueList,
                                              aTimingFunction.mStepsOrFrames,
                                              tmp);
       break;
+    case nsTimingFunction::Type::Frames:
+      nsStyleUtil::AppendFramesTimingFunction(aTimingFunction.mStepsOrFrames,
+                                              tmp);
+      break;
     default:
       nsStyleUtil::AppendCubicBezierKeywordTimingFunction(aTimingFunction.mType,
                                                           tmp);
