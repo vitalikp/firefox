@@ -2494,7 +2494,7 @@ BaselineCompiler::emit_JSOP_LENGTH()
 }
 
 bool
-BaselineCompiler::emit_JSOP_GETXPROP()
+BaselineCompiler::emit_JSOP_GETBOUNDNAME()
 {
     return emit_JSOP_GETPROP();
 }
