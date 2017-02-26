@@ -577,6 +577,7 @@ class IonBuilder
     AbortReasonOr<Ok> jsop_debugger();
     AbortReasonOr<Ok> jsop_newtarget();
     AbortReasonOr<Ok> jsop_checkisobj(uint8_t kind);
+    AbortReasonOr<Ok> jsop_checkiscallable(uint8_t kind);
     AbortReasonOr<Ok> jsop_checkobjcoercible();
     AbortReasonOr<Ok> jsop_pushcallobj();
 

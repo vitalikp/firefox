@@ -366,6 +366,12 @@ class CodeGenerator final : public CodeGeneratorSpecific
     void visitCallDOMNative(LCallDOMNative* lir);
     void visitCallGetIntrinsicValue(LCallGetIntrinsicValue* lir);
     void visitCallBindVar(LCallBindVar* lir);
+    enum CallableOrConstructor {
+        Callable,
+        Constructor
+    };
+    template <CallableOrConstructor mode>
+    void emitIsCallableOrConstructor(Register object, Register output, Label* failure);
     void visitIsCallable(LIsCallable* lir);
     void visitOutOfLineIsCallable(OutOfLineIsCallable* ool);
     void visitIsConstructor(LIsConstructor* lir);
@@ -387,6 +393,7 @@ class CodeGenerator final : public CodeGeneratorSpecific
     void visitArrowNewTarget(LArrowNewTarget* ins);
     void visitCheckReturn(LCheckReturn* ins);
     void visitCheckIsObj(LCheckIsObj* ins);
+    void visitCheckIsCallable(LCheckIsCallable* ins);
     void visitCheckObjCoercible(LCheckObjCoercible* ins);
     void visitDebugCheckSelfHosted(LDebugCheckSelfHosted* ins);
     void visitNaNToZero(LNaNToZero* ins);
