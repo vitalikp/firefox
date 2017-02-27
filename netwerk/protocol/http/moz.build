@@ -35,6 +35,7 @@ EXPORTS += [
 EXPORTS.mozilla.net += [
     'AltDataOutputStreamChild.h',
     'AltDataOutputStreamParent.h',
+    'HttpAuthUtils.h',
     'HttpBaseChannel.h',
     'HttpChannelChild.h',
     'HttpChannelParent.h',
@@ -64,6 +65,7 @@ UNIFIED_SOURCES += [
     'Http2Push.cpp',
     'Http2Session.cpp',
     'Http2Stream.cpp',
+    'HttpAuthUtils.cpp',
     'HttpBaseChannel.cpp',
     'HttpChannelChild.cpp',
     'HttpChannelParent.cpp',
