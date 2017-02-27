@@ -803,21 +803,23 @@ public:
 
   nsCOMArray<nsIContent>    mGeneratedTextNodesWithInitializer;
 
-  TreeMatchContext          mTreeMatchContext;
+  TreeMatchContext&         mTreeMatchContext;
 
   // Constructor
   // Use the passed-in history state.
   nsFrameConstructorState(
     nsIPresShell* aPresShell,
+    TreeMatchContext& aTreeMatchContext,
     nsContainerFrame* aFixedContainingBlock,
     nsContainerFrame* aAbsoluteContainingBlock,
     nsContainerFrame* aFloatContainingBlock,
     already_AddRefed<nsILayoutHistoryState> aHistoryState);
   // Get the history state from the pres context's pres shell.
-  nsFrameConstructorState(nsIPresShell*          aPresShell,
-                          nsContainerFrame*      aFixedContainingBlock,
-                          nsContainerFrame*      aAbsoluteContainingBlock,
-                          nsContainerFrame*      aFloatContainingBlock);
+  nsFrameConstructorState(nsIPresShell* aPresShell,
+                          TreeMatchContext& aTreeMatchContext,
+                          nsContainerFrame* aFixedContainingBlock,
+                          nsContainerFrame* aAbsoluteContainingBlock,
+                          nsContainerFrame* aFloatContainingBlock);
 
   ~nsFrameConstructorState();
 
@@ -970,6 +972,7 @@ protected:
 
 nsFrameConstructorState::nsFrameConstructorState(
   nsIPresShell* aPresShell,
+  TreeMatchContext& aTreeMatchContext,
   nsContainerFrame* aFixedContainingBlock,
   nsContainerFrame* aAbsoluteContainingBlock,
   nsContainerFrame* aFloatContainingBlock,
@@ -996,8 +999,7 @@ nsFrameConstructorState::nsFrameConstructorState(
     mFixedPosIsAbsPos(aFixedContainingBlock == aAbsoluteContainingBlock),
     mHavePendingPopupgroup(false),
     mCreatingExtraFrames(false),
-    mTreeMatchContext(true, nsRuleWalker::eRelevantLinkUnvisited,
-                      aPresShell->GetDocument()),
+    mTreeMatchContext(aTreeMatchContext),
     mCurrentPendingBindingInsertionPoint(nullptr)
 {
 #ifdef MOZ_XUL
@@ -1010,10 +1012,13 @@ nsFrameConstructorState::nsFrameConstructorState(
 }
 
 nsFrameConstructorState::nsFrameConstructorState(nsIPresShell* aPresShell,
+                                                 TreeMatchContext& aTreeMatchContext,
                                                  nsContainerFrame* aFixedContainingBlock,
                                                  nsContainerFrame* aAbsoluteContainingBlock,
                                                  nsContainerFrame* aFloatContainingBlock)
-  : nsFrameConstructorState(aPresShell, aFixedContainingBlock,
+  : nsFrameConstructorState(aPresShell,
+                            aTreeMatchContext,
+                            aFixedContainingBlock,
                             aAbsoluteContainingBlock,
                             aFloatContainingBlock,
                             aPresShell->GetDocument()->GetLayoutHistoryState())
@@ -2416,13 +2421,15 @@ nsCSSFrameConstructor::ConstructDocElementFrame(Element*                 aDocEle
 
   NS_ASSERTION(mDocElementContainingBlock, "Should have parent by now");
 
+  TreeMatchContext matchContext(mDocument, TreeMatchContext::ForFrameConstruction);
+  // Initialize the ancestor filter with null for now; we'll push
+  // aDocElement once we finish resolving style for it.
+  matchContext.InitAncestors(nullptr);
   nsFrameConstructorState state(mPresShell,
+                                matchContext,
                                 GetAbsoluteContainingBlock(mDocElementContainingBlock, FIXED_POS),
                                 nullptr,
                                 nullptr, do_AddRef(aFrameState));
-  // Initialize the ancestor filter with null for now; we'll push
-  // aDocElement once we finish resolving style for it.
-  state.mTreeMatchContext.InitAncestors(nullptr);
 
   // XXXbz why, exactly?
   if (!mTempFrameTreeState)
@@ -2864,7 +2871,8 @@ nsCSSFrameConstructor::SetUpDocElementContainingBlock(nsIContent* aDocElement)
   RefPtr<nsStyleContext> rootPseudoStyle;
   // we must create a state because if the scrollbars are GFX it needs the
   // state to build the scrollbar frames.
-  nsFrameConstructorState state(mPresShell, nullptr, nullptr, nullptr);
+  TreeMatchContext matchContext(mDocument, TreeMatchContext::ForFrameConstruction);
+  nsFrameConstructorState state(mPresShell, matchContext, nullptr, nullptr, nullptr);
 
   // Start off with the viewport as parent; we'll adjust it as needed.
   nsContainerFrame* parentFrame = viewportFrame;
@@ -7180,12 +7188,17 @@ nsCSSFrameConstructor::MaybeConstructLazily(Operation aOperation,
 }
 
 void
-nsCSSFrameConstructor::CreateNeededFrames(nsIContent* aContent)
+nsCSSFrameConstructor::CreateNeededFrames(
+    nsIContent* aContent,
+    TreeMatchContext& aTreeMatchContext)
 {
   NS_ASSERTION(!aContent->HasFlag(NODE_NEEDS_FRAME),
     "shouldn't get here with a content node that has needs frame bit set");
   NS_ASSERTION(aContent->HasFlag(NODE_DESCENDANTS_NEED_FRAMES),
     "should only get here with a content node that has descendants needing frames");
+  MOZ_ASSERT(aTreeMatchContext.mAncestorFilter.HasFilter(),
+             "The whole point of having the tree match context is optimizing "
+             "the ancestor filter usage!");
 
   aContent->UnsetFlags(NODE_DESCENDANTS_NEED_FRAMES);
 
@@ -7221,19 +7234,32 @@ nsCSSFrameConstructor::CreateNeededFrames(nsIContent* aContent)
         inRun = false;
         // generate a ContentRangeInserted for [startOfRun,i)
         ContentRangeInserted(aContent, firstChildInRun, child, nullptr,
-                             false);
+                             false, &aTreeMatchContext);
       }
     }
   }
+
   if (inRun) {
-    ContentAppended(aContent, firstChildInRun, false);
+    ContentAppended(aContent, firstChildInRun, false, &aTreeMatchContext);
   }
 
   // Now descend.
   FlattenedChildIterator iter(aContent);
   for (nsIContent* child = iter.GetNextChild(); child; child = iter.GetNextChild()) {
     if (child->HasFlag(NODE_DESCENDANTS_NEED_FRAMES)) {
-      CreateNeededFrames(child);
+      TreeMatchContext::AutoAncestorPusher insertionPointPusher(
+          aTreeMatchContext);
+
+      // Handle stuff like xbl:children.
+      if (child->GetParent() != aContent && child->GetParent()->IsElement()) {
+        insertionPointPusher.PushAncestorAndStyleScope(
+            child->GetParent()->AsElement());
+      }
+
+      TreeMatchContext::AutoAncestorPusher pusher(aTreeMatchContext);
+      pusher.PushAncestorAndStyleScope(child);
+
+      CreateNeededFrames(child, aTreeMatchContext);
     }
   }
 }
@@ -7248,7 +7274,9 @@ void nsCSSFrameConstructor::CreateNeededFrames()
     "root element should not have frame created lazily");
   if (rootElement && rootElement->HasFlag(NODE_DESCENDANTS_NEED_FRAMES)) {
     BeginUpdate();
-    CreateNeededFrames(rootElement);
+    TreeMatchContext treeMatchContext(mDocument, TreeMatchContext::ForFrameConstruction);
+    treeMatchContext.InitAncestors(rootElement);
+    CreateNeededFrames(rootElement, treeMatchContext);
     EndUpdate();
   }
 }
@@ -7364,10 +7392,13 @@ nsCSSFrameConstructor::MaybeRecreateForFrameset(nsIFrame* aParentFrame,
 }
 
 nsresult
-nsCSSFrameConstructor::ContentAppended(nsIContent*     aContainer,
-                                       nsIContent*     aFirstNewContent,
-                                       bool            aAllowLazyConstruction)
+nsCSSFrameConstructor::ContentAppended(nsIContent* aContainer,
+                                       nsIContent* aFirstNewContent,
+                                       bool aAllowLazyConstruction,
+                                       TreeMatchContext* aProvidedTreeMatchContext)
 {
+  MOZ_ASSERT_IF(aProvidedTreeMatchContext, !aAllowLazyConstruction);
+
   AUTO_LAYOUT_PHASE_ENTRY_POINT(mPresShell->GetPresContext(), FrameC);
   NS_PRECONDITION(mUpdateCount != 0,
                   "Should be in an update while creating frames");
@@ -7527,11 +7558,20 @@ nsCSSFrameConstructor::ContentAppended(nsIContent*     aContainer,
                                         aFirstNewContent, &parentAfterFrame);
 
   // Create some new frames
+  //
+  // We use the provided tree match context, or create a new one on the fly
+  // otherwise.
+  Maybe<TreeMatchContext> matchContext;
+  if (!aProvidedTreeMatchContext) {
+    matchContext.emplace(mDocument, TreeMatchContext::ForFrameConstruction);
+    matchContext->InitAncestors(aContainer->AsElement());
+  }
   nsFrameConstructorState state(mPresShell,
+                                aProvidedTreeMatchContext
+                                  ? *aProvidedTreeMatchContext : *matchContext,
                                 GetAbsoluteContainingBlock(parentFrame, FIXED_POS),
                                 GetAbsoluteContainingBlock(parentFrame, ABS_POS),
                                 GetFloatContainingBlock(parentFrame));
-  state.mTreeMatchContext.InitAncestors(aContainer->AsElement());
 
   // See if the containing block has :first-letter style applied.
   bool haveFirstLetterStyle = false, haveFirstLineStyle = false;
@@ -7748,11 +7788,12 @@ nsCSSFrameConstructor::ContentInserted(nsIContent*            aContainer,
 // (because when we treat the caption frames the other nodes have had their
 // frames constructed but not yet inserted into the frame tree).
 nsresult
-nsCSSFrameConstructor::ContentRangeInserted(nsIContent*            aContainer,
-                                            nsIContent*            aStartChild,
-                                            nsIContent*            aEndChild,
+nsCSSFrameConstructor::ContentRangeInserted(nsIContent* aContainer,
+                                            nsIContent* aStartChild,
+                                            nsIContent* aEndChild,
                                             nsILayoutHistoryState* aFrameState,
-                                            bool                   aAllowLazyConstruction)
+                                            bool aAllowLazyConstruction,
+                                            TreeMatchContext* aProvidedTreeMatchContext)
 {
   AUTO_LAYOUT_PHASE_ENTRY_POINT(mPresShell->GetPresContext(), FrameC);
   NS_PRECONDITION(mUpdateCount != 0,
@@ -8021,14 +8062,18 @@ nsCSSFrameConstructor::ContentRangeInserted(nsIContent*            aContainer,
     return rv;
   }
 
+  Maybe<TreeMatchContext> matchContext;
+  if (!aProvidedTreeMatchContext) {
+    matchContext.emplace(mDocument, TreeMatchContext::ForFrameConstruction);
+    matchContext->InitAncestors(aContainer ? aContainer->AsElement() : nullptr);
+  }
   nsFrameConstructorState state(mPresShell,
+                                aProvidedTreeMatchContext
+                                  ? *aProvidedTreeMatchContext : *matchContext,
                                 GetAbsoluteContainingBlock(insertion.mParentFrame, FIXED_POS),
                                 GetAbsoluteContainingBlock(insertion.mParentFrame, ABS_POS),
                                 GetFloatContainingBlock(insertion.mParentFrame),
                                 do_AddRef(aFrameState));
-  state.mTreeMatchContext.InitAncestors(aContainer ?
-                                          aContainer->AsElement() :
-                                          nullptr);
 
   // Recover state for the containing block - we need to know if
   // it has :first-letter or :first-line style applied to it. The
@@ -8964,7 +9009,10 @@ nsCSSFrameConstructor::CreateContinuingTableFrame(nsIPresShell*     aPresShell,
       // Replicate the header/footer frame.
       nsTableRowGroupFrame*   headerFooterFrame;
       nsFrameItems            childItems;
+
+      TreeMatchContext matchContext(mDocument, TreeMatchContext::ForFrameConstruction);
       nsFrameConstructorState state(mPresShell,
+                                    matchContext,
                                     GetAbsoluteContainingBlock(newFrame, FIXED_POS),
                                     GetAbsoluteContainingBlock(newFrame, ABS_POS),
                                     nullptr);
@@ -9237,7 +9285,10 @@ nsCSSFrameConstructor::ReplicateFixedFrames(nsPageContentFrame* aParentFrame)
   // This should not normally be possible (because fixed-pos elements should
   // be absolute containers) but fixed-pos tables currently aren't abs-pos
   // containers.
-  nsFrameConstructorState state(mPresShell, aParentFrame,
+  TreeMatchContext matchContext(mDocument, TreeMatchContext::ForFrameConstruction);
+  nsFrameConstructorState state(mPresShell,
+                                matchContext,
+                                aParentFrame,
                                 nullptr,
                                 mRootElementFrame);
   state.mCreatingExtraFrames = true;
@@ -11529,7 +11580,10 @@ nsCSSFrameConstructor::CreateLetterFrame(nsContainerFrame* aBlockFrame,
 
     NS_ASSERTION(aBlockContinuation == GetFloatContainingBlock(aParentFrame),
                  "Containing block is confused");
+    TreeMatchContext matchContext(mDocument,
+                                  TreeMatchContext::ForFrameConstruction);
     nsFrameConstructorState state(mPresShell,
+                                  matchContext,
                                   GetAbsoluteContainingBlock(aParentFrame, FIXED_POS),
                                   GetAbsoluteContainingBlock(aParentFrame, ABS_POS),
                                   aBlockContinuation);
@@ -11916,7 +11970,10 @@ nsCSSFrameConstructor::CreateListBoxContent(nsContainerFrame*      aParentFrame,
   // Construct a new frame
   if (nullptr != aParentFrame) {
     nsFrameItems            frameItems;
-    nsFrameConstructorState state(mPresShell, GetAbsoluteContainingBlock(aParentFrame, FIXED_POS),
+    TreeMatchContext matchContext(mDocument, TreeMatchContext::ForFrameConstruction);
+    nsFrameConstructorState state(mPresShell,
+                                  matchContext,
+                                  GetAbsoluteContainingBlock(aParentFrame, FIXED_POS),
                                   GetAbsoluteContainingBlock(aParentFrame, ABS_POS),
                                   GetFloatContainingBlock(aParentFrame),
                                   do_AddRef(mTempFrameTreeState.get()));
@@ -12808,7 +12865,8 @@ nsCSSFrameConstructor::GenerateChildFrames(nsContainerFrame* aFrame)
     BeginUpdate();
 
     nsFrameItems childItems;
-    nsFrameConstructorState state(mPresShell, nullptr, nullptr, nullptr);
+    TreeMatchContext matchContext(mDocument, TreeMatchContext::ForFrameConstruction);
+    nsFrameConstructorState state(mPresShell, matchContext, nullptr, nullptr, nullptr);
     // We don't have a parent frame with a pending binding constructor here,
     // so no need to worry about ordering of the kids' constructors with it.
     // Pass null for the PendingBinding.
