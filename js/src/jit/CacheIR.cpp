@@ -1941,17 +1941,17 @@ IRGenerator::maybeGuardInt32Index(const Value& index, ValOperandId indexId,
 
 SetPropIRGenerator::SetPropIRGenerator(JSContext* cx, HandleScript script, jsbytecode* pc,
                                        CacheKind cacheKind, bool* isTemporarilyUnoptimizable,
-                                       HandleValue lhsVal, HandleValue idVal, HandleValue rhsVal)
+                                       HandleValue lhsVal, HandleValue idVal, HandleValue rhsVal,
+                                       bool needsTypeBarrier, bool maybeHasExtraIndexedProps)
   : IRGenerator(cx, script, pc, cacheKind),
     lhsVal_(lhsVal),
     idVal_(idVal),
     rhsVal_(rhsVal),
     isTemporarilyUnoptimizable_(isTemporarilyUnoptimizable),
+    typeCheckInfo_(cx, needsTypeBarrier),
     preliminaryObjectAction_(PreliminaryObjectAction::None),
     attachedTypedArrayOOBStub_(false),
-    updateStubGroup_(cx),
-    updateStubId_(cx, JSID_EMPTY),
-    needUpdateStub_(false)
+    maybeHasExtraIndexedProps_(maybeHasExtraIndexedProps)
 {}
 
 bool
@@ -2076,12 +2076,12 @@ SetPropIRGenerator::tryAttachNativeSetSlot(HandleObject obj, ObjOperandId objId,
 
     maybeEmitIdGuard(id);
 
-    // For Baseline, we have to guard on both the shape and group, because the
-    // type update IC applies to a single group. When we port the Ion IC, we can
-    // do a bit better and avoid the group guard if we don't have to guard on
-    // the property types.
+    // If we need a property type barrier (always in Baseline, sometimes in
+    // Ion), guard on both the shape and the group. If Ion knows the property
+    // types match, we don't need the group guard.
     NativeObject* nobj = &obj->as<NativeObject>();
-    writer.guardGroup(objId, nobj->group());
+    if (typeCheckInfo_.needsTypeBarrier())
+        writer.guardGroup(objId, nobj->group());
     writer.guardShape(objId, nobj->lastProperty());
 
     if (IsPreliminaryObject(obj))
@@ -2089,7 +2089,7 @@ SetPropIRGenerator::tryAttachNativeSetSlot(HandleObject obj, ObjOperandId objId,
     else
         preliminaryObjectAction_ = PreliminaryObjectAction::Unlink;
 
-    setUpdateStubInfo(nobj->group(), id);
+    typeCheckInfo_.set(nobj->group(), id);
     EmitStoreSlotAndReturn(writer, objId, nobj, propShape, rhsId);
 
     trackAttached("NativeSlot");
@@ -2118,7 +2118,7 @@ SetPropIRGenerator::tryAttachUnboxedExpandoSetSlot(HandleObject obj, ObjOperandI
 
     // Property types must be added to the unboxed object's group, not the
     // expando's group (it has unknown properties).
-    setUpdateStubInfo(obj->group(), id);
+    typeCheckInfo_.set(obj->group(), id);
     EmitStoreSlotAndReturn(writer, expandoId, expando, propShape, rhsId);
 
     trackAttached("UnboxedExpando");
@@ -2155,7 +2155,7 @@ SetPropIRGenerator::tryAttachUnboxedProperty(HandleObject obj, ObjOperandId objI
                                 rhsId);
     writer.returnFromIC();
 
-    setUpdateStubInfo(obj->group(), id);
+    typeCheckInfo_.set(obj->group(), id);
     preliminaryObjectAction_ = PreliminaryObjectAction::Unlink;
 
     trackAttached("Unboxed");
@@ -2192,7 +2192,7 @@ SetPropIRGenerator::tryAttachTypedObjectProperty(HandleObject obj, ObjOperandId 
     writer.guardShape(objId, obj->as<TypedObject>().shape());
     writer.guardGroup(objId, obj->group());
 
-    setUpdateStubInfo(obj->group(), id);
+    typeCheckInfo_.set(obj->group(), id);
 
     // Scalar types can always be stored without a type update stub.
     if (fieldDescr->is<ScalarTypeDescr>()) {
@@ -2360,14 +2360,15 @@ SetPropIRGenerator::tryAttachSetDenseElement(HandleObject obj, ObjOperandId objI
     if (!nobj->containsDenseElement(index) || nobj->getElementsHeader()->isFrozen())
         return false;
 
-    writer.guardGroup(objId, nobj->group());
+    if (typeCheckInfo_.needsTypeBarrier())
+        writer.guardGroup(objId, nobj->group());
     writer.guardShape(objId, nobj->shape());
 
     writer.storeDenseElement(objId, indexId, rhsId);
     writer.returnFromIC();
 
     // Type inference uses JSID_VOID for the element types.
-    setUpdateStubInfo(nobj->group(), JSID_VOID);
+    typeCheckInfo_.set(nobj->group(), JSID_VOID);
 
     trackAttached("SetDenseElement");
     return true;
@@ -2472,18 +2473,20 @@ SetPropIRGenerator::tryAttachSetDenseElementHole(HandleObject obj, ObjOperandId 
     if (!CanAttachAddElement(nobj, IsPropertyInitOp(op)))
         return false;
 
-    writer.guardGroup(objId, nobj->group());
+    if (typeCheckInfo_.needsTypeBarrier())
+        writer.guardGroup(objId, nobj->group());
     writer.guardShape(objId, nobj->shape());
 
-    // Also shape guard the proto chain, unless this is an INITELEM.
-    if (IsPropertySetOp(op))
+    // Also shape guard the proto chain, unless this is an INITELEM or we know
+    // the proto chain has no indexed props.
+    if (IsPropertySetOp(op) && maybeHasExtraIndexedProps_)
         ShapeGuardProtoChain(writer, obj, objId);
 
     writer.storeDenseElementHole(objId, indexId, rhsId, isAdd);
     writer.returnFromIC();
 
     // Type inference uses JSID_VOID for the element types.
-    setUpdateStubInfo(nobj->group(), JSID_VOID);
+    typeCheckInfo_.set(nobj->group(), JSID_VOID);
 
     trackAttached(isAdd ? "AddDenseElement" : "StoreDenseElementHole");
     return true;
@@ -2512,7 +2515,7 @@ SetPropIRGenerator::tryAttachSetUnboxedArrayElement(HandleObject obj, ObjOperand
     writer.returnFromIC();
 
     // Type inference uses JSID_VOID for the element types.
-    setUpdateStubInfo(obj->group(), JSID_VOID);
+    typeCheckInfo_.set(obj->group(), JSID_VOID);
 
     trackAttached("SetUnboxedArrayElement");
     return true;
@@ -2605,7 +2608,7 @@ SetPropIRGenerator::tryAttachSetUnboxedArrayElementHole(HandleObject obj, ObjOpe
     writer.returnFromIC();
 
     // Type inference uses JSID_VOID for the element types.
-    setUpdateStubInfo(aobj->group(), JSID_VOID);
+    typeCheckInfo_.set(aobj->group(), JSID_VOID);
 
     trackAttached("StoreUnboxedArrayElementHole");
     return true;
@@ -2891,6 +2894,6 @@ SetPropIRGenerator::tryAttachAddSlotStub(HandleObjectGroup oldGroup, HandleShape
     }
     writer.returnFromIC();
 
-    setUpdateStubInfo(oldGroup, id);
+    typeCheckInfo_.set(oldGroup, id);
     return true;
 }
