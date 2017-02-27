@@ -2823,7 +2823,8 @@ MacroAssembler::wasmCallBuiltinInstanceMethod(const ABIArg& instanceArg,
 }
 
 void
-MacroAssembler::wasmCallIndirect(const wasm::CallSiteDesc& desc, const wasm::CalleeDesc& callee)
+MacroAssembler::wasmCallIndirect(const wasm::CallSiteDesc& desc, const wasm::CalleeDesc& callee,
+                                 bool needsBoundsCheck)
 {
     Register scratch = WasmTableCallScratchReg;
     Register index = WasmTableCallIndexReg;
@@ -2852,12 +2853,15 @@ MacroAssembler::wasmCallIndirect(const wasm::CallSiteDesc& desc, const wasm::Cal
         break;
     }
 
-    // WebAssembly throws if the index is out-of-bounds.
-    loadWasmGlobalPtr(callee.tableLengthGlobalDataOffset(), scratch);
-
     wasm::TrapOffset trapOffset(desc.lineOrBytecode());
-    wasm::TrapDesc oobTrap(trapOffset, wasm::Trap::OutOfBounds, framePushed());
-    branch32(Assembler::Condition::AboveOrEqual, index, scratch, oobTrap);
+
+    // WebAssembly throws if the index is out-of-bounds.
+    if (needsBoundsCheck) {
+        loadWasmGlobalPtr(callee.tableLengthGlobalDataOffset(), scratch);
+
+        wasm::TrapDesc oobTrap(trapOffset, wasm::Trap::OutOfBounds, framePushed());
+        branch32(Assembler::Condition::AboveOrEqual, index, scratch, oobTrap);
+    }
 
     // Load the base pointer of the table.
     loadWasmGlobalPtr(callee.tableBaseGlobalDataOffset(), scratch);

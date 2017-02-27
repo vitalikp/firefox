@@ -8666,12 +8666,14 @@ class LWasmCallBase : public LInstruction
 {
     LAllocation* operands_;
     uint32_t numOperands_;
+    uint32_t needsBoundsCheck_;
 
   public:
 
-    LWasmCallBase(LAllocation* operands, uint32_t numOperands)
+    LWasmCallBase(LAllocation* operands, uint32_t numOperands, bool needsBoundsCheck)
       : operands_(operands),
-        numOperands_(numOperands)
+        numOperands_(numOperands),
+        needsBoundsCheck_(needsBoundsCheck)
     {}
 
     MWasmCall* mir() const {
@@ -8719,6 +8721,9 @@ class LWasmCallBase : public LInstruction
     void setSuccessor(size_t i, MBasicBlock*) override {
         MOZ_CRASH("no successors");
     }
+    bool needsBoundsCheck() const {
+        return needsBoundsCheck_;
+    }
 };
 
 class LWasmCall : public LWasmCallBase
@@ -8728,8 +8733,8 @@ class LWasmCall : public LWasmCallBase
   public:
     LIR_HEADER(WasmCall);
 
-    LWasmCall(LAllocation* operands, uint32_t numOperands)
-      : LWasmCallBase(operands, numOperands),
+    LWasmCall(LAllocation* operands, uint32_t numOperands, bool needsBoundsCheck)
+      : LWasmCallBase(operands, numOperands, needsBoundsCheck),
         def_(LDefinition::BogusTemp())
     {}
 
@@ -8755,8 +8760,8 @@ class LWasmCallI64 : public LWasmCallBase
   public:
     LIR_HEADER(WasmCallI64);
 
-    LWasmCallI64(LAllocation* operands, uint32_t numOperands)
-      : LWasmCallBase(operands, numOperands)
+    LWasmCallI64(LAllocation* operands, uint32_t numOperands, bool needsBoundsCheck)
+      : LWasmCallBase(operands, numOperands, needsBoundsCheck)
     {
         for (size_t i = 0; i < numDefs(); i++)
             defs_[i] = LDefinition::BogusTemp();
