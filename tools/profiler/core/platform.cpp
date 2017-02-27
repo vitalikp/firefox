@@ -2484,9 +2484,9 @@ profiler_get_backtrace()
   sample.isSamplingCurrentThread = true;
   sample.timestamp = mozilla::TimeStamp::Now();
 
-  profile->BeginUnwind();
+  profile->GetMutex().Lock();
   Tick(&sample);
-  profile->EndUnwind();
+  profile->GetMutex().Unlock();
 
   return UniqueProfilerBacktrace(new ProfilerBacktrace(profile));
 }
