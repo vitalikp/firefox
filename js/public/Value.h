@@ -942,7 +942,7 @@ ExposeValueToActiveJS(const Value& v)
 
 /************************************************************************/
 
-static inline Value
+static inline MOZ_MAY_CALL_AFTER_MUST_RETURN Value
 NullValue()
 {
     Value v;
