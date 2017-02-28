@@ -2691,6 +2691,7 @@ HTMLMediaElement::Seek(double aTime,
   nsresult rv = mDecoder->Seek(aTime, aSeekType, promise);
   if (NS_FAILED(rv)) {
     aRv.Throw(rv);
+    return nullptr;
   }
 
   // We changed whether we're seeking so we need to AddRemoveSelfReference.

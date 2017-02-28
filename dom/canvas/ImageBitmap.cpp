@@ -1460,6 +1460,7 @@ ImageBitmap::Create(nsIGlobalObject* aGlobal, const ImageBitmapSource& aSrc,
     return promise.forget();
   } else {
     aRv.Throw(NS_ERROR_NOT_IMPLEMENTED);
+    return nullptr;
   }
 
   if (!aRv.Failed()) {
@@ -1666,13 +1667,13 @@ protected:
     } else if (JS_IsArrayBufferViewObject(mBuffer)) {
       js::GetArrayBufferViewLengthAndData(mBuffer, &bufferLength, &isSharedMemory, &bufferData);
     } else {
-      error.Throw(NS_ERROR_NOT_IMPLEMENTED);
+      error.ThrowWithCustomCleanup(NS_ERROR_NOT_IMPLEMENTED);
       mPromise->MaybeReject(error);
       return;
     }
 
     if (NS_WARN_IF(!bufferData) || NS_WARN_IF(!bufferLength)) {
-      error.Throw(NS_ERROR_NOT_AVAILABLE);
+      error.ThrowWithCustomCleanup(NS_ERROR_NOT_AVAILABLE);
       mPromise->MaybeReject(error);
       return;
     }
@@ -1682,7 +1683,7 @@ protected:
       mImageBitmap->MappedDataLength(mFormat, error);
 
     if (((int32_t)bufferLength - mOffset) < neededBufferLength) {
-      error.Throw(NS_ERROR_DOM_INDEX_SIZE_ERR);
+      error.ThrowWithCustomCleanup(NS_ERROR_DOM_INDEX_SIZE_ERR);
       mPromise->MaybeReject(error);
       return;
     }
