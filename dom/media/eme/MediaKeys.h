@@ -131,6 +131,8 @@ public:
   // Returns true if this MediaKeys has been bound to a media element.
   bool IsBoundToMediaElement() const;
 
+  void GetSessionsInfo(nsString& sessionsInfo);
+
 private:
 
   // Instantiate CDMProxy instance.
