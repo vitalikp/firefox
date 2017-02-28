@@ -1125,8 +1125,7 @@ JSExternalString::dumpRepresentation(FILE* fp, int indent) const
     indent += 2;
 
     fprintf(fp, "%*sfinalizer: ((JSStringFinalizer*) %p)\n", indent, "", externalFinalizer());
-    fprintf(fp, "%*sbase: ", indent, "");
-    base()->dumpRepresentation(fp, indent);
+    dumpRepresentationChars(fp, indent);
 }
 #endif /* DEBUG */
 
