@@ -238,6 +238,8 @@ public:
   NS_IMETHOD_(void) InitializeKeyboardEventListeners() override;
   NS_IMETHOD_(void) OnValueChanged(bool aNotify, bool aWasInteractiveUserChange) override;
   NS_IMETHOD_(bool) HasCachedSelection() override;
+  NS_IMETHOD GetSelectionRange(int32_t* aSelectionStart,
+                               int32_t* aSelectionEnd) override;
 
   void GetDisplayFileName(nsAString& aFileName) const;
 
@@ -947,8 +949,6 @@ protected:
 
   void SetIndeterminateInternal(bool aValue,
                                 bool aShouldInvalidate);
-
-  nsresult GetSelectionRange(int32_t* aSelectionStart, int32_t* aSelectionEnd);
 
   /**
    * Called when an attribute is about to be changed
