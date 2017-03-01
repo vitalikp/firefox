@@ -1336,18 +1336,20 @@ class JSScript : public js::gc::TenuredCell
     js::GeneratorKind generatorKind() const {
         return js::GeneratorKindFromBits(generatorKindBits_);
     }
-    bool isGenerator() const { return generatorKind() != js::NotGenerator; }
     bool isLegacyGenerator() const { return generatorKind() == js::LegacyGenerator; }
     bool isStarGenerator() const { return generatorKind() == js::StarGenerator; }
     void setGeneratorKind(js::GeneratorKind kind) {
         // A script only gets its generator kind set as part of initialization,
         // so it can only transition from not being a generator.
-        MOZ_ASSERT(!isGenerator());
+        MOZ_ASSERT(!isStarGenerator() && !isLegacyGenerator());
         generatorKindBits_ = GeneratorKindAsBits(kind);
     }
 
     js::FunctionAsyncKind asyncKind() const {
         return isAsync_ ? js::AsyncFunction : js::SyncFunction;
+    }
+    bool isAsync() const {
+        return isAsync_;
     }
 
     void setAsyncKind(js::FunctionAsyncKind kind) {
@@ -1502,7 +1504,8 @@ class JSScript : public js::gc::TenuredCell
 
     bool isRelazifiable() const {
         return (selfHosted() || lazyScript) && !hasInnerFunctions_ && !types_ &&
-               !isGenerator() && !hasBaselineScript() && !hasAnyIonScript() &&
+               !isStarGenerator() && !isLegacyGenerator() && !isAsync() &&
+               !hasBaselineScript() && !hasAnyIonScript() &&
                !doNotRelazify_;
     }
     void setLazyScript(js::LazyScript* lazy) {
@@ -1704,7 +1707,7 @@ class JSScript : public js::gc::TenuredCell
     bool hasObjects() const      { return hasArray(OBJECTS); }
     bool hasTrynotes() const     { return hasArray(TRYNOTES); }
     bool hasScopeNotes() const   { return hasArray(SCOPENOTES); }
-    bool hasYieldOffsets() const { return isGenerator(); }
+    bool hasYieldOffsets() const { return isStarGenerator() || isLegacyGenerator() || isAsync(); }
 
 #define OFF(fooOff, hasFoo, t)   (fooOff() + (hasFoo() ? sizeof(t) : 0))
 
@@ -2115,8 +2118,6 @@ class LazyScript : public gc::TenuredCell
 
     GeneratorKind generatorKind() const { return GeneratorKindFromBits(p_.generatorKindBits); }
 
-    bool isGenerator() const { return generatorKind() != NotGenerator; }
-
     bool isLegacyGenerator() const { return generatorKind() == LegacyGenerator; }
 
     bool isStarGenerator() const { return generatorKind() == StarGenerator; }
@@ -2124,7 +2125,7 @@ class LazyScript : public gc::TenuredCell
     void setGeneratorKind(GeneratorKind kind) {
         // A script only gets its generator kind set as part of initialization,
         // so it can only transition from NotGenerator.
-        MOZ_ASSERT(!isGenerator());
+        MOZ_ASSERT(!isStarGenerator() && !isLegacyGenerator());
         // Legacy generators cannot currently be lazy.
         MOZ_ASSERT(kind != LegacyGenerator);
         p_.generatorKindBits = GeneratorKindAsBits(kind);
@@ -2132,6 +2133,9 @@ class LazyScript : public gc::TenuredCell
 
     FunctionAsyncKind asyncKind() const {
         return p_.isAsync ? AsyncFunction : SyncFunction;
+    }
+    bool isAsync() const {
+        return p_.isAsync;
     }
 
     void setAsyncKind(FunctionAsyncKind kind) {
