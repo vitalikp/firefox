@@ -92,7 +92,7 @@ public:
     return NS_OK;
   }
 private:
-  nsWeakFrame mFrame;
+  AutoWeakFrame mFrame;
 };
 
 static void
@@ -180,7 +180,7 @@ nsSubDocumentFrame::ShowViewer()
     RefPtr<nsFrameLoader> frameloader = FrameLoader();
     if (frameloader) {
       CSSIntSize margin = GetMarginAttributes();
-      nsWeakFrame weakThis(this);
+      AutoWeakFrame weakThis(this);
       mCallingShow = true;
       const nsAttrValue* attrValue =
         GetContent()->AsElement()->GetParsedAttr(nsGkAtoms::scrolling);
@@ -814,7 +814,7 @@ bool
 nsSubDocumentFrame::ReflowFinished()
 {
   if (mFrameLoader) {
-    nsWeakFrame weakFrame(this);
+    AutoWeakFrame weakFrame(this);
 
     mFrameLoader->UpdatePositionAndSize(this);
 
@@ -1181,8 +1181,8 @@ void
 nsSubDocumentFrame::EndSwapDocShells(nsIFrame* aOther)
 {
   nsSubDocumentFrame* other = static_cast<nsSubDocumentFrame*>(aOther);
-  nsWeakFrame weakThis(this);
-  nsWeakFrame weakOther(aOther);
+  AutoWeakFrame weakThis(this);
+  AutoWeakFrame weakOther(aOther);
 
   if (mInnerView) {
     ::EndSwapDocShellsForViews(mInnerView->GetFirstChild());

@@ -269,7 +269,7 @@ protected:
   RefPtr<nsPrintData> mPrt;
 
   nsPagePrintTimer*       mPagePrintTimer;
-  nsWeakFrame             mPageSeqFrame;
+  AutoWeakFrame             mPageSeqFrame;
 
   // Print Preview
   RefPtr<nsPrintData> mPrtPreview;

@@ -1254,7 +1254,7 @@ nsHTMLFramesetFrame::MouseDrag(nsPresContext* aPresContext,
   }
 
   int32_t change; // measured positive from left-to-right or top-to-bottom
-  nsWeakFrame weakFrame(this);
+  AutoWeakFrame weakFrame(this);
   if (mDragger->mVertical) {
     change = aPresContext->DevPixelsToAppUnits(
                              aEvent->mRefPoint.x - mFirstDragPoint.x);

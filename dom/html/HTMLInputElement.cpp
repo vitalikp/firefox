@@ -4054,7 +4054,7 @@ HTMLInputElement::PreHandleEvent(EventChainVisitor& aVisitor)
     nsAutoString value;
     numberControlFrame->GetValueOfAnonTextControl(value);
     numberControlFrame->HandlingInputEvent(true);
-    nsWeakFrame weakNumberControlFrame(numberControlFrame);
+    AutoWeakFrame weakNumberControlFrame(numberControlFrame);
     rv = SetValueInternal(value,
                           nsTextEditorState::eSetValue_BySetUserInput |
                           nsTextEditorState::eSetValue_Notify);

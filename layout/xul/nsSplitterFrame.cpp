@@ -383,7 +383,7 @@ nsSplitterFrame::HandleEvent(nsPresContext* aPresContext,
     return NS_OK;
   }
 
-  nsWeakFrame weakFrame(this);
+  AutoWeakFrame weakFrame(this);
   RefPtr<nsSplitterFrameInner> inner(mInner);
   switch (aEvent->mMessage) {
     case eMouseMove: 
@@ -974,7 +974,7 @@ nsSplitterFrameInner::SetPreferredSize(nsBoxLayoutState& aState, nsIFrame* aChil
                            prefValue, eCaseMatters))
      return;
 
-  nsWeakFrame weakBox(aChildBox);
+  AutoWeakFrame weakBox(aChildBox);
   content->SetAttr(kNameSpaceID_None, attribute, prefValue, true);
   ENSURE_TRUE(weakBox.IsAlive());
   aState.PresShell()->FrameNeedsReflow(aChildBox, nsIPresShell::eStyleChange,

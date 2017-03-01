@@ -1856,7 +1856,7 @@ nsPluginFrame::EndSwapDocShells(nsISupports* aSupports, void*)
     nsIWidget* parent =
       rootPC->PresShell()->GetRootFrame()->GetNearestWidget();
     widget->SetParent(parent);
-    nsWeakFrame weakFrame(objectFrame);
+    AutoWeakFrame weakFrame(objectFrame);
     objectFrame->CallSetWindow();
     if (!weakFrame.IsAlive()) {
       return;

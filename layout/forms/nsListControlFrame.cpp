@@ -667,7 +667,7 @@ nsListControlFrame::SingleSelection(int32_t aClickedIndex, bool aDoToggle)
     wasChanged = SetOptionsSelectedFromFrame(aClickedIndex, aClickedIndex,
                                 true, true);
   }
-  nsWeakFrame weakFrame(this);
+  AutoWeakFrame weakFrame(this);
   ScrollToIndex(aClickedIndex);
   if (!weakFrame.IsAlive()) {
     return wasChanged;
@@ -803,7 +803,7 @@ nsListControlFrame::PerformSelection(int32_t aClickedIndex,
 
       // Clear only if control was not pressed
       wasChanged = ExtendedSelection(startIndex, endIndex, !aIsControl);
-      nsWeakFrame weakFrame(this);
+      AutoWeakFrame weakFrame(this);
       ScrollToIndex(aClickedIndex);
       if (!weakFrame.IsAlive()) {
         return wasChanged;
@@ -1051,7 +1051,7 @@ nsListControlFrame::ResetList(bool aAllowScrolling)
     NS_ASSERTION(selectElement, "No select element!");
     if (selectElement) {
       selectElement->GetSelectedIndex(&indexToSelect);
-      nsWeakFrame weakFrame(this);
+      AutoWeakFrame weakFrame(this);
       ScrollToIndex(indexToSelect);
       if (!weakFrame.IsAlive()) {
         return;
@@ -1315,7 +1315,7 @@ nsListControlFrame::UpdateSelection()
 {
   if (mIsAllFramesHere) {
     // if it's a combobox, display the new text
-    nsWeakFrame weakFrame(this);
+    AutoWeakFrame weakFrame(this);
     if (mComboboxFrame) {
       mComboboxFrame->RedisplaySelectedText();
 
@@ -1343,7 +1343,7 @@ nsListControlFrame::ComboboxFinish(int32_t aIndex)
     // Make sure we can always reset to the displayed index
     mForceSelection = displayIndex == aIndex;
 
-    nsWeakFrame weakFrame(this);
+    AutoWeakFrame weakFrame(this);
     PerformSelection(aIndex, false, false);  // might destroy us
     if (!weakFrame.IsAlive() || !mComboboxFrame) {
       return;
@@ -1396,7 +1396,7 @@ nsListControlFrame::OnSetSelectedIndex(int32_t aOldIndex, int32_t aNewIndex)
     mComboboxFrame->UpdateRecentIndex(NS_SKIP_NOTIFY_INDEX);
   }
 
-  nsWeakFrame weakFrame(this);
+  AutoWeakFrame weakFrame(this);
   ScrollToIndex(aNewIndex);
   if (!weakFrame.IsAlive()) {
     return NS_OK;
@@ -1462,7 +1462,7 @@ nsListControlFrame::AboutToDropDown()
                      mLastDropdownBackstopColor);
 
   if (mIsAllContentHere && mIsAllFramesHere && mHasBeenInitialized) {
-    nsWeakFrame weakFrame(this);
+    AutoWeakFrame weakFrame(this);
     ScrollToIndex(GetSelectedIndex());
     if (!weakFrame.IsAlive()) {
       return;
@@ -1672,7 +1672,7 @@ nsListControlFrame::MouseUp(nsIDOMEvent* aMouseEvent)
       }
 
       if (kNothingSelected != selectedIndex) {
-        nsWeakFrame weakFrame(this);
+        AutoWeakFrame weakFrame(this);
         ComboboxFinish(selectedIndex);
         if (!weakFrame.IsAlive()) {
           return NS_OK;
@@ -1834,7 +1834,7 @@ nsListControlFrame::MouseDown(nsIDOMEvent* aMouseEvent)
     // Handle Like List
     mButtonDown = true;
     CaptureMouseEvents(true);
-    nsWeakFrame weakFrame(this);
+    AutoWeakFrame weakFrame(this);
     bool change =
       HandleListSelection(aMouseEvent, selectedIndex); // might destroy us
     if (!weakFrame.IsAlive()) {
@@ -1873,7 +1873,7 @@ nsListControlFrame::MouseDown(nsIDOMEvent* aMouseEvent)
       {
         bool isDroppedDown = mComboboxFrame->IsDroppedDown();
         nsIFrame* comboFrame = do_QueryFrame(mComboboxFrame);
-        nsWeakFrame weakFrame(comboFrame);
+        AutoWeakFrame weakFrame(comboFrame);
         mComboboxFrame->ShowDropDown(!isDroppedDown);
         if (!weakFrame.IsAlive())
           return NS_OK;
@@ -1936,7 +1936,7 @@ nsListControlFrame::DragMove(nsIDOMEvent* aMouseEvent)
 #else
       mouseEvent->GetCtrlKey(&isControl);
 #endif
-      nsWeakFrame weakFrame(this);
+      AutoWeakFrame weakFrame(this);
       // Turn SHIFT on when you are dragging, unless control is on.
       bool wasChanged = PerformSelection(selectedIndex,
                                            !isControl, isControl);
@@ -2108,7 +2108,7 @@ nsListControlFrame::DropDownToggleKey(nsIDOMEvent* aKeyEvent)
         mComboboxFrame->ShowDropDown(true);
       }
     } else {
-      nsWeakFrame weakFrame(this);
+      AutoWeakFrame weakFrame(this);
       // mEndSelectionIndex is the last item that got selected.
       ComboboxFinish(mEndSelectionIndex);
       if (weakFrame.IsAlive()) {
@@ -2214,7 +2214,7 @@ nsListControlFrame::KeyDown(nsIDOMEvent* aKeyEvent)
           // consumed while the dropdown is open for security.
           aKeyEvent->PreventDefault();
 
-          nsWeakFrame weakFrame(this);
+          AutoWeakFrame weakFrame(this);
           ComboboxFinish(mEndSelectionIndex);
           if (!weakFrame.IsAlive()) {
             return NS_OK;
@@ -2418,7 +2418,7 @@ nsListControlFrame::KeyPress(nsIDOMEvent* aKeyEvent)
 
   uint32_t numOptions = options->Length();
 
-  nsWeakFrame weakFrame(this);
+  AutoWeakFrame weakFrame(this);
   for (uint32_t i = 0; i < numOptions; ++i) {
     uint32_t index = (i + startIndex) % numOptions;
     RefPtr<dom::HTMLOptionElement> optionElement =
@@ -2467,7 +2467,7 @@ nsListControlFrame::PostHandleKeyEvent(int32_t aNewIndex,
 
   // If you hold control, but not shift, no key will actually do anything
   // except space.
-  nsWeakFrame weakFrame(this);
+  AutoWeakFrame weakFrame(this);
   bool wasChanged = false;
   if (aIsControlOrMeta && !aIsShift && aCharCode != ' ') {
     mStartSelectionIndex = aNewIndex;
