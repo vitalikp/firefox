@@ -31,6 +31,7 @@
 #include "mozilla/dom/VideoTrack.h"
 #include "mozilla/dom/VideoTrackList.h"
 #include "nsPrintfCString.h"
+#include "mozilla/SystemGroup.h"
 #include "mozilla/Telemetry.h"
 #include "Layers.h"
 #include "mozilla/layers/ShadowLayers.h"
@@ -61,6 +62,8 @@ LazyLogModule gMediaDecoderLog("MediaDecoder");
 
 #define DUMP_LOG(x, ...) \
   NS_DebugBreak(NS_DEBUG_WARNING, nsPrintfCString("Decoder=%p " x, this, ##__VA_ARGS__).get(), nullptr, nullptr, -1)
+
+#define NS_DispatchToMainThread(...) CompileError_UseAbstractMainThreadInstead
 
 static const char*
 ToPlayStateStr(MediaDecoder::PlayState aState)
@@ -154,6 +157,7 @@ MediaDecoder::ResourceCallback::Connect(MediaDecoder* aDecoder)
   MOZ_ASSERT(NS_IsMainThread());
   mDecoder = aDecoder;
   mTimer = do_CreateInstance("@mozilla.org/timer;1");
+  mTimer->SetTarget(mAbstractMainThread->AsEventTarget());
 }
 
 void
@@ -1714,8 +1718,8 @@ MediaMemoryTracker::CollectReports(nsIHandleReportCallback* aHandleReport,
   nsCOMPtr<nsISupports> data = aData;
 
   resourceSizes->Promise()->Then(
-      // Non-DocGroup version of AbstractThread::MainThread is fine for memory
-      // report.
+      // Don't use SystemGroup::AbstractMainThreadFor() for
+      // handleReport->Callback() will run scripts.
       AbstractThread::MainThread(),
       __func__,
       [handleReport, data] (size_t size) {
@@ -1814,7 +1818,7 @@ MediaDecoder::DumpDebugInfo()
 
   RefPtr<MediaDecoder> self = this;
   GetStateMachine()->RequestDebugInfo()->Then(
-    AbstractThread::MainThread(), __func__,
+    SystemGroup::AbstractMainThreadFor(TaskCategory::Other), __func__,
     [this, self, str] (const nsACString& aString) {
       DUMP_LOG("%s", str.get());
       DUMP_LOG("%s", aString.Data());
@@ -1835,7 +1839,7 @@ MediaDecoder::RequestDebugInfo()
   }
 
   return GetStateMachine()->RequestDebugInfo()->Then(
-    AbstractThread::MainThread(), __func__,
+    SystemGroup::AbstractMainThreadFor(TaskCategory::Other), __func__,
     [str] (const nsACString& aString) {
       nsCString result = str + nsCString("\n") + aString;
       return DebugInfoPromise::CreateAndResolve(result, __func__);
@@ -1871,3 +1875,4 @@ MediaMemoryTracker::~MediaMemoryTracker()
 
 // avoid redefined macro in unified build
 #undef DECODER_LOG
+#undef NS_DispatchToMainThread
