@@ -97,6 +97,41 @@ private:
   bool mCanSeek;
 };
 
+class IndiceWrapperStagefright : public IndiceWrapper {
+public:
+  size_t Length() const override;
+
+  bool GetIndice(size_t aIndex, Index::Indice& aIndice) const override;
+
+  explicit IndiceWrapperStagefright(FallibleTArray<Index::Indice>& aIndice);
+
+protected:
+  FallibleTArray<Index::Indice> mIndice;
+};
+
+IndiceWrapperStagefright::IndiceWrapperStagefright(FallibleTArray<Index::Indice>& aIndice)
+{
+  mIndice.SwapElements(aIndice);
+}
+
+size_t
+IndiceWrapperStagefright::Length() const
+{
+  return mIndice.Length();
+}
+
+bool
+IndiceWrapperStagefright::GetIndice(size_t aIndex, Index::Indice& aIndice) const
+{
+  if (aIndex >= mIndice.Length()) {
+    MOZ_LOG(sLog, LogLevel::Error, ("Index overflow in indice"));
+    return false;
+  }
+
+  aIndice = mIndice[aIndex];
+  return true;
+}
+
 MP4Metadata::MP4Metadata(Stream* aSource)
  : mStagefright(MakeUnique<MP4MetadataStagefright>(aSource))
 {
@@ -157,10 +192,15 @@ MP4Metadata::Crypto() const
   return mStagefright->Crypto();
 }
 
-bool
-MP4Metadata::ReadTrackIndex(FallibleTArray<Index::Indice>& aDest, mozilla::TrackID aTrackID)
+mozilla::UniquePtr<IndiceWrapper>
+MP4Metadata::GetTrackIndice(mozilla::TrackID aTrackID)
 {
-  return mStagefright->ReadTrackIndex(aDest, aTrackID);
+  FallibleTArray<Index::Indice> indiceSF;
+  if(!mStagefright->ReadTrackIndex(indiceSF, aTrackID)) {
+    return nullptr;
+  }
+
+  return mozilla::MakeUnique<IndiceWrapperStagefright>(indiceSF);
 }
 
 static inline bool
