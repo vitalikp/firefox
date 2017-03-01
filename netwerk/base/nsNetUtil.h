@@ -646,6 +646,14 @@ bool NS_HasBeenCrossOrigin(nsIChannel* aChannel, bool aReport = false);
 #define NECKO_NO_APP_ID 0
 #define NECKO_UNKNOWN_APP_ID UINT32_MAX
 
+// Unique first-party domain for separating about uri.
+#define ABOUT_URI_FIRST_PARTY_DOMAIN \
+  "about.ef2a7dd5-93bc-417f-a698-142c3116864f.mozilla"
+
+// Unique first-party domain for separating null principal.
+#define NULL_PRINCIPAL_FIRST_PARTY_DOMAIN \
+  "1f1841ad-0395-48ba-aec4-c98ee3f6e614.mozilla"
+
 /**
  * Determines whether appcache should be checked for a given URI.
  */
