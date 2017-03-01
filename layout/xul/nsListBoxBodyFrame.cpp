@@ -1129,7 +1129,7 @@ nsListBoxBodyFrame::GetFirstItemBox(int32_t aOffset, bool* aCreated)
   mBottomFrame = mTopFrame;
 
   if (mTopFrame) {
-    return mTopFrame->IsXULBoxFrame() ? mTopFrame : nullptr;
+    return mTopFrame->IsXULBoxFrame() ? mTopFrame.GetFrame() : nullptr;
   }
 
   // top frame was cleared out
@@ -1137,7 +1137,7 @@ nsListBoxBodyFrame::GetFirstItemBox(int32_t aOffset, bool* aCreated)
   mBottomFrame = mTopFrame;
 
   if (mTopFrame && mRowsToPrepend <= 0) {
-    return mTopFrame->IsXULBoxFrame() ? mTopFrame : nullptr;
+    return mTopFrame->IsXULBoxFrame() ? mTopFrame.GetFrame() : nullptr;
   }
 
   // At this point, we either have no frames at all, 
@@ -1186,7 +1186,7 @@ nsListBoxBodyFrame::GetFirstItemBox(int32_t aOffset, bool* aCreated)
 
       mBottomFrame = mTopFrame;
 
-      return mTopFrame->IsXULBoxFrame() ? mTopFrame : nullptr;
+      return mTopFrame->IsXULBoxFrame() ? mTopFrame.GetFrame() : nullptr;
     } else
       return GetFirstItemBox(++aOffset, 0);
   }

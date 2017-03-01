@@ -373,6 +373,12 @@ NS_MergeReflowStatusInto(nsReflowStatus* aPrimary, nsReflowStatus aSecondary)
   }
 }
 
+AutoWeakFrame::AutoWeakFrame(const WeakFrame& aOther)
+  : mPrev(nullptr), mFrame(nullptr)
+{
+  Init(aOther.GetFrame());
+}
+
 void
 AutoWeakFrame::Init(nsIFrame* aFrame)
 {
@@ -381,6 +387,22 @@ AutoWeakFrame::Init(nsIFrame* aFrame)
   if (mFrame) {
     nsIPresShell* shell = mFrame->PresContext()->GetPresShell();
     NS_WARNING_ASSERTION(shell, "Null PresShell in AutoWeakFrame!");
+    if (shell) {
+      shell->AddAutoWeakFrame(this);
+    } else {
+      mFrame = nullptr;
+    }
+  }
+}
+
+void
+WeakFrame::Init(nsIFrame* aFrame)
+{
+  Clear(mFrame ? mFrame->PresContext()->GetPresShell() : nullptr);
+  mFrame = aFrame;
+  if (mFrame) {
+    nsIPresShell* shell = mFrame->PresContext()->GetPresShell();
+    MOZ_ASSERT(shell, "Null PresShell in WeakFrame!");
     if (shell) {
       shell->AddWeakFrame(this);
     } else {

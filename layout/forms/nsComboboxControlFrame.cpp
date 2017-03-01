@@ -412,7 +412,7 @@ public:
     return NS_OK;
   }
 
-  AutoWeakFrame mFrame;
+  WeakFrame mFrame;
 };
 
 void
@@ -526,7 +526,7 @@ public:
     }
     return NS_OK;
   }
-  AutoWeakFrame mFrame;
+  WeakFrame mFrame;
 };
 
 class nsAsyncResize : public Runnable
@@ -555,7 +555,7 @@ public:
     }
     return NS_OK;
   }
-  AutoWeakFrame mFrame;
+  WeakFrame mFrame;
 };
 
 void

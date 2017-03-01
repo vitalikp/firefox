@@ -193,7 +193,7 @@ private:
     }
 
   private:
-    AutoWeakFrame mFrame;
+    WeakFrame mFrame;
   };
 
   /**
