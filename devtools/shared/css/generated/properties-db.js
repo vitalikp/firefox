@@ -3090,6 +3090,7 @@ exports.CSS_PROPERTIES = {
       "text-emphasis-style",
       "-webkit-text-fill-color",
       "text-indent",
+      "text-justify",
       "text-orientation",
       "text-overflow",
       "text-rendering",
@@ -9511,6 +9512,10 @@ exports.PREFERENCES = [
   [
     "-webkit-text-fill-color",
     "layout.css.prefixes.webkit"
+  ],
+  [
+    "text-justify",
+    "layout.css.text-justify.enabled"
   ],
   [
     "-webkit-text-stroke",
