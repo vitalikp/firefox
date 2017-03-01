@@ -9,6 +9,7 @@
 
 #include "mozilla/RefPtr.h"
 #include "mozilla/SharedThreadPool.h"
+#include "mozilla/SystemGroup.h"
 #include "mozilla/TaskQueue.h"
 
 namespace mozilla {
@@ -18,11 +19,9 @@ class AutoTaskQueue : public AbstractThread
 {
 public:
   explicit AutoTaskQueue(already_AddRefed<SharedThreadPool> aPool,
-                         AbstractThread* aAbstractMainThread,
                          bool aSupportsTailDispatch = false)
   : AbstractThread(aSupportsTailDispatch)
   , mTaskQueue(new TaskQueue(Move(aPool), aSupportsTailDispatch))
-  , mAbstractMainThread(aAbstractMainThread)
   {}
 
   TaskDispatcher& TailDispatcher() override
@@ -52,10 +51,9 @@ private:
     RefPtr<TaskQueue> taskqueue = mTaskQueue;
     nsCOMPtr<nsIRunnable> task =
       NS_NewRunnableFunction([taskqueue]() { taskqueue->BeginShutdown(); });
-    mAbstractMainThread->Dispatch(task.forget());
+    SystemGroup::Dispatch("~AutoTaskQueue", TaskCategory::Other, task.forget());
   }
   RefPtr<TaskQueue> mTaskQueue;
-  const RefPtr<AbstractThread> mAbstractMainThread;
 };
 
 } // namespace mozilla
