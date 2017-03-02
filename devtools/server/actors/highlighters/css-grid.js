@@ -485,6 +485,7 @@ CssGridHighlighter.prototype = extend(AutoRefreshHighlighter.prototype, {
     // Clear the canvas the grid area highlights.
     this.clearCanvas();
     this.clearGridAreas();
+    this.clearGridCell();
 
     // Start drawing the grid fragments.
     for (let i = 0; i < this.gridData.length; i++) {
@@ -860,6 +861,7 @@ CssGridHighlighter.prototype = extend(AutoRefreshHighlighter.prototype, {
    */
   renderGridCell(gridFragmentIndex, rowNumber, columnNumber) {
     let fragment = this.gridData[gridFragmentIndex];
+
     if (!fragment) {
       return;
     }
