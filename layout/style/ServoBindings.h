@@ -309,6 +309,7 @@ void Gecko_EnsureImageLayersLength(nsStyleImageLayers* layers, size_t len,
                                    nsStyleImageLayers::LayerType layer_type);
 
 void Gecko_EnsureStyleAnimationArrayLength(void* array, size_t len);
+void Gecko_EnsureStyleTransitionArrayLength(void* array, size_t len);
 
 mozilla::Keyframe* Gecko_AnimationAppendKeyframe(RawGeckoKeyframeListBorrowedMut keyframes,
                                                  float offset,
