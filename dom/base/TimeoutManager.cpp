@@ -368,6 +368,8 @@ TimeoutManager::RunTimeout(Timeout* aTimeout)
       timeout->mFiringDepth = firingDepth;
       last_expired_timeout = timeout;
 
+      numTimersToRun += 1;
+
       // Note that we have seen our target timer.  This means we can now
       // stop processing timers once we hit our threshold below.
       if (timeout == aTimeout) {
@@ -389,8 +391,6 @@ TimeoutManager::RunTimeout(Timeout* aTimeout)
           !mWindow.IsChromeWindow()) {
         break;
       }
-
-      numTimersToRun += 1;
     }
   }
 
