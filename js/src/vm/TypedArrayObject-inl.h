@@ -245,6 +245,9 @@ class ElementSpecific
                       Handle<TypedArrayObject*> target, Handle<TypedArrayObject*> source,
                       uint32_t offset)
     {
+        // WARNING: |source| may be an unwrapped typed array from a different
+        // compartment. Proceed with caution!
+
         MOZ_ASSERT(TypeIDOfType<T>::id == target->type(),
                    "calling wrong setFromTypedArray specialization");
         MOZ_ASSERT(!target->hasDetachedBuffer(), "target isn't detached");
@@ -454,6 +457,9 @@ class ElementSpecific
                                  Handle<TypedArrayObject*> source,
                                  uint32_t offset)
     {
+        // WARNING: |source| may be an unwrapped typed array from a different
+        // compartment. Proceed with caution!
+
         MOZ_ASSERT(TypeIDOfType<T>::id == target->type(),
                    "calling wrong setFromTypedArray specialization");
         MOZ_ASSERT(!target->hasDetachedBuffer(), "target isn't detached");
