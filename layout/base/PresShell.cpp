@@ -3031,7 +3031,7 @@ PresShell::RecreateFramesFor(nsIContent* aContent)
 
   nsAutoScriptBlocker scriptBlocker;
 
-  nsStyleChangeList changeList;
+  nsStyleChangeList changeList(mPresContext->StyleSet()->BackendType());
   changeList.AppendChange(nullptr, aContent, nsChangeHint_ReconstructFrame);
 
   // Mark ourselves as not safe to flush while we're doing frame construction.
@@ -9572,7 +9572,7 @@ PresShell::Observe(nsISupports* aSubject,
 
         // Because "chrome:" URL equality is messy, reframe image box
         // frames (hack!).
-        nsStyleChangeList changeList;
+        nsStyleChangeList changeList(mPresContext->StyleSet()->BackendType());
         WalkFramesThroughPlaceholders(mPresContext, rootFrame,
                                       ReframeImageBoxes, &changeList);
         // Mark ourselves as not safe to flush while we're doing frame
