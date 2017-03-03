@@ -12141,6 +12141,7 @@ nsCSSFrameConstructor::ConstructInline(nsFrameConstructorState& aState,
 
   aFrameItems.AddChild(newFrame);
 
+  newFrame->AddStateBits(NS_FRAME_OWNS_ANON_BOXES);
   CreateIBSiblings(aState, newFrame, positioned, childItems, aFrameItems);
 
   return newFrame;
