@@ -1527,7 +1527,7 @@
             var aSameProcessAsFrameLoader;
             var aOriginPrincipal;
             var aOpener;
-            var aForceBrowserInsertion;
+            var aCreateLazyBrowser;
             if (arguments.length == 2 &&
                 typeof arguments[1] == "object" &&
                 !(arguments[1] instanceof Ci.nsIURI)) {
@@ -1551,7 +1551,7 @@
               aOriginPrincipal          = params.originPrincipal;
               aOpener                   = params.opener;
               aIsPrerendered            = params.isPrerendered;
-              aForceBrowserInsertion    = params.forceBrowserInsertion;
+              aCreateLazyBrowser        = params.createLazyBrowser;
             }
 
             var bgLoad = (aLoadInBackground != null) ? aLoadInBackground :
@@ -1571,7 +1571,7 @@
                                   skipAnimation: aSkipAnimation,
                                   allowMixedContent: aAllowMixedContent,
                                   forceNotRemote: aForceNotRemote,
-                                  forceBrowserInsertion: aForceBrowserInsertion,
+                                  createLazyBrowser: aCreateLazyBrowser,
                                   preferredRemoteType: aPreferredRemoteType,
                                   noReferrer: aNoReferrer,
                                   userContextId: aUserContextId,
@@ -2214,7 +2214,7 @@
             var aOriginPrincipal;
             var aDisallowInheritPrincipal;
             var aOpener;
-            var aForceBrowserInsertion;
+            var aCreateLazyBrowser;
             if (arguments.length == 2 &&
                 typeof arguments[1] == "object" &&
                 !(arguments[1] instanceof Ci.nsIURI)) {
@@ -2240,7 +2240,7 @@
               aDisallowInheritPrincipal = params.disallowInheritPrincipal;
               aOpener                   = params.opener;
               aIsPrerendered            = params.isPrerendered;
-              aForceBrowserInsertion    = params.forceBrowserInsertion;
+              aCreateLazyBrowser        = params.createLazyBrowser;
             }
 
             // if we're adding tabs, we're past interrupt mode, ditch the owner
@@ -2351,9 +2351,8 @@
                                  remoteType,
                                  usingPreloadedContent };
 
-            // If we're creating a blank tab, create a lazy browser.
-            // Otherwise insert the browser into the document now.
-            if (uriIsAboutBlank && !aForceBrowserInsertion) {
+            // If the caller opts in, create a lazy browser.
+            if (aCreateLazyBrowser) {
               this._createLazyBrowser(t);
             } else {
               this._insertBrowser(t);
