@@ -45,7 +45,7 @@ var HarUtils = {
    * Open File Save As dialog and let the user pick the proper file
    * location for generated HAR log.
    */
-  getTargetFile: function (fileName, jsonp, compress) {
+  getTargetFile: function (fileName, jsonp, compress, cb) {
     let browser = getMostRecentBrowserWindow();
 
     let fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
@@ -57,12 +57,13 @@ var HarUtils = {
 
     fp.defaultString = this.getHarFileName(fileName, jsonp, compress);
 
-    let rv = fp.show();
-    if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
-      return fp.file;
-    }
-
-    return null;
+    fp.open(rv => {
+      if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
+        cb(fp.file);
+      } else {
+        cb(null);
+      }
+    });
   },
 
   getHarFileName: function (defaultFileName, jsonp, compress) {
