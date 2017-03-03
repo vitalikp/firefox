@@ -352,6 +352,10 @@ DocAccessibleParent::RecvBindChildDoc(PDocAccessibleParent* aChildDoc, const uin
   if (!aID)
     return IPC_FAIL(this, "ID is 0!");
 
+  if (mShutdown) {
+    return IPC_OK();
+  }
+
   MOZ_ASSERT(CheckDocTree());
 
   auto childDoc = static_cast<DocAccessibleParent*>(aChildDoc);
