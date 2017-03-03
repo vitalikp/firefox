@@ -3986,8 +3986,7 @@ nsPIDOMWindowOuter::MaybeActiveMediaComponents()
   }
 
   if (!doc->Hidden() &&
-      mMediaSuspend == nsISuspendedTypes::SUSPENDED_BLOCK &&
-      AudioChannelService::IsServiceStarted()) {
+      mMediaSuspend == nsISuspendedTypes::SUSPENDED_BLOCK) {
     SetMediaSuspend(nsISuspendedTypes::NONE_SUSPENDED);
   }
 }

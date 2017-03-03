@@ -100,8 +100,6 @@ public:
 
   static bool IsEnableAudioCompeting();
 
-  static bool IsServiceStarted();
-
   /**
    * Any audio channel agent that starts playing should register itself to
    * this service, sharing the AudioChannel.
