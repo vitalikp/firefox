@@ -798,7 +798,7 @@ sprintf_append(JSContext* cx, char* buf, const char* fmt, ...)
     va_list ap;
 
     va_start(ap, fmt);
-    char* result = JS_vsprintf_append(buf, fmt, ap);
+    char* result = JS_vsprintf_append(UniqueChars(buf), fmt, ap).release();
     va_end(ap);
 
     if (!result) {
@@ -1053,7 +1053,7 @@ JS::FormatStackDump(JSContext* cx, char* buf, bool showArgs, bool showLocals, bo
     }
 
     if (!num)
-        buf = JS_sprintf_append(buf, "JavaScript stack is empty\n");
+        buf = JS_sprintf_append(UniqueChars(buf), "JavaScript stack is empty\n").release();
 
     return buf;
 }
