@@ -156,6 +156,9 @@ private:
   DECL_MEDIA_PREF("media.ogg.flac.enabled",                   FlacInOgg, bool, false);
   DECL_MEDIA_PREF("media.flac.enabled",                       FlacEnabled, bool, false);
 
+  // Error/warning handling, Decoder Doctor
+  DECL_MEDIA_PREF("media.playback.warnings-as-errors",        MediaWarningsAsErrors, bool, false);
+
 public:
   // Manage the singleton:
   static MediaPrefs& GetSingleton();
