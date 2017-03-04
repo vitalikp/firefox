@@ -85,6 +85,11 @@ browser[pending] {
   display: none;
 }
 
+browser[pendingtabchild],
 browser[pendingpaint] {
   opacity: 0;
+}
+
+tabbrowser[pendingtabchild] {
+  background-color: #ffffff !important;
 }
