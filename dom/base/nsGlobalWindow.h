@@ -121,6 +121,7 @@ enum class ImageBitmapFormat : uint8_t;
 class IdleRequest;
 class IdleRequestCallback;
 class IncrementalRunnable;
+class IntlUtils;
 class Location;
 class MediaQueryList;
 class MozSelfSupport;
@@ -904,6 +905,9 @@ public:
 
   void
   GetAppLocales(nsTArray<nsString>& aLocales);
+
+  mozilla::dom::IntlUtils*
+  GetIntlUtils(mozilla::ErrorResult& aRv);
 
 protected:
   bool AlertOrConfirm(bool aAlert, const nsAString& aMessage,
@@ -1973,6 +1977,8 @@ protected:
 
   // This is the CC generation the last time we called CanSkip.
   uint32_t mCanSkipCCGeneration;
+
+  RefPtr<mozilla::dom::IntlUtils> mIntlUtils;
 
   friend class nsDOMScriptableHelper;
   friend class nsDOMWindowUtils;
