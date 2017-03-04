@@ -2707,7 +2707,7 @@ bool
 SetPropIRGenerator::tryAttachProxy(HandleObject obj, ObjOperandId objId, HandleId id,
                                    ValOperandId rhsId)
 {
-    // Don't attach a setter stub for ops like JSOP_INITELEM.
+    // Don't attach a proxy stub for ops like JSOP_INITELEM.
     MOZ_ASSERT(IsPropertySetOp(JSOp(*pc_)));
 
     switch (GetProxyStubType(cx_, obj, id)) {
@@ -2730,7 +2730,7 @@ SetPropIRGenerator::tryAttachProxy(HandleObject obj, ObjOperandId objId, HandleI
 bool
 SetPropIRGenerator::tryAttachProxyElement(HandleObject obj, ObjOperandId objId, ValOperandId rhsId)
 {
-    // Don't attach a setter stub for ops like JSOP_INITELEM.
+    // Don't attach a proxy stub for ops like JSOP_INITELEM.
     MOZ_ASSERT(IsPropertySetOp(JSOp(*pc_)));
 
     if (!obj->is<ProxyObject>())
