@@ -3810,6 +3810,9 @@ nsCycleCollector::BeginCollection(ccType aCCType,
   timeLog.Checkpoint("Pre-FixGrayBits finish IGC");
 
   FixGrayBits(forceGC, timeLog);
+  if (mJSContext) {
+    mJSContext->CheckGrayBits();
+  }
 
   FreeSnowWhite(true);
   timeLog.Checkpoint("BeginCollection FreeSnowWhite");
