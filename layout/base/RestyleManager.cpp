@@ -1817,7 +1817,7 @@ RestyleManager::AnimationsWithDestroyedFrame
     dom::Element* element = content->AsElement();
 
     animationManager->StopAnimationsForElement(element, aPseudoType);
-    transitionManager->StopTransitionsForElement(element, aPseudoType);
+    transitionManager->StopAnimationsForElement(element, aPseudoType);
 
     // All other animations should keep running but not running on the
     // *compositor* at this point.
