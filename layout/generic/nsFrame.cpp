@@ -9064,7 +9064,7 @@ GetCorrectedParent(const nsIFrame* aFrame)
   if (element && element->IsNativeAnonymous() &&
       element->GetPseudoElementType() == aFrame->StyleContext()->GetPseudoType()) {
     while (parent->GetContent() && parent->GetContent()->IsNativeAnonymous()) {
-      parent = parent->GetParent();
+      parent = parent->GetInFlowParent();
     }
   }
 
