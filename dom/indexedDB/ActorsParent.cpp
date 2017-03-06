@@ -7483,7 +7483,6 @@ protected:
   nsCString mDatabaseId;
   nsString mDatabaseFilePath;
   State mState;
-  bool mIsApp;
   bool mEnforcingQuota;
   const bool mDeleting;
   bool mBlockedDatabaseOpen;
@@ -17098,7 +17097,6 @@ Cursor::RecvContinue(const CursorRequestParams& aParams)
 FileManager::FileManager(PersistenceType aPersistenceType,
                          const nsACString& aGroup,
                          const nsACString& aOrigin,
-                         bool aIsApp,
                          const nsAString& aDatabaseName,
                          bool aEnforcingQuota)
   : mPersistenceType(aPersistenceType)
@@ -17106,7 +17104,6 @@ FileManager::FileManager(PersistenceType aPersistenceType,
   , mOrigin(aOrigin)
   , mDatabaseName(aDatabaseName)
   , mLastFileId(0)
-  , mIsApp(aIsApp)
   , mEnforcingQuota(aEnforcingQuota)
   , mInvalidated(false)
 { }
@@ -18734,14 +18731,12 @@ Maintenance::DirectoryWork()
 
           int64_t dummyTimeStamp;
           nsCString dummySuffix;
-          bool dummyIsApp;
           if (NS_WARN_IF(NS_FAILED(
                 quotaManager->GetDirectoryMetadata2(originDir,
                                                     &dummyTimeStamp,
                                                     dummySuffix,
                                                     group,
-                                                    origin,
-                                                    &dummyIsApp)))) {
+                                                    origin)))) {
             // Not much we can do here...
             continue;
           }
@@ -19597,7 +19592,6 @@ UpgradeFileIdsFunction::Init(nsIFile* aFMDirectory,
     new FileManager(PERSISTENCE_TYPE_INVALID,
                     EmptyCString(),
                     EmptyCString(),
-                    false,
                     EmptyString(),
                     false);
 
@@ -20846,7 +20840,6 @@ FactoryOp::FactoryOp(Factory* aFactory,
   , mContentParent(Move(aContentParent))
   , mCommonParams(aCommonParams)
   , mState(State::Initial)
-  , mIsApp(false)
   , mEnforcingQuota(true)
   , mDeleting(aDeleting)
   , mBlockedDatabaseOpen(false)
@@ -21208,13 +21201,12 @@ FactoryOp::CheckPermission(ContentParent* aContentParent,
     }
 
     if (State::Initial == mState) {
-      QuotaManager::GetInfoForChrome(&mSuffix, &mGroup, &mOrigin, &mIsApp);
+      QuotaManager::GetInfoForChrome(&mSuffix, &mGroup, &mOrigin);
 
-      MOZ_ASSERT(!QuotaManager::IsFirstPromptRequired(persistenceType, mOrigin,
-                                                      mIsApp));
+      MOZ_ASSERT(!QuotaManager::IsFirstPromptRequired(persistenceType,
+                                                      mOrigin));
 
-      mEnforcingQuota =
-        QuotaManager::IsQuotaEnforced(persistenceType, mOrigin, mIsApp);
+      mEnforcingQuota = QuotaManager::IsQuotaEnforced(persistenceType);
     }
 
     *aPermission = PermissionRequestBase::kPermissionAllowed;
@@ -21233,27 +21225,24 @@ FactoryOp::CheckPermission(ContentParent* aContentParent,
   nsCString suffix;
   nsCString group;
   nsCString origin;
-  bool isApp;
   rv = QuotaManager::GetInfoFromPrincipal(principal,
                                           &suffix,
                                           &group,
-                                          &origin,
-                                          &isApp);
+                                          &origin);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
 
 #ifdef IDB_MOBILE
   if (persistenceType == PERSISTENCE_TYPE_PERSISTENT &&
-      !QuotaManager::IsOriginInternal(origin) &&
-      !isApp) {
+      !QuotaManager::IsOriginInternal(origin)) {
     return NS_ERROR_DOM_INDEXEDDB_NOT_ALLOWED_ERR;
   }
 #endif
 
   PermissionRequestBase::PermissionValue permission;
 
-  if (QuotaManager::IsFirstPromptRequired(persistenceType, origin, isApp)) {
+  if (QuotaManager::IsFirstPromptRequired(persistenceType, origin)) {
     rv = PermissionRequestBase::GetCurrentPermission(principal, &permission);
     if (NS_WARN_IF(NS_FAILED(rv))) {
       return rv;
@@ -21267,10 +21256,8 @@ FactoryOp::CheckPermission(ContentParent* aContentParent,
     mSuffix = suffix;
     mGroup = group;
     mOrigin = origin;
-    mIsApp = isApp;
 
-    mEnforcingQuota =
-      QuotaManager::IsQuotaEnforced(persistenceType, mOrigin, mIsApp);
+    mEnforcingQuota = QuotaManager::IsQuotaEnforced(persistenceType);
   }
 
   *aPermission = permission;
@@ -21427,7 +21414,6 @@ FactoryOp::OpenDirectory()
   quotaManager->OpenDirectory(persistenceType,
                               mGroup,
                               mOrigin,
-                              mIsApp,
                               Client::IDB,
                               /* aExclusive */ false,
                               this);
@@ -21693,7 +21679,6 @@ OpenDatabaseOp::DoDatabaseWork()
                                             mSuffix,
                                             mGroup,
                                             mOrigin,
-                                            mIsApp,
                                             getter_AddRefs(dbDirectory));
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
@@ -21817,7 +21802,6 @@ OpenDatabaseOp::DoDatabaseWork()
     fileManager = new FileManager(persistenceType,
                                   mGroup,
                                   mOrigin,
-                                  mIsApp,
                                   databaseName,
                                   mEnforcingQuota);
 
