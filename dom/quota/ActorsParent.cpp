@@ -1473,13 +1473,17 @@ protected:
 
   nsCOMPtr<nsIFile> mDirectory;
 
+  const bool mPersistent;
+
 public:
-  StorageDirectoryHelper(nsIFile* aDirectory)
+  StorageDirectoryHelper(nsIFile* aDirectory,
+                         bool aPersistent)
     : mMutex("StorageDirectoryHelper::mMutex")
     , mCondVar(mMutex, "StorageDirectoryHelper::mCondVar")
     , mMainThreadResultCode(NS_OK)
     , mWaiting(true)
     , mDirectory(aDirectory)
+    , mPersistent(aPersistent)
   {
     AssertIsOnIOThread();
   }
@@ -1487,6 +1491,13 @@ public:
 protected:
   ~StorageDirectoryHelper()
   { }
+
+  nsresult
+  GetDirectoryMetadata(nsIFile* aDirectory,
+                       int64_t& aTimestamp,
+                       nsACString& aGroup,
+                       nsACString& aOrigin,
+                       Nullable<bool>& aIsApp);
 
   nsresult
   ProcessOriginDirectories();
@@ -1622,13 +1633,10 @@ private:
 class CreateOrUpgradeDirectoryMetadataHelper final
   : public StorageDirectoryHelper
 {
-  const bool mPersistent;
-
 public:
   CreateOrUpgradeDirectoryMetadataHelper(nsIFile* aDirectory,
                                          bool aPersistent)
-    : StorageDirectoryHelper(aDirectory)
-    , mPersistent(aPersistent)
+    : StorageDirectoryHelper(aDirectory, aPersistent)
   { }
 
   nsresult
@@ -1638,13 +1646,6 @@ private:
   nsresult
   MaybeUpgradeOriginDirectory(nsIFile* aDirectory);
 
-  nsresult
-  GetDirectoryMetadata(nsIFile* aDirectory,
-                       int64_t* aTimestamp,
-                       nsACString& aGroup,
-                       nsACString& aOrigin,
-                       bool* aHasIsApp);
-
   virtual nsresult
   DoProcessOriginDirectories();
 };
@@ -1652,26 +1653,16 @@ private:
 class UpgradeStorageFrom0_0To1_0Helper final
   : public StorageDirectoryHelper
 {
-  const bool mPersistent;
-
 public:
   UpgradeStorageFrom0_0To1_0Helper(nsIFile* aDirectory,
                                    bool aPersistent)
-    : StorageDirectoryHelper(aDirectory)
-    , mPersistent(aPersistent)
+    : StorageDirectoryHelper(aDirectory, aPersistent)
   { }
 
   nsresult
   DoUpgrade();
 
 private:
-  nsresult
-  GetDirectoryMetadata(nsIFile* aDirectory,
-                       int64_t* aTimestamp,
-                       nsACString& aGroup,
-                       nsACString& aOrigin,
-                       bool* aIsApp);
-
   virtual nsresult
   DoProcessOriginDirectories() override;
 };
@@ -1679,13 +1670,10 @@ private:
 class RestoreDirectoryMetadata2Helper final
   : public StorageDirectoryHelper
 {
-  const bool mPersistent;
-
 public:
   RestoreDirectoryMetadata2Helper(nsIFile* aDirectory,
                                   bool aPersistent)
-    : StorageDirectoryHelper(aDirectory)
-    , mPersistent(aPersistent)
+    : StorageDirectoryHelper(aDirectory, aPersistent)
   { }
 
   nsresult
@@ -7070,6 +7058,55 @@ ClearDataOp::GetResponse(RequestResponse& aResponse)
 }
 
 nsresult
+StorageDirectoryHelper::GetDirectoryMetadata(nsIFile* aDirectory,
+                                             int64_t& aTimestamp,
+                                             nsACString& aGroup,
+                                             nsACString& aOrigin,
+                                             Nullable<bool>& aIsApp)
+{
+  AssertIsOnIOThread();
+  MOZ_ASSERT(aDirectory);
+
+  nsCOMPtr<nsIBinaryInputStream> binaryStream;
+  nsresult rv = GetBinaryInputStream(aDirectory,
+                                     NS_LITERAL_STRING(METADATA_FILE_NAME),
+                                     getter_AddRefs(binaryStream));
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  uint64_t timestamp;
+  rv = binaryStream->Read64(&timestamp);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  nsCString group;
+  rv = binaryStream->ReadCString(group);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  nsCString origin;
+  rv = binaryStream->ReadCString(origin);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  Nullable<bool> isApp;
+  bool value;
+  if (NS_SUCCEEDED(binaryStream->ReadBoolean(&value))) {
+    isApp.SetValue(value);
+  }
+
+  aTimestamp = timestamp;
+  aGroup = group;
+  aOrigin = origin;
+  aIsApp = Move(isApp);
+  return NS_OK;
+}
+
+nsresult
 StorageDirectoryHelper::ProcessOriginDirectories()
 {
   AssertIsOnIOThread();
@@ -7681,12 +7718,12 @@ CreateOrUpgradeDirectoryMetadataHelper::CreateOrUpgradeMetadataFiles()
       int64_t timestamp;
       nsCString group;
       nsCString origin;
-      bool hasIsApp = false;
+      Nullable<bool> isApp;
       rv = GetDirectoryMetadata(originDir,
-                                &timestamp,
+                                timestamp,
                                 group,
                                 origin,
-                                &hasIsApp);
+                                isApp);
       if (NS_FAILED(rv)) {
         timestamp = INT64_MIN;
         rv = GetLastModifiedTime(originDir, &timestamp);
@@ -7696,7 +7733,7 @@ CreateOrUpgradeDirectoryMetadataHelper::CreateOrUpgradeMetadataFiles()
 
         originProps.mTimestamp = timestamp;
         originProps.mNeedsRestore = true;
-      } else if (hasIsApp) {
+      } else if (!isApp.IsNull()) {
         originProps.mIgnore = true;
       }
     }
@@ -7829,56 +7866,6 @@ CreateOrUpgradeDirectoryMetadataHelper::MaybeUpgradeOriginDirectory(
     }
   }
 
-  return NS_OK;
-}
-
-nsresult
-CreateOrUpgradeDirectoryMetadataHelper::GetDirectoryMetadata(
-                                                            nsIFile* aDirectory,
-                                                            int64_t* aTimestamp,
-                                                            nsACString& aGroup,
-                                                            nsACString& aOrigin,
-                                                            bool* aHasIsApp)
-{
-  AssertIsOnIOThread();
-  MOZ_ASSERT(aDirectory);
-  MOZ_ASSERT(aTimestamp);
-  MOZ_ASSERT(aHasIsApp);
-  MOZ_ASSERT(!mPersistent);
-
-  nsCOMPtr<nsIBinaryInputStream> binaryStream;
-  nsresult rv = GetBinaryInputStream(aDirectory,
-                                     NS_LITERAL_STRING(METADATA_FILE_NAME),
-                                     getter_AddRefs(binaryStream));
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  uint64_t timestamp;
-  rv = binaryStream->Read64(&timestamp);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  nsCString group;
-  rv = binaryStream->ReadCString(group);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  nsCString origin;
-  rv = binaryStream->ReadCString(origin);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  bool dummyIsApp;
-  bool hasIsApp = NS_SUCCEEDED(binaryStream->ReadBoolean(&dummyIsApp));
-
-  *aTimestamp = timestamp;
-  aGroup = group;
-  aOrigin = origin;
-  *aHasIsApp = hasIsApp;
   return NS_OK;
 }
 
@@ -8063,13 +8050,13 @@ UpgradeStorageFrom0_0To1_0Helper::DoUpgrade()
     int64_t timestamp = INT64_MIN;
     nsCString group;
     nsCString origin;
-    bool isApp;
+    Nullable<bool> isApp;
     nsresult rv = GetDirectoryMetadata(originDir,
-                                       &timestamp,
+                                       timestamp,
                                        group,
                                        origin,
-                                       &isApp);
-    if (NS_FAILED(rv)) {
+                                       isApp);
+    if (NS_FAILED(rv) || isApp.IsNull()) {
       if (!mPersistent) {
         rv = GetLastModifiedTime(originDir, &timestamp);
         if (NS_WARN_IF(NS_FAILED(rv))) {
@@ -8094,57 +8081,6 @@ UpgradeStorageFrom0_0To1_0Helper::DoUpgrade()
     return rv;
   }
 
-  return NS_OK;
-}
-
-nsresult
-UpgradeStorageFrom0_0To1_0Helper::GetDirectoryMetadata(nsIFile* aDirectory,
-                                                       int64_t* aTimestamp,
-                                                       nsACString& aGroup,
-                                                       nsACString& aOrigin,
-                                                       bool* aIsApp)
-{
-  AssertIsOnIOThread();
-  MOZ_ASSERT(aDirectory);
-  MOZ_ASSERT(aTimestamp);
-  MOZ_ASSERT(aIsApp);
-
-  nsCOMPtr<nsIBinaryInputStream> binaryStream;
-  nsresult rv = GetBinaryInputStream(aDirectory,
-                                     NS_LITERAL_STRING(METADATA_FILE_NAME),
-                                     getter_AddRefs(binaryStream));
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  uint64_t timestamp;
-  rv = binaryStream->Read64(&timestamp);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  nsCString group;
-  rv = binaryStream->ReadCString(group);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  nsCString origin;
-  rv = binaryStream->ReadCString(origin);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  bool isApp;
-  rv = binaryStream->ReadBoolean(&isApp);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  *aTimestamp = timestamp;
-  aGroup = group;
-  aOrigin = origin;
-  *aIsApp = isApp;
   return NS_OK;
 }
 
