@@ -4,12 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-if CONFIG['ENABLE_INTL_API']:
-    SOURCES += ['OSPreferences.cpp']
-    EXPORTS.mozilla.intl += [
-        'OSPreferences.h',
-    ]
-
 toolkit = CONFIG['MOZ_WIDGET_TOOLKIT']
 
 if toolkit == 'windows':
@@ -45,6 +39,7 @@ EXPORTS += [
 
 EXPORTS.mozilla.intl += [
     'LocaleService.h',
+    'OSPreferences.h',
 ]
 
 UNIFIED_SOURCES += [
@@ -56,6 +51,7 @@ UNIFIED_SOURCES += [
     'nsLocaleService.cpp',
     'nsScriptableDateFormat.cpp',
     'nsUConvPropertySearch.cpp',
+    'OSPreferences.cpp',
 ]
 
 EXTRA_JS_MODULES += [
