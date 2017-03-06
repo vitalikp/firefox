@@ -1582,16 +1582,16 @@ private:
 
   typedef nsCCharSeparatedTokenizerTemplate<IgnoreWhitespace> Tokenizer;
 
-  enum SchemaType {
+  enum SchemeType {
     eNone,
     eFile,
     eAbout
   };
 
   enum State {
-    eExpectingAppIdOrSchema,
+    eExpectingAppIdOrScheme,
     eExpectingInMozBrowser,
-    eExpectingSchema,
+    eExpectingScheme,
     eExpectingEmptyToken1,
     eExpectingEmptyToken2,
     eExpectingEmptyToken3,
@@ -1608,13 +1608,13 @@ private:
   Tokenizer mTokenizer;
 
   uint32_t mAppId;
-  nsCString mSchema;
+  nsCString mScheme;
   nsCString mHost;
   Nullable<uint32_t> mPort;
   nsTArray<nsCString> mPathnameComponents;
   nsCString mHandledTokens;
 
-  SchemaType mSchemaType;
+  SchemeType mSchemeType;
   State mState;
   bool mInIsolatedMozBrowser;
   bool mMaybeDriveLetter;
@@ -1628,8 +1628,8 @@ public:
     , mTokenizer(aOrigin, '+')
     , mAppId(kNoAppId)
     , mPort()
-    , mSchemaType(eNone)
-    , mState(eExpectingAppIdOrSchema)
+    , mSchemeType(eNone)
+    , mState(eExpectingAppIdOrScheme)
     , mInIsolatedMozBrowser(false)
     , mMaybeDriveLetter(false)
     , mError(false)
@@ -1645,10 +1645,10 @@ public:
 
 private:
   void
-  HandleSchema(const nsDependentCSubstring& aSchema);
+  HandleScheme(const nsDependentCSubstring& aToken);
 
   void
-  HandlePathnameComponent(const nsDependentCSubstring& aSchema);
+  HandlePathnameComponent(const nsDependentCSubstring& aToken);
 
   void
   HandleToken(const nsDependentCSubstring& aToken);
@@ -7553,9 +7553,9 @@ OriginParser::Parse(nsACString& aSpec, OriginAttributes* aAttrs) -> ResultType
     *aAttrs = OriginAttributes(mAppId, mInIsolatedMozBrowser);
   }
 
-  nsAutoCString spec(mSchema);
+  nsAutoCString spec(mScheme);
 
-  if (mSchemaType == eFile) {
+  if (mSchemeType == eFile) {
     spec.AppendLiteral("://");
 
     for (uint32_t count = mPathnameComponents.Length(), index = 0;
@@ -7570,7 +7570,7 @@ OriginParser::Parse(nsACString& aSpec, OriginAttributes* aAttrs) -> ResultType
     return ValidOrigin;
   }
 
-  if (mSchemaType == eAbout) {
+  if (mSchemeType == eAbout) {
     spec.Append(':');
   } else {
     spec.AppendLiteral("://");
@@ -7585,14 +7585,14 @@ OriginParser::Parse(nsACString& aSpec, OriginAttributes* aAttrs) -> ResultType
 
   aSpec = spec;
 
-  return mSchema.EqualsLiteral("app") ? ObsoleteOrigin : ValidOrigin;
+  return mScheme.EqualsLiteral("app") ? ObsoleteOrigin : ValidOrigin;
 }
 
 void
-OriginParser::HandleSchema(const nsDependentCSubstring& aToken)
+OriginParser::HandleScheme(const nsDependentCSubstring& aToken)
 {
   MOZ_ASSERT(!aToken.IsEmpty());
-  MOZ_ASSERT(mState == eExpectingAppIdOrSchema || mState == eExpectingSchema);
+  MOZ_ASSERT(mState == eExpectingAppIdOrScheme || mState == eExpectingScheme);
 
   bool isAbout = false;
   bool isFile = false;
@@ -7605,14 +7605,14 @@ OriginParser::HandleSchema(const nsDependentCSubstring& aToken)
       aToken.EqualsLiteral("app") ||
       aToken.EqualsLiteral("resource") ||
       aToken.EqualsLiteral("moz-extension")) {
-    mSchema = aToken;
+    mScheme = aToken;
 
     if (isAbout) {
-      mSchemaType = eAbout;
+      mSchemeType = eAbout;
       mState = eExpectingHost;
     } else {
       if (isFile) {
-        mSchemaType = eFile;
+        mSchemeType = eFile;
       }
       mState = eExpectingEmptyToken1;
     }
@@ -7620,7 +7620,7 @@ OriginParser::HandleSchema(const nsDependentCSubstring& aToken)
     return;
   }
 
-  QM_WARNING("'%s' is not a valid schema!", nsCString(aToken).get());
+  QM_WARNING("'%s' is not a valid scheme!", nsCString(aToken).get());
 
   mError = true;
 }
@@ -7631,7 +7631,7 @@ OriginParser::HandlePathnameComponent(const nsDependentCSubstring& aToken)
   MOZ_ASSERT(!aToken.IsEmpty());
   MOZ_ASSERT(mState == eExpectingEmptyTokenOrDriveLetterOrPathnameComponent ||
              mState == eExpectingEmptyTokenOrPathnameComponent);
-  MOZ_ASSERT(mSchemaType == eFile);
+  MOZ_ASSERT(mSchemeType == eFile);
 
   mPathnameComponents.AppendElement(aToken);
 
@@ -7643,9 +7643,9 @@ void
 OriginParser::HandleToken(const nsDependentCSubstring& aToken)
 {
   switch (mState) {
-    case eExpectingAppIdOrSchema: {
+    case eExpectingAppIdOrScheme: {
       if (aToken.IsEmpty()) {
-        QM_WARNING("Expected an app id or schema (not an empty string)!");
+        QM_WARNING("Expected an app id or scheme (not an empty string)!");
 
         mError = true;
         return;
@@ -7664,7 +7664,7 @@ OriginParser::HandleToken(const nsDependentCSubstring& aToken)
         }
       }
 
-      HandleSchema(aToken);
+      HandleScheme(aToken);
 
       return;
     }
@@ -7690,20 +7690,20 @@ OriginParser::HandleToken(const nsDependentCSubstring& aToken)
         return;
       }
 
-      mState = eExpectingSchema;
+      mState = eExpectingScheme;
 
       return;
     }
 
-    case eExpectingSchema: {
+    case eExpectingScheme: {
       if (aToken.IsEmpty()) {
-        QM_WARNING("Expected a schema (not an empty string)!");
+        QM_WARNING("Expected a scheme (not an empty string)!");
 
         mError = true;
         return;
       }
 
-      HandleSchema(aToken);
+      HandleScheme(aToken);
 
       return;
     }
@@ -7729,7 +7729,7 @@ OriginParser::HandleToken(const nsDependentCSubstring& aToken)
         return;
       }
 
-      if (mSchemaType == eFile) {
+      if (mSchemeType == eFile) {
         mState = eExpectingEmptyToken3;
       } else {
         mState = eExpectingHost;
@@ -7739,7 +7739,7 @@ OriginParser::HandleToken(const nsDependentCSubstring& aToken)
     }
 
     case eExpectingEmptyToken3: {
-      MOZ_ASSERT(mSchemaType == eFile);
+      MOZ_ASSERT(mSchemeType == eFile);
 
       if (!aToken.IsEmpty()) {
         QM_WARNING("Expected the third empty token!");
@@ -7771,7 +7771,7 @@ OriginParser::HandleToken(const nsDependentCSubstring& aToken)
     }
 
     case eExpectingPort: {
-      MOZ_ASSERT(mSchemaType == eNone);
+      MOZ_ASSERT(mSchemeType == eNone);
 
       if (aToken.IsEmpty()) {
         QM_WARNING("Expected a port (not an empty string)!");
@@ -7800,7 +7800,7 @@ OriginParser::HandleToken(const nsDependentCSubstring& aToken)
     }
 
     case eExpectingEmptyTokenOrDriveLetterOrPathnameComponent: {
-      MOZ_ASSERT(mSchemaType == eFile);
+      MOZ_ASSERT(mSchemeType == eFile);
 
       if (aToken.IsEmpty()) {
         mPathnameComponents.AppendElement(EmptyCString());
@@ -7830,7 +7830,7 @@ OriginParser::HandleToken(const nsDependentCSubstring& aToken)
     }
 
     case eExpectingEmptyTokenOrPathnameComponent: {
-      MOZ_ASSERT(mSchemaType == eFile);
+      MOZ_ASSERT(mSchemeType == eFile);
 
       if (aToken.IsEmpty()) {
         if (mMaybeDriveLetter) {
@@ -7865,7 +7865,7 @@ void
 OriginParser::HandleTrailingSeparator()
 {
   MOZ_ASSERT(mState == eComplete);
-  MOZ_ASSERT(mSchemaType == eFile);
+  MOZ_ASSERT(mSchemeType == eFile);
 
   mPathnameComponents.AppendElement(EmptyCString());
 
