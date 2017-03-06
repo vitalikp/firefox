@@ -960,6 +960,9 @@ Inspector.prototype = {
 
     let markupDestroyer = this._destroyMarkup();
 
+    this.highlighters.destroy();
+    this.search.destroy();
+
     this._toolbox = null;
     this.breadcrumbs = null;
     this.panelDoc = null;
@@ -968,11 +971,7 @@ Inspector.prototype = {
     this.sidebar = null;
     this.store = null;
     this.target = null;
-
-    this.highlighters.destroy();
     this.highlighters = null;
-
-    this.search.destroy();
     this.search = null;
     this.searchBox = null;
 
