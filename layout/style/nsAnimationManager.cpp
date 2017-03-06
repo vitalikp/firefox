@@ -471,13 +471,14 @@ private:
 static Maybe<ComputedTimingFunction>
 ConvertTimingFunction(const nsTimingFunction& aTimingFunction);
 
+template<class BuilderType>
 static void
 UpdateOldAnimationPropertiesWithNew(
     CSSAnimation& aOld,
     TimingParams& aNewTiming,
     nsTArray<Keyframe>&& aNewKeyframes,
     bool aNewIsStylePaused,
-    CSSAnimationBuilder& aBuilder)
+    BuilderType& aBuilder)
 {
   bool animationChanged = false;
 
@@ -524,11 +525,12 @@ UpdateOldAnimationPropertiesWithNew(
 // Returns a new animation set up with given StyleAnimation.
 // Or returns an existing animation matching StyleAnimation's name updated
 // with the new StyleAnimation.
+template<class BuilderType>
 static already_AddRefed<CSSAnimation>
 BuildAnimation(nsPresContext* aPresContext,
                const NonOwningAnimationTarget& aTarget,
                const StyleAnimation& aSrc,
-               CSSAnimationBuilder& aBuilder,
+               BuilderType& aBuilder,
                nsAnimationManager::CSSAnimationCollection* aCollection)
 {
   MOZ_ASSERT(aPresContext);
@@ -1028,12 +1030,13 @@ CSSAnimationBuilder::GetComputedValue(nsPresContext* aPresContext,
   return result;
 }
 
+template<class BuilderType>
 static nsAnimationManager::OwningCSSAnimationPtrArray
 BuildAnimations(nsPresContext* aPresContext,
                 const NonOwningAnimationTarget& aTarget,
                 const nsStyleAutoArray<StyleAnimation>& aStyleAnimations,
                 uint32_t aStyleAnimationNameCount,
-                CSSAnimationBuilder& aBuilder,
+                BuilderType& aBuilder,
                 nsAnimationManager::CSSAnimationCollection* aCollection)
 {
   nsAnimationManager::OwningCSSAnimationPtrArray result;
@@ -1087,11 +1090,12 @@ nsAnimationManager::UpdateAnimations(nsStyleContext* aStyleContext,
   DoUpdateAnimations(target, *disp, builder);
 }
 
+template<class BuilderType>
 void
 nsAnimationManager::DoUpdateAnimations(
   const NonOwningAnimationTarget& aTarget,
   const nsStyleDisplay& aStyleDisplay,
-  CSSAnimationBuilder& aBuilder)
+  BuilderType& aBuilder)
 {
   // Everything that causes our animation data to change triggers a
   // style change, which in turn triggers a non-animation restyle.
