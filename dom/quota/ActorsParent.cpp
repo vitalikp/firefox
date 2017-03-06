@@ -8047,108 +8047,106 @@ CreateOrUpgradeDirectoryMetadataHelper::ProcessOriginDirectory(
 
   nsresult rv;
 
-  {
-    if (mPersistent) {
-      rv = CreateDirectoryMetadata(aOriginProps.mDirectory,
-                                   aOriginProps.mTimestamp,
-                                   aOriginProps.mSuffix,
-                                   aOriginProps.mGroup,
-                                   aOriginProps.mOrigin);
-      if (NS_WARN_IF(NS_FAILED(rv))) {
-        return rv;
-      }
+  if (mPersistent) {
+    rv = CreateDirectoryMetadata(aOriginProps.mDirectory,
+                                 aOriginProps.mTimestamp,
+                                 aOriginProps.mSuffix,
+                                 aOriginProps.mGroup,
+                                 aOriginProps.mOrigin);
+    if (NS_WARN_IF(NS_FAILED(rv))) {
+      return rv;
+    }
 
-      // Move internal origins to new persistent storage.
-      if (QuotaManager::IsOriginInternal(aOriginProps.mSpec)) {
-        if (!mPermanentStorageDir) {
-          mPermanentStorageDir =
-            do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
-          if (NS_WARN_IF(NS_FAILED(rv))) {
-            return rv;
-          }
-
-          QuotaManager* quotaManager = QuotaManager::Get();
-          MOZ_ASSERT(quotaManager);
-
-          const nsString& permanentStoragePath =
-            quotaManager->GetStoragePath(PERSISTENCE_TYPE_PERSISTENT);
-
-          rv = mPermanentStorageDir->InitWithPath(permanentStoragePath);
-          if (NS_WARN_IF(NS_FAILED(rv))) {
-            return rv;
-          }
-        }
-
-        nsString leafName;
-        rv = aOriginProps.mDirectory->GetLeafName(leafName);
+    // Move internal origins to new persistent storage.
+    if (QuotaManager::IsOriginInternal(aOriginProps.mSpec)) {
+      if (!mPermanentStorageDir) {
+        mPermanentStorageDir =
+          do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
         if (NS_WARN_IF(NS_FAILED(rv))) {
           return rv;
         }
 
-        nsCOMPtr<nsIFile> newDirectory;
-        rv = mPermanentStorageDir->Clone(getter_AddRefs(newDirectory));
-        if (NS_WARN_IF(NS_FAILED(rv))) {
-          return rv;
-        }
+        QuotaManager* quotaManager = QuotaManager::Get();
+        MOZ_ASSERT(quotaManager);
 
-        rv = newDirectory->Append(leafName);
-        if (NS_WARN_IF(NS_FAILED(rv))) {
-          return rv;
-        }
+        const nsString& permanentStoragePath =
+          quotaManager->GetStoragePath(PERSISTENCE_TYPE_PERSISTENT);
 
-        bool exists;
-        rv = newDirectory->Exists(&exists);
-        if (NS_WARN_IF(NS_FAILED(rv))) {
-          return rv;
-        }
-
-        if (exists) {
-          QM_WARNING("Found %s in storage/persistent and storage/permanent !",
-                     NS_ConvertUTF16toUTF8(leafName).get());
-
-          rv = aOriginProps.mDirectory->Remove(/* recursive */ true);
-        } else {
-          rv = aOriginProps.mDirectory->MoveTo(mPermanentStorageDir,
-                                               EmptyString());
-        }
+        rv = mPermanentStorageDir->InitWithPath(permanentStoragePath);
         if (NS_WARN_IF(NS_FAILED(rv))) {
           return rv;
         }
       }
-    } else if (aOriginProps.mNeedsRestore) {
-      rv = CreateDirectoryMetadata(aOriginProps.mDirectory,
-                                   aOriginProps.mTimestamp,
-                                   aOriginProps.mSuffix,
-                                   aOriginProps.mGroup,
-                                   aOriginProps.mOrigin);
-      if (NS_WARN_IF(NS_FAILED(rv))) {
-        return rv;
-      }
-    } else if (!aOriginProps.mIgnore) {
-      nsCOMPtr<nsIFile> file;
-      rv = aOriginProps.mDirectory->Clone(getter_AddRefs(file));
+
+      nsString leafName;
+      rv = aOriginProps.mDirectory->GetLeafName(leafName);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         return rv;
       }
 
-      rv = file->Append(NS_LITERAL_STRING(METADATA_FILE_NAME));
+      nsCOMPtr<nsIFile> newDirectory;
+      rv = mPermanentStorageDir->Clone(getter_AddRefs(newDirectory));
       if (NS_WARN_IF(NS_FAILED(rv))) {
         return rv;
       }
 
-      nsCOMPtr<nsIBinaryOutputStream> stream;
-      rv = GetBinaryOutputStream(file, kAppendFileFlag, getter_AddRefs(stream));
+      rv = newDirectory->Append(leafName);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         return rv;
       }
 
-      MOZ_ASSERT(stream);
-
-      // Currently unused (used to be isApp).
-      rv = stream->WriteBoolean(false);
+      bool exists;
+      rv = newDirectory->Exists(&exists);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         return rv;
       }
+
+      if (exists) {
+        QM_WARNING("Found %s in storage/persistent and storage/permanent !",
+                   NS_ConvertUTF16toUTF8(leafName).get());
+
+        rv = aOriginProps.mDirectory->Remove(/* recursive */ true);
+      } else {
+        rv = aOriginProps.mDirectory->MoveTo(mPermanentStorageDir,
+                                             EmptyString());
+      }
+      if (NS_WARN_IF(NS_FAILED(rv))) {
+        return rv;
+      }
+    }
+  } else if (aOriginProps.mNeedsRestore) {
+    rv = CreateDirectoryMetadata(aOriginProps.mDirectory,
+                                 aOriginProps.mTimestamp,
+                                 aOriginProps.mSuffix,
+                                 aOriginProps.mGroup,
+                                 aOriginProps.mOrigin);
+    if (NS_WARN_IF(NS_FAILED(rv))) {
+      return rv;
+    }
+  } else if (!aOriginProps.mIgnore) {
+    nsCOMPtr<nsIFile> file;
+    rv = aOriginProps.mDirectory->Clone(getter_AddRefs(file));
+    if (NS_WARN_IF(NS_FAILED(rv))) {
+      return rv;
+    }
+
+    rv = file->Append(NS_LITERAL_STRING(METADATA_FILE_NAME));
+    if (NS_WARN_IF(NS_FAILED(rv))) {
+      return rv;
+    }
+
+    nsCOMPtr<nsIBinaryOutputStream> stream;
+    rv = GetBinaryOutputStream(file, kAppendFileFlag, getter_AddRefs(stream));
+    if (NS_WARN_IF(NS_FAILED(rv))) {
+      return rv;
+    }
+
+    MOZ_ASSERT(stream);
+
+    // Currently unused (used to be isApp).
+    rv = stream->WriteBoolean(false);
+    if (NS_WARN_IF(NS_FAILED(rv))) {
+      return rv;
     }
   }
 
@@ -8250,45 +8248,43 @@ UpgradeStorageFrom0_0To1_0Helper::ProcessOriginDirectory(
 {
   AssertIsOnIOThread();
 
-  {
-    nsresult rv;
+  nsresult rv;
 
-    if (aOriginProps.mNeedsRestore) {
-      rv = CreateDirectoryMetadata(aOriginProps.mDirectory,
-                                   aOriginProps.mTimestamp,
-                                   aOriginProps.mSuffix,
-                                   aOriginProps.mGroup,
-                                   aOriginProps.mOrigin);
-      if (NS_WARN_IF(NS_FAILED(rv))) {
-        return rv;
-      }
-    }
-
-    rv = CreateDirectoryMetadata2(aOriginProps.mDirectory,
-                                  aOriginProps.mTimestamp,
-                                  aOriginProps.mSuffix,
-                                  aOriginProps.mGroup,
-                                  aOriginProps.mOrigin);
+  if (aOriginProps.mNeedsRestore) {
+    rv = CreateDirectoryMetadata(aOriginProps.mDirectory,
+                                 aOriginProps.mTimestamp,
+                                 aOriginProps.mSuffix,
+                                 aOriginProps.mGroup,
+                                 aOriginProps.mOrigin);
     if (NS_WARN_IF(NS_FAILED(rv))) {
       return rv;
     }
+  }
 
-    nsString oldName;
-    rv = aOriginProps.mDirectory->GetLeafName(oldName);
+  rv = CreateDirectoryMetadata2(aOriginProps.mDirectory,
+                                aOriginProps.mTimestamp,
+                                aOriginProps.mSuffix,
+                                aOriginProps.mGroup,
+                                aOriginProps.mOrigin);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  nsString oldName;
+  rv = aOriginProps.mDirectory->GetLeafName(oldName);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  nsAutoCString originSanitized(aOriginProps.mOrigin);
+  SanitizeOriginString(originSanitized);
+
+  NS_ConvertASCIItoUTF16 newName(originSanitized);
+
+  if (!oldName.Equals(newName)) {
+    rv = aOriginProps.mDirectory->RenameTo(nullptr, newName);
     if (NS_WARN_IF(NS_FAILED(rv))) {
       return rv;
-    }
-
-    nsAutoCString originSanitized(aOriginProps.mOrigin);
-    SanitizeOriginString(originSanitized);
-
-    NS_ConvertASCIItoUTF16 newName(originSanitized);
-
-    if (!oldName.Equals(newName)) {
-      rv = aOriginProps.mDirectory->RenameTo(nullptr, newName);
-      if (NS_WARN_IF(NS_FAILED(rv))) {
-        return rv;
-      }
     }
   }
 
@@ -8480,29 +8476,27 @@ UpgradeStorageFrom1_0To2_0Helper::ProcessOriginDirectory(
 {
   AssertIsOnIOThread();
 
-  {
-    nsresult rv;
+  nsresult rv;
 
-    if (aOriginProps.mNeedsRestore) {
-      rv = CreateDirectoryMetadata(aOriginProps.mDirectory,
-                                   aOriginProps.mTimestamp,
-                                   aOriginProps.mSuffix,
-                                   aOriginProps.mGroup,
-                                   aOriginProps.mOrigin);
-      if (NS_WARN_IF(NS_FAILED(rv))) {
-        return rv;
-      }
+  if (aOriginProps.mNeedsRestore) {
+    rv = CreateDirectoryMetadata(aOriginProps.mDirectory,
+                                 aOriginProps.mTimestamp,
+                                 aOriginProps.mSuffix,
+                                 aOriginProps.mGroup,
+                                 aOriginProps.mOrigin);
+    if (NS_WARN_IF(NS_FAILED(rv))) {
+      return rv;
     }
+  }
 
-    if (aOriginProps.mNeedsRestore2) {
-      rv = CreateDirectoryMetadata2(aOriginProps.mDirectory,
-                                    aOriginProps.mTimestamp,
-                                    aOriginProps.mSuffix,
-                                    aOriginProps.mGroup,
-                                    aOriginProps.mOrigin);
-      if (NS_WARN_IF(NS_FAILED(rv))) {
-        return rv;
-      }
+  if (aOriginProps.mNeedsRestore2) {
+    rv = CreateDirectoryMetadata2(aOriginProps.mDirectory,
+                                  aOriginProps.mTimestamp,
+                                  aOriginProps.mSuffix,
+                                  aOriginProps.mGroup,
+                                  aOriginProps.mOrigin);
+    if (NS_WARN_IF(NS_FAILED(rv))) {
+      return rv;
     }
   }
 
