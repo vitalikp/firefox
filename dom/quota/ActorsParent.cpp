@@ -179,7 +179,9 @@ enum AppId {
 // origin.
 // XXX We should get rid of old metadata files at some point, bug 1343576.
 #define METADATA_FILE_NAME ".metadata"
+#define METADATA_TMP_FILE_NAME ".metadata-tmp"
 #define METADATA_V2_FILE_NAME ".metadata-v2"
+#define METADATA_V2_TMP_FILE_NAME ".metadata-v2-tmp"
 
 /******************************************************************************
  * SQLite functions
@@ -1342,6 +1344,27 @@ AssertNoUnderflow(T aDest, U aArg)
   MOZ_ASSERT(uint64_t(aDest) >= uint64_t(aArg));
 }
 
+bool
+IsOSMetadata(const nsAString& aFileName)
+{
+  return aFileName.EqualsLiteral(DSSTORE_FILE_NAME);
+}
+
+bool
+IsOriginMetadata(const nsAString& aFileName)
+{
+  return aFileName.EqualsLiteral(METADATA_FILE_NAME) ||
+         aFileName.EqualsLiteral(METADATA_V2_FILE_NAME) ||
+         IsOSMetadata(aFileName);
+}
+
+bool
+IsTempMetadata(const nsAString& aFileName)
+{
+  return aFileName.EqualsLiteral(METADATA_TMP_FILE_NAME) ||
+         aFileName.EqualsLiteral(METADATA_V2_TMP_FILE_NAME);
+}
+
 } // namespace
 
 BackgroundThreadObject::BackgroundThreadObject()
@@ -1743,9 +1766,8 @@ GetLastModifiedTime(nsIFile* aFile, int64_t* aTimestamp)
           return rv;
         }
 
-        if (leafName.EqualsLiteral(METADATA_FILE_NAME) ||
-            leafName.EqualsLiteral(METADATA_V2_FILE_NAME) ||
-            leafName.EqualsLiteral(DSSTORE_FILE_NAME)) {
+        if (IsOriginMetadata(leafName) ||
+            IsTempMetadata(leafName)) {
           return NS_OK;
         }
 
@@ -1835,29 +1857,19 @@ enum FileFlag {
 };
 
 nsresult
-GetOutputStream(nsIFile* aDirectory,
-                const nsAString& aFilename,
+GetOutputStream(nsIFile* aFile,
                 FileFlag aFileFlag,
                 nsIOutputStream** aStream)
 {
   AssertIsOnIOThread();
 
-  nsCOMPtr<nsIFile> file;
-  nsresult rv = aDirectory->Clone(getter_AddRefs(file));
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  rv = file->Append(aFilename);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
+  nsresult rv;
 
   nsCOMPtr<nsIOutputStream> outputStream;
   switch (aFileFlag) {
     case kTruncateFileFlag: {
       rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream),
-                                       file);
+                                       aFile);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         return rv;
       }
@@ -1867,7 +1879,7 @@ GetOutputStream(nsIFile* aDirectory,
 
     case kUpdateFileFlag: {
       bool exists;
-      rv = file->Exists(&exists);
+      rv = aFile->Exists(&exists);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         return rv;
       }
@@ -1878,7 +1890,7 @@ GetOutputStream(nsIFile* aDirectory,
       }
 
       nsCOMPtr<nsIFileStream> stream;
-      rv = NS_NewLocalFileStream(getter_AddRefs(stream), file);
+      rv = NS_NewLocalFileStream(getter_AddRefs(stream), aFile);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         return rv;
       }
@@ -1893,7 +1905,7 @@ GetOutputStream(nsIFile* aDirectory,
 
     case kAppendFileFlag: {
       rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream),
-                                       file,
+                                       aFile,
                                        PR_WRONLY | PR_CREATE_FILE | PR_APPEND);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         return rv;
@@ -1911,20 +1923,17 @@ GetOutputStream(nsIFile* aDirectory,
 }
 
 nsresult
-GetBinaryOutputStream(nsIFile* aDirectory,
-                      const nsAString& aFilename,
+GetBinaryOutputStream(nsIFile* aFile,
                       FileFlag aFileFlag,
                       nsIBinaryOutputStream** aStream)
 {
   nsCOMPtr<nsIOutputStream> outputStream;
-  nsresult rv = GetOutputStream(aDirectory,
-                                aFilename,
+  nsresult rv = GetOutputStream(aFile,
                                 aFileFlag,
                                 getter_AddRefs(outputStream));
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
-
 
   nsCOMPtr<nsIBinaryOutputStream> binaryStream =
     do_CreateInstance("@mozilla.org/binaryoutputstream;1");
@@ -2005,11 +2014,19 @@ CreateDirectoryMetadata(nsIFile* aDirectory, int64_t aTimestamp,
 
   MOZ_ASSERT(groupPrefix == originPrefix);
 
+  nsCOMPtr<nsIFile> file;
+  nsresult rv = aDirectory->Clone(getter_AddRefs(file));
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  rv = file->Append(NS_LITERAL_STRING(METADATA_TMP_FILE_NAME));
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
   nsCOMPtr<nsIBinaryOutputStream> stream;
-  nsresult rv = GetBinaryOutputStream(aDirectory,
-                                      NS_LITERAL_STRING(METADATA_FILE_NAME),
-                                      kTruncateFileFlag,
-                                      getter_AddRefs(stream));
+  rv = GetBinaryOutputStream(file, kTruncateFileFlag, getter_AddRefs(stream));
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
@@ -2037,21 +2054,47 @@ CreateDirectoryMetadata(nsIFile* aDirectory, int64_t aTimestamp,
     return rv;
   }
 
+  rv = stream->Flush();
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  rv = stream->Close();
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  rv = file->RenameTo(nullptr, NS_LITERAL_STRING(METADATA_FILE_NAME));
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
   return NS_OK;
 }
 
 nsresult
-CreateDirectoryMetadata2(nsIFile* aDirectory, int64_t aTimestamp,
-                         const nsACString& aSuffix, const nsACString& aGroup,
+CreateDirectoryMetadata2(nsIFile* aDirectory,
+                         int64_t aTimestamp,
+                         const nsACString& aSuffix,
+                         const nsACString& aGroup,
                          const nsACString& aOrigin)
 {
   AssertIsOnIOThread();
+  MOZ_ASSERT(aDirectory);
+
+  nsCOMPtr<nsIFile> file;
+  nsresult rv = aDirectory->Clone(getter_AddRefs(file));
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  rv = file->Append(NS_LITERAL_STRING(METADATA_V2_TMP_FILE_NAME));
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
 
   nsCOMPtr<nsIBinaryOutputStream> stream;
-  nsresult rv = GetBinaryOutputStream(aDirectory,
-                                      NS_LITERAL_STRING(METADATA_V2_FILE_NAME),
-                                      kTruncateFileFlag,
-                                      getter_AddRefs(stream));
+  rv = GetBinaryOutputStream(file, kTruncateFileFlag, getter_AddRefs(stream));
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
@@ -2098,6 +2141,21 @@ CreateDirectoryMetadata2(nsIFile* aDirectory, int64_t aTimestamp,
 
   // Currently unused (used to be isApp).
   rv = stream->WriteBoolean(false);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  rv = stream->Flush();
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  rv = stream->Close();
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  rv = file->RenameTo(nullptr, NS_LITERAL_STRING(METADATA_V2_FILE_NAME));
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
@@ -3816,7 +3874,7 @@ QuotaManager::InitializeRepository(PersistenceType aPersistenceType)
         return rv;
       }
 
-      if (leafName.EqualsLiteral(DSSTORE_FILE_NAME)) {
+      if (IsOSMetadata(leafName)) {
         continue;
       }
 
@@ -3928,9 +3986,16 @@ QuotaManager::InitializeOrigin(PersistenceType aPersistenceType,
     }
 
     if (!isDirectory) {
-      if (leafName.EqualsLiteral(METADATA_FILE_NAME) ||
-          leafName.EqualsLiteral(METADATA_V2_FILE_NAME) ||
-          leafName.EqualsLiteral(DSSTORE_FILE_NAME)) {
+      if (IsOriginMetadata(leafName)) {
+        continue;
+      }
+
+      if (IsTempMetadata(leafName)) {
+        rv = file->Remove(/* recursive */ false);
+        if (NS_WARN_IF(NS_FAILED(rv))) {
+          return rv;
+        }
+
         continue;
       }
 
@@ -5774,20 +5839,22 @@ SaveOriginAccessTimeOp::DoDirectoryWork(QuotaManager* aQuotaManager)
   PROFILER_LABEL("Quota", "SaveOriginAccessTimeOp::DoDirectoryWork",
                  js::ProfileEntry::Category::OTHER);
 
-  nsCOMPtr<nsIFile> directory;
+  nsCOMPtr<nsIFile> file;
   nsresult rv =
     aQuotaManager->GetDirectoryForOrigin(mPersistenceType.Value(),
                                          mOriginScope.GetOrigin(),
-                                         getter_AddRefs(directory));
+                                         getter_AddRefs(file));
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  rv = file->Append(NS_LITERAL_STRING(METADATA_V2_FILE_NAME));
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
 
   nsCOMPtr<nsIBinaryOutputStream> stream;
-  rv = GetBinaryOutputStream(directory,
-                             NS_LITERAL_STRING(METADATA_V2_FILE_NAME),
-                             kUpdateFileFlag,
-                             getter_AddRefs(stream));
+  rv = GetBinaryOutputStream(file, kUpdateFileFlag, getter_AddRefs(stream));
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
@@ -6124,9 +6191,18 @@ QuotaUsageRequestBase::GetUsageForOrigin(QuotaManager* aQuotaManager,
         // not yet initialized or just continuing otherwise).
         // This can possibly be used by developers to add temporary backups into
         // origin directories without losing get usage functionality.
-        if (leafName.EqualsLiteral(METADATA_FILE_NAME) ||
-            leafName.EqualsLiteral(METADATA_V2_FILE_NAME) ||
-            leafName.EqualsLiteral(DSSTORE_FILE_NAME)) {
+        if (IsOriginMetadata(leafName)) {
+          continue;
+        }
+
+        if (IsTempMetadata(leafName)) {
+          if (!initialized) {
+            rv = file->Remove(/* recursive */ false);
+            if (NS_WARN_IF(NS_FAILED(rv))) {
+              return rv;
+            }
+          }
+
           continue;
         }
 
@@ -6292,7 +6368,7 @@ GetUsageOp::TraverseRepository(QuotaManager* aQuotaManager,
         return rv;
       }
 
-      if (!leafName.EqualsLiteral(DSSTORE_FILE_NAME)) {
+      if (!IsOSMetadata(leafName)) {
         UNKNOWN_FILE_WARNING(leafName);
       }
       continue;
@@ -6812,7 +6888,7 @@ ClearRequestBase::DeleteFiles(QuotaManager* aQuotaManager,
 
     if (!isDirectory) {
       // Unknown files during clearing are allowed. Just warn if we find them.
-      if (!leafName.EqualsLiteral(DSSTORE_FILE_NAME)) {
+      if (!IsOSMetadata(leafName)) {
         UNKNOWN_FILE_WARNING(leafName);
       }
       continue;
@@ -7591,7 +7667,7 @@ CreateOrUpgradeDirectoryMetadataHelper::CreateOrUpgradeMetadataFiles()
       }
     } else {
       // Unknown files during upgrade are allowed. Just warn if we find them.
-      if (!leafName.EqualsLiteral(DSSTORE_FILE_NAME)) {
+      if (!IsOSMetadata(leafName)) {
         UNKNOWN_FILE_WARNING(leafName);
       }
       continue;
@@ -7903,11 +7979,19 @@ CreateOrUpgradeDirectoryMetadataHelper::DoProcessOriginDirectories()
         return rv;
       }
     } else if (!originProps.mIgnore) {
+      nsCOMPtr<nsIFile> file;
+      rv = originProps.mDirectory->Clone(getter_AddRefs(file));
+      if (NS_WARN_IF(NS_FAILED(rv))) {
+        return rv;
+      }
+
+      rv = file->Append(NS_LITERAL_STRING(METADATA_FILE_NAME));
+      if (NS_WARN_IF(NS_FAILED(rv))) {
+        return rv;
+      }
+
       nsCOMPtr<nsIBinaryOutputStream> stream;
-      rv = GetBinaryOutputStream(originProps.mDirectory,
-                                 NS_LITERAL_STRING(METADATA_FILE_NAME),
-                                 kAppendFileFlag,
-                                 getter_AddRefs(stream));
+      rv = GetBinaryOutputStream(file, kAppendFileFlag, getter_AddRefs(stream));
       if (NS_WARN_IF(NS_FAILED(rv))) {
         return rv;
       }
@@ -7971,7 +8055,7 @@ UpgradeDirectoryMetadataFrom1To2Helper::UpgradeMetadataFiles()
       }
 
       // Unknown files during upgrade are allowed. Just warn if we find them.
-      if (!leafName.EqualsLiteral(DSSTORE_FILE_NAME)) {
+      if (!IsOSMetadata(leafName)) {
         UNKNOWN_FILE_WARNING(leafName);
       }
       continue;
