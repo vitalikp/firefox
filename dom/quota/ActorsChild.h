@@ -141,6 +141,9 @@ private:
   void
   HandleResponse();
 
+  void
+  HandleResponse(bool aResponse);
+
   // IPDL methods are only called by IPDL.
   virtual void
   ActorDestroy(ActorDestroyReason aWhy) override;

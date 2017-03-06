@@ -279,7 +279,22 @@ QuotaRequestChild::HandleResponse()
   AssertIsOnOwningThread();
   MOZ_ASSERT(mRequest);
 
-  mRequest->SetResult();
+  RefPtr<nsVariant> variant = new nsVariant();
+  variant->SetAsVoid();
+
+  mRequest->SetResult(variant);
+}
+
+void
+QuotaRequestChild::HandleResponse(bool aResponse)
+{
+  AssertIsOnOwningThread();
+  MOZ_ASSERT(mRequest);
+
+  RefPtr<nsVariant> variant = new nsVariant();
+  variant->SetAsBool(aResponse);
+
+  mRequest->SetResult(variant);
 }
 
 void
