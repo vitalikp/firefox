@@ -21203,10 +21203,9 @@ FactoryOp::CheckPermission(ContentParent* aContentParent,
     if (State::Initial == mState) {
       QuotaManager::GetInfoForChrome(&mSuffix, &mGroup, &mOrigin);
 
-      MOZ_ASSERT(!QuotaManager::IsFirstPromptRequired(persistenceType,
-                                                      mOrigin));
+      MOZ_ASSERT(QuotaManager::IsOriginInternal(mOrigin));
 
-      mEnforcingQuota = QuotaManager::IsQuotaEnforced(persistenceType);
+      mEnforcingQuota = false;
     }
 
     *aPermission = PermissionRequestBase::kPermissionAllowed;
@@ -21233,19 +21232,20 @@ FactoryOp::CheckPermission(ContentParent* aContentParent,
     return rv;
   }
 
-#ifdef IDB_MOBILE
-  if (persistenceType == PERSISTENCE_TYPE_PERSISTENT &&
-      !QuotaManager::IsOriginInternal(origin)) {
-    return NS_ERROR_DOM_INDEXEDDB_NOT_ALLOWED_ERR;
-  }
-#endif
-
   PermissionRequestBase::PermissionValue permission;
 
-  if (QuotaManager::IsFirstPromptRequired(persistenceType, origin)) {
-    rv = PermissionRequestBase::GetCurrentPermission(principal, &permission);
-    if (NS_WARN_IF(NS_FAILED(rv))) {
-      return rv;
+  if (persistenceType == PERSISTENCE_TYPE_PERSISTENT) {
+    if (QuotaManager::IsOriginInternal(origin)) {
+      permission = PermissionRequestBase::kPermissionAllowed;
+    } else {
+#ifdef IDB_MOBILE
+      return NS_ERROR_DOM_INDEXEDDB_NOT_ALLOWED_ERR;
+#else
+      rv = PermissionRequestBase::GetCurrentPermission(principal, &permission);
+      if (NS_WARN_IF(NS_FAILED(rv))) {
+        return rv;
+      }
+#endif
     }
   } else {
     permission = PermissionRequestBase::kPermissionAllowed;
@@ -21257,7 +21257,7 @@ FactoryOp::CheckPermission(ContentParent* aContentParent,
     mGroup = group;
     mOrigin = origin;
 
-    mEnforcingQuota = QuotaManager::IsQuotaEnforced(persistenceType);
+    mEnforcingQuota = persistenceType != PERSISTENCE_TYPE_PERSISTENT;
   }
 
   *aPermission = permission;
