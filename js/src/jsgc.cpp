@@ -2576,6 +2576,8 @@ GCRuntime::updateRuntimePointersToRelocatedCells(AutoLockForExclusiveAccess& loc
     WatchpointMap::sweepAll(rt);
     Debugger::sweepAll(rt->defaultFreeOp());
     jit::JitRuntime::SweepJitcodeGlobalTable(rt);
+    for (JS::WeakCache<void*>* cache : rt->weakCaches())
+        cache->sweep();
 
     // Type inference may put more blocks here to free.
     blocksToFreeAfterSweeping.ref().freeAll();
@@ -5131,6 +5133,10 @@ GCRuntime::beginSweepingZoneGroup(AutoLockForExclusiveAccess& lock)
             // Sweep entries containing about-to-be-finalized JitCode and
             // update relocated TypeSet::Types inside the JitcodeGlobalTable.
             jit::JitRuntime::SweepJitcodeGlobalTable(rt);
+
+            // Sweep runtime-wide weak caches.
+            for (JS::WeakCache<void*>* cache : rt->weakCaches())
+                cache->sweep();
         }
 
         {
