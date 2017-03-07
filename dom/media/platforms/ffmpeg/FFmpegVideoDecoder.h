@@ -8,7 +8,7 @@
 #define __FFmpegVideoDecoder_h__
 
 #include "FFmpegDataDecoder.h"
-#include "DurationMap.h"
+#include "SimpleMap.h"
 
 namespace mozilla
 {
@@ -17,6 +17,7 @@ class FFmpegVideoDecoder : public FFmpegDataDecoder
 {
   typedef mozilla::layers::Image Image;
   typedef mozilla::layers::ImageContainer ImageContainer;
+  typedef SimpleMap<int64_t> DurationMap;
 
 public:
   FFmpegVideoDecoder(TaskQueue* aTaskQueue,
