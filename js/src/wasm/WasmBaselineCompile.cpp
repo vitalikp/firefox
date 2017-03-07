@@ -3380,17 +3380,39 @@ class BaseCompiler
 #endif
     }
 
+    MOZ_MUST_USE bool needTlsForAccess(bool omitBoundsCheck) {
+#if defined(JS_CODEGEN_ARM)
+        return !omitBoundsCheck;
+#elif defined(JS_CODEGEN_X86)
+        return true;
+#else
+        return false;
+#endif
+    }
+
     // ptr and dest may be the same iff dest is I32.
     // This may destroy ptr even if ptr and dest are not the same.
-    MOZ_MUST_USE bool load(MemoryAccessDesc* access, RegI32 ptr, bool omitBoundsCheck, AnyReg dest,
-                           RegI32 tmp1, RegI32 tmp2, RegI32 tmp3)
+    MOZ_MUST_USE bool load(MemoryAccessDesc* access, RegI32 tls, RegI32 ptr, bool omitBoundsCheck,
+                           AnyReg dest, RegI32 tmp1, RegI32 tmp2, RegI32 tmp3)
     {
         checkOffset(access, ptr);
 
-        OutOfLineCode* ool = nullptr;
+#ifdef WASM_HUGE_MEMORY
+        // We have HeapReg and no bounds checking and need load neither
+        // memoryBase nor boundsCheckLimit from tls.
+        MOZ_ASSERT(tls == invalidI32());
+#endif
+#ifdef JS_CODEGEN_ARM
+        // We have HeapReg on ARM and don't need to load the memoryBase from tls.
+        MOZ_ASSERT_IF(omitBoundsCheck, tls == invalidI32());
+#endif
+
 #ifndef WASM_HUGE_MEMORY
-        if (!omitBoundsCheck)
-            masm.wasmBoundsCheck(Assembler::AboveOrEqual, ptr, trap(Trap::OutOfBounds));
+        if (!omitBoundsCheck) {
+            masm.wasmBoundsCheck(Assembler::AboveOrEqual, ptr,
+                                 Address(tls, offsetof(TlsData, boundsCheckLimit)),
+                                 trap(Trap::OutOfBounds));
+        }
 #endif
 
 #if defined(JS_CODEGEN_X64)
@@ -3401,6 +3423,7 @@ class BaseCompiler
         else
             masm.wasmLoad(*access, srcAddr, dest.any());
 #elif defined(JS_CODEGEN_X86)
+        masm.addPtr(Address(tls, offsetof(TlsData, memoryBase)), ptr);
         Operand srcAddr(ptr, access->offset());
 
         if (dest.tag == AnyReg::I64) {
@@ -3441,8 +3464,6 @@ class BaseCompiler
         MOZ_CRASH("BaseCompiler platform hook: load");
 #endif
 
-        if (ool)
-            masm.bind(ool->rejoin());
         return true;
     }
 
@@ -3456,15 +3477,27 @@ class BaseCompiler
 
     // ptr and src must not be the same register.
     // This may destroy ptr and src.
-    MOZ_MUST_USE bool store(MemoryAccessDesc* access, RegI32 ptr, bool omitBoundsCheck, AnyReg src,
-                            RegI32 tmp)
+    MOZ_MUST_USE bool store(MemoryAccessDesc* access, RegI32 tls, RegI32 ptr, bool omitBoundsCheck,
+                            AnyReg src, RegI32 tmp)
     {
         checkOffset(access, ptr);
 
-        Label rejoin;
+#ifdef WASM_HUGE_MEMORY
+        // We have HeapReg and no bounds checking and need load neither
+        // memoryBase nor boundsCheckLimit from tls.
+        MOZ_ASSERT(tls == invalidI32());
+#endif
+#ifdef JS_CODEGEN_ARM
+        // We have HeapReg on ARM and don't need to load the memoryBase from tls.
+        MOZ_ASSERT_IF(omitBoundsCheck, tls == invalidI32());
+#endif
+
 #ifndef WASM_HUGE_MEMORY
-        if (!omitBoundsCheck)
-            masm.wasmBoundsCheck(Assembler::AboveOrEqual, ptr, trap(Trap::OutOfBounds));
+        if (!omitBoundsCheck) {
+            masm.wasmBoundsCheck(Assembler::AboveOrEqual, ptr,
+                                 Address(tls, offsetof(TlsData, boundsCheckLimit)),
+                                 trap(Trap::OutOfBounds));
+        }
 #endif
 
         // Emit the store
@@ -3475,6 +3508,7 @@ class BaseCompiler
         masm.wasmStore(*access, src.any(), dstAddr);
 #elif defined(JS_CODEGEN_X86)
         MOZ_ASSERT(tmp == Register::Invalid());
+        masm.addPtr(Address(tls, offsetof(TlsData, memoryBase)), ptr);
         Operand dstAddr(ptr, access->offset());
 
         if (access->type() == Scalar::Int64) {
@@ -3526,9 +3560,6 @@ class BaseCompiler
 #else
         MOZ_CRASH("BaseCompiler platform hook: store");
 #endif
-
-        if (rejoin.used())
-            masm.bind(&rejoin);
 
         return true;
     }
@@ -3783,6 +3814,7 @@ class BaseCompiler
     MOZ_MUST_USE bool emitTeeLocal();
     MOZ_MUST_USE bool emitGetGlobal();
     MOZ_MUST_USE bool emitSetGlobal();
+    MOZ_MUST_USE RegI32 maybeLoadTlsForAccess(bool omitBoundsCheck);
     MOZ_MUST_USE bool emitLoad(ValType type, Scalar::Type viewType);
     MOZ_MUST_USE bool emitStore(ValType resultType, Scalar::Type viewType);
     MOZ_MUST_USE bool emitSelect();
@@ -6361,6 +6393,17 @@ BaseCompiler::popMemoryAccess(MemoryAccessDesc* access, bool* omitBoundsCheck)
     return popI32();
 }
 
+BaseCompiler::RegI32
+BaseCompiler::maybeLoadTlsForAccess(bool omitBoundsCheck)
+{
+    RegI32 tls = invalidI32();
+    if (needTlsForAccess(omitBoundsCheck)) {
+        tls = needI32();
+        loadFromFramePtr(tls, frameOffsetFromSlot(tlsSlot_, MIRType::Pointer));
+    }
+    return tls;
+}
+
 bool
 BaseCompiler::emitLoad(ValType type, Scalar::Type viewType)
 {
@@ -6375,9 +6418,11 @@ BaseCompiler::emitLoad(ValType type, Scalar::Type viewType)
     MemoryAccessDesc access(viewType, addr.align, addr.offset, Some(trapOffset()));
 
     size_t temps = loadTemps(access);
+    MOZ_ASSERT(temps <= 3);
     RegI32 tmp1 = temps >= 1 ? needI32() : invalidI32();
     RegI32 tmp2 = temps >= 2 ? needI32() : invalidI32();
     RegI32 tmp3 = temps >= 3 ? needI32() : invalidI32();
+    RegI32 tls = invalidI32();
 
     switch (type) {
       case ValType::I32: {
@@ -6387,7 +6432,8 @@ BaseCompiler::emitLoad(ValType type, Scalar::Type viewType)
 #else
         RegI32 rv = rp;
 #endif
-        if (!load(&access, rp, omitBoundsCheck, AnyReg(rv), tmp1, tmp2, tmp3))
+        tls = maybeLoadTlsForAccess(omitBoundsCheck);
+        if (!load(&access, tls, rp, omitBoundsCheck, AnyReg(rv), tmp1, tmp2, tmp3))
             return false;
         pushI32(rv);
         if (rp != rv)
@@ -6405,7 +6451,8 @@ BaseCompiler::emitLoad(ValType type, Scalar::Type viewType)
         rp = popMemoryAccess(&access, &omitBoundsCheck);
         rv = needI64();
 #endif
-        if (!load(&access, rp, omitBoundsCheck, AnyReg(rv), tmp1, tmp2, tmp3))
+        tls = maybeLoadTlsForAccess(omitBoundsCheck);
+        if (!load(&access, tls, rp, omitBoundsCheck, AnyReg(rv), tmp1, tmp2, tmp3))
             return false;
         pushI64(rv);
         freeI32(rp);
@@ -6414,7 +6461,8 @@ BaseCompiler::emitLoad(ValType type, Scalar::Type viewType)
       case ValType::F32: {
         RegI32 rp = popMemoryAccess(&access, &omitBoundsCheck);
         RegF32 rv = needF32();
-        if (!load(&access, rp, omitBoundsCheck, AnyReg(rv), tmp1, tmp2, tmp3))
+        tls = maybeLoadTlsForAccess(omitBoundsCheck);
+        if (!load(&access, tls, rp, omitBoundsCheck, AnyReg(rv), tmp1, tmp2, tmp3))
             return false;
         pushF32(rv);
         freeI32(rp);
@@ -6423,7 +6471,8 @@ BaseCompiler::emitLoad(ValType type, Scalar::Type viewType)
       case ValType::F64: {
         RegI32 rp = popMemoryAccess(&access, &omitBoundsCheck);
         RegF64 rv = needF64();
-        if (!load(&access, rp, omitBoundsCheck, AnyReg(rv), tmp1, tmp2, tmp3))
+        tls = maybeLoadTlsForAccess(omitBoundsCheck);
+        if (!load(&access, tls, rp, omitBoundsCheck, AnyReg(rv), tmp1, tmp2, tmp3))
             return false;
         pushF64(rv);
         freeI32(rp);
@@ -6434,6 +6483,10 @@ BaseCompiler::emitLoad(ValType type, Scalar::Type viewType)
         break;
     }
 
+    if (tls != invalidI32())
+        freeI32(tls);
+
+    MOZ_ASSERT(temps <= 3);
     if (temps >= 1)
         freeI32(tmp1);
     if (temps >= 2)
@@ -6462,12 +6515,14 @@ BaseCompiler::emitStore(ValType resultType, Scalar::Type viewType)
 
     MOZ_ASSERT(temps <= 1);
     RegI32 tmp = temps >= 1 ? needI32() : invalidI32();
+    RegI32 tls = invalidI32();
 
     switch (resultType) {
       case ValType::I32: {
         RegI32 rv = popI32();
         RegI32 rp = popMemoryAccess(&access, &omitBoundsCheck);
-        if (!store(&access, rp, omitBoundsCheck, AnyReg(rv), tmp))
+        tls = maybeLoadTlsForAccess(omitBoundsCheck);
+        if (!store(&access, tls, rp, omitBoundsCheck, AnyReg(rv), tmp))
             return false;
         freeI32(rp);
         freeI32(rv);
@@ -6476,7 +6531,8 @@ BaseCompiler::emitStore(ValType resultType, Scalar::Type viewType)
       case ValType::I64: {
         RegI64 rv = popI64();
         RegI32 rp = popMemoryAccess(&access, &omitBoundsCheck);
-        if (!store(&access, rp, omitBoundsCheck, AnyReg(rv), tmp))
+        tls = maybeLoadTlsForAccess(omitBoundsCheck);
+        if (!store(&access, tls, rp, omitBoundsCheck, AnyReg(rv), tmp))
             return false;
         freeI32(rp);
         freeI64(rv);
@@ -6485,7 +6541,8 @@ BaseCompiler::emitStore(ValType resultType, Scalar::Type viewType)
       case ValType::F32: {
         RegF32 rv = popF32();
         RegI32 rp = popMemoryAccess(&access, &omitBoundsCheck);
-        if (!store(&access, rp, omitBoundsCheck, AnyReg(rv), tmp))
+        tls = maybeLoadTlsForAccess(omitBoundsCheck);
+        if (!store(&access, tls, rp, omitBoundsCheck, AnyReg(rv), tmp))
             return false;
         freeI32(rp);
         freeF32(rv);
@@ -6494,7 +6551,8 @@ BaseCompiler::emitStore(ValType resultType, Scalar::Type viewType)
       case ValType::F64: {
         RegF64 rv = popF64();
         RegI32 rp = popMemoryAccess(&access, &omitBoundsCheck);
-        if (!store(&access, rp, omitBoundsCheck, AnyReg(rv), tmp))
+        tls = maybeLoadTlsForAccess(omitBoundsCheck);
+        if (!store(&access, tls, rp, omitBoundsCheck, AnyReg(rv), tmp))
             return false;
         freeI32(rp);
         freeF64(rv);
@@ -6504,6 +6562,9 @@ BaseCompiler::emitStore(ValType resultType, Scalar::Type viewType)
         MOZ_CRASH("store type");
         break;
     }
+
+    if (tls != invalidI32())
+        freeI32(tls);
 
     MOZ_ASSERT(temps <= 1);
     if (temps >= 1)
