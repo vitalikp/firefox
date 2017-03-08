@@ -675,6 +675,9 @@ private:
   bool EnsureDecoder(nsIIncrementalStreamLoader *aLoader,
                      const uint8_t* aData, uint32_t aDataLength,
                      bool aEndOfStream);
+  bool EnsureDecoder(nsIIncrementalStreamLoader *aLoader,
+                     const uint8_t* aData, uint32_t aDataLength,
+                     bool aEndOfStream, nsCString& oCharset);
 
   // ScriptLoader which will handle the parsed script.
   RefPtr<nsScriptLoader>        mScriptLoader;
