@@ -343,7 +343,7 @@ static void
 MergeStacksIntoProfile(ProfileBuffer* aBuffer, TickSample* aSample,
                        NativeStack& aNativeStack)
 {
-  PseudoStack* pseudoStack = aSample->threadInfo->Stack();
+  NotNull<PseudoStack*> pseudoStack = aSample->threadInfo->Stack();
   volatile js::ProfileEntry* pseudoFrames = pseudoStack->mStack;
   uint32_t pseudoCount = pseudoStack->stackSize();
 
@@ -604,7 +604,7 @@ DoNativeBacktrace(Profile* aBuffer, TickSample* aSample)
   const mcontext_t* mcontext =
     &reinterpret_cast<ucontext_t*>(aSample->context)->uc_mcontext;
   mcontext_t savedContext;
-  PseudoStack* pseudoStack = aInfo.Stack();
+  NotNull<PseudoStack*> pseudoStack = aInfo.Stack();
 
   nativeStack.count = 0;
 
@@ -787,7 +787,7 @@ Tick(ProfileBuffer* aBuffer, TickSample* aSample)
   mozilla::TimeDuration delta = aSample->timestamp - gStartTime;
   aBuffer->addTag(ProfileBufferEntry::Time(delta.ToMilliseconds()));
 
-  PseudoStack* stack = threadInfo.Stack();
+  NotNull<PseudoStack*> stack = threadInfo.Stack();
 
 #if defined(USE_NS_STACKWALK) || defined(USE_EHABI_STACKWALK) || \
     defined(USE_LUL_STACKWALK)
@@ -1516,7 +1516,7 @@ MaybeSetProfile(ThreadInfo* aInfo)
 }
 
 static void
-RegisterCurrentThread(const char* aName, PseudoStack* aPseudoStack,
+RegisterCurrentThread(const char* aName, NotNull<PseudoStack*> aPseudoStack,
                       bool aIsMainThread, void* stackTop)
 {
   StaticMutexAutoLock lock(gRegisteredThreadsMutex);
@@ -1586,7 +1586,7 @@ profiler_init(void* stackTop)
   // startup, even if no profiling is actually to be done. So, instead, gLUL is
   // created on demand at the first call to PlatformStart().
 
-  PseudoStack* stack = new PseudoStack();
+  NotNull<PseudoStack*> stack = WrapNotNull(new PseudoStack());
   tlsPseudoStack.set(stack);
 
   bool isMainThread = true;
@@ -1676,7 +1676,9 @@ profiler_shutdown()
 #endif
 
   // We just destroyed all the ThreadInfos in gRegisteredThreads, so it is safe
-  // the delete the PseudoStack.
+  // to delete the PseudoStack. tlsPseudoStack is certain to still be the
+  // owner of its PseudoStack because the main thread is never put in a
+  // "pending delete" state.
   delete tlsPseudoStack.get();
   tlsPseudoStack.set(nullptr);
 
@@ -2124,8 +2126,6 @@ profiler_stop()
       // We've stopped profiling. We no longer need to retain
       // information for an old thread.
       if (info->IsPendingDelete()) {
-        // The stack was nulled when SetPendingDelete() was called.
-        MOZ_ASSERT(!info->Stack());
         delete info;
         gRegisteredThreads->erase(gRegisteredThreads->begin() + i);
         i--;
@@ -2296,7 +2296,7 @@ profiler_register_thread(const char* aName, void* aGuessStackTop)
   }
 
   MOZ_ASSERT(tlsPseudoStack.get() == nullptr);
-  PseudoStack* stack = new PseudoStack();
+  NotNull<PseudoStack*> stack = WrapNotNull(new PseudoStack());
   tlsPseudoStack.set(stack);
   bool isMainThread = is_main_thread_name(aName);
   void* stackTop = GetStackTop(aGuessStackTop);
@@ -2314,6 +2314,8 @@ profiler_unregister_thread()
     return;
   }
 
+  bool wasPseudoStackTransferred = false;
+
   {
     StaticMutexAutoLock lock(gRegisteredThreadsMutex);
 
@@ -2324,10 +2326,12 @@ profiler_unregister_thread()
         ThreadInfo* info = gRegisteredThreads->at(i);
         if (info->ThreadId() == id && !info->IsPendingDelete()) {
           if (profiler_is_active()) {
-            // We still want to show the results of this thread if you
-            // save the profile shortly after a thread is terminated.
-            // For now we will defer the delete to profile stop.
+            // We still want to show the results of this thread if you save the
+            // profile shortly after a thread is terminated, which requires
+            // transferring ownership of the PseudoStack to |info|. For now we
+            // will defer the delete to profile stop.
             info->SetPendingDelete();
+            wasPseudoStackTransferred = true;
           } else {
             delete info;
             gRegisteredThreads->erase(gRegisteredThreads->begin() + i);
@@ -2338,10 +2342,9 @@ profiler_unregister_thread()
     }
   }
 
-  // We just cut the ThreadInfo's PseudoStack pointer (either nulling it via
-  // SetPendingDelete() or by deleting the ThreadInfo altogether), so it is
-  // safe to delete the PseudoStack.
-  delete tlsPseudoStack.get();
+  if (!wasPseudoStackTransferred) {
+    delete tlsPseudoStack.get();
+  }
   tlsPseudoStack.set(nullptr);
 }
 
@@ -2467,7 +2470,7 @@ profiler_get_backtrace()
 
   ProfileBuffer* buffer = new ProfileBuffer(GET_BACKTRACE_DEFAULT_ENTRIES);
   ThreadInfo* threadInfo =
-    new ThreadInfo("SyncProfile", tid, NS_IsMainThread(), stack,
+    new ThreadInfo("SyncProfile", tid, NS_IsMainThread(), WrapNotNull(stack),
                    /* stackTop */ nullptr);
   threadInfo->SetHasProfile();
 
