@@ -7223,12 +7223,6 @@ nsWindow::GetInputContext()
   return mInputContext;
 }
 
-nsIMEUpdatePreference
-nsWindow::GetIMEUpdatePreference()
-{
-  return IMEHandler::GetUpdatePreference();
-}
-
 TextEventDispatcherListener*
 nsWindow::GetNativeTextEventDispatcherListener()
 {
