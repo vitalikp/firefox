@@ -21,6 +21,7 @@
 #include "Http2Push.h"
 #include "TunnelUtils.h"
 
+#include "mozilla/BasePrincipal.h"
 #include "mozilla/Telemetry.h"
 #include "nsAlgorithm.h"
 #include "nsHttp.h"
@@ -48,8 +49,8 @@ Http2Stream::Http2Stream(nsAHttpTransaction *httpTransaction,
   , mOpenGenerated(0)
   , mAllHeadersReceived(0)
   , mQueued(0)
-  , mTransaction(httpTransaction)
   , mSocketTransport(session->SocketTransport())
+  , mTransaction(httpTransaction)
   , mChunkSize(session->SendingChunkSize())
   , mRequestBlockedOnRead(0)
   , mRecvdFin(0)
@@ -356,6 +357,7 @@ Http2Stream::MakeOriginURL(const nsACString &scheme, const nsACString &origin,
 void
 Http2Stream::CreatePushHashKey(const nsCString &scheme,
                                const nsCString &hostHeader,
+                               const mozilla::OriginAttributes &originAttributes,
                                uint64_t serial,
                                const nsCSubstring &pathInfo,
                                nsCString &outOrigin,
@@ -379,6 +381,11 @@ Http2Stream::CreatePushHashKey(const nsCString &scheme,
   }
 
   outKey = outOrigin;
+  outKey.AppendLiteral("/[");
+  nsAutoCString suffix;
+  originAttributes.CreateSuffix(suffix);
+  outKey.Append(suffix);
+  outKey.Append(']');
   outKey.AppendLiteral("/[http2.");
   outKey.AppendInt(serial);
   outKey.Append(']');
@@ -434,8 +441,11 @@ Http2Stream::ParseHttpRequestHeaders(const char *buf,
 
   nsAutoCString requestURI;
   head->RequestURI(requestURI);
+
+  mozilla::OriginAttributes originAttributes;
+  mSocketTransport->GetOriginAttributes(&originAttributes),
   CreatePushHashKey(nsDependentCString(head->IsHTTPS() ? "https" : "http"),
-                    authorityHeader, mSession->Serial(),
+                    authorityHeader, originAttributes, mSession->Serial(),
                     requestURI,
                     mOrigin, hashkey);
 
