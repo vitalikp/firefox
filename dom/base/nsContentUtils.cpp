@@ -287,8 +287,6 @@ bool nsContentUtils::sIsResourceTimingEnabled = false;
 bool nsContentUtils::sIsUserTimingLoggingEnabled = false;
 bool nsContentUtils::sIsExperimentalAutocompleteEnabled = false;
 bool nsContentUtils::sIsWebComponentsEnabled = false;
-bool nsContentUtils::sEncodeDecodeURLHash = false;
-bool nsContentUtils::sGettersDecodeURLHash = false;
 bool nsContentUtils::sPrivacyResistFingerprinting = false;
 bool nsContentUtils::sSendPerformanceTimingNotifications = false;
 bool nsContentUtils::sUseActivityCursor = false;
@@ -593,12 +591,6 @@ nsContentUtils::Init()
 
   Preferences::AddBoolVarCache(&sIsWebComponentsEnabled,
                                "dom.webcomponents.enabled", false);
-
-  Preferences::AddBoolVarCache(&sEncodeDecodeURLHash,
-                               "dom.url.encode_decode_hash", false);
-
-  Preferences::AddBoolVarCache(&sGettersDecodeURLHash,
-                               "dom.url.getters_decode_hash", false);
 
   Preferences::AddBoolVarCache(&sPrivacyResistFingerprinting,
                                "privacy.resistFingerprinting", false);
