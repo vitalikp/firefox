@@ -706,6 +706,8 @@ ServoStyleSet::ClearNonInheritingStyleContexts()
 already_AddRefed<ServoComputedValues>
 ServoStyleSet::ResolveStyleLazily(Element* aElement, nsIAtom* aPseudoTag)
 {
+  mPresContext->EffectCompositor()->PreTraverse(aElement, aPseudoTag);
+
   return Servo_ResolveStyleLazily(aElement, aPseudoTag, mRawSet.get()).Consume();
 }
 
