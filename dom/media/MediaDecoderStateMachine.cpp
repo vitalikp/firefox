@@ -744,11 +744,19 @@ public:
 
   void HandleVideoSuspendTimeout() override
   {
-    if (mMaster->HasVideo()) {
-      mMaster->mVideoDecodeSuspended = true;
-      mMaster->mOnPlaybackEvent.Notify(MediaEventType::EnterVideoSuspend);
-      Reader()->SetVideoBlankDecode(true);
+    // No video, so nothing to suspend.
+    if (!mMaster->HasVideo()) {
+      return;
     }
+
+    // The decoder is tainted, so suspend-video-decoder is disabled.
+    if (mMaster->mHasSuspendTaint) {
+      return;
+    }
+
+    mMaster->mVideoDecodeSuspended = true;
+    mMaster->mOnPlaybackEvent.Notify(MediaEventType::EnterVideoSuspend);
+    Reader()->SetVideoBlankDecode(true);
   }
 
   void HandlePlayStateChanged(MediaDecoder::PlayState aPlayState) override
@@ -1743,11 +1751,19 @@ public:
 
   void HandleVideoSuspendTimeout() override
   {
-    if (mMaster->HasVideo()) {
-      mMaster->mVideoDecodeSuspended = true;
-      mMaster->mOnPlaybackEvent.Notify(MediaEventType::EnterVideoSuspend);
-      Reader()->SetVideoBlankDecode(true);
-    }
+    // No video, so nothing to suspend.
+     if (!mMaster->HasVideo()) {
+       return;
+     }
+
+     // The decoder is tainted, so nothing to suspend.
+     if (mMaster->mHasSuspendTaint) {
+       return;
+     }
+
+    mMaster->mVideoDecodeSuspended = true;
+    mMaster->mOnPlaybackEvent.Notify(MediaEventType::EnterVideoSuspend);
+    Reader()->SetVideoBlankDecode(true);
   }
 
 private:
@@ -2521,6 +2537,7 @@ ShutdownState::Enter()
   master->mPlaybackRateReliable.DisconnectIfConnected();
   master->mDecoderPosition.DisconnectIfConnected();
   master->mIsVisible.DisconnectIfConnected();
+  master->mHasSuspendTaint.DisconnectIfConnected();
 
   master->mDuration.DisconnectAll();
   master->mIsShutdown.DisconnectAll();
@@ -2588,6 +2605,7 @@ MediaDecoderStateMachine::MediaDecoderStateMachine(MediaDecoder* aDecoder,
   INIT_MIRROR(mPlaybackRateReliable, true),
   INIT_MIRROR(mDecoderPosition, 0),
   INIT_MIRROR(mIsVisible, true),
+  INIT_MIRROR(mHasSuspendTaint, false),
   INIT_CANONICAL(mDuration, NullableTimeUnit()),
   INIT_CANONICAL(mIsShutdown, false),
   INIT_CANONICAL(mNextFrameStatus, MediaDecoderOwner::NEXT_FRAME_UNAVAILABLE),
@@ -2659,6 +2677,7 @@ MediaDecoderStateMachine::InitializationTask(MediaDecoder* aDecoder)
 
   if (MediaPrefs::MDSMSuspendBackgroundVideoEnabled()) {
     mIsVisible.Connect(aDecoder->CanonicalIsVisible());
+    mHasSuspendTaint.Connect(aDecoder->CanonicalHasSuspendTaint());
     mWatchManager.Watch(mIsVisible,
                         &MediaDecoderStateMachine::VisibilityChanged);
   }

@@ -436,6 +436,7 @@ MediaDecoder::MediaDecoder(MediaDecoderOwner* aOwner)
   , INIT_CANONICAL(mPlaybackRateReliable, true)
   , INIT_CANONICAL(mDecoderPosition, 0)
   , INIT_CANONICAL(mIsVisible, !aOwner->IsHidden())
+  , INIT_CANONICAL(mHasSuspendTaint, false)
   , mTelemetryReported(false)
   , mIsMediaElement(!!aOwner->GetMediaElement())
   , mElement(aOwner->GetMediaElement())
@@ -1316,6 +1317,20 @@ MediaDecoder::SetForcedHidden(bool aForcedHidden)
   MOZ_ASSERT(NS_IsMainThread());
   mForcedHidden = aForcedHidden;
   SetElementVisibility(mElementVisible);
+}
+
+void
+MediaDecoder::SetSuspendTaint(bool aTainted)
+{
+  MOZ_ASSERT(NS_IsMainThread());
+  mHasSuspendTaint = aTainted;
+}
+
+bool
+MediaDecoder::HasSuspendTaint() const
+{
+  MOZ_ASSERT(NS_IsMainThread());
+  return mHasSuspendTaint;
 }
 
 void
