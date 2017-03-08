@@ -1781,6 +1781,18 @@ nsBaseWidget::NotifyIME(const IMENotification& aIMENotification)
   }
 }
 
+nsIMEUpdatePreference
+nsBaseWidget::GetIMEUpdatePreference()
+{
+  RefPtr<TextEventDispatcherListener> listener =
+    GetNativeTextEventDispatcherListener();
+  if (!listener) {
+    // Default is to not send additional change notifications to NotifyIME.
+    return nsIMEUpdatePreference();
+  }
+  return listener->GetIMEUpdatePreference();
+}
+
 void
 nsBaseWidget::EnsureTextEventDispatcher()
 {
