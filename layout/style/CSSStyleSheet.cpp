@@ -967,8 +967,7 @@ CSSStyleSheet::DeleteRuleFromGroup(css::GroupRule* aGroup, uint32_t aIndex)
 nsresult
 CSSStyleSheet::InsertRuleIntoGroup(const nsAString & aRule,
                                    css::GroupRule* aGroup,
-                                   uint32_t aIndex,
-                                   uint32_t* _retval)
+                                   uint32_t aIndex)
 {
   NS_ASSERTION(mInner->mComplete, "No inserting into an incomplete sheet!");
   // check that the group actually belongs to this sheet!
@@ -1026,7 +1025,6 @@ CSSStyleSheet::InsertRuleIntoGroup(const nsAString & aRule,
     mDocument->StyleRuleAdded(this, rule);
   }
 
-  *_retval = aIndex;
   return NS_OK;
 }
 
