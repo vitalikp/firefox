@@ -1300,7 +1300,6 @@ protected:
   static nsIFrame* CreatePlaceholderFrameFor(nsIPresShell*     aPresShell,
                                              nsIContent*       aContent,
                                              nsIFrame*         aFrame,
-                                             nsStyleContext*   aParentStyle,
                                              nsContainerFrame* aParentFrame,
                                              nsIFrame*         aPrevInFlow,
                                              nsFrameState      aTypeBit);

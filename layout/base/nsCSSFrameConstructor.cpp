@@ -1238,8 +1238,7 @@ nsFrameConstructorState::ConstructBackdropFrameFor(nsIContent* aContent,
 
   nsIFrame* placeholder = nsCSSFrameConstructor::
     CreatePlaceholderFrameFor(mPresShell, aContent, backdropFrame,
-                              frame->StyleContext(), frame, nullptr,
-                              PLACEHOLDER_FOR_TOPLAYER);
+                              frame, nullptr, PLACEHOLDER_FOR_TOPLAYER);
   nsFrameList temp(placeholder, placeholder);
   frame->SetInitialChildList(nsIFrame::kBackdropList, temp);
 
@@ -1281,12 +1280,10 @@ nsFrameConstructorState::AddChild(nsIFrame* aNewFrame,
   if (placeholderType) {
     NS_ASSERTION(frameItems != &aFrameItems,
                  "Putting frame in-flow _and_ want a placeholder?");
-    nsStyleContext* parentContext = aStyleContext->GetParent();
     nsIFrame* placeholderFrame =
       nsCSSFrameConstructor::CreatePlaceholderFrameFor(mPresShell,
                                                        aContent,
                                                        aNewFrame,
-                                                       parentContext,
                                                        aParentFrame,
                                                        nullptr,
                                                        placeholderType);
@@ -3023,13 +3020,12 @@ nsIFrame*
 nsCSSFrameConstructor::CreatePlaceholderFrameFor(nsIPresShell*     aPresShell,
                                                  nsIContent*       aContent,
                                                  nsIFrame*         aFrame,
-                                                 nsStyleContext*   aParentStyle,
                                                  nsContainerFrame* aParentFrame,
                                                  nsIFrame*         aPrevInFlow,
                                                  nsFrameState      aTypeBit)
 {
   RefPtr<nsStyleContext> placeholderStyle = aPresShell->StyleSet()->
-    ResolveStyleForPlaceholder(aParentStyle);
+    ResolveStyleForPlaceholder();
 
   // The placeholder frame gets a pseudo style context
   nsPlaceholderFrame* placeholderFrame =
@@ -9101,7 +9097,6 @@ nsCSSFrameConstructor::CreateContinuingFrame(nsPresContext*    aPresContext,
       CreateContinuingFrame(aPresContext, oofFrame, aParentFrame);
     newFrame =
       CreatePlaceholderFrameFor(shell, content, oofContFrame,
-                                styleContext->GetParent(),
                                 aParentFrame, aFrame,
                                 aFrame->GetStateBits() & PLACEHOLDER_TYPE_MASK);
   } else if (nsGkAtoms::fieldSetFrame == frameType) {
