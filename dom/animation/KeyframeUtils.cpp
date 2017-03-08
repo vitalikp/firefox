@@ -1151,7 +1151,6 @@ AppendInitialSegment(AnimationProperty* aAnimationProperty,
   AnimationPropertySegment* segment =
     aAnimationProperty->mSegments.AppendElement();
   segment->mFromKey        = 0.0f;
-  segment->mFromComposite  = dom::CompositeOperation::Add;
   segment->mToKey          = aFirstEntry.mOffset;
   segment->mToValue        = aFirstEntry.mValue;
   segment->mToComposite    = aFirstEntry.mComposite;
@@ -1167,7 +1166,6 @@ AppendFinalSegment(AnimationProperty* aAnimationProperty,
   segment->mFromValue      = aLastEntry.mValue;
   segment->mFromComposite  = aLastEntry.mComposite;
   segment->mToKey          = 1.0f;
-  segment->mToComposite    = dom::CompositeOperation::Add;
   segment->mTimingFunction = aLastEntry.mTimingFunction;
 }
 
