@@ -514,6 +514,14 @@ KeyframeEffectReadOnly::EnsureBaseStyles(
 }
 
 void
+KeyframeEffectReadOnly::WillComposeStyle()
+{
+  ComputedTiming computedTiming = GetComputedTiming();
+  mProgressOnLastCompose = computedTiming.mProgress;
+  mCurrentIterationOnLastCompose = computedTiming.mCurrentIteration;
+}
+
+void
 KeyframeEffectReadOnly::ComposeStyle(
   AnimationRule& aStyleRule,
   const nsCSSPropertyIDSet& aPropertiesToSkip)
@@ -528,8 +536,6 @@ KeyframeEffectReadOnly::ComposeStyle(
   mIsComposingStyle = true;
 
   ComputedTiming computedTiming = GetComputedTiming();
-  mProgressOnLastCompose = computedTiming.mProgress;
-  mCurrentIterationOnLastCompose = computedTiming.mCurrentIteration;
 
   // If the progress is null, we don't have fill data for the current
   // time so we shouldn't animate.
