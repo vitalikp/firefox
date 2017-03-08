@@ -381,8 +381,6 @@ ServoRestyleManager::ProcessPendingRestyles()
   // uninstalling XBL bindings) can trigger additional style validations.
   mInStyleRefresh = true;
   while (styleSet->StyleDocument()) {
-    PresContext()->EffectCompositor()->ClearElementsToRestyle();
-
     // Recreate style contexts, and queue up change hints (which also handle
     // lazy frame construction).
     nsStyleChangeList currentChanges(StyleBackendType::Servo);
