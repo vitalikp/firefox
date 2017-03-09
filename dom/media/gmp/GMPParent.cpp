@@ -50,7 +50,7 @@ extern LogModule* GetGMPLog();
 
 namespace gmp {
 
-GMPParent::GMPParent()
+GMPParent::GMPParent(AbstractThread* aMainThread)
   : mState(GMPStateNotLoaded)
   , mProcess(nullptr)
   , mDeleteProcessOnlyOnUnload(false)
@@ -60,6 +60,7 @@ GMPParent::GMPParent()
   , mGMPContentChildCount(0)
   , mChildPid(0)
   , mHoldingSelfRef(false)
+  , mMainThread(aMainThread)
 {
   mPluginId = GeckoChildProcessHost::GetUniqueID();
   LOGD("GMPParent ctor id=%u", mPluginId);
@@ -291,7 +292,8 @@ GMPParent::Shutdown()
 class NotifyGMPShutdownTask : public Runnable {
 public:
   explicit NotifyGMPShutdownTask(const nsAString& aNodeId)
-    : mNodeId(aNodeId)
+    : Runnable("NotifyGMPShutdownTask")
+    , mNodeId(aNodeId)
   {
   }
   NS_IMETHOD Run() override {
@@ -343,9 +345,9 @@ GMPParent::DeleteProcess()
   mProcess = nullptr;
   mState = GMPStateNotLoaded;
 
-  NS_DispatchToMainThread(
-    new NotifyGMPShutdownTask(NS_ConvertUTF8toUTF16(mNodeId)),
-    NS_DISPATCH_NORMAL);
+  nsCOMPtr<nsIRunnable> r
+    = new NotifyGMPShutdownTask(NS_ConvertUTF8toUTF16(mNodeId));
+  mMainThread->Dispatch(r.forget());
 
   if (mHoldingSelfRef) {
     Release();
