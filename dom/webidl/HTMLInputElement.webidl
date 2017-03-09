@@ -118,7 +118,7 @@ interface HTMLInputElement : HTMLElement {
   [Throws]
            attribute unsigned long? selectionStart;
   [Throws]
-           attribute long? selectionEnd;
+           attribute unsigned long? selectionEnd;
   [Throws]
            attribute DOMString? selectionDirection;
   [Throws]
