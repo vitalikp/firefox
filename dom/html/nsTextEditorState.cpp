@@ -1563,6 +1563,14 @@ nsTextEditorState::GetSelectionProperties()
 }
 
 void
+nsTextEditorState::SyncUpSelectionPropertiesBeforeDestruction()
+{
+  if (mBoundFrame) {
+    UnbindFromFrame(mBoundFrame);
+  }
+}
+
+void
 nsTextEditorState::SetSelectionProperties(nsTextEditorState::SelectionProperties& aProps)
 {
   if (mBoundFrame) {

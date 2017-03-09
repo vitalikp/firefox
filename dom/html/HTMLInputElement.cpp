@@ -5070,6 +5070,7 @@ HTMLInputElement::HandleTypeChange(uint8_t aNewType)
   nsTextEditorState::SelectionProperties sp;
 
   if (GetEditorState()) {
+    mInputData.mState->SyncUpSelectionPropertiesBeforeDestruction();
     sp = mInputData.mState->GetSelectionProperties();
   }
 
