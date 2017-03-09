@@ -59,7 +59,6 @@ UNIFIED_SOURCES += [
     'PermissionMessageUtils.cpp',
     'PreallocatedProcessManager.cpp',
     'ProcessPriorityManager.cpp',
-    'ScreenManagerParent.cpp',
     'StructuredCloneData.cpp',
     'TabChild.cpp',
     'TabContext.cpp',
@@ -87,7 +86,6 @@ IPDL_SOURCES += [
     'PFilePicker.ipdl',
     'PPluginWidget.ipdl',
     'PProcessHangMonitor.ipdl',
-    'PScreenManager.ipdl',
     'PTabContext.ipdlh',
     'ServiceWorkerConfiguration.ipdlh',
 ]
