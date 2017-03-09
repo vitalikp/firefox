@@ -292,6 +292,8 @@ public:
   void SetScrollableFrame(nsIScrollableFrame *aScrollableFrame);
   nsFrameSelection* GetConstFrameSelection()
     { return mFrameSelection; }
+  // Will return null if !mFrameSelection.
+  Selection* GetSelection(SelectionType aSelectionType);
 
   //NSISELECTIONCONTROLLER INTERFACES
   NS_IMETHOD SetDisplaySelection(int16_t toggle) override;
@@ -373,6 +375,16 @@ nsTextInputSelectionImpl::SetScrollableFrame(nsIScrollableFrame *aScrollableFram
     mFrameSelection->DisconnectFromPresShell();
     mFrameSelection = nullptr;
   }
+}
+
+Selection*
+nsTextInputSelectionImpl::GetSelection(SelectionType aSelectionType)
+{
+  if (!mFrameSelection) {
+    return nullptr;
+  }
+
+  return mFrameSelection->GetSelection(aSelectionType);
 }
 
 NS_IMETHODIMP
@@ -1710,21 +1722,12 @@ nsTextEditorState::GetSelectionRange(uint32_t* aSelectionStart,
     return;
   }
 
-  nsISelectionController* selCon = GetSelectionController();
-
-  nsCOMPtr<nsISelection> selection;
-  nsresult rv = selCon->GetSelection(nsISelectionController::SELECTION_NORMAL,
-                                     getter_AddRefs(selection));
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    aRv.Throw(rv);
-    return;
-  }
-  if (NS_WARN_IF(!selection)) {
+  Selection* sel = mSelCon->GetSelection(SelectionType::eNormal);
+  if (NS_WARN_IF(!sel)) {
     aRv.Throw(NS_ERROR_FAILURE);
     return;
   }
 
-  dom::Selection* sel = selection->AsSelection();
   mozilla::dom::Element* root = GetRootNode();
   if (NS_WARN_IF(!root)) {
     aRv.Throw(NS_ERROR_UNEXPECTED);
@@ -1747,21 +1750,12 @@ nsTextEditorState::GetSelectionDirection(ErrorResult& aRv)
     return GetSelectionProperties().GetDirection();
   }
 
-  nsISelectionController* selCon = GetSelectionController();
-
-  nsCOMPtr<nsISelection> selection;
-  nsresult rv = selCon->GetSelection(nsISelectionController::SELECTION_NORMAL,
-                                     getter_AddRefs(selection));
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    aRv.Throw(rv);
-    return nsITextControlFrame::eForward; // Doesn't really matter
-  }
-  if (NS_WARN_IF(!selection)) {
+  Selection* sel = mSelCon->GetSelection(SelectionType::eNormal);
+  if (NS_WARN_IF(!sel)) {
     aRv.Throw(NS_ERROR_FAILURE);
     return nsITextControlFrame::eForward; // Doesn't really matter
   }
 
-  dom::Selection* sel = selection->AsSelection();
   nsDirection direction = sel->GetSelectionDirection();
   if (direction == eDirNext) {
     return nsITextControlFrame::eForward;
