@@ -200,6 +200,7 @@ HttpBaseChannel::HttpBaseChannel()
   , mDecodedBodySize(0)
   , mEncodedBodySize(0)
   , mContentWindowId(0)
+  , mTopLevelOuterContentWindowId(0)
   , mRequireCORSPreflight(false)
   , mReportCollector(new ConsoleReportCollector())
   , mForceMainDocumentChannel(false)
@@ -3777,6 +3778,29 @@ HttpBaseChannel::EnsureRequestContextID()
     // Set the load group connection scope on the transaction
     rootLoadGroup->GetRequestContextID(&mRequestContextID);
     return true;
+}
+
+void
+HttpBaseChannel::EnsureTopLevelOuterContentWindowId()
+{
+  if (mTopLevelOuterContentWindowId) {
+    return;
+  }
+
+  nsCOMPtr<nsILoadContext> loadContext;
+  GetCallback(loadContext);
+  if (!loadContext) {
+    return;
+  }
+
+  nsCOMPtr<mozIDOMWindowProxy> topWindow;
+  loadContext->GetTopWindow(getter_AddRefs(topWindow));
+  if (!topWindow) {
+    return;
+  }
+
+  mTopLevelOuterContentWindowId =
+    nsPIDOMWindowOuter::From(topWindow)->WindowID();
 }
 
 void

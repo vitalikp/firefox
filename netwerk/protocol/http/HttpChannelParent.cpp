@@ -129,7 +129,8 @@ HttpChannelParent::Init(const HttpChannelCreationArgs& aArgs)
                        a.initialRwin(), a.blockAuthPrompt(),
                        a.suspendAfterSynthesizeResponse(),
                        a.allowStaleCacheContent(), a.contentTypeHint(),
-                       a.channelId(), a.contentWindowId(), a.preferredAlternativeType());
+                       a.channelId(), a.contentWindowId(), a.preferredAlternativeType(),
+                       a.topLevelOuterContentWindowId());
   }
   case HttpChannelCreationArgs::THttpChannelConnectArgs:
   {
@@ -327,7 +328,8 @@ HttpChannelParent::DoAsyncOpen(  const URIParams&           aURI,
                                  const nsCString&           aContentTypeHint,
                                  const nsCString&           aChannelId,
                                  const uint64_t&            aContentWindowId,
-                                 const nsCString&           aPreferredAlternativeType)
+                                 const nsCString&           aPreferredAlternativeType,
+                                 const uint64_t&            aTopLevelOuterContentWindowId)
 {
   nsCOMPtr<nsIURI> uri = DeserializeURI(aURI);
   if (!uri) {
@@ -378,6 +380,7 @@ HttpChannelParent::DoAsyncOpen(  const URIParams&           aURI,
   // Set the channelId allocated in child to the parent instance
   mChannel->SetChannelId(aChannelId);
   mChannel->SetTopLevelContentWindowId(aContentWindowId);
+  mChannel->SetTopLevelOuterContentWindowId(aTopLevelOuterContentWindowId);
 
   mChannel->SetWarningReporter(this);
   mChannel->SetTimingEnabled(true);
