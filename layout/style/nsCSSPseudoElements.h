@@ -54,7 +54,9 @@ enum class CSSPseudoElementType : CSSPseudoElementTypeBase {
 #include "nsCSSPseudoElementList.h"
 #undef CSS_PSEUDO_ELEMENT
   Count,
-  AnonBox = Count,
+  InheritingAnonBox = Count, // pseudo from nsCSSAnonBoxes,
+                             // IsNonInheritingAnonBox false.
+  NonInheritingAnonBox, // from nsCSSAnonBoxes, IsNonInheritingAnonBox true.
 #ifdef MOZ_XUL
   XULTree,
 #endif
