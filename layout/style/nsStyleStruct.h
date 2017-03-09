@@ -369,6 +369,8 @@ public:
 
   mozilla::css::ImageValue* GetImageValue() const { return mImageValue; }
 
+  already_AddRefed<nsIURI> GetImageURI() const;
+
   NS_INLINE_DECL_THREADSAFE_REFCOUNTING(nsStyleImageRequest);
 
 private:
@@ -466,6 +468,8 @@ struct nsStyleImage
                  "Only image data can have a crop rect");
     return mCropRect;
   }
+
+  already_AddRefed<nsIURI> GetImageURI() const;
 
   /**
    * Compute the actual crop rect in pixels, using the source image bounds.
@@ -1526,6 +1530,8 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStyleList
   {
     return mListStyleImage ? mListStyleImage->get() : nullptr;
   }
+
+  already_AddRefed<nsIURI> GetListStyleImageURI() const;
 
   void GetListStyleType(nsSubstring& aType) const { mCounterStyle->GetStyleName(aType); }
   mozilla::CounterStyle* GetCounterStyle() const
