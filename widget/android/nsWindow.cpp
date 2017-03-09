@@ -3642,10 +3642,9 @@ nsWindow::GetWidgetScreen()
         do_GetService("@mozilla.org/gfx/screenmanager;1");
     MOZ_ASSERT(screenMgr, "Failed to get nsIScreenManager");
 
-    nsCOMPtr<nsIScreen> screen;
-    screenMgr->ScreenForId(mScreenId, getter_AddRefs(screen));
-
-    return screen.forget();
+    RefPtr<nsScreenManagerAndroid> screenMgrAndroid =
+        (nsScreenManagerAndroid*) screenMgr.get();
+    return screenMgrAndroid->ScreenForId(mScreenId);
 }
 
 jni::DependentRef<java::GeckoLayerClient>
