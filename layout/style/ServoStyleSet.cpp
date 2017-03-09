@@ -281,8 +281,7 @@ already_AddRefed<nsStyleContext>
 ServoStyleSet::ResolveStyleForPlaceholder()
 {
   RefPtr<nsStyleContext>& cache =
-    mNonInheritingStyleContexts[
-      static_cast<nsCSSAnonBoxes::NonInheritingBase>(nsCSSAnonBoxes::NonInheriting::oofPlaceholder)];
+    mNonInheritingStyleContexts[nsCSSAnonBoxes::NonInheriting::oofPlaceholder];
   if (cache) {
     RefPtr<nsStyleContext> retval = cache;
     return retval.forget();
