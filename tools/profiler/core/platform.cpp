@@ -2949,7 +2949,7 @@ profiler_set_js_context(JSContext* aCx)
     return;
   }
 
-  stack->sampleContext(aCx);
+  stack->setJSContext(aCx);
 }
 
 void
@@ -2964,7 +2964,7 @@ profiler_clear_js_context()
     return;
   }
 
-  stack->sampleContext(nullptr);
+  stack->clearJSContext();
 }
 
 // END externally visible functions
