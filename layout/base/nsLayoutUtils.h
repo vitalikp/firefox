@@ -2434,6 +2434,10 @@ public:
 #endif
   }
 
+  static bool StyleAttrWithXMLBaseDisabled() {
+    return sStyleAttrWithXMLBaseDisabled;
+  }
+
   static uint32_t IdlePeriodDeadlineLimit() {
     return sIdlePeriodDeadlineLimit;
   }
@@ -2906,6 +2910,7 @@ private:
 #ifdef MOZ_STYLO
   static bool sStyloEnabled;
 #endif
+  static bool sStyleAttrWithXMLBaseDisabled;
   static uint32_t sIdlePeriodDeadlineLimit;
   static uint32_t sQuiescentFramesBeforeIdlePeriod;
 
