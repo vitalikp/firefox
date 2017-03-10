@@ -131,14 +131,15 @@ DeleteRangeTransaction::CreateTxnsToDeleteBetween(nsINode* aNode,
     RefPtr<nsGenericDOMDataNode> charDataNode =
       static_cast<nsGenericDOMDataNode*>(aNode);
 
-    RefPtr<DeleteTextTransaction> transaction =
+    RefPtr<DeleteTextTransaction> deleteTextTransaction =
       new DeleteTextTransaction(mEditorBase, *charDataNode, aStartOffset,
                                 numToDel, mRangeUpdater);
-
-    nsresult rv = transaction->Init();
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    AppendChild(transaction);
+    // If the text node isn't editable, it should be never undone/redone.
+    // So, the transaction shouldn't be recorded.
+    if (NS_WARN_IF(!deleteTextTransaction->CanDoIt())) {
+      return NS_ERROR_FAILURE;
+    }
+    AppendChild(deleteTextTransaction);
     return NS_OK;
   }
 
@@ -184,14 +185,15 @@ DeleteRangeTransaction::CreateTxnsToDeleteContent(nsINode* aNode,
     if (numToDelete) {
       RefPtr<nsGenericDOMDataNode> dataNode =
         static_cast<nsGenericDOMDataNode*>(aNode);
-      RefPtr<DeleteTextTransaction> transaction =
+      RefPtr<DeleteTextTransaction> deleteTextTransaction =
         new DeleteTextTransaction(mEditorBase, *dataNode, start, numToDelete,
                                   mRangeUpdater);
-
-      nsresult rv = transaction->Init();
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      AppendChild(transaction);
+      // If the text node isn't editable, it should be never undone/redone.
+      // So, the transaction shouldn't be recorded.
+      if (NS_WARN_IF(!deleteTextTransaction->CanDoIt())) {
+        return NS_ERROR_FAILURE;
+      }
+      AppendChild(deleteTextTransaction);
     }
   }
 
