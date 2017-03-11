@@ -725,6 +725,10 @@ protected:
   // If true, forces the decoder to be considered hidden.
   bool mForcedHidden;
 
+  // True if the decoder has a suspend taint - meaning suspend-video-decoder is
+  // disabled.
+  bool mHasSuspendTaint;
+
   // A listener to receive metadata updates from MDSM.
   MediaEventListener mTimedMetadataListener;
 
@@ -814,10 +818,6 @@ protected:
   // back again.
   Canonical<int64_t> mDecoderPosition;
 
-  // True if the decoder has a suspend taint - meaning suspend-video-decoder is
-  // disabled.
-  Canonical<bool> mHasSuspendTaint;
-
 public:
   AbstractCanonical<media::NullableTimeUnit>* CanonicalDurationOrNull() override;
   AbstractCanonical<double>* CanonicalVolume() { return &mVolume; }
@@ -859,7 +859,6 @@ public:
   {
     return &mDecoderPosition;
   }
-  AbstractCanonical<bool>* CanonicalHasSuspendTaint() { return &mHasSuspendTaint; }
 
 private:
   // Notify owner when the audible state changed
