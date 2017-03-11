@@ -199,6 +199,11 @@ public:
    */
   static bool HasDisplayPort(nsIContent* aContent);
 
+  /**
+   * Check if the given element has a margins based displayport but is missing a
+   * displayport base rect that it needs to properly compute a displayport rect.
+   */
+  static bool IsMissingDisplayPortBaseRect(nsIContent* aContent);
 
   /**
    * Go through the IPC Channel and update displayport margins for content
