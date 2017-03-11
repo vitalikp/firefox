@@ -6168,6 +6168,10 @@ nsHttpChannel::BeginConnectContinue()
         if (mClassOfService & nsIClassOfService::Unblocked) {
             mCaps |= NS_HTTP_LOAD_UNBLOCKED;
         }
+        if (mClassOfService & nsIClassOfService::UrgentStart) {
+            mCaps |= NS_HTTP_URGENT_START;
+            SetPriority(nsISupportsPriority::PRIORITY_HIGHEST);
+        }
     }
 
     // Force-Reload should reset the persistent connection pool for this host
