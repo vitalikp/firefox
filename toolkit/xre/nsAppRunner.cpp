@@ -20,6 +20,7 @@
 #include "mozilla/ScopeExit.h"
 #include "mozilla/Services.h"
 #include "mozilla/Telemetry.h"
+#include "mozilla/intl/LocaleService.h"
 
 #include "nsAppRunner.h"
 #include "mozilla/XREAppData.h"
@@ -241,6 +242,7 @@ using mozilla::Unused;
 using mozilla::scache::StartupCache;
 using mozilla::dom::ContentParent;
 using mozilla::dom::ContentChild;
+using mozilla::intl::LocaleService;
 
 // Save literal putenv string to environment variable.
 static void

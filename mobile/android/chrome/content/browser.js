@@ -1495,15 +1495,7 @@ var BrowserApp = {
   },
 
   getUALocalePref: function () {
-    try {
-      return Services.prefs.getComplexValue("general.useragent.locale", Ci.nsIPrefLocalizedString).data;
-    } catch (e) {
-      try {
-        return Services.prefs.getCharPref("general.useragent.locale");
-      } catch (ee) {
-        return undefined;
-      }
-    }
+    return Services.locale.getRequestedLocale() || undefined;
   },
 
   getOSLocalePref: function () {
