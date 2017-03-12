@@ -4662,6 +4662,8 @@ nsresult HTMLMediaElement::FinishDecoderSetup(MediaDecoder* aDecoder,
   }
   // Notify the decoder of suspend taint.
   mDecoder->SetSuspendTaint(mHasSuspendTaint);
+  // Notify the decoder of the initial activity status.
+  NotifyDecoderActivityChanges();
 
   // Update decoder principal before we start decoding, since it
   // can affect how we feed data to MediaStreams
