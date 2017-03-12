@@ -3196,6 +3196,7 @@ public:
     MOZ_ASSERT(aType == eStyleContentType_Counter ||
                aType == eStyleContentType_Counters);
     MOZ_ASSERT(aCounters);
+    MOZ_ASSERT(aCounters->Count() == 2 || aCounters->Count() == 3);
     MOZ_ASSERT(mType == eStyleContentType_Uninitialized,
                "should only initialize nsStyleContentData once");
     mType = aType;
@@ -3210,6 +3211,12 @@ public:
     mType = eStyleContentType_Image;
     mContent.mImage = aRequest.take();
     MOZ_ASSERT(mContent.mImage);
+  }
+
+  void Resolve(nsPresContext* aPresContext) {
+    if (mType == eStyleContentType_Image) {
+      mContent.mImage->Resolve(aPresContext);
+    }
   }
 
 private:
@@ -3240,7 +3247,7 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStyleContent
   explicit nsStyleContent(const nsPresContext* aContext);
   nsStyleContent(const nsStyleContent& aContent);
   ~nsStyleContent();
-  void FinishStyle(nsPresContext* aPresContext) {}
+  void FinishStyle(nsPresContext* aPresContext);
 
   void* operator new(size_t sz, nsStyleContent* aSelf) { return aSelf; }
   void* operator new(size_t sz, nsPresContext* aContext) {
