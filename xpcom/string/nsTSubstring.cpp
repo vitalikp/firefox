@@ -19,9 +19,7 @@ const nsTSubstring_CharT::size_type nsTSubstring_CharT::kMaxCapacity =
 #ifdef XPCOM_STRING_CONSTRUCTOR_OUT_OF_LINE
 nsTSubstring_CharT::nsTSubstring_CharT(char_type* aData, size_type aLength,
                                        uint32_t aFlags)
-  : mData(aData),
-    mLength(aLength),
-    mFlags(aFlags)
+  : nsTStringRepr_CharT(aData, aLength, aFlags)
 {
   MOZ_RELEASE_ASSERT(CheckCapacity(aLength), "String is too large.");
 
