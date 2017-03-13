@@ -76,7 +76,6 @@ public:
     : mBlobStorage(aBlobStorage)
     , mFD(aFD)
   {
-    MOZ_ASSERT(!NS_IsMainThread());
     MOZ_ASSERT(aBlobStorage);
     MOZ_ASSERT(aFD);
   }
@@ -112,6 +111,7 @@ public:
     : mBlobStorage(aBlobStorage)
   {
     MOZ_ASSERT(NS_IsMainThread());
+    MOZ_ASSERT(XRE_IsParentProcess());
     MOZ_ASSERT(aBlobStorage);
   }
 
@@ -119,14 +119,11 @@ public:
   Run() override
   {
     MOZ_ASSERT(!NS_IsMainThread());
+    MOZ_ASSERT(XRE_IsParentProcess());
 
     PRFileDesc* tempFD = nullptr;
     nsresult rv = NS_OpenAnonymousTemporaryFile(&tempFD);
     if (NS_WARN_IF(NS_FAILED(rv))) {
-      // In sandboxed context we are not allowed to create temporary files, but
-      // this doesn't mean that BlobStorage should fail. We can continue to
-      // store data in memory.  We don't change the storageType so that we don't
-      // try to create a temporary file again.
       return NS_OK;
     }
 
@@ -541,8 +538,19 @@ MutableBlobStorage::ShouldBeTemporaryStorage(uint64_t aSize) const
 nsresult
 MutableBlobStorage::MaybeCreateTemporaryFile()
 {
-  RefPtr<Runnable> runnable = new CreateTemporaryFileRunnable(this);
-  DispatchToIOThread(runnable.forget());
+  if (XRE_IsParentProcess()) {
+    RefPtr<Runnable> runnable = new CreateTemporaryFileRunnable(this);
+    DispatchToIOThread(runnable.forget());
+  } else {
+    RefPtr<MutableBlobStorage> self(this);
+    ContentChild::GetSingleton()->
+      AsyncOpenAnonymousTemporaryFile([self](PRFileDesc* prfile) {
+        if (prfile) {
+          // The ownership of the prfile is moved to the FileCreatedRunnable.
+          NS_DispatchToMainThread(new FileCreatedRunnable(self, prfile));
+        }
+      });
+  }
 
   mStorageState = eWaitingForTemporaryFile;
   return NS_OK;
