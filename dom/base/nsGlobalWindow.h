@@ -906,7 +906,7 @@ public:
   GetPaintWorklet(mozilla::ErrorResult& aRv);
 
   void
-  GetAppLocales(nsTArray<nsString>& aLocales);
+  GetAppLocalesAsBCP47(nsTArray<nsString>& aLocales);
 
 #ifdef ENABLE_INTL_API
   mozilla::dom::IntlUtils*
