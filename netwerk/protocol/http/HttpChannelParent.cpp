@@ -1187,6 +1187,7 @@ HttpChannelParent::OnStartRequest(nsIRequest *aRequest, nsISupports *aContext)
 
   nsAutoCString altDataType;
   chan->GetAlternativeDataType(altDataType);
+  int64_t altDataLen = chan->GetAltDataLength();
 
   // !!! We need to lock headers and please don't forget to unlock them !!!
   requestHead->Enter();
@@ -1202,7 +1203,8 @@ HttpChannelParent::OnStartRequest(nsIRequest *aRequest, nsISupports *aContext)
                           chan->GetSelfAddr(), chan->GetPeerAddr(),
                           redirectCount,
                           cacheKeyValue,
-                          altDataType))
+                          altDataType,
+                          altDataLen))
   {
     rv = NS_ERROR_UNEXPECTED;
   }
