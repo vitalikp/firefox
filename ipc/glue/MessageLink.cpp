@@ -15,6 +15,7 @@
 #include "mozilla/DebugOnly.h"
 #include "nsDebug.h"
 #include "nsISupportsImpl.h"
+#include "nsPrintfCString.h"
 #include "nsXULAppAPI.h"
 
 using namespace mozilla;

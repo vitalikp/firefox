@@ -3055,6 +3055,24 @@ ContentParent::DeallocPChildToParentStreamParent(PChildToParentStreamParent* aAc
   return nsIContentParent::DeallocPChildToParentStreamParent(aActor);
 }
 
+PParentToChildStreamParent*
+ContentParent::SendPParentToChildStreamConstructor(PParentToChildStreamParent* aActor)
+{
+  return PContentParent::SendPParentToChildStreamConstructor(aActor);
+}
+
+PParentToChildStreamParent*
+ContentParent::AllocPParentToChildStreamParent()
+{
+  return nsIContentParent::AllocPParentToChildStreamParent();
+}
+
+bool
+ContentParent::DeallocPParentToChildStreamParent(PParentToChildStreamParent* aActor)
+{
+  return nsIContentParent::DeallocPParentToChildStreamParent(aActor);
+}
+
 PScreenManagerParent*
 ContentParent::AllocPScreenManagerParent(uint32_t* aNumberOfScreens,
                                          float* aSystemDefaultScale,
@@ -3783,7 +3801,10 @@ ContentParent::RecvKeywordToURI(const nsCString& aKeyword,
   info->GetKeywordProviderName(*aProviderName);
 
   AutoIPCStream autoStream;
-  autoStream.Serialize(postData, this);
+  if (NS_WARN_IF(!autoStream.Serialize(postData, this))) {
+    NS_ENSURE_SUCCESS(NS_ERROR_FAILURE, IPC_FAIL_NO_REASON(this));
+  }
+
   *aPostData = autoStream.TakeOptionalValue();
 
   nsCOMPtr<nsIURI> uri;
@@ -3970,6 +3991,12 @@ ContentParent::RecvKeygenProvideContent(nsString* aAttribute,
   formProcessor->ProvideContent(NS_LITERAL_STRING("SELECT"), *aContent,
                                 *aAttribute);
   return IPC_OK();
+}
+
+PFileDescriptorSetParent*
+ContentParent::SendPFileDescriptorSetConstructor(const FileDescriptor& aFD)
+{
+  return PContentParent::SendPFileDescriptorSetConstructor(aFD);
 }
 
 PFileDescriptorSetParent*

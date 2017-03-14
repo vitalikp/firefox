@@ -25,8 +25,10 @@
 #include "mozilla/dom/ipc/BlobChild.h"
 #include "mozilla/dom/quota/PQuotaChild.h"
 #include "mozilla/dom/MessagePortChild.h"
+#include "mozilla/ipc/IPCStreamAlloc.h"
 #include "mozilla/ipc/PBackgroundTestChild.h"
 #include "mozilla/ipc/PChildToParentStreamChild.h"
+#include "mozilla/ipc/PParentToChildStreamChild.h"
 #include "mozilla/layout/VsyncChild.h"
 #include "mozilla/net/PUDPSocketChild.h"
 #include "mozilla/dom/network/UDPSocketChild.h"
@@ -409,6 +411,19 @@ BackgroundChildImpl::AllocPChildToParentStreamChild()
 
 bool
 BackgroundChildImpl::DeallocPChildToParentStreamChild(PChildToParentStreamChild* aActor)
+{
+  delete aActor;
+  return true;
+}
+
+PParentToChildStreamChild*
+BackgroundChildImpl::AllocPParentToChildStreamChild()
+{
+  return mozilla::ipc::AllocPParentToChildStreamChild();
+}
+
+bool
+BackgroundChildImpl::DeallocPParentToChildStreamChild(PParentToChildStreamChild* aActor)
 {
   delete aActor;
   return true;
