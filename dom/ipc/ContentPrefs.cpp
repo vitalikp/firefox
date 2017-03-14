@@ -144,6 +144,7 @@ const char* mozilla::dom::ContentPrefs::gInitPrefs[] = {
   "layout.interruptible-reflow.enabled",
   "mathml.disabled",
   "media.apple.forcevda",
+  "media.cubeb.backend",
   "media.cubeb_latency_msg_frames",
   "media.cubeb_latency_playback_ms",
   "media.decoder-doctor.wmf-disabled-is-failure",
