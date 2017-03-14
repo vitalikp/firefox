@@ -226,9 +226,7 @@ let Converter = Class({
       os = "linux";
     }
 
-    let chromeReg = Cc["@mozilla.org/chrome/chrome-registry;1"]
-                        .getService(Ci.nsIXULChromeRegistry);
-    let dir = chromeReg.isLocaleRTL("global") ? "rtl" : "ltr";
+    let dir = Services.locale.isAppLocaleRTL ? "rtl" : "ltr";
 
     return "<!DOCTYPE html>\n" +
       "<html platform=\"" + os + "\" class=\"" + themeClassName +
@@ -264,9 +262,7 @@ let Converter = Class({
     output += "</div><div id=\"json\">" + this.highlightError(data,
       errorInfo.line, errorInfo.column) + "</div>";
 
-    let chromeReg = Cc["@mozilla.org/chrome/chrome-registry;1"]
-                        .getService(Ci.nsIXULChromeRegistry);
-    let dir = chromeReg.isLocaleRTL("global") ? "rtl" : "ltr";
+    let dir = Services.locale.isAppLocaleRTL ? "rtl" : "ltr";
 
     return "<!DOCTYPE html>\n" +
       "<html><head><title>" + this.htmlEncode(uri + " - Error") + "</title>" +
