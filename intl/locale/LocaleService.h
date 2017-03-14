@@ -221,6 +221,8 @@ private:
                      LangNegStrategy aStrategy,
                      nsTArray<nsCString>& aRetVal);
 
+  void NegotiateAppLocales(nsTArray<nsCString>& aRetVal);
+
   virtual ~LocaleService();
 
   nsTArray<nsCString> mAppLocales;
