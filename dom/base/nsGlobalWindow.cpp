@@ -1343,9 +1343,8 @@ nsGlobalWindow::nsGlobalWindow(nsGlobalWindow *aOuterWindow)
   }
 #endif
 
-  if (gDOMLeakPRLog)
-    MOZ_LOG(gDOMLeakPRLog, LogLevel::Debug,
-           ("DOMWINDOW %p created outer=%p", this, aOuterWindow));
+  MOZ_LOG(gDOMLeakPRLog, LogLevel::Debug,
+          ("DOMWINDOW %p created outer=%p", this, aOuterWindow));
 
   NS_ASSERTION(sWindowsById, "Windows hash table must be created!");
   NS_ASSERTION(!sWindowsById->Get(mWindowID),
@@ -1418,9 +1417,7 @@ nsGlobalWindow::~nsGlobalWindow()
   }
 #endif
 
-  if (gDOMLeakPRLog)
-    MOZ_LOG(gDOMLeakPRLog, LogLevel::Debug,
-           ("DOMWINDOW %p destroyed", this));
+  MOZ_LOG(gDOMLeakPRLog, LogLevel::Debug, ("DOMWINDOW %p destroyed", this));
 
   if (IsOuterWindow()) {
     JSObject *proxy = GetWrapperPreserveColor();
@@ -3033,10 +3030,11 @@ nsGlobalWindow::InnerSetNewDocument(JSContext* aCx, nsIDocument* aDocument)
   NS_PRECONDITION(IsInnerWindow(), "Must only be called on inner windows");
   MOZ_ASSERT(aDocument);
 
-  if (gDOMLeakPRLog && MOZ_LOG_TEST(gDOMLeakPRLog, LogLevel::Debug)) {
+  if (MOZ_LOG_TEST(gDOMLeakPRLog, LogLevel::Debug)) {
     nsIURI *uri = aDocument->GetDocumentURI();
-    PR_LogPrint("DOMWINDOW %p SetNewDocument %s",
-                this, uri ? uri->GetSpecOrDefault().get() : "");
+    MOZ_LOG(gDOMLeakPRLog, LogLevel::Debug,
+            ("DOMWINDOW %p SetNewDocument %s",
+             this, uri ? uri->GetSpecOrDefault().get() : ""));
   }
 
   mDoc = aDocument;
@@ -10649,9 +10647,8 @@ nsGlobalWindow::GetSessionStorage(ErrorResult& aError)
   }
 
   if (mSessionStorage) {
-    if (MOZ_LOG_TEST(gDOMLeakPRLog, LogLevel::Debug)) {
-      PR_LogPrint("nsGlobalWindow %p has %p sessionStorage", this, mSessionStorage.get());
-    }
+    MOZ_LOG(gDOMLeakPRLog, LogLevel::Debug,
+            ("nsGlobalWindow %p has %p sessionStorage", this, mSessionStorage.get()));
     bool canAccess = mSessionStorage->CanAccess(principal);
     NS_ASSERTION(canAccess,
                  "This window owned sessionStorage "
@@ -10701,9 +10698,8 @@ nsGlobalWindow::GetSessionStorage(ErrorResult& aError)
     mSessionStorage = static_cast<Storage*>(storage.get());
     MOZ_ASSERT(mSessionStorage);
 
-    if (MOZ_LOG_TEST(gDOMLeakPRLog, LogLevel::Debug)) {
-      PR_LogPrint("nsGlobalWindow %p tried to get a new sessionStorage %p", this, mSessionStorage.get());
-    }
+    MOZ_LOG(gDOMLeakPRLog, LogLevel::Debug,
+            ("nsGlobalWindow %p tried to get a new sessionStorage %p", this, mSessionStorage.get()));
 
     if (!mSessionStorage) {
       aError.Throw(NS_ERROR_DOM_NOT_SUPPORTED_ERR);
@@ -10711,9 +10707,8 @@ nsGlobalWindow::GetSessionStorage(ErrorResult& aError)
     }
   }
 
-  if (MOZ_LOG_TEST(gDOMLeakPRLog, LogLevel::Debug)) {
-    PR_LogPrint("nsGlobalWindow %p returns %p sessionStorage", this, mSessionStorage.get());
-  }
+  MOZ_LOG(gDOMLeakPRLog, LogLevel::Debug,
+          ("nsGlobalWindow %p returns %p sessionStorage", this, mSessionStorage.get()));
 
   return mSessionStorage;
 }
@@ -11633,10 +11628,9 @@ nsGlobalWindow::Observe(nsISupports* aSubject, const char* aTopic,
         return NS_OK;
       }
 
-      if (MOZ_LOG_TEST(gDOMLeakPRLog, LogLevel::Debug)) {
-        PR_LogPrint("nsGlobalWindow %p with sessionStorage %p passing event from %p",
-                    this, mSessionStorage.get(), changingStorage.get());
-      }
+      MOZ_LOG(gDOMLeakPRLog, LogLevel::Debug,
+              ("nsGlobalWindow %p with sessionStorage %p passing event from %p",
+               this, mSessionStorage.get(), changingStorage.get()));
 
       fireMozStorageChanged = mSessionStorage == changingStorage;
       if (fireMozStorageChanged) {
