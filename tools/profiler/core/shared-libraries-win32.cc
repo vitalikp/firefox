@@ -130,6 +130,7 @@ SharedLibraryInfo SharedLibraryInfo::GetInfoForSelf()
   for (unsigned int i = 0; i < modulesNum; i++) {
     nsID pdbSig;
     uint32_t pdbAge;
+    nsAutoString pdbPathStr;
     nsAutoString pdbNameStr;
     char *pdbName = NULL;
     WCHAR modulePath[MAX_PATH + 1];
@@ -163,14 +164,16 @@ SharedLibraryInfo SharedLibraryInfo::GetInfoForSelf()
       std::ostringstream stream;
       stream << pdbSig.ToString() << std::hex << pdbAge;
 
-      pdbNameStr = NS_ConvertUTF8toUTF16(pdbName);
+      pdbPathStr = NS_ConvertUTF8toUTF16(pdbName);
+      pdbNameStr = pdbPathStr;
       int32_t pos = pdbNameStr.RFindChar('\\');
       if (pos != kNotFound) {
         pdbNameStr.Cut(0, pos + 1);
       }
     }
 
-    nsAutoString moduleNameStr(modulePath);
+    nsAutoString modulePathStr(modulePath);
+    nsAutoString moduleNameStr = modulePathStr;
     int32_t pos = moduleNameStr.RFindChar('\\');
     if (pos != kNotFound) {
       moduleNameStr.Cut(0, pos + 1);
@@ -180,7 +183,9 @@ SharedLibraryInfo SharedLibraryInfo::GetInfoForSelf()
       (uintptr_t)module.lpBaseOfDll + module.SizeOfImage,
       0, // DLLs are always mapped at offset 0 on Windows
       moduleNameStr,
+      modulePathStr,
       pdbNameStr,
+      pdbPathStr,
       GetVersion(modulePath));
     sharedLibraryInfo.AddSharedLibrary(shlib);
 

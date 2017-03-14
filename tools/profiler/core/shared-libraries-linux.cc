@@ -65,15 +65,17 @@ dl_iterate_callback(struct dl_phdr_info *dl_info, size_t size, void *data)
   }
   const char *path = dl_info->dlpi_name;
 
-  nsAutoString nameStr;
-  mozilla::Unused << NS_WARN_IF(NS_FAILED(NS_CopyNativeToUnicode(nsDependentCString(path), nameStr)));
+  nsAutoString pathStr;
+  mozilla::Unused << NS_WARN_IF(NS_FAILED(NS_CopyNativeToUnicode(nsDependentCString(path), pathStr)));
 
+  nsAutoString nameStr = pathStr;
   int32_t pos = nameStr.RFindChar('/');
   if (pos != kNotFound) {
     nameStr.Cut(0, pos + 1);
   }
 
-  SharedLibrary shlib(libStart, libEnd, 0, nameStr, nameStr, "");
+  SharedLibrary shlib(libStart, libEnd, 0, nameStr, pathStr, nameStr,
+                      pathStr, "");
   info.AddSharedLibrary(shlib);
 
   return 0;
@@ -140,15 +142,17 @@ SharedLibraryInfo SharedLibraryInfo::GetInfoForSelf()
     }
 #endif
 
-    nsAutoString nameStr;
-    mozilla::Unused << NS_WARN_IF(NS_FAILED(NS_CopyNativeToUnicode(nsDependentCString(modulePath), nameStr)));
+    nsAutoString pathStr;
+    mozilla::Unused << NS_WARN_IF(NS_FAILED(NS_CopyNativeToUnicode(nsDependentCString(modulePath), pathStr)));
 
+    nsAutoString nameStr = pathStr;
     int32_t pos = nameStr.RFindChar('/');
     if (pos != kNotFound) {
       nameStr.Cut(0, pos + 1);
     }
 
-    SharedLibrary shlib(start, end, offset, nameStr, nameStr, "");
+    SharedLibrary shlib(start, end, offset, nameStr, pathStr, nameStr,
+                        pathStr, "");
     info.AddSharedLibrary(shlib);
     if (count > 10000) {
       LOG("Get maps failed");

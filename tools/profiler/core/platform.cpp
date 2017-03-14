@@ -1041,7 +1041,7 @@ AddSharedLibraryInfoToStream(std::ostream& aStream, const SharedLibrary& aLib)
   aStream << "\"start\":" << aLib.GetStart();
   aStream << ",\"end\":" << aLib.GetEnd();
   aStream << ",\"offset\":" << aLib.GetOffset();
-  aStream << ",\"name\":\"" << aLib.GetNativeDebugName() << "\"";
+  aStream << ",\"name\":\"" << aLib.GetNativeDebugPath() << "\"";
   aStream << "}";
 }
 
