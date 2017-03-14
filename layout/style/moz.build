@@ -127,6 +127,7 @@ EXPORTS.mozilla.dom += [
     'CSS.h',
     'CSSLexer.h',
     'CSSMediaRule.h',
+    'CSSNamespaceRule.h',
     'CSSRuleList.h',
     'CSSValue.h',
     'FontFace.h',
