@@ -26,13 +26,13 @@ public:
   SharedLibrary(uintptr_t aStart,
                 uintptr_t aEnd,
                 uintptr_t aOffset,
-                const nsString& aName,
+                const nsString& aModuleName,
                 const nsString& aDebugName,
                 const std::string& aVersion)
     : mStart(aStart)
     , mEnd(aEnd)
     , mOffset(aOffset)
-    , mName(aName)
+    , mModuleName(aModuleName)
     , mDebugName(aDebugName)
     , mVersion(aVersion)
   {}
@@ -41,7 +41,7 @@ public:
     : mStart(aEntry.mStart)
     , mEnd(aEntry.mEnd)
     , mOffset(aEntry.mOffset)
-    , mName(aEntry.mName)
+    , mModuleName(aEntry.mModuleName)
     , mDebugName(aEntry.mDebugName)
     , mVersion(aEntry.mVersion)
   {}
@@ -54,7 +54,7 @@ public:
     mStart = aEntry.mStart;
     mEnd = aEntry.mEnd;
     mOffset = aEntry.mOffset;
-    mName = aEntry.mName;
+    mModuleName = aEntry.mModuleName;
     mDebugName = aEntry.mDebugName;
     mVersion = aEntry.mVersion;
     return *this;
@@ -65,7 +65,7 @@ public:
     return (mStart == other.mStart) &&
            (mEnd == other.mEnd) &&
            (mOffset == other.mOffset) &&
-           (mName == other.mName) &&
+           (mModuleName == other.mModuleName) &&
            (mDebugName == other.mDebugName) &&
            (mVersion == other.mVersion);
   }
@@ -73,7 +73,7 @@ public:
   uintptr_t GetStart() const { return mStart; }
   uintptr_t GetEnd() const { return mEnd; }
   uintptr_t GetOffset() const { return mOffset; }
-  const nsString &GetName() const { return mName; }
+  const nsString &GetModuleName() const { return mModuleName; }
   const std::string GetNativeDebugName() const {
     nsAutoCString debugNameStr;
 
@@ -90,7 +90,7 @@ private:
   uintptr_t mStart;
   uintptr_t mEnd;
   uintptr_t mOffset;
-  nsString mName;
+  nsString mModuleName;
   nsString mDebugName;
   std::string mVersion;
 };
