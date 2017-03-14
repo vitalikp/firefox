@@ -178,7 +178,8 @@ public:
                                                              bool* aOutWindowOpened,
                                                              TextureFactoryIdentifier* aTextureFactoryIdentifier,
                                                              uint64_t* aLayersId,
-                                                             CompositorOptions* aCompositorOptions) override;
+                                                             CompositorOptions* aCompositorOptions,
+                                                             uint32_t* aMaxTouchPoints) override;
 
   virtual mozilla::ipc::IPCResult
   RecvSyncMessage(const nsString& aMessage,
@@ -311,8 +312,6 @@ public:
   virtual mozilla::ipc::IPCResult RecvGetDefaultScale(double* aValue) override;
 
   virtual mozilla::ipc::IPCResult RecvGetWidgetRounding(int32_t* aValue) override;
-
-  virtual mozilla::ipc::IPCResult RecvGetMaxTouchPoints(uint32_t* aTouchPoints) override;
 
   virtual mozilla::ipc::IPCResult RecvGetWidgetNativeData(WindowsHandle* aValue) override;
 

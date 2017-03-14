@@ -791,6 +791,7 @@ ContentChild::ProvideWindowCommon(TabChild* aTabOpener,
   TextureFactoryIdentifier textureFactoryIdentifier;
   uint64_t layersId = 0;
   CompositorOptions compositorOptions;
+  uint32_t maxTouchPoints = 0;
 
   if (aIframeMoz) {
     MOZ_ASSERT(aTabOpener);
@@ -807,7 +808,7 @@ ContentChild::ProvideWindowCommon(TabChild* aTabOpener,
     newChild->SendBrowserFrameOpenWindow(aTabOpener, renderFrame, NS_ConvertUTF8toUTF16(url),
                                          name, NS_ConvertUTF8toUTF16(features),
                                          aWindowIsNew, &textureFactoryIdentifier,
-                                         &layersId, &compositorOptions);
+                                         &layersId, &compositorOptions, &maxTouchPoints);
   } else {
     nsAutoCString baseURIString;
     float fullZoom;
@@ -828,7 +829,8 @@ ContentChild::ProvideWindowCommon(TabChild* aTabOpener,
                           &urlToLoad,
                           &textureFactoryIdentifier,
                           &layersId,
-                          &compositorOptions)) {
+                          &compositorOptions,
+                          &maxTouchPoints)) {
       PRenderFrameChild::Send__delete__(renderFrame);
       return NS_ERROR_NOT_AVAILABLE;
     }
@@ -858,6 +860,8 @@ ContentChild::ProvideWindowCommon(TabChild* aTabOpener,
                         aTabOpener->mDPI, aTabOpener->mRounding,
                         aTabOpener->mDefaultScale);
   }
+
+  newChild->SetMaxTouchPoints(maxTouchPoints);
 
   // Set the opener window for this window before we start loading the document
   // inside of it. We have to do this before loading the remote scripts, because
