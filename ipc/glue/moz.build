@@ -169,9 +169,9 @@ IPDL_SOURCES = [
     'PBackground.ipdl',
     'PBackgroundSharedTypes.ipdlh',
     'PBackgroundTest.ipdl',
+    'PChildToParentStream.ipdl',
     'PFileDescriptorSet.ipdl',
     'ProtocolTypes.ipdlh',
-    'PSendStream.ipdl',
     'URIParams.ipdlh',
 ]
 
