@@ -33,6 +33,7 @@
 #include "CounterStyleManager.h"
 
 #include "mozilla/dom/AnimationEffectReadOnlyBinding.h" // for PlaybackDirection
+#include "mozilla/dom/DocGroup.h"
 #include "mozilla/dom/ImageTracker.h"
 #include "mozilla/Likely.h"
 #include "nsIURI.h"
@@ -1898,7 +1899,7 @@ nsStyleGradient::HasCalc()
 
 /**
  * Runnable to release the nsStyleImageRequest's mRequestProxy,
- * mImageValue and mImageValue on the main thread, and to perform
+ * mImageValue and mImageTracker on the main thread, and to perform
  * any necessary unlocking and untracking of the image.
  */
 class StyleImageRequestCleanupTask : public mozilla::Runnable
@@ -1919,7 +1920,8 @@ public:
 
   NS_IMETHOD Run() final
   {
-    MOZ_ASSERT(NS_IsMainThread());
+    MOZ_ASSERT(!mRequestProxy || NS_IsMainThread(),
+               "If mRequestProxy is non-null, we need to run on main thread!");
 
     if (!mRequestProxy) {
       return NS_OK;
@@ -1940,7 +1942,15 @@ public:
   }
 
 protected:
-  virtual ~StyleImageRequestCleanupTask() { MOZ_ASSERT(NS_IsMainThread()); }
+  virtual ~StyleImageRequestCleanupTask()
+  {
+    MOZ_ASSERT(mImageValue->mRequests.Count() == 0 || NS_IsMainThread(),
+               "If mImageValue has any mRequests, we need to run on main "
+               "thread to release ImageValues!");
+    MOZ_ASSERT((!mRequestProxy && !mImageTracker) || NS_IsMainThread(),
+               "mRequestProxy and mImageTracker's destructor need to run "
+               "on the main thread!");
+  }
 
 private:
   Mode mModeFlags;
@@ -1991,10 +2001,13 @@ nsStyleImageRequest::~nsStyleImageRequest()
                                          mRequestProxy.forget(),
                                          mImageValue.forget(),
                                          mImageTracker.forget());
-    if (NS_IsMainThread()) {
+    if (NS_IsMainThread() || !IsResolved()) {
       task->Run();
     } else {
-      NS_DispatchToMainThread(task.forget());
+      MOZ_ASSERT(IsResolved() == bool(mDocGroup),
+                 "We forgot to cache mDocGroup in Resolve()?");
+      mDocGroup->Dispatch("StyleImageRequestCleanupTask",
+                          TaskCategory::Other, task.forget());
     }
   }
 
@@ -2008,8 +2021,10 @@ nsStyleImageRequest::Resolve(nsPresContext* aPresContext)
 {
   MOZ_ASSERT(NS_IsMainThread());
   MOZ_ASSERT(!IsResolved(), "already resolved");
+  MOZ_ASSERT(aPresContext);
 
   mResolved = true;
+  mDocGroup = aPresContext->Document()->GetDocGroup();
 
   // For now, just have unique nsCSSValue/ImageValue objects.  We should
   // really store the ImageValue on the Servo specified value, so that we can
