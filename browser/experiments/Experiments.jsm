@@ -265,8 +265,7 @@ Experiments.Policy.prototype = {
   },
 
   locale() {
-    let chrome = Cc["@mozilla.org/chrome/chrome-registry;1"].getService(Ci.nsIXULChromeRegistry);
-    return chrome.getSelectedLocale("global");
+    return Services.locale.getAppLocaleAsLangTag();
   },
 
   /**
