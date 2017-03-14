@@ -1142,10 +1142,6 @@ class ICStubCompiler
     }
 };
 
-void BaselineEmitPostWriteBarrierSlot(MacroAssembler& masm, Register obj, ValueOperand val,
-                                      Register scratch, LiveGeneralRegisterSet saveRegs,
-                                      JSContext* cx);
-
 class SharedStubInfo
 {
     BaselineFrame* maybeFrame_;
