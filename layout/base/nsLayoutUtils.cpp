@@ -3645,7 +3645,6 @@ nsLayoutUtils::PaintFrame(nsRenderingContext* aRenderingContext, nsIFrame* aFram
       if (profilerNeedsDisplayList && !consoleNeedsDisplayList) {
         profiler_log(ss->str().c_str());
       } else {
-        // Send to the console which will send to the profiler if required.
         fprint_stderr(gfxUtils::sDumpPaintFile, *ss);
       }
       ss = MakeUnique<std::stringstream>();
@@ -3719,7 +3718,6 @@ nsLayoutUtils::PaintFrame(nsRenderingContext* aRenderingContext, nsIFrame* aFram
     if (profilerNeedsDisplayList && !consoleNeedsDisplayList) {
       profiler_log(ss->str().c_str());
     } else {
-      // Send to the console which will send to the profiler if required.
       fprint_stderr(gfxUtils::sDumpPaintFile, *ss);
     }
 
