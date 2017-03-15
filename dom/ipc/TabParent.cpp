@@ -834,7 +834,7 @@ void
 TabParent::Activate()
 {
   if (!mIsDestroyed) {
-    Unused << Manager()->AsContentParent()->SendActivate(this);
+    Unused << Manager()->SendActivate(this);
   }
 }
 
@@ -842,7 +842,7 @@ void
 TabParent::Deactivate()
 {
   if (!mIsDestroyed) {
-    Unused << Manager()->AsContentParent()->SendDeactivate(this);
+    Unused << Manager()->SendDeactivate(this);
   }
 }
 

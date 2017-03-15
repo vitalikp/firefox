@@ -586,6 +586,22 @@ public:
 
   virtual int32_t Pid() const override;
 
+  virtual bool SendActivate(PBrowserParent* aTab) override
+  {
+    return PContentParent::SendActivate(aTab);
+  }
+
+  virtual bool SendDeactivate(PBrowserParent* aTab) override
+  {
+    return PContentParent::SendDeactivate(aTab);
+  }
+
+  virtual bool SendParentActivated(PBrowserParent* aTab,
+                                   const bool& aActivated) override
+  {
+    return PContentParent::SendParentActivated(aTab, aActivated);
+  }
+
   // Use the PHangMonitor channel to ask the child to repaint a tab.
   void ForceTabPaint(TabParent* aTabParent, uint64_t aLayerObserverEpoch);
 
