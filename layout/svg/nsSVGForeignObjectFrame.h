@@ -88,6 +88,13 @@ public:
 
   nsRect GetInvalidRegion();
 
+  /**
+   * Update the style of our ::-moz-svg-foreign-content anonymous box.
+   */
+  void DoUpdateStyleOfOwnedAnonBoxes(mozilla::ServoStyleSet& aStyleSet,
+                                     nsStyleChangeList& aChangeList,
+                                     nsChangeHint aHintForThisFrame) override;
+
 protected:
   // implementation helpers:
   void DoReflow();
