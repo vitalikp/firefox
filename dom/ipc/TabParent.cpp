@@ -628,7 +628,9 @@ TabParent::InitRenderFrame()
       RenderFrameParent* renderFrame = new RenderFrameParent(frameLoader, &success);
       uint64_t layersId = renderFrame->GetLayersId();
       AddTabParentToTable(layersId, this);
-      Unused << SendPRenderFrameConstructor(renderFrame);
+      if (!SendPRenderFrameConstructor(renderFrame)) {
+        return;
+      }
 
       TextureFactoryIdentifier textureFactoryIdentifier;
       renderFrame->GetTextureFactoryIdentifier(&textureFactoryIdentifier);
