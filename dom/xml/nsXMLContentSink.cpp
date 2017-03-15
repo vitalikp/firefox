@@ -561,8 +561,6 @@ nsXMLContentSink::CloseElement(nsIContent* aContent)
     // If the parser got blocked, make sure to return the appropriate rv.
     // I'm not sure if this is actually needed or not.
     if (mParser && !mParser->IsParserEnabled()) {
-      // XXX The HTML sink doesn't call BlockParser here, why do we?
-      GetParser()->BlockParser();
       block = true;
     }
 
@@ -1010,6 +1008,10 @@ nsXMLContentSink::HandleStartElement(const char16_t *aName,
   if (!mXSLTProcessor) {
     if (content == mDocElement) {
       NotifyDocElementCreated(mDocument);
+
+      if (aInterruptable && NS_SUCCEEDED(result) && mParser && !mParser->IsParserEnabled()) {
+        return NS_ERROR_HTMLPARSER_BLOCK;
+      }
     } else if (!mCurrentHead) {
       // This isn't the root and we're not inside an XHTML <head>.
       // Might need to start layout
