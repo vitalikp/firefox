@@ -1451,6 +1451,7 @@ struct SetEnumValueHelper
   DEFINE_ENUM_CLASS_SETTER(StyleUserModify, ReadOnly, WriteOnly)
   DEFINE_ENUM_CLASS_SETTER(StyleWindowDragging, Default, NoDrag)
   DEFINE_ENUM_CLASS_SETTER(StyleOrient, Inline, Vertical)
+  DEFINE_ENUM_CLASS_SETTER(StyleGeometryBox, Border, View)
 #ifdef MOZ_XUL
   DEFINE_ENUM_CLASS_SETTER(StyleDisplay, None, MozPopup)
 #else
@@ -6671,7 +6672,7 @@ nsRuleNode::ComputeDisplayData(void* aStartStruct,
            display->mTransformBox, conditions,
            SETVAL_ENUMERATED | SETVAL_UNSET_INITIAL,
            parentDisplay->mTransformBox,
-           NS_STYLE_TRANSFORM_BOX_BORDER_BOX);
+           StyleGeometryBox::Border);
 
   // orient: enum, inherit, initial
   SetValue(*aRuleData->ValueForOrient(),
