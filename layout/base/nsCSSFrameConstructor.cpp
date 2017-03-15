@@ -3110,6 +3110,8 @@ nsCSSFrameConstructor::ConstructSelectFrame(nsFrameConstructorState& aState,
                         aState.GetGeometricParent(aStyleDisplay, aParentFrame),
                         comboboxFrame);
 
+    comboboxFrame->AddStateBits(NS_FRAME_OWNS_ANON_BOXES);
+
     aState.AddChild(comboboxFrame, aFrameItems, content, styleContext,
                     aParentFrame);
 
