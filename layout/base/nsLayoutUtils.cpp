@@ -1216,8 +1216,8 @@ HasVisibleAnonymousContents(nsIDocument* aDoc)
   return false;
 }
 
-static bool
-ShouldDisableApzForElement(nsIContent* aContent)
+bool
+nsLayoutUtils::ShouldDisableApzForElement(nsIContent* aContent)
 {
   if (!aContent) {
     return false;
@@ -1313,7 +1313,8 @@ GetDisplayPortImpl(nsIContent* aContent, nsRect* aResult, float aMultiplier)
   nsRect result;
   if (rectData) {
     result = GetDisplayPortFromRectData(aContent, rectData, aMultiplier);
-  } else if (APZCCallbackHelper::IsDisplayportSuppressed() || ShouldDisableApzForElement(aContent)) {
+  } else if (APZCCallbackHelper::IsDisplayportSuppressed() ||
+      nsLayoutUtils::ShouldDisableApzForElement(aContent)) {
     DisplayPortMarginsPropertyData noMargins(ScreenMargin(), 1);
     result = GetDisplayPortFromMarginsData(aContent, &noMargins, aMultiplier);
   } else {
