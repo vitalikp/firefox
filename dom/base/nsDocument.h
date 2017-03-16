@@ -975,7 +975,12 @@ public:
 
   virtual nsISupports* GetCurrentContentSink() override;
 
-  virtual mozilla::EventStates GetDocumentState() override;
+  virtual mozilla::EventStates GetDocumentState() final;
+  // GetDocumentState() mutates the state due to lazy resolution;
+  // and can't be used during parallel traversal. Use this instead,
+  // and ensure GetDocumentState() has been called first.
+  // This will assert if the state is stale.
+  virtual mozilla::EventStates ThreadSafeGetDocumentState() const final;
 
   // Only BlockOnload should call this!
   void AsyncBlockOnload();
@@ -1341,6 +1346,7 @@ protected:
   nsWeakPtr mFullscreenRoot;
 
 private:
+  void UpdatePossiblyStaleDocumentState();
   static bool CustomElementConstructor(JSContext* aCx, unsigned aArgc, JS::Value* aVp);
 
   /**
