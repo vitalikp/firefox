@@ -264,7 +264,7 @@ PreferenceBranch.prototype = {
 
     switch (type) {
       case Ci.nsIPrefBranch.PREF_STRING:
-        aValue = this._prefs.getComplexValue(aName, Ci.nsISupportsString).data;
+        aValue = this._prefs.getStringPref(aName);
         break;
       case Ci.nsIPrefBranch.PREF_BOOL:
         aValue = this._prefs.getBoolPref(aName);

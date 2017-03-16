@@ -598,10 +598,7 @@ this.UITour = {
       case "setTreatmentTag": {
         let name = data.name;
         let value = data.value;
-        let string = Cc["@mozilla.org/supports-string;1"].createInstance(Ci.nsISupportsString);
-        string.data = value;
-        Services.prefs.setComplexValue("browser.uitour.treatment." + name,
-                                       Ci.nsISupportsString, string);
+        Services.prefs.setStringPref("browser.uitour.treatment." + name, value);
         // The notification is only meant to be used in tests.
         UITourHealthReport.recordTreatmentTag(name, value)
                           .then(() => this.notify("TreatmentTag:TelemetrySent"));
@@ -612,8 +609,7 @@ this.UITour = {
         let name = data.name;
         let value;
         try {
-          value = Services.prefs.getComplexValue("browser.uitour.treatment." + name,
-                                                 Ci.nsISupportsString).data;
+          value = Services.prefs.getStringPref("browser.uitour.treatment." + name);
         } catch (ex) {}
         this.sendPageCallback(messageManager, data.callbackID, { value });
         break;

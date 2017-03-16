@@ -1033,10 +1033,7 @@ const CustomizableWidgets = [
       } else {
         // Set the detector pref.
         try {
-          let str = Cc["@mozilla.org/supports-string;1"]
-                      .createInstance(Ci.nsISupportsString);
-          str.data = value;
-          Services.prefs.setComplexValue("intl.charset.detector", Ci.nsISupportsString, str);
+          Services.prefs.setStringPref("intl.charset.detector", value);
         } catch (e) {
           Cu.reportError("Failed to set the intl.charset.detector preference.");
         }
