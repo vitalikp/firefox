@@ -1299,8 +1299,6 @@ HTMLSelectElement::AfterSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
       // Clear the cached @autocomplete attribute state
       mAutocompleteAttrState = nsContentUtils::eAutocompleteAttrState_Unknown;
     }
-
-    UpdateState(aNotify);
   }
 
   return nsGenericHTMLFormElementWithState::AfterSetAttr(aNameSpaceID, aName,

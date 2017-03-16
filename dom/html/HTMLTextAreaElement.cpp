@@ -1061,8 +1061,6 @@ HTMLTextAreaElement::AfterSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
     } else if (aName == nsGkAtoms::minlength) {
       UpdateTooShortValidityState();
     }
-
-    UpdateState(aNotify);
   }
 
   return nsGenericHTMLFormElementWithState::AfterSetAttr(aNameSpaceID, aName, aValue,
