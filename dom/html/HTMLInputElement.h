@@ -1494,6 +1494,11 @@ protected:
                          uint32_t* aSelectionEnd,
                          ErrorResult& aRv);
 
+  /**
+   * Override for nsImageLoadingContent.
+   */
+  nsIContent* AsContent() override { return this; }
+
   nsCOMPtr<nsIControllers> mControllers;
 
   /*
