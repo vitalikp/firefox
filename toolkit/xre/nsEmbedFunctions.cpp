@@ -650,6 +650,8 @@ XRE_InitParentProcess(int aArgc,
   // Set main thread before we initialize the profiler
   NS_SetMainThread();
 
+  mozilla::LogModule::Init();
+
   char aLocal;
   GeckoProfilerInitRAII profiler(&aLocal);
 
