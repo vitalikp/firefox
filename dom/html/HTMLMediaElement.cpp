@@ -3648,7 +3648,7 @@ HTMLMediaElement::HTMLMediaElement(already_AddRefed<mozilla::dom::NodeInfo>& aNo
     mIsAudioTrackAudible(false),
     mHasSuspendTaint(false),
     mMediaTracksConstructed(false),
-    mVisibilityState(Visibility::APPROXIMATELY_NONVISIBLE),
+    mVisibilityState(Visibility::UNTRACKED),
     mErrorSink(new ErrorSink(this)),
     mAudioChannelWrapper(new AudioChannelAgentCallback(this, mAudioChannel))
 {
@@ -4477,6 +4477,7 @@ void HTMLMediaElement::UnbindFromTree(bool aDeep,
                                       bool aNullParent)
 {
   mUnboundFromTree = true;
+  mVisibilityState = Visibility::UNTRACKED;
   if (OwnerDoc()) {
     OwnerDoc()->RemoveMediaContent(this);
   }
@@ -7104,7 +7105,7 @@ HTMLMediaElement::NotifyCueDisplayStatesChanged()
 void
 HTMLMediaElement::MarkAsContentSource(CallerAPI aAPI)
 {
-  const bool isVisible = mVisibilityState != Visibility::APPROXIMATELY_NONVISIBLE;
+  const bool isVisible = mVisibilityState == Visibility::APPROXIMATELY_VISIBLE;
 
   if (isVisible) {
     // 0 = ALL_VISIBLE
