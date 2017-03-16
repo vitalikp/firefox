@@ -2059,6 +2059,12 @@ FragmentOrElement::TextIsOnlyWhitespace()
 }
 
 bool
+FragmentOrElement::ThreadSafeTextIsOnlyWhitespace() const
+{
+  return false;
+}
+
+bool
 FragmentOrElement::HasTextForTranslation()
 {
   return false;
