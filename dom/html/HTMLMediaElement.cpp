@@ -1476,7 +1476,7 @@ HTMLMediaElement::SetVisible(bool aVisible)
   mDecoder->SetForcedHidden(!aVisible);
 }
 
-layers::Image*
+already_AddRefed<layers::Image>
 HTMLMediaElement::GetCurrentImage()
 {
   // Mark the decoder owned by the element as tainted so that the
@@ -1493,7 +1493,8 @@ HTMLMediaElement::GetCurrentImage()
   }
 
   AutoLockImage lockImage(container);
-  return lockImage.GetImage();
+  RefPtr<layers::Image> image = lockImage.GetImage();
+  return image.forget();
 }
 
 bool
