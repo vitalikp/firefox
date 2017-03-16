@@ -2128,7 +2128,7 @@ nsHttpConnectionMgr::OnMsgCancelTransactions(int32_t code, ARefBase *param)
         return;
     }
 
-    for (int32_t i = ent->mUrgentStartQ.Length() - 1; i > 0;) {
+    for (uint32_t i = ent->mUrgentStartQ.Length(); i > 0;) {
         --i;
         nsHttpTransaction *trans = ent->mUrgentStartQ[i];
         LOG(("nsHttpConnectionMgr::OnMsgCancelTransactions %s %p %p\n",
@@ -2137,7 +2137,7 @@ nsHttpConnectionMgr::OnMsgCancelTransactions(int32_t code, ARefBase *param)
         ent->mUrgentStartQ.RemoveElementAt(i);
     }
 
-    for (int32_t i = ent->mPendingQ.Length() - 1; i > 0;) {
+    for (uint32_t i = ent->mPendingQ.Length(); i > 0;) {
         --i;
         nsHttpTransaction *trans = ent->mPendingQ[i];
         LOG(("nsHttpConnectionMgr::OnMsgCancelTransactions %s %p %p\n",
