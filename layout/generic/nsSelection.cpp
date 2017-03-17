@@ -6194,6 +6194,7 @@ Selection::PostScrollSelectionIntoViewEvent(
   RefPtr<ScrollSelectionIntoViewEvent> ev =
     new ScrollSelectionIntoViewEvent(this, aRegion, aVertical, aHorizontal,
                                      aFlags);
+  mScrollEvent = ev;
   nsresult rv;
   nsIDocument* doc = GetParentObject();
   if (doc) {
@@ -6204,10 +6205,10 @@ Selection::PostScrollSelectionIntoViewEvent(
     rv = NS_DispatchToCurrentThread(ev);
   }
 
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  mScrollEvent = ev;
-  return NS_OK;
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    mScrollEvent = nullptr; // no need to hold on to the event
+  }
+  return rv;
 }
 
 NS_IMETHODIMP
