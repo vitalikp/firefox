@@ -98,7 +98,6 @@
 #include "LayersLogging.h"
 #include "nsDOMClassInfoID.h"
 #include "nsColorPickerProxy.h"
-#include "nsDatePickerProxy.h"
 #include "nsContentPermissionHelper.h"
 #include "nsNetUtil.h"
 #include "nsIPermissionManager.h"
@@ -2059,25 +2058,10 @@ TabChild::DeallocPColorPickerChild(PColorPickerChild* aColorPicker)
   return true;
 }
 
-PDatePickerChild*
-TabChild::AllocPDatePickerChild(const nsString&, const nsString&)
-{
-  NS_RUNTIMEABORT("unused");
-  return nullptr;
-}
-
-bool
-TabChild::DeallocPDatePickerChild(PDatePickerChild* aDatePicker)
-{
-  nsDatePickerProxy* picker = static_cast<nsDatePickerProxy*>(aDatePicker);
-  NS_RELEASE(picker);
-  return true;
-}
-
 PFilePickerChild*
 TabChild::AllocPFilePickerChild(const nsString&, const int16_t&)
 {
-  NS_RUNTIMEABORT("unused");
+  MOZ_CRASH("unused");
   return nullptr;
 }
 
