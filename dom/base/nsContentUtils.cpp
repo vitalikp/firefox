@@ -10033,3 +10033,16 @@ nsContentUtils::CreateJSValueFromSequenceOfObject(JSContext* aCx,
   aValue.setObject(*array);
   return NS_OK;
 }
+
+/* static */ Element*
+nsContentUtils::GetClosestNonNativeAnonymousAncestor(Element* aElement)
+{
+  MOZ_ASSERT(aElement);
+  MOZ_ASSERT(aElement->IsNativeAnonymous());
+
+  Element* e = aElement;
+  while (e && e->IsNativeAnonymous()) {
+    e = e->GetParentElement();
+  }
+  return e;
+}
