@@ -661,9 +661,10 @@ KeyframeEffectReadOnly::ComposeStyleRule(
   }
 }
 
+template<typename ComposeAnimationResult>
 void
 KeyframeEffectReadOnly::ComposeStyle(
-  AnimationRule& aStyleRule,
+  ComposeAnimationResult&& aComposeResult,
   const nsCSSPropertyIDSet& aPropertiesToSkip)
 {
   MOZ_DIAGNOSTIC_ASSERT(!mIsComposingStyle,
@@ -682,8 +683,6 @@ KeyframeEffectReadOnly::ComposeStyle(
   if (computedTiming.mProgress.IsNull()) {
     return;
   }
-
-  bool isServoBackend = mDocument->IsStyledByServo();
 
   for (size_t propIdx = 0, propEnd = mProperties.Length();
        propIdx != propEnd; ++propIdx)
@@ -718,17 +717,10 @@ KeyframeEffectReadOnly::ComposeStyle(
                  prop.mSegments.Length(),
                "out of array bounds");
 
-    if (isServoBackend) {
-      ComposeStyleRule(aStyleRule.mServo,
-                       prop,
-                       *segment,
-                       computedTiming);
-    } else {
-      ComposeStyleRule(aStyleRule.mGecko,
-                       prop,
-                       *segment,
-                       computedTiming);
-    }
+    ComposeStyleRule(Forward<ComposeAnimationResult>(aComposeResult),
+                     prop,
+                     *segment,
+                     computedTiming);
   }
 }
 
@@ -1826,6 +1818,18 @@ KeyframeEffectReadOnly::ContainsAnimatedScale(const nsIFrame* aFrame) const
 
   return false;
 }
+
+template
+void
+KeyframeEffectReadOnly::ComposeStyle<RefPtr<AnimValuesStyleRule>&>(
+  RefPtr<AnimValuesStyleRule>& aAnimationRule,
+  const nsCSSPropertyIDSet& aPropertiesToSkip);
+
+template
+void
+KeyframeEffectReadOnly::ComposeStyle<RefPtr<ServoAnimationRule>&>(
+  RefPtr<ServoAnimationRule>& aAnimationRule,
+  const nsCSSPropertyIDSet& aPropertiesToSkip);
 
 } // namespace dom
 } // namespace mozilla
