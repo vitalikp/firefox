@@ -1728,10 +1728,6 @@ private:
   // participate in video decoder suspending.
   bool mHasSuspendTaint;
 
-  // True if audio tracks and video tracks are constructed and added into the
-  // track list, false if all tracks are removed from the track list.
-  bool mMediaTracksConstructed;
-
   Visibility mVisibilityState;
 
   UniquePtr<ErrorSink> mErrorSink;
