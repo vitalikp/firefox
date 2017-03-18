@@ -179,6 +179,7 @@ HttpChannelChild::HttpChannelChild()
   , mPostRedirectChannelShouldUpgrade(false)
   , mShouldParentIntercept(false)
   , mSuspendParentAfterSynthesizeResponse(false)
+  , mEventTargetMutex("HttpChannelChild::EventTargetMutex")
 {
   LOG(("Creating HttpChannelChild @%p\n", this));
 
@@ -292,6 +293,13 @@ class AssociateApplicationCacheEvent : public ChannelEvent
     , clientID(aClientID) {}
 
     void Run() { mChild->AssociateApplicationCache(groupID, clientID); }
+
+    already_AddRefed<nsIEventTarget> GetEventTarget()
+    {
+      MOZ_ASSERT(mChild);
+      nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+      return target.forget();
+    }
   private:
     HttpChannelChild* mChild;
     nsCString groupID;
@@ -365,6 +373,13 @@ class StartRequestEvent : public ChannelEvent
                            mCacheExpirationTime, mCachedCharset,
                            mSecurityInfoSerialization, mSelfAddr, mPeerAddr,
                            mCacheKey, mAltDataType, mAltDataLen);
+  }
+
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
   }
  private:
   HttpChannelChild* mChild;
@@ -625,6 +640,13 @@ class TransportAndDataEvent : public ChannelEvent
     mChild->OnTransportAndData(mChannelStatus, mTransportStatus,
                                mOffset, mCount, mData);
   }
+
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
+  }
  private:
   HttpChannelChild* mChild;
   nsresult mChannelStatus;
@@ -669,6 +691,12 @@ class MaybeDivertOnDataHttpEvent : public ChannelEvent
     mChild->MaybeDivertOnData(mData, mOffset, mCount);
   }
 
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
+  }
  private:
   HttpChannelChild* mChild;
   nsCString mData;
@@ -832,6 +860,13 @@ class StopRequestEvent : public ChannelEvent
   , mTiming(timing) {}
 
   void Run() { mChild->OnStopRequest(mChannelStatus, mTiming); }
+
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
+  }
  private:
   HttpChannelChild* mChild;
   nsresult mChannelStatus;
@@ -865,6 +900,12 @@ class MaybeDivertOnStopHttpEvent : public ChannelEvent
     mChild->MaybeDivertOnStop(mChannelStatus);
   }
 
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
+  }
  private:
   HttpChannelChild* mChild;
   nsresult mChannelStatus;
@@ -1006,6 +1047,13 @@ class ProgressEvent : public ChannelEvent
   , mProgressMax(progressMax) {}
 
   void Run() { mChild->OnProgress(mProgress, mProgressMax); }
+
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
+  }
  private:
   HttpChannelChild* mChild;
   int64_t mProgress, mProgressMax;
@@ -1054,6 +1102,13 @@ class StatusEvent : public ChannelEvent
   , mStatus(status) {}
 
   void Run() { mChild->OnStatus(mStatus); }
+
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
+  }
  private:
   HttpChannelChild* mChild;
   nsresult mStatus;
@@ -1101,6 +1156,13 @@ class FailedAsyncOpenEvent : public ChannelEvent
   , mStatus(status) {}
 
   void Run() { mChild->FailedAsyncOpen(mStatus); }
+
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
+  }
  private:
   HttpChannelChild* mChild;
   nsresult mStatus;
@@ -1155,6 +1217,13 @@ class DeleteSelfEvent : public ChannelEvent
  public:
   explicit DeleteSelfEvent(HttpChannelChild* child) : mChild(child) {}
   void Run() { mChild->DeleteSelf(); }
+
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
+  }
  private:
   HttpChannelChild* mChild;
 };
@@ -1212,9 +1281,12 @@ HttpChannelChild::RecvFinishInterceptedRedirect()
   RefPtr<HttpChannelChild> self(this);
   Send__delete__(this);
 
-  // Reset the event target since the IPC actor is about to be destroyed.
-  // Following channel event should be handled on main thread.
-  mEventQ->ResetDeliveryTarget();
+  {
+    // Reset the event target since the IPC actor is about to be destroyed.
+    // Following channel event should be handled on main thread.
+    MutexAutoLock lock(mEventTargetMutex);
+    mNeckoTarget = nullptr;
+  }
 
   // The IPDL connection was torn down by a interception logic in
   // CompleteRedirectSetup, and we need to call FinishInterceptedRedirect.
@@ -1284,6 +1356,13 @@ class Redirect1Event : public ChannelEvent
     mChild->Redirect1Begin(mRegistrarId, mNewURI, mRedirectFlags,
                            mResponseHead, mSecurityInfoSerialization,
                            mChannelId);
+  }
+
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
   }
  private:
   HttpChannelChild*   mChild;
@@ -1458,6 +1537,13 @@ class Redirect3Event : public ChannelEvent
  public:
   explicit Redirect3Event(HttpChannelChild* child) : mChild(child) {}
   void Run() { mChild->Redirect3Complete(nullptr); }
+
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
+  }
  private:
   HttpChannelChild* mChild;
 };
@@ -1482,6 +1568,13 @@ class HttpFlushedForDiversionEvent : public ChannelEvent
   void Run()
   {
     mChild->FlushedForDiversion();
+  }
+
+  already_AddRefed<nsIEventTarget> GetEventTarget()
+  {
+    MOZ_ASSERT(mChild);
+    nsCOMPtr<nsIEventTarget> target = mChild->GetNeckoTarget();
+    return target.forget();
   }
  private:
   HttpChannelChild* mChild;
@@ -2058,7 +2151,26 @@ HttpChannelChild::SetEventTarget()
   nsCOMPtr<nsIEventTarget> target =
     dispatcher->EventTargetFor(TaskCategory::Network);
   gNeckoChild->SetEventTargetForActor(this, target);
-  mEventQ->RetargetDeliveryTo(target);
+
+  {
+    MutexAutoLock lock(mEventTargetMutex);
+    mNeckoTarget = target;
+  }
+}
+
+already_AddRefed<nsIEventTarget>
+HttpChannelChild::GetNeckoTarget()
+{
+  nsCOMPtr<nsIEventTarget> target;
+  {
+    MutexAutoLock lock(mEventTargetMutex);
+    target = mNeckoTarget;
+  }
+
+  if (!target) {
+    target = do_GetMainThread();
+  }
+  return target.forget();
 }
 
 nsresult
