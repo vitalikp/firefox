@@ -577,7 +577,7 @@ PrintSingleError(JSContext* cx, FILE* file, JS::ConstUTF8CharsZ toStringResult,
         const char* kindPrefix = nullptr;
         switch (kind) {
           case PrintErrorKind::Error:
-            break;
+            MOZ_CRASH("unreachable");
           case PrintErrorKind::Warning:
             kindPrefix = "warning";
             break;
