@@ -629,7 +629,6 @@ class IonBuilder
     InliningResult inlineArrayPush(CallInfo& callInfo);
     InliningResult inlineArraySlice(CallInfo& callInfo);
     InliningResult inlineArrayJoin(CallInfo& callInfo);
-    InliningResult inlineArraySplice(CallInfo& callInfo);
 
     // Math natives.
     InliningResult inlineMathAbs(CallInfo& callInfo);
