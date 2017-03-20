@@ -478,8 +478,10 @@ private:
     nsAutoPtr<IPC::Message> mReply;
 };
 
-MessageChannel::MessageChannel(IToplevelProtocol *aListener)
-  : mListener(aListener),
+MessageChannel::MessageChannel(const char* aName,
+                               IToplevelProtocol *aListener)
+  : mName(aName),
+    mListener(aListener),
     mChannelState(ChannelClosed),
     mSide(UnknownSide),
     mLink(nullptr),
@@ -618,6 +620,14 @@ MessageChannel::CanSend() const
 }
 
 void
+MessageChannel::WillDestroyCurrentMessageLoop()
+{
+#if !defined(ANDROID)
+    MOZ_CRASH("MessageLoop destroyed before MessageChannel that's bound to it");
+#endif
+}
+
+void
 MessageChannel::Clear()
 {
     // Don't clear mWorkerLoopID; we use it in AssertLinkThread() and
@@ -632,6 +642,10 @@ MessageChannel::Clear()
 
     if (gParentProcessBlocker == this) {
         gParentProcessBlocker = nullptr;
+    }
+
+    if (mWorkerLoop) {
+        mWorkerLoop->RemoveDestructionObserver(this);
     }
 
     mWorkerLoop = nullptr;
@@ -665,6 +679,8 @@ MessageChannel::Open(Transport* aTransport, MessageLoop* aIOLoop, Side aSide)
     mMonitor = new RefCountedMonitor();
     mWorkerLoop = MessageLoop::current();
     mWorkerLoopID = mWorkerLoop->id();
+
+    mWorkerLoop->AddDestructionObserver(this);
 
     ProcessLink *link = new ProcessLink(this);
     link->Open(aTransport, aIOLoop, aSide); // :TODO: n.b.: sets mChild
@@ -742,6 +758,7 @@ MessageChannel::CommonThreadOpenInit(MessageChannel *aTargetChan, Side aSide)
 {
     mWorkerLoop = MessageLoop::current();
     mWorkerLoopID = mWorkerLoop->id();
+    mWorkerLoop->AddDestructionObserver(this);
     mLink = new ThreadLink(this, aTargetChan);
     mSide = aSide;
 }
