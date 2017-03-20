@@ -1120,6 +1120,7 @@ void nsTextEditorState::Unlink()
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mEditor)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mRootNode)
   NS_IMPL_CYCLE_COLLECTION_UNLINK(mPlaceholderDiv)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK(mPreviewDiv)
 }
 
 void nsTextEditorState::Traverse(nsCycleCollectionTraversalCallback& cb)
@@ -1129,6 +1130,7 @@ void nsTextEditorState::Traverse(nsCycleCollectionTraversalCallback& cb)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mEditor)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mRootNode)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mPlaceholderDiv)
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mPreviewDiv)
 }
 
 nsFrameSelection*
@@ -2194,6 +2196,7 @@ nsTextEditorState::UnbindFromFrame(nsTextControlFrame* aFrame)
   // they're not actually destroyed.
   nsContentUtils::DestroyAnonymousContent(&rootNode);
   nsContentUtils::DestroyAnonymousContent(&mPlaceholderDiv);
+  nsContentUtils::DestroyAnonymousContent(&mPreviewDiv);
 }
 
 nsresult
@@ -2260,6 +2263,38 @@ nsTextEditorState::InitializeRootNode()
   return mBoundFrame->UpdateValueDisplay(false);
 }
 
+Element*
+nsTextEditorState::CreateEmptyDivNode()
+{
+  MOZ_ASSERT(mBoundFrame);
+
+  nsIPresShell *shell = mBoundFrame->PresContext()->GetPresShell();
+  MOZ_ASSERT(shell);
+
+  nsIDocument *doc = shell->GetDocument();
+  MOZ_ASSERT(doc);
+
+  nsNodeInfoManager* pNodeInfoManager = doc->NodeInfoManager();
+  MOZ_ASSERT(pNodeInfoManager);
+
+  Element *element;
+
+  // Create a DIV
+  RefPtr<mozilla::dom::NodeInfo> nodeInfo;
+  nodeInfo = pNodeInfoManager->GetNodeInfo(nsGkAtoms::div, nullptr,
+                                           kNameSpaceID_XHTML,
+                                           nsIDOMNode::ELEMENT_NODE);
+
+  element = NS_NewHTMLDivElement(nodeInfo.forget());
+
+  // Create the text node for DIV
+  RefPtr<nsTextNode> textNode = new nsTextNode(pNodeInfoManager);
+
+  element->AppendChildTo(textNode, false);
+
+  return element;
+}
+
 nsresult
 nsTextEditorState::CreatePlaceholderNode()
 {
@@ -2278,38 +2313,28 @@ be called if @placeholder is the empty string when trimmed from line breaks");
 #endif // DEBUG
 
   NS_ENSURE_TRUE(!mPlaceholderDiv, NS_ERROR_UNEXPECTED);
-  NS_ENSURE_ARG_POINTER(mBoundFrame);
-
-  nsIPresShell *shell = mBoundFrame->PresContext()->GetPresShell();
-  NS_ENSURE_TRUE(shell, NS_ERROR_FAILURE);
-
-  nsIDocument *doc = shell->GetDocument();
-  NS_ENSURE_TRUE(doc, NS_ERROR_FAILURE);
-
-  nsNodeInfoManager* pNodeInfoManager = doc->NodeInfoManager();
-  NS_ENSURE_TRUE(pNodeInfoManager, NS_ERROR_OUT_OF_MEMORY);
-
-  nsresult rv;
 
   // Create a DIV for the placeholder
   // and add it to the anonymous content child list
-  RefPtr<mozilla::dom::NodeInfo> nodeInfo;
-  nodeInfo = pNodeInfoManager->GetNodeInfo(nsGkAtoms::div, nullptr,
-                                           kNameSpaceID_XHTML,
-                                           nsIDOMNode::ELEMENT_NODE);
-
-  rv = NS_NewHTMLElement(getter_AddRefs(mPlaceholderDiv), nodeInfo.forget(),
-                         NOT_FROM_PARSER);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // Create the text node for the placeholder text before doing anything else
-  RefPtr<nsTextNode> placeholderText = new nsTextNode(pNodeInfoManager);
-
-  rv = mPlaceholderDiv->AppendChildTo(placeholderText, false);
-  NS_ENSURE_SUCCESS(rv, rv);
+  mPlaceholderDiv = CreateEmptyDivNode();
 
   // initialize the text
   UpdatePlaceholderText(false);
+
+  return NS_OK;
+}
+
+nsresult
+nsTextEditorState::CreatePreviewNode()
+{
+  NS_ENSURE_TRUE(!mPreviewDiv, NS_ERROR_UNEXPECTED);
+
+  // Create a DIV for the preview
+  // and add it to the anonymous content child list
+  mPreviewDiv = CreateEmptyDivNode();
+
+  mPreviewDiv->SetAttr(kNameSpaceID_None, nsGkAtoms::_class,
+                       NS_LITERAL_STRING("preview-div"), false);
 
   return NS_OK;
 }
