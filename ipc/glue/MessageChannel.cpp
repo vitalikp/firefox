@@ -640,6 +640,12 @@ MessageChannel::Clear()
     // In practice, mListener owns the channel, so the channel gets deleted
     // before mListener.  But just to be safe, mListener is a weak pointer.
 
+#if !defined(ANDROID)
+    if (!Unsound_IsClosed()) {
+        MOZ_CRASH("MessageChannel destroyed without being closed");
+    }
+#endif
+
     if (gParentProcessBlocker == this) {
         gParentProcessBlocker = nullptr;
     }
