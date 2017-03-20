@@ -8694,7 +8694,7 @@ nsRuleNode::ComputePositionData(void* aStartStruct,
   if (MOZ_UNLIKELY(justifyItemsValue.GetUnit() == eCSSUnit_Inherit)) {
     if (MOZ_LIKELY(parentContext)) {
       pos->mJustifyItems =
-        parentPos->ComputedJustifyItems(parentContext->GetParent());
+        parentPos->ComputedJustifyItems(parentContext->GetParentAllowServo());
     } else {
       pos->mJustifyItems = NS_STYLE_JUSTIFY_NORMAL;
     }
