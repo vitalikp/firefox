@@ -11560,7 +11560,7 @@ nsCSSFrameConstructor::CreateFloatingLetterFrame(
     nextTextFrame =
       CreateContinuingFrame(aState.mPresContext, aTextFrame, aParentFrame);
     // Repair the continuations style context
-    nsStyleContext* parentStyleContext = aStyleContext->GetParent();
+    nsStyleContext* parentStyleContext = aStyleContext->GetParentAllowServo();
     if (parentStyleContext) {
       RefPtr<nsStyleContext> newSC = styleSet->
         ResolveStyleForText(aTextContent, parentStyleContext);
