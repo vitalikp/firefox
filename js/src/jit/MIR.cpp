@@ -3172,7 +3172,8 @@ MBinaryArithInstruction::foldsTo(TempAllocator& alloc)
         if (isTruncated()) {
             if (!folded->block())
                 block()->insertBefore(this, folded);
-            return MTruncateToInt32::New(alloc, folded);
+            if (folded->type() != MIRType::Int32)
+                return MTruncateToInt32::New(alloc, folded);
         }
         return folded;
     }
