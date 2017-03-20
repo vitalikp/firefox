@@ -225,7 +225,12 @@ public:
   bool GetPlaceholderVisibility() {
     return mPlaceholderVisibility;
   }
+
   void UpdatePlaceholderText(bool aNotify);
+
+  // preview methods
+  void SetPreviewText(const nsAString& aValue, bool aNotify);
+  void GetPreviewText(nsAString& aValue);
 
   /**
    * Get the maxlength attribute
