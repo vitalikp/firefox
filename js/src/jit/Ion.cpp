@@ -1850,6 +1850,17 @@ OptimizeMIR(MIRGenerator* mir)
             return false;
     }
 
+    // BCE marks bounds checks as dead, so do BCE before DCE.
+    if (mir->compilingWasm() && !JitOptions.wasmAlwaysCheckBounds) {
+        if (!EliminateBoundsChecks(mir, graph))
+            return false;
+        gs.spewPass("Redundant Bounds Check Elimination");
+        AssertGraphCoherency(graph);
+
+        if (mir->shouldCancel("BCE"))
+            return false;
+    }
+
     {
         AutoTraceLog log(logger, TraceLogger_EliminateDeadCode);
         if (!EliminateDeadCode(mir, graph))
@@ -1919,13 +1930,6 @@ OptimizeMIR(MIRGenerator* mir)
         if (!AddKeepAliveInstructions(graph))
             return false;
         gs.spewPass("Add KeepAlive Instructions");
-        AssertGraphCoherency(graph);
-    }
-
-    if (mir->compilingWasm()) {
-        if (!EliminateBoundsChecks(mir, graph))
-            return false;
-        gs.spewPass("Redundant Bounds Check Elimination");
         AssertGraphCoherency(graph);
     }
 

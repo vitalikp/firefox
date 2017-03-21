@@ -4236,10 +4236,7 @@ LIRGenerator::visitWasmBoundsCheck(MWasmBoundsCheck* ins)
 #ifdef WASM_HUGE_MEMORY
     MOZ_CRASH("No bounds checking on huge memory");
 #else
-    if (ins->isRedundant()) {
-        if (MOZ_LIKELY(!JitOptions.wasmAlwaysCheckBounds))
-            return;
-    }
+    MOZ_ASSERT(!ins->isRedundant());
 
     MDefinition* index = ins->index();
     MOZ_ASSERT(index->type() == MIRType::Int32);
