@@ -325,10 +325,6 @@ Initialize()
     return rv;
   }
 
-#ifdef DEBUG
-  nsStyleContext::AssertStyleStructMaxDifferenceValid();
-#endif
-
   return NS_OK;
 }
 

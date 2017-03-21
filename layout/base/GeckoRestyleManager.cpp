@@ -1076,8 +1076,6 @@ ElementRestyler::ElementRestyler(nsPresContext* aPresContext,
   , mChangeList(aChangeList)
   , mHintsHandledByAncestors(aHintsHandledByAncestors)
   , mHintsHandledBySelf(nsChangeHint(0))
-  , mParentFrameHintsNotHandledForDescendants(nsChangeHint(0))
-  , mHintsNotHandledForDescendants(nsChangeHint(0))
   , mRestyleTracker(aRestyleTracker)
   , mSelectorsForDescendants(aSelectorsForDescendants)
   , mTreeMatchContext(aTreeMatchContext)
@@ -1127,9 +1125,6 @@ ElementRestyler::ElementRestyler(const ElementRestyler& aParentRestyler,
       ((aConstructorFlags & FOR_OUT_OF_FLOW_CHILD) ?
        ~nsChangeHint_AllReflowHints : ~nsChangeHint(0)))
   , mHintsHandledBySelf(nsChangeHint(0))
-  , mParentFrameHintsNotHandledForDescendants(
-      aParentRestyler.mHintsNotHandledForDescendants)
-  , mHintsNotHandledForDescendants(nsChangeHint(0))
   , mRestyleTracker(aParentRestyler.mRestyleTracker)
   , mSelectorsForDescendants(aParentRestyler.mSelectorsForDescendants)
   , mTreeMatchContext(aParentRestyler.mTreeMatchContext)
@@ -1166,10 +1161,6 @@ ElementRestyler::ElementRestyler(ParentContextFromChildFrame,
   , mHintsHandledByAncestors(aParentRestyler.mHintsHandledByAncestors |
                              aParentRestyler.mHintsHandledBySelf)
   , mHintsHandledBySelf(nsChangeHint(0))
-  , mParentFrameHintsNotHandledForDescendants(
-      // assume the worst
-      nsChangeHint_Hints_NotHandledForDescendants)
-  , mHintsNotHandledForDescendants(nsChangeHint(0))
   , mRestyleTracker(aParentRestyler.mRestyleTracker)
   , mSelectorsForDescendants(aParentRestyler.mSelectorsForDescendants)
   , mTreeMatchContext(aParentRestyler.mTreeMatchContext)
@@ -1212,8 +1203,6 @@ ElementRestyler::ElementRestyler(nsPresContext* aPresContext,
   , mChangeList(aChangeList)
   , mHintsHandledByAncestors(aHintsHandledByAncestors)
   , mHintsHandledBySelf(nsChangeHint(0))
-  , mParentFrameHintsNotHandledForDescendants(nsChangeHint(0))
-  , mHintsNotHandledForDescendants(nsChangeHint(0))
   , mRestyleTracker(aRestyleTracker)
   , mSelectorsForDescendants(aSelectorsForDescendants)
   , mTreeMatchContext(aTreeMatchContext)
@@ -1299,7 +1288,6 @@ ElementRestyler::CaptureChange(nsStyleContext* aOldContext,
 
   nsChangeHint ourChange =
     aOldContext->CalcStyleDifference(aNewContext,
-                                     mParentFrameHintsNotHandledForDescendants,
                                      aEqualStructs,
                                      aSamePointerStructs);
   NS_ASSERTION(!(ourChange & nsChangeHint_AllReflowHints) ||
@@ -1347,10 +1335,6 @@ ElementRestyler::CaptureChange(nsStyleContext* aOldContext,
   } else {
     LOG_RESTYLE("change has already been handled");
   }
-  mHintsNotHandledForDescendants |=
-    NS_HintsNotHandledForDescendantsIn(ourChange);
-  LOG_RESTYLE("mHintsNotHandledForDescendants = %s",
-              GeckoRestyleManager::ChangeHintToString(mHintsNotHandledForDescendants).get());
 }
 
 class MOZ_RAII AutoSelectorArrayTruncater final
@@ -2495,13 +2479,6 @@ ElementRestyler::RestyleSelf(nsIFrame* aSelf,
     canStopWithStyleChange = false;
   }
 
-  if (providerFrame != aSelf->GetParent()) {
-    // We don't actually know what the parent style context's
-    // non-inherited hints were, so assume the worst.
-    mParentFrameHintsNotHandledForDescendants =
-      nsChangeHint_Hints_NotHandledForDescendants;
-  }
-
   LOG_RESTYLE("parentContext = %p", parentContext);
 
   // do primary context
@@ -2694,7 +2671,7 @@ ElementRestyler::RestyleSelf(nsIFrame* aSelf,
       // same-style continuations (bug 918064), we need to check again here to
       // determine whether it is safe to stop restyling.
       if (result == RestyleResult::eStop) {
-        oldContext->CalcStyleDifference(newContext, nsChangeHint(0),
+        oldContext->CalcStyleDifference(newContext,
                                         &equalStructs,
                                         &samePointerStructs);
         if (equalStructs != NS_STYLE_INHERIT_MASK) {

@@ -985,15 +985,11 @@ nsStyleContext::ApplyStyleFixups(bool aSkipParentDisplayBasedStyleFixup)
 template<class StyleContextLike>
 nsChangeHint
 nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
-                                            nsChangeHint aParentHintsNotHandledForDescendants,
                                             uint32_t* aEqualStructs,
                                             uint32_t* aSamePointerStructs)
 {
   PROFILER_LABEL("nsStyleContext", "CalcStyleDifference",
     js::ProfileEntry::Category::CSS);
-  MOZ_ASSERT(NS_IsHintSubset(aParentHintsNotHandledForDescendants,
-                             nsChangeHint_Hints_NotHandledForDescendants),
-             "caller is passing inherited hints, but shouldn't be");
 
   static_assert(nsStyleStructID_Length <= 32,
                 "aEqualStructs is not big enough");
@@ -1011,34 +1007,17 @@ nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
   // we could later get a small change in one of those structs that we
   // don't want to miss.
 
-  // If our sources are the same, then any differences in style data
-  // are already accounted for by differences on ancestors.  We know
-  // this because CalcStyleDifference is always called on two style
-  // contexts that point to the same element, so we know that our
-  // position in the style context tree is the same and our position in
-  // the rule node tree (if applicable) is also the same.
-  // However, if there were noninherited style change hints on the
-  // parent, we might produce these same noninherited hints on this
-  // style context's frame due to 'inherit' values, so we do need to
-  // compare.
-  // (Things like 'em' units are handled by the change hint produced
-  // by font-size changing, so we don't need to worry about them like
-  // we worry about 'inherit' values.)
-  bool compare = StyleSource() != aNewContext->StyleSource();
-
   DebugOnly<uint32_t> structsFound = 0;
 
-  // If we had any change in variable values, then we'll need to examine
-  // all of the other style structs too, even if the new style context has
-  // the same source as the old one.
+  // FIXME(heycam): We should just do the comparison in
+  // nsStyleVariables::CalcDifference, returning NeutralChange if there are
+  // any Variables differences.
   const nsStyleVariables* thisVariables = PeekStyleVariables();
   if (thisVariables) {
     structsFound |= NS_STYLE_INHERIT_BIT(Variables);
     const nsStyleVariables* otherVariables = aNewContext->StyleVariables();
     if (thisVariables->mVariables == otherVariables->mVariables) {
       *aEqualStructs |= NS_STYLE_INHERIT_BIT(Variables);
-    } else {
-      compare = true;
     }
   } else {
     *aEqualStructs |= NS_STYLE_INHERIT_BIT(Variables);
@@ -1052,33 +1031,14 @@ nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
     if (this##struct_) {                                                      \
       structsFound |= NS_STYLE_INHERIT_BIT(struct_);                          \
       const nsStyle##struct_* other##struct_ = aNewContext->Style##struct_(); \
-      nsChangeHint maxDifference = nsStyle##struct_::MaxDifference();         \
-      nsChangeHint differenceAlwaysHandledForDescendants =                    \
-        nsStyle##struct_::DifferenceAlwaysHandledForDescendants();            \
       if (this##struct_ == other##struct_) {                                  \
         /* The very same struct, so we know that there will be no */          \
         /* differences.                                           */          \
         *aEqualStructs |= NS_STYLE_INHERIT_BIT(struct_);                      \
-      } else if (compare ||                                                   \
-                 ((maxDifference & ~differenceAlwaysHandledForDescendants) &  \
-                  aParentHintsNotHandledForDescendants)) {                    \
-        nsChangeHint difference =                                             \
-          this##struct_->CalcDifference(*other##struct_ EXTRA_DIFF_ARGS);     \
-        NS_ASSERTION(NS_IsHintSubset(difference, maxDifference),              \
-                     "CalcDifference() returned bigger hint than "            \
-                     "MaxDifference()");                                      \
-        hint |= difference;                                                   \
-        if (!difference) {                                                    \
-          *aEqualStructs |= NS_STYLE_INHERIT_BIT(struct_);                    \
-        }                                                                     \
       } else {                                                                \
-        /* We still must call CalcDifference to see if there were any */      \
-        /* changes so that we can set *aEqualStructs appropriately.   */      \
         nsChangeHint difference =                                             \
           this##struct_->CalcDifference(*other##struct_ EXTRA_DIFF_ARGS);     \
-        NS_ASSERTION(NS_IsHintSubset(difference, maxDifference),              \
-                     "CalcDifference() returned bigger hint than "            \
-                     "MaxDifference()");                                      \
+        hint |= difference;                                                   \
         if (!difference) {                                                    \
           *aEqualStructs |= NS_STYLE_INHERIT_BIT(struct_);                    \
         }                                                                     \
@@ -1089,11 +1049,9 @@ nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
     styleStructCount++;                                                       \
   PR_END_MACRO
 
-  // In general, we want to examine structs starting with those that can
-  // cause the largest style change, down to those that can cause the
-  // smallest.  This lets us skip later ones if we already have a hint
-  // that subsumes their MaxDifference.  (As the hints get
-  // finer-grained, this optimization is becoming less useful, though.)
+  // FIXME: The order of these DO_STRUCT_DIFFERENCE calls is no longer
+  // significant.  With a small amount of effort, we could replace them with a
+  // #include "nsStyleStructList.h".
 #define EXTRA_DIFF_ARGS /* nothing */
   DO_STRUCT_DIFFERENCE(Display);
   DO_STRUCT_DIFFERENCE(XUL);
@@ -1246,12 +1204,10 @@ nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
 
 nsChangeHint
 nsStyleContext::CalcStyleDifference(nsStyleContext* aNewContext,
-                                    nsChangeHint aParentHintsNotHandledForDescendants,
                                     uint32_t* aEqualStructs,
                                     uint32_t* aSamePointerStructs)
 {
   return CalcStyleDifferenceInternal(aNewContext,
-                                     aParentHintsNotHandledForDescendants,
                                      aEqualStructs,
                                      aSamePointerStructs);
 }
@@ -1288,13 +1244,11 @@ private:
 
 nsChangeHint
 nsStyleContext::CalcStyleDifference(const ServoComputedValues* aNewComputedValues,
-                                    nsChangeHint aParentHintsNotHandledForDescendants,
                                     uint32_t* aEqualStructs,
                                     uint32_t* aSamePointerStructs)
 {
   FakeStyleContext newContext(aNewComputedValues);
   return CalcStyleDifferenceInternal(&newContext,
-                                     aParentHintsNotHandledForDescendants,
                                      aEqualStructs,
                                      aSamePointerStructs);
 }
@@ -1529,16 +1483,6 @@ nsStyleContext::CombineVisitedColors(nscolor *aColors, bool aLinkIsVisited)
 }
 
 #ifdef DEBUG
-/* static */ void
-nsStyleContext::AssertStyleStructMaxDifferenceValid()
-{
-#define STYLE_STRUCT(name, checkdata_cb)                                     \
-    MOZ_ASSERT(NS_IsHintSubset(nsStyle##name::DifferenceAlwaysHandledForDescendants(), \
-                               nsStyle##name::MaxDifference()));
-#include "nsStyleStructList.h"
-#undef STYLE_STRUCT
-}
-
 /* static */ const char*
 nsStyleContext::StructName(nsStyleStructID aSID)
 {

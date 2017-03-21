@@ -10223,7 +10223,6 @@ nsFrame::UpdateStyleOfChildAnonBox(nsIFrame* aChildFrame,
   uint32_t equalStructs, samePointerStructs; // Not used, actually.
   nsChangeHint childHint = aChildFrame->StyleContext()->CalcStyleDifference(
     newContext,
-    NS_HintsNotHandledForDescendantsIn(aHintForThisFrame),
     &equalStructs,
     &samePointerStructs);
   if (childHint) {
