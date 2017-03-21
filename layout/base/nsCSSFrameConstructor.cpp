@@ -3224,10 +3224,6 @@ nsCSSFrameConstructor::InitializeSelectFrame(nsFrameConstructorState& aState,
                     aStyleContext, aParentFrame);
   }
 
-  if (aBuildCombobox) {
-    nsFrame::CreateViewForFrame(scrollFrame, true);
-  }
-
   BuildScrollFrame(aState, aContent, aStyleContext, scrolledFrame,
                    geometricParent, scrollFrame);
 
@@ -3912,8 +3908,6 @@ nsCSSFrameConstructor::ConstructFrameFromItemInternal(FrameConstructionItem& aIt
       frameToAddToList = scrollframe;
     } else {
       InitAndRestoreFrame(aState, content, geometricParent, newFrame);
-      // See whether we need to create a view
-      nsFrame::CreateViewForFrame(newFrame, false);
       frameToAddToList = newFrame;
     }
 
