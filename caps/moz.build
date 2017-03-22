@@ -29,7 +29,7 @@ SOURCES += [
 
 UNIFIED_SOURCES += [
     'DomainPolicy.cpp',
-    'nsExpandedPrincipal.cpp',
+    'ExpandedPrincipal.cpp',
     'nsJSPrincipals.cpp',
     'nsNullPrincipal.cpp',
     'nsNullPrincipalURI.cpp',

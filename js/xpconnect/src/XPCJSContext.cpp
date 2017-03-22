@@ -348,7 +348,7 @@ PrincipalImmuneToScriptPolicy(nsIPrincipal* aPrincipal)
     if (nsXPConnect::SecurityManager()->IsSystemPrincipal(aPrincipal))
         return true;
 
-    // nsExpandedPrincipal gets a free pass.
+    // ExpandedPrincipal gets a free pass.
     nsCOMPtr<nsIExpandedPrincipal> ep = do_QueryInterface(aPrincipal);
     if (ep)
         return true;
