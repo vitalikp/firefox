@@ -230,7 +230,8 @@ public:
   bool UseTiledLayerBuffer(ISurfaceAllocator* aAllocator,
                            const SurfaceDescriptorTiles& aTiledDescriptor);
 
-  virtual void Composite(LayerComposite* aLayer,
+  virtual void Composite(Compositor* aCompositor,
+                         LayerComposite* aLayer,
                          EffectChain& aEffectChain,
                          float aOpacity,
                          const gfx::Matrix4x4& aTransform,
@@ -261,6 +262,7 @@ public:
 private:
 
   void RenderLayerBuffer(TiledLayerBufferComposite& aLayerBuffer,
+                         Compositor* aCompositor,
                          const gfx::Color* aBackgroundColor,
                          EffectChain& aEffectChain,
                          float aOpacity,
@@ -272,6 +274,7 @@ private:
 
   // Renders a single given tile.
   void RenderTile(TileHost& aTile,
+                  Compositor* aCompositor,
                   EffectChain& aEffectChain,
                   float aOpacity,
                   const gfx::Matrix4x4& aTransform,
