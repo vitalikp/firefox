@@ -13,7 +13,7 @@
 #include "nsIObjectInputStream.h"
 #include "nsIObjectOutputStream.h"
 
-#include "nsPrincipal.h"
+#include "ContentPrincipal.h"
 #include "nsNetUtil.h"
 #include "nsIURIWithPrincipal.h"
 #include "NullPrincipal.h"
@@ -658,7 +658,7 @@ BasePrincipal::CreateCodebasePrincipal(nsIURI* aURI, const OriginAttributes& aAt
   }
 
   // Mint a codebase principal.
-  RefPtr<nsPrincipal> codebase = new nsPrincipal();
+  RefPtr<ContentPrincipal> codebase = new ContentPrincipal();
   rv = codebase->Init(aURI, aAttrs);
   NS_ENSURE_SUCCESS(rv, nullptr);
   return codebase.forget();

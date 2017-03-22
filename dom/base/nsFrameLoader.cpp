@@ -100,7 +100,7 @@
 #include "mozilla/dom/Promise.h"
 #include "mozilla/dom/PromiseNativeHandler.h"
 
-#include "nsPrincipal.h"
+#include "ContentPrincipal.h"
 
 #ifdef MOZ_XUL
 #include "nsXULPopupManager.h"
