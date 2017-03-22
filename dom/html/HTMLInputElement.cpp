@@ -1167,6 +1167,7 @@ HTMLInputElement::HTMLInputElement(already_AddRefed<mozilla::dom::NodeInfo>& aNo
   , mNumberControlSpinnerSpinsUp(false)
   , mPickerRunning(false)
   , mSelectionCached(true)
+  , mIsPreviewEnabled(false)
 {
   // If size is above 512, mozjemalloc allocates 1kB, see
   // memory/mozjemalloc/jemalloc.c
@@ -3043,6 +3044,24 @@ HTMLInputElement::GetPreviewValue(nsAString& aValue)
   if (state) {
     state->GetPreviewText(aValue);
   }
+}
+
+NS_IMETHODIMP_(void)
+HTMLInputElement::EnablePreview()
+{
+  if (mIsPreviewEnabled) {
+    return;
+  }
+
+  mIsPreviewEnabled = true;
+  // Reconstruct the frame to append an anonymous preview node
+  nsLayoutUtils::PostRestyleEvent(this, nsRestyleHint(0), nsChangeHint_ReconstructFrame);
+}
+
+NS_IMETHODIMP_(bool)
+HTMLInputElement::IsPreviewEnabled()
+{
+  return mIsPreviewEnabled;
 }
 
 void
