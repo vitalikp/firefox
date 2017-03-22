@@ -137,7 +137,7 @@ private:
   void OnMetadataRead(MetadataHolder* aMetadata);
   void OnMetadataNotRead(const MediaResult& aError);
   void RequestSample();
-  void SampleDecoded(MediaData* aData);
+  void SampleDecoded(AudioData* aData);
   void SampleNotDecoded(const MediaResult& aError);
   void FinishDecode();
   void AllocateBuffer();
@@ -162,7 +162,7 @@ private:
   RefPtr<BufferDecoder> mBufferDecoder;
   RefPtr<MediaDecoderReader> mDecoderReader;
   MediaInfo mMediaInfo;
-  MediaQueue<MediaData> mAudioQueue;
+  MediaQueue<AudioData> mAudioQueue;
   bool mFirstFrameDecoded;
 };
 
@@ -334,7 +334,7 @@ MediaDecodeTask::RequestSample()
 }
 
 void
-MediaDecodeTask::SampleDecoded(MediaData* aData)
+MediaDecodeTask::SampleDecoded(AudioData* aData)
 {
   MOZ_ASSERT(!NS_IsMainThread());
   mAudioQueue.Push(aData);
@@ -400,9 +400,8 @@ MediaDecodeTask::FinishDecode()
     return;
   }
 
-  RefPtr<MediaData> mediaData;
-  while ((mediaData = mAudioQueue.PopFront())) {
-    RefPtr<AudioData> audioData = mediaData->As<AudioData>();
+  RefPtr<AudioData> audioData;
+  while ((audioData = mAudioQueue.PopFront())) {
     audioData->EnsureAudioBuffer(); // could lead to a copy :(
     AudioDataValue* bufferData = static_cast<AudioDataValue*>
       (audioData->mAudioBuffer->Data());
