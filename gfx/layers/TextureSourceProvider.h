@@ -17,6 +17,9 @@ namespace mozilla {
 namespace gfx {
 class DataSourceSurface;
 } // namespace gfx
+namespace gl {
+class GLContext;
+} // namespace gl
 namespace layers {
 
 class TextureHost;
@@ -78,6 +81,11 @@ public:
   // If this provider is also a Compositor, return the compositor. Otherwise return
   // null.
   virtual Compositor* AsCompositor() {
+    return nullptr;
+  }
+
+  // If this provides OpenGL textures, it must expose the GLContext.
+  virtual gl::GLContext* GetGLContext() const {
     return nullptr;
   }
 

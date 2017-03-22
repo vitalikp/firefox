@@ -506,7 +506,7 @@ BufferTextureHost::SetCompositor(Compositor* aCompositor)
       aCompositor->GetBackendType() == mCompositor->GetBackendType()) {
     RefPtr<TextureSource> it = mFirstSource;
     while (it) {
-      it->SetCompositor(aCompositor);
+      it->SetTextureSourceProvider(aCompositor);
       it = it->GetNextSibling();
     }
   }
@@ -732,7 +732,7 @@ BufferTextureHost::PrepareTextureSource(CompositableTextureSourceRef& aTexture)
     // current one.
     RefPtr<TextureSource> it = mFirstSource;
     while (it) {
-      it->SetCompositor(mCompositor);
+      it->SetTextureSourceProvider(mCompositor);
       it = it->GetNextSibling();
     }
   }
