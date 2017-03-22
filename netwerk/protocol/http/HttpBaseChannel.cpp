@@ -48,7 +48,7 @@
 #include "nsILoadGroupChild.h"
 #include "mozilla/ConsoleReportCollector.h"
 #include "LoadInfo.h"
-#include "nsNullPrincipal.h"
+#include "NullPrincipal.h"
 #include "nsISSLSocketControl.h"
 #include "mozilla/Telemetry.h"
 #include "nsIURL.h"
@@ -3100,7 +3100,7 @@ HttpBaseChannel::SetupReplacementChannel(nsIURI       *newURI,
     nsContentPolicyType contentPolicyType = mLoadInfo->GetExternalContentPolicyType();
     if (contentPolicyType == nsIContentPolicy::TYPE_DOCUMENT ||
         contentPolicyType == nsIContentPolicy::TYPE_SUBDOCUMENT) {
-      nsCOMPtr<nsIPrincipal> nullPrincipalToInherit = nsNullPrincipal::Create();
+      nsCOMPtr<nsIPrincipal> nullPrincipalToInherit = NullPrincipal::Create();
       newLoadInfo->SetPrincipalToInherit(nullPrincipalToInherit);
     }
 

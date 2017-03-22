@@ -42,7 +42,7 @@
 #include "nsDOMClassInfoID.h"
 #include "mozilla/Likely.h"
 #include "nsComponentManagerUtils.h"
-#include "nsNullPrincipal.h"
+#include "NullPrincipal.h"
 #include "mozilla/RuleProcessorCache.h"
 #include "nsIStyleSheetLinkingElement.h"
 #include "nsDOMWindowUtils.h"

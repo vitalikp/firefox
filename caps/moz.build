@@ -15,8 +15,8 @@ XPIDL_MODULE = 'caps'
 
 EXPORTS += [
     'nsJSPrincipals.h',
-    'nsNullPrincipal.h',
-    'nsNullPrincipalURI.h',
+    'NullPrincipal.h',
+    'NullPrincipalURI.h',
 ]
 
 EXPORTS.mozilla = [
@@ -31,11 +31,11 @@ UNIFIED_SOURCES += [
     'DomainPolicy.cpp',
     'ExpandedPrincipal.cpp',
     'nsJSPrincipals.cpp',
-    'nsNullPrincipal.cpp',
-    'nsNullPrincipalURI.cpp',
     'nsPrincipal.cpp',
     'nsScriptSecurityManager.cpp',
     'nsSystemPrincipal.cpp',
+    'NullPrincipal.cpp',
+    'NullPrincipalURI.cpp',
 ]
 
 LOCAL_INCLUDES += [

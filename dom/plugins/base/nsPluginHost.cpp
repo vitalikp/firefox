@@ -95,7 +95,7 @@
 #include "nsIImageLoadingContent.h"
 #include "mozilla/Preferences.h"
 #include "nsVersionComparator.h"
-#include "nsNullPrincipal.h"
+#include "NullPrincipal.h"
 
 #if defined(XP_WIN)
 #include "nsIWindowMediator.h"
@@ -622,7 +622,7 @@ nsresult nsPluginHost::FindProxyForURL(const char* url, char* *result)
   res = NS_NewURI(getter_AddRefs(uri), nsDependentCString(url));
   NS_ENSURE_SUCCESS(res, res);
 
-  nsCOMPtr<nsIPrincipal> nullPrincipal = nsNullPrincipal::Create();
+  nsCOMPtr<nsIPrincipal> nullPrincipal = NullPrincipal::Create();
   // The following channel is never openend, so it does not matter what
   // securityFlags we pass; let's follow the principle of least privilege.
   nsCOMPtr<nsIChannel> tempChannel;

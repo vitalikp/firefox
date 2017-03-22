@@ -25,7 +25,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsIStringStream.h"
 #include "nsServiceManagerUtils.h"
-#include "nsNullPrincipal.h"
+#include "NullPrincipal.h"
 #include "nsIURL.h"
 #include "prlink.h"
 
@@ -105,7 +105,7 @@ moz_gdk_pixbuf_to_channel(GdkPixbuf* aPixbuf, nsIURI* aURI,
   // nsIconProtocolHandler::NewChannel2 will provide the correct loadInfo for
   // this iconChannel. Use the most restrictive security settings for the
   // temporary loadInfo to make sure the channel can not be openend.
-  nsCOMPtr<nsIPrincipal> nullPrincipal = nsNullPrincipal::Create();
+  nsCOMPtr<nsIPrincipal> nullPrincipal = NullPrincipal::Create();
   return NS_NewInputStreamChannel(aChannel,
                                   aURI,
                                   stream,

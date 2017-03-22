@@ -106,7 +106,7 @@
 #include "nsIScriptSecurityManager.h"
 #include "nsIPermissionManager.h"
 #include "nsIPrincipal.h"
-#include "nsNullPrincipal.h"
+#include "NullPrincipal.h"
 
 #include "nsIDOMWindow.h"
 #include "nsPIDOMWindow.h"
@@ -2742,7 +2742,7 @@ nsDocument::InitCSP(nsIChannel* aChannel)
   mSandboxFlags |= cspSandboxFlags;
   
   if (needNewNullPrincipal) {
-    principal = nsNullPrincipal::CreateWithInheritedAttributes(principal);
+    principal = NullPrincipal::CreateWithInheritedAttributes(principal);
     principal->SetCsp(csp);
     SetPrincipal(principal);
   }
