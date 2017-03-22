@@ -1146,7 +1146,7 @@ class FunctionCompiler
         if (inDeadCode())
             return;
 
-        MWasmReturn* ins = MWasmReturn::New(alloc(), operand, tlsPointer_);
+        MWasmReturn* ins = MWasmReturn::New(alloc(), operand);
         curBlock_->end(ins);
         curBlock_ = nullptr;
     }
@@ -1156,7 +1156,7 @@ class FunctionCompiler
         if (inDeadCode())
             return;
 
-        MWasmReturnVoid* ins = MWasmReturnVoid::New(alloc(), tlsPointer_);
+        MWasmReturnVoid* ins = MWasmReturnVoid::New(alloc());
         curBlock_->end(ins);
         curBlock_ = nullptr;
     }
