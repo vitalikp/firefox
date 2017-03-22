@@ -49,7 +49,7 @@ CompositableHost::UseTextureHost(const nsTArray<TimedTexture>& aTextures)
 {
   if (GetCompositor()) {
     for (auto& texture : aTextures) {
-      texture.mTexture->SetCompositor(GetCompositor());
+      texture.mTexture->SetTextureSourceProvider(GetCompositor());
     }
   }
 }
@@ -60,8 +60,8 @@ CompositableHost::UseComponentAlphaTextures(TextureHost* aTextureOnBlack,
 {
   MOZ_ASSERT(aTextureOnBlack && aTextureOnWhite);
   if (GetCompositor()) {
-    aTextureOnBlack->SetCompositor(GetCompositor());
-    aTextureOnWhite->SetCompositor(GetCompositor());
+    aTextureOnBlack->SetTextureSourceProvider(GetCompositor());
+    aTextureOnWhite->SetTextureSourceProvider(GetCompositor());
   }
 }
 
