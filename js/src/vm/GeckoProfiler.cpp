@@ -297,6 +297,7 @@ GeckoProfiler::push(const char* string, void* sp, JSScript* script, jsbytecode* 
         }
 
         entry.setLabel(string);
+        entry.setDynamicString(nullptr);
         entry.setCategory(category);
 
         // Track if mLabel needs a copy.
