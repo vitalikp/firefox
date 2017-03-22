@@ -1101,6 +1101,11 @@ public:
   static void FillAllMaskLists(nsStyleImageLayers& aLayers,
                                uint32_t aMaxItemCount);
 
+  static void ComputeSystemFont(nsFont* aSystemFont,
+                                mozilla::LookAndFeel::FontID aFontID,
+                                const nsPresContext* aPresContext,
+                                const nsFont* aDefaultVariableFont);
+
 private:
 #ifdef DEBUG
   // non-inline helper function to allow assertions without incomplete
@@ -1113,9 +1118,6 @@ private:
   static void StoreStyleOnContext(nsStyleContext* aContext,
                                   nsStyleStructID aSID,
                                   void* aStruct);
-  static void ComputeSystemFont(nsFont* aSystemFont,
-                                mozilla::LookAndFeel::FontID aFontID,
-                                const nsPresContext* aPresContext);
 };
 
 /**

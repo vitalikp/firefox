@@ -3673,7 +3673,8 @@ static int8_t ClampTo8Bit(int32_t aValue) {
 
 /* static */ void
 nsRuleNode::ComputeSystemFont(nsFont* aSystemFont, LookAndFeel::FontID aFontID,
-                              const nsPresContext* aPresContext)
+                              const nsPresContext* aPresContext,
+                              const nsFont* aDefaultVariableFont)
 {
   gfxFontStyle fontStyle;
   float devPerCSS =
@@ -3716,7 +3717,7 @@ nsRuleNode::ComputeSystemFont(nsFont* aSystemFont, LookAndFeel::FontID aFontID,
       //    the default proportional font.
       // Assumption: system defined font is proportional
       aSystemFont->size =
-        std::max(defaultVariableFont->size -
+        std::max(aDefaultVariableFont->size -
                  nsPresContext::CSSPointsToAppUnits(2), 0);
     }
 #endif
@@ -3794,7 +3795,7 @@ nsRuleNode::SetFont(nsPresContext* aPresContext, nsStyleContext* aContext,
   if (eCSSUnit_Enumerated == systemFontValue->GetUnit()) {
     LookAndFeel::FontID fontID =
       (LookAndFeel::FontID)systemFontValue->GetIntValue();
-    ComputeSystemFont(&systemFont, fontID, aPresContext);
+    ComputeSystemFont(&systemFont, fontID, aPresContext, defaultVariableFont);
   }
 
   // font-family: font family list, enum, inherit
