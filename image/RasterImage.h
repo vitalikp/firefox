@@ -159,6 +159,7 @@ public:
   NS_DECL_IMGICONTAINERDEBUG
 #endif
 
+  nsresult GetNativeSizes(nsTArray<gfx::IntSize>& aNativeSizes) const override;
   virtual nsresult StartAnimation() override;
   virtual nsresult StopAnimation() override;
 
@@ -385,6 +386,7 @@ private:
 
 private: // data
   nsIntSize                  mSize;
+  nsTArray<nsIntSize>        mNativeSizes;
   Orientation                mOrientation;
 
   /// If this has a value, we're waiting for SetSize() to send the load event.
