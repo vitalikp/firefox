@@ -2607,7 +2607,7 @@ class BaseCompiler final : public BaseCompilerInterface
         if (maxFramePushed_ > 256 * 1024)
             return false;
 
-        return true;
+        return !masm.oom();
     }
 
     //////////////////////////////////////////////////////////////////////
