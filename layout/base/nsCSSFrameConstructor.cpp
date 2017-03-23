@@ -420,7 +420,7 @@ static bool
 IsFrameForSVG(const nsIFrame* aFrame)
 {
   return aFrame->IsFrameOfType(nsIFrame::eSVG) ||
-         aFrame->IsSVGText();
+         nsSVGUtils::IsInSVGTextSubtree(aFrame);
 }
 
 /**
@@ -1129,7 +1129,8 @@ nsFrameConstructorState::GetGeometricParent(const nsStyleDisplay* aStyleDisplay,
   // XXXbz couldn't we just force position to "static" on roots and
   // float to "none"?  That's OK per CSS 2.1, as far as I can tell.
 
-  if (aContentParentFrame && aContentParentFrame->IsSVGText()) {
+  if (aContentParentFrame &&
+      nsSVGUtils::IsInSVGTextSubtree(aContentParentFrame)) {
     return aContentParentFrame;
   }
 
@@ -3420,7 +3421,7 @@ nsCSSFrameConstructor::FindTextData(nsIFrame* aParentFrame)
       static const FrameConstructionData sSVGTextData =
         FCDATA_DECL(FCDATA_IS_LINE_PARTICIPANT | FCDATA_IS_SVG_TEXT,
                     NS_NewTextFrame);
-      if (ancestorFrame->IsSVGText()) {
+      if (nsSVGUtils::IsInSVGTextSubtree(ancestorFrame)) {
         return &sSVGTextData;
       }
     }
@@ -4003,7 +4004,7 @@ nsCSSFrameConstructor::ConstructFrameFromItemInternal(FrameConstructionItem& aIt
              maybeAbsoluteContainingBlockDisplay->IsRelativelyPositionedStyle() ||
              maybeAbsoluteContainingBlockDisplay->IsFixedPosContainingBlock(
                  maybeAbsoluteContainingBlockStyleFrame)) &&
-            !maybeAbsoluteContainingBlockStyleFrame->IsSVGText()) {
+            !nsSVGUtils::IsInSVGTextSubtree(maybeAbsoluteContainingBlockStyleFrame)) {
           nsContainerFrame* cf = static_cast<nsContainerFrame*>(
               maybeAbsoluteContainingBlock);
           aState.PushAbsoluteContainingBlock(cf, cf, absoluteSaveState);
@@ -4960,7 +4961,7 @@ nsCSSFrameConstructor::ConstructNonScrollableBlockWithConstructor(
        aDisplay->IsFloatingStyle() ||
        StyleDisplay::InlineBlock == aDisplay->mDisplay ||
        clipPaginatedOverflow) &&
-      !aParentFrame->IsSVGText()) {
+      !nsSVGUtils::IsInSVGTextSubtree(aParentFrame)) {
     flags = NS_BLOCK_FORMATTING_CONTEXT_STATE_BITS;
     if (clipPaginatedOverflow) {
       flags |= NS_BLOCK_CLIP_PAGINATED_OVERFLOW;
@@ -5674,7 +5675,7 @@ nsCSSFrameConstructor::DoAddFrameConstructionItems(nsFrameConstructorState& aSta
 {
   uint32_t flags = ITEM_ALLOW_XBL_BASE | ITEM_ALLOW_PAGE_BREAK;
   if (aParentFrame) {
-    if (aParentFrame->IsSVGText()) {
+    if (nsSVGUtils::IsInSVGTextSubtree(aParentFrame)) {
       flags |= ITEM_IS_WITHIN_SVG_TEXT;
     }
     if (aParentFrame->GetType() == nsGkAtoms::blockFrame &&
@@ -11512,7 +11513,8 @@ nsCSSFrameConstructor::CreateLetterFrame(nsContainerFrame* aBlockFrame,
 
     // Create the right type of first-letter frame
     const nsStyleDisplay* display = sc->StyleDisplay();
-    if (display->IsFloatingStyle() && !aParentFrame->IsSVGText()) {
+    if (display->IsFloatingStyle() &&
+        !nsSVGUtils::IsInSVGTextSubtree(aParentFrame)) {
       // Make a floating first-letter frame
       CreateFloatingLetterFrame(state, aTextContent, textFrame,
                                 aParentFrame, sc, aResult);
@@ -12095,7 +12097,7 @@ nsCSSFrameConstructor::ConstructInline(nsFrameConstructorState& aState,
   bool positioned =
     StyleDisplay::Inline == aDisplay->mDisplay &&
     aDisplay->IsRelativelyPositionedStyle() &&
-    !aParentFrame->IsSVGText();
+    !nsSVGUtils::IsInSVGTextSubtree(aParentFrame);
 
   nsInlineFrame* newFrame = NS_NewInlineFrame(mPresShell, styleContext);
 

@@ -2341,7 +2341,7 @@ nsLayoutUtils::GetEventCoordinatesRelativeTo(nsIWidget* aWidget,
   /* If we encountered a transform, we can't do simple arithmetic to figure
    * out how to convert back to aFrame's coordinates and must use the CTM.
    */
-  if (transformFound || aFrame->IsSVGText()) {
+  if (transformFound || nsSVGUtils::IsInSVGTextSubtree(aFrame)) {
     return TransformRootPointToFrame(aFrame, widgetToView);
   }
 
@@ -2980,7 +2980,7 @@ TransformGfxRectToAncestor(nsIFrame *aFrame,
 static SVGTextFrame*
 GetContainingSVGTextFrame(nsIFrame* aFrame)
 {
-  if (!aFrame->IsSVGText()) {
+  if (!nsSVGUtils::IsInSVGTextSubtree(aFrame)) {
     return nullptr;
   }
 
@@ -7986,7 +7986,7 @@ nsLayoutUtils::InflationMinFontSizeFor(const nsIFrame *aFrame)
 float
 nsLayoutUtils::FontSizeInflationFor(const nsIFrame *aFrame)
 {
-  if (aFrame->IsSVGText()) {
+  if (nsSVGUtils::IsInSVGTextSubtree(aFrame)) {
     const nsIFrame* container = aFrame;
     while (container->GetType() != nsGkAtoms::svgTextFrame) {
       container = container->GetParent();

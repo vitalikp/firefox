@@ -3389,8 +3389,6 @@ public:
   uint8_t VerticalAlignEnum() const;
   enum { eInvalidVerticalAlign = 0xFF };
 
-  bool IsSVGText() const { return mState & NS_FRAME_IS_SVG_TEXT; }
-
   void CreateOwnLayerIfNeeded(nsDisplayListBuilder* aBuilder, nsDisplayList* aList);
 
   /**

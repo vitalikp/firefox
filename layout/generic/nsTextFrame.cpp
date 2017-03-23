@@ -334,14 +334,14 @@ public:
   // SVG text has its own painting process, so we should never get its stroke
   // property from here.
   nscolor GetWebkitTextStrokeColor() {
-    if (mFrame->IsSVGText()) {
+    if (nsSVGUtils::IsInSVGTextSubtree(mFrame)) {
       return 0;
     }
     return mFrame->StyleColor()->
       CalcComplexColor(mFrame->StyleText()->mWebkitTextStrokeColor);
   }
   float GetWebkitTextStrokeWidth() {
-    if (mFrame->IsSVGText()) {
+    if (nsSVGUtils::IsInSVGTextSubtree(mFrame)) {
       return 0.0f;
     }
     nscoord coord = mFrame->StyleText()->mWebkitTextStrokeWidth;
@@ -682,7 +682,8 @@ InvalidateFrameDueToGlyphsChanged(nsIFrame* aFrame)
     // to reflow the SVGTextFrame. (This is similar to reflowing the
     // SVGTextFrame in response to style changes, in
     // SVGTextFrame::DidSetStyleContext.)
-    if (f->IsSVGText() && f->GetStateBits() & NS_FRAME_IS_NONDISPLAY) {
+    if (nsSVGUtils::IsInSVGTextSubtree(f) &&
+        f->GetStateBits() & NS_FRAME_IS_NONDISPLAY) {
       auto svgTextFrame = static_cast<SVGTextFrame*>(
                             nsLayoutUtils::GetClosestFrameOfType(f,
                             nsGkAtoms::svgTextFrame));
@@ -1724,7 +1725,7 @@ GetSpaceWidthAppUnits(const gfxTextRun* aTextRun)
 static nscoord
 LetterSpacing(nsIFrame* aFrame, const nsStyleText* aStyleText = nullptr)
 {
-  if (aFrame->IsSVGText()) {
+  if (nsSVGUtils::IsInSVGTextSubtree(aFrame)) {
     return 0;
   }
   if (!aStyleText) {
@@ -1743,7 +1744,7 @@ static nscoord
 WordSpacing(nsIFrame* aFrame, const gfxTextRun* aTextRun,
             const nsStyleText* aStyleText = nullptr)
 {
-  if (aFrame->IsSVGText()) {
+  if (nsSVGUtils::IsInSVGTextSubtree(aFrame)) {
     return 0;
   }
   if (!aStyleText) {
@@ -1763,7 +1764,7 @@ WordSpacing(nsIFrame* aFrame, const gfxTextRun* aTextRun,
 static uint32_t
 GetSpacingFlags(nsIFrame* aFrame, const nsStyleText* aStyleText = nullptr)
 {
-  if (aFrame->IsSVGText()) {
+  if (nsSVGUtils::IsInSVGTextSubtree(aFrame)) {
     return 0;
   }
 
@@ -2059,7 +2060,7 @@ BuildTextRunsScanner::BuildTextRunForFrames(void* aTextBuffer)
 
   uint32_t nextBreakIndex = 0;
   nsTextFrame* nextBreakBeforeFrame = GetNextBreakBeforeFrame(&nextBreakIndex);
-  bool isSVG = mLineContainer->IsSVGText();
+  bool isSVG = nsSVGUtils::IsInSVGTextSubtree(mLineContainer);
   bool enabledJustification =
     (mLineContainer->StyleText()->mTextAlign == NS_STYLE_TEXT_ALIGN_JUSTIFY ||
      mLineContainer->StyleText()->mTextAlignLast == NS_STYLE_TEXT_ALIGN_JUSTIFY);
@@ -3743,7 +3744,7 @@ nsTextPaintStyle::EnsureSufficientContrast(nscolor *aForeColor, nscolor *aBackCo
 nscolor
 nsTextPaintStyle::GetTextColor()
 {
-  if (mFrame->IsSVGText()) {
+  if (nsSVGUtils::IsInSVGTextSubtree(mFrame)) {
     if (!mResolveColors)
       return NS_SAME_AS_FOREGROUND_COLOR;
 
@@ -3989,12 +3990,12 @@ nsTextPaintStyle::InitSelectionColorsAndShadow()
   if (mResolveColors) {
     // On MacOS X, we don't exchange text color and BG color.
     if (mSelectionTextColor == NS_DONT_CHANGE_COLOR) {
-      nscolor frameColor = mFrame->IsSVGText()
+      nscolor frameColor = nsSVGUtils::IsInSVGTextSubtree(mFrame)
         ? mFrame->GetVisitedDependentColor(&nsStyleSVG::mFill)
         : mFrame->GetVisitedDependentColor(&nsStyleText::mWebkitTextFillColor);
       mSelectionTextColor = EnsureDifferentColors(frameColor, mSelectionBGColor);
     } else if (mSelectionTextColor == NS_CHANGE_COLOR_IF_SAME_AS_BG) {
-      nscolor frameColor = mFrame->IsSVGText()
+      nscolor frameColor = nsSVGUtils::IsInSVGTextSubtree(mFrame)
         ? mFrame->GetVisitedDependentColor(&nsStyleSVG::mFill)
         : mFrame->GetVisitedDependentColor(&nsStyleText::mWebkitTextFillColor);
       if (frameColor == mSelectionBGColor) {
@@ -4571,7 +4572,7 @@ nsTextFrame::LastContinuation() const
 void
 nsTextFrame::InvalidateFrame(uint32_t aDisplayItemKey)
 {
-  if (IsSVGText()) {
+  if (nsSVGUtils::IsInSVGTextSubtree(this)) {
     nsIFrame* svgTextFrame =
       nsLayoutUtils::GetClosestFrameOfType(GetParent(),
                                            nsGkAtoms::svgTextFrame);
@@ -4584,7 +4585,7 @@ nsTextFrame::InvalidateFrame(uint32_t aDisplayItemKey)
 void
 nsTextFrame::InvalidateFrameWithRect(const nsRect& aRect, uint32_t aDisplayItemKey)
 {
-  if (IsSVGText()) {
+  if (nsSVGUtils::IsInSVGTextSubtree(this)) {
     nsIFrame* svgTextFrame =
       nsLayoutUtils::GetClosestFrameOfType(GetParent(),
                                            nsGkAtoms::svgTextFrame);
@@ -5133,7 +5134,7 @@ nsTextFrame::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
   Maybe<bool> isSelected;
   if (((GetStateBits() & TEXT_NO_RENDERED_GLYPHS) ||
        (isTextTransparent && !StyleText()->HasTextShadow())) &&
-      aBuilder->IsForPainting() && !IsSVGText()) {
+      aBuilder->IsForPainting() && !nsSVGUtils::IsInSVGTextSubtree(this)) {
     isSelected.emplace(IsSelected());
     if (!isSelected.value()) {
       TextDecorations textDecs;
@@ -5354,7 +5355,7 @@ nsTextFrame::GetTextDecorations(
       nscolor color;
       if (useOverride) {
         color = overrideColor;
-      } else if (IsSVGText()) {
+      } else if (nsSVGUtils::IsInSVGTextSubtree(this)) {
         // XXX We might want to do something with text-decoration-color when
         //     painting SVG text, but it's not clear what we should do.  We
         //     at least need SVG text decorations to paint with 'fill' if
@@ -5427,7 +5428,7 @@ nsTextFrame::GetTextDecorations(
 static float
 GetInflationForTextDecorations(nsIFrame* aFrame, nscoord aInflationMinFontSize)
 {
-  if (aFrame->IsSVGText()) {
+  if (nsSVGUtils::IsInSVGTextSubtree(aFrame)) {
     const nsIFrame* container = aFrame;
     while (container->GetType() != nsGkAtoms::svgTextFrame) {
       container = container->GetParent();
@@ -6610,7 +6611,7 @@ nsTextFrame::GetCaretColorAt(int32_t aOffset)
   }
 
   bool isSolidTextColor = true;
-  if (IsSVGText()) {
+  if (nsSVGUtils::IsInSVGTextSubtree(this)) {
     const nsStyleSVG* style = StyleSVG();
     if (style->mFill.Type() != eStyleSVGPaintType_None &&
         style->mFill.Type() != eStyleSVGPaintType_Color) {
@@ -9583,7 +9584,7 @@ nsTextFrame::ReflowText(nsLineLayout& aLineLayout, nscoord aAvailableWidth,
       (lineContainer->StyleText()->mTextAlign == NS_STYLE_TEXT_ALIGN_JUSTIFY ||
        lineContainer->StyleText()->mTextAlignLast == NS_STYLE_TEXT_ALIGN_JUSTIFY ||
        shouldSuppressLineBreak) &&
-      !lineContainer->IsSVGText()) {
+      !nsSVGUtils::IsInSVGTextSubtree(lineContainer)) {
     AddStateBits(TEXT_JUSTIFICATION_ENABLED);
     Range range(uint32_t(offset), uint32_t(offset + charsFit));
     aLineLayout.SetJustificationInfo(provider.ComputeJustification(range));
