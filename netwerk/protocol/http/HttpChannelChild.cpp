@@ -2197,9 +2197,7 @@ HttpChannelChild::ContinueAsyncOpen()
   NS_ENSURE_SUCCESS(rv, rv);
 
   EnsureRequestContextID();
-  char rcid[NSID_LENGTH];
-  mRequestContextID.ToProvidedString(rcid);
-  openArgs.requestContextID().AssignASCII(rcid);
+  openArgs.requestContextID() = mRequestContextID;
 
   char chid[NSID_LENGTH];
   mChannelId.ToProvidedString(chid);
