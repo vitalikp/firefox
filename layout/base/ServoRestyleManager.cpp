@@ -84,7 +84,10 @@ ServoRestyleManager::PostRebuildAllStyleDataEvent(nsChangeHint aExtraHint,
 /* static */ void
 ServoRestyleManager::ClearServoDataFromSubtree(Element* aElement)
 {
-  aElement->ClearServoData();
+  if (!aElement->HasServoData()) {
+    MOZ_ASSERT(!aElement->HasDirtyDescendantsForServo());
+    return;
+  }
 
   StyleChildrenIterator it(aElement);
   for (nsIContent* n = it.GetNextChild(); n; n = it.GetNextChild()) {
@@ -93,6 +96,7 @@ ServoRestyleManager::ClearServoDataFromSubtree(Element* aElement)
     }
   }
 
+  aElement->ClearServoData();
   aElement->UnsetHasDirtyDescendantsForServo();
 }
 
