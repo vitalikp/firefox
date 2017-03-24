@@ -1983,7 +1983,7 @@ void
 nsFrame::DisplayOutlineUnconditional(nsDisplayListBuilder*   aBuilder,
                                      const nsDisplayListSet& aLists)
 {
-  if (StyleOutline()->mOutlineStyle == NS_STYLE_BORDER_STYLE_NONE) {
+  if (!StyleOutline()->ShouldPaintOutline()) {
     return;
   }
 
@@ -5536,8 +5536,8 @@ nsIFrame::ComputeTightBounds(DrawTarget* aDrawTarget) const
 nsRect
 nsFrame::ComputeSimpleTightBounds(DrawTarget* aDrawTarget) const
 {
-  if (StyleOutline()->mOutlineStyle != NS_STYLE_BORDER_STYLE_NONE ||
-      StyleBorder()->HasBorder() || !StyleBackground()->IsTransparent(this) ||
+  if (StyleOutline()->ShouldPaintOutline() || StyleBorder()->HasBorder() ||
+      !StyleBackground()->IsTransparent(this) ||
       StyleDisplay()->mAppearance) {
     // Not necessarily tight, due to clipping, negative
     // outline-offset, and lots of other issues, but that's OK
@@ -8713,13 +8713,7 @@ ComputeAndIncludeOutlineArea(nsIFrame* aFrame, nsOverflowAreas& aOverflowAreas,
                              const nsSize& aNewSize)
 {
   const nsStyleOutline* outline = aFrame->StyleOutline();
-  const uint8_t outlineStyle = outline->mOutlineStyle;
-  if (outlineStyle == NS_STYLE_BORDER_STYLE_NONE) {
-    return;
-  }
-
-  nscoord width = outline->GetOutlineWidth();
-  if (width <= 0 && outlineStyle != NS_STYLE_BORDER_STYLE_AUTO) {
+  if (!outline->ShouldPaintOutline()) {
     return;
   }
 
@@ -8781,7 +8775,7 @@ ComputeAndIncludeOutlineArea(nsIFrame* aFrame, nsOverflowAreas& aOverflowAreas,
   nsRect outerRect(innerRect);
   bool useOutlineAuto = false;
   if (nsLayoutUtils::IsOutlineStyleAutoEnabled()) {
-    useOutlineAuto = outlineStyle == NS_STYLE_BORDER_STYLE_AUTO;
+    useOutlineAuto = outline->mOutlineStyle == NS_STYLE_BORDER_STYLE_AUTO;
     if (MOZ_UNLIKELY(useOutlineAuto)) {
       nsPresContext* presContext = aFrame->PresContext();
       nsITheme* theme = presContext->GetTheme();
@@ -8796,6 +8790,7 @@ ComputeAndIncludeOutlineArea(nsIFrame* aFrame, nsOverflowAreas& aOverflowAreas,
     }
   }
   if (MOZ_LIKELY(!useOutlineAuto)) {
+    nscoord width = outline->GetOutlineWidth();
     outerRect.Inflate(width + offset);
   }
 
