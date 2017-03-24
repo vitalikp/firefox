@@ -65,7 +65,7 @@ using namespace mozilla::media;
 // avoid redefined macro in unified build
 #undef FMT
 #undef LOG
-#undef VERBOSE_LOG
+#undef LOGV
 #undef SAMPLE_LOG
 #undef DECODER_WARN
 #undef SFMT
@@ -74,7 +74,7 @@ using namespace mozilla::media;
 
 #define FMT(x, ...) "Decoder=%p " x, mDecoderID, ##__VA_ARGS__
 #define LOG(x, ...) MOZ_LOG(gMediaDecoderLog, LogLevel::Debug,   (FMT(x, ##__VA_ARGS__)))
-#define VERBOSE_LOG(x, ...) MOZ_LOG(gMediaDecoderLog, LogLevel::Verbose, (FMT(x, ##__VA_ARGS__)))
+#define LOGV(x, ...) MOZ_LOG(gMediaDecoderLog, LogLevel::Verbose, (FMT(x, ##__VA_ARGS__)))
 #define SAMPLE_LOG(x, ...)  MOZ_LOG(gMediaSampleLog,  LogLevel::Debug,   (FMT(x, ##__VA_ARGS__)))
 #define DECODER_WARN(x, ...) NS_WARNING(nsPrintfCString(FMT(x, ##__VA_ARGS__)).get())
 
@@ -3654,7 +3654,7 @@ MediaDecoderStateMachine::OnMediaSinkVideoComplete()
 {
   MOZ_ASSERT(OnTaskQueue());
   MOZ_ASSERT(HasVideo());
-  VERBOSE_LOG("[%s]", __func__);
+  LOGV("[%s]", __func__);
 
   mMediaSinkVideoPromise.Complete();
   mVideoCompleted = true;
@@ -3666,7 +3666,7 @@ MediaDecoderStateMachine::OnMediaSinkVideoError()
 {
   MOZ_ASSERT(OnTaskQueue());
   MOZ_ASSERT(HasVideo());
-  VERBOSE_LOG("[%s]", __func__);
+  LOGV("[%s]", __func__);
 
   mMediaSinkVideoPromise.Complete();
   mVideoCompleted = true;
@@ -3680,7 +3680,7 @@ void MediaDecoderStateMachine::OnMediaSinkAudioComplete()
 {
   MOZ_ASSERT(OnTaskQueue());
   MOZ_ASSERT(HasAudio());
-  VERBOSE_LOG("[%s]", __func__);
+  LOGV("[%s]", __func__);
 
   mMediaSinkAudioPromise.Complete();
   mAudioCompleted = true;
@@ -3696,7 +3696,7 @@ void MediaDecoderStateMachine::OnMediaSinkAudioError(nsresult aResult)
 {
   MOZ_ASSERT(OnTaskQueue());
   MOZ_ASSERT(HasAudio());
-  VERBOSE_LOG("[%s]", __func__);
+  LOGV("[%s]", __func__);
 
   mMediaSinkAudioPromise.Complete();
   mAudioCompleted = true;
@@ -3909,4 +3909,5 @@ MediaDecoderStateMachine::CancelSuspendTimer()
 
 // avoid redefined macro in unified build
 #undef LOG
+#undef LOGV
 #undef NS_DispatchToMainThread
