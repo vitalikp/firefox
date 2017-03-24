@@ -237,7 +237,8 @@ nsSVGPatternFrame::PaintPattern(const DrawTarget* aDrawTarget,
                                 nsIFrame *aSource,
                                 nsStyleSVGPaint nsStyleSVG::*aFillOrStroke,
                                 float aGraphicOpacity,
-                                const gfxRect *aOverrideBounds)
+                                const gfxRect *aOverrideBounds,
+                                uint32_t aFlags)
 {
   /*
    * General approach:
@@ -415,7 +416,8 @@ nsSVGPatternFrame::PaintPattern(const DrawTarget* aDrawTarget,
                PrependLocalTransformsTo(tm, eUserSpaceToParent);
       }
 
-      result &= nsSVGUtils::PaintFrameWithEffects(kid, *ctx, tm);
+      result &= nsSVGUtils::PaintFrameWithEffects(kid, *ctx, tm, nullptr,
+                                                  aFlags);
     }
   }
 
@@ -713,7 +715,8 @@ nsSVGPatternFrame::GetPaintServerPattern(nsIFrame *aSource,
                                          const gfxMatrix& aContextMatrix,
                                          nsStyleSVGPaint nsStyleSVG::*aFillOrStroke,
                                          float aGraphicOpacity,
-                                         const gfxRect *aOverrideBounds)
+                                         const gfxRect *aOverrideBounds,
+                                         uint32_t aFlags)
 {
   if (aGraphicOpacity == 0.0f) {
     RefPtr<gfxPattern> pattern = new gfxPattern(Color());
@@ -726,7 +729,7 @@ nsSVGPatternFrame::GetPaintServerPattern(nsIFrame *aSource,
   DrawResult result = DrawResult::SUCCESS;
   Tie(result, surface) =
     PaintPattern(aDrawTarget, &pMatrix, ToMatrix(aContextMatrix), aSource,
-                 aFillOrStroke, aGraphicOpacity, aOverrideBounds);
+                 aFillOrStroke, aGraphicOpacity, aOverrideBounds, aFlags);
 
   if (!surface) {
     return MakePair(result, RefPtr<gfxPattern>());
