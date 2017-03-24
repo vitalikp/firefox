@@ -708,7 +708,7 @@ WorkerFetchResolver::FlushConsoleReport()
       return;
     }
 
-    swm->FlushReportsToAllClients(worker->WorkerName(), mReporter);
+    swm->FlushReportsToAllClients(worker->ServiceWorkerScope(), mReporter);
     return;
   }
 
