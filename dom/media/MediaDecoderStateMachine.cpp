@@ -66,8 +66,8 @@ using namespace mozilla::media;
 #undef FMT
 #undef LOG
 #undef LOGV
+#undef LOGW
 #undef SAMPLE_LOG
-#undef DECODER_WARN
 #undef SFMT
 #undef SLOG
 #undef SWARN
@@ -76,7 +76,7 @@ using namespace mozilla::media;
 #define LOG(x, ...) MOZ_LOG(gMediaDecoderLog, LogLevel::Debug,   (FMT(x, ##__VA_ARGS__)))
 #define LOGV(x, ...) MOZ_LOG(gMediaDecoderLog, LogLevel::Verbose, (FMT(x, ##__VA_ARGS__)))
 #define SAMPLE_LOG(x, ...)  MOZ_LOG(gMediaSampleLog,  LogLevel::Debug,   (FMT(x, ##__VA_ARGS__)))
-#define DECODER_WARN(x, ...) NS_WARNING(nsPrintfCString(FMT(x, ##__VA_ARGS__)).get())
+#define LOGW(x, ...) NS_WARNING(nsPrintfCString(FMT(x, ##__VA_ARGS__)).get())
 
 // Used by StateObject and its sub-classes
 #define SFMT(x, ...) "Decoder=%p state=%s " x, mMaster->mDecoderID, ToStateStr(GetState()), ##__VA_ARGS__
@@ -3066,15 +3066,13 @@ MediaDecoderStateMachine::Seek(const SeekTarget& aTarget)
 
   // We need to be able to seek in some way
   if (!mMediaSeekable && !mMediaSeekableOnlyInBufferedRanges) {
-    DECODER_WARN(
-      "Seek() function should not be called on a non-seekable state machine");
+    LOGW("Seek() should not be called on a non-seekable media");
     return MediaDecoder::SeekPromise::CreateAndReject(/* aIgnored = */ true,
                                                       __func__);
   }
 
   if (aTarget.IsNextFrame() && !HasVideo()) {
-    DECODER_WARN(
-      "Ignore a NextFrameSeekTask on a media file without video track.");
+    LOGW("Ignore a NextFrameSeekTask on a media file without video track.");
     return MediaDecoder::SeekPromise::CreateAndReject(/* aIgnored = */ true,
                                                       __func__);
   }
@@ -3348,7 +3346,7 @@ MediaDecoderStateMachine::DecodeError(const MediaResult& aError)
 {
   MOZ_ASSERT(OnTaskQueue());
   MOZ_ASSERT(!IsShutdown());
-  DECODER_WARN("Decode error");
+  LOGW("Decode error");
   // Notify the decode error and MediaDecoder will shut down MDSM.
   mOnPlaybackErrorEvent.Notify(aError);
 }
@@ -3910,4 +3908,5 @@ MediaDecoderStateMachine::CancelSuspendTimer()
 // avoid redefined macro in unified build
 #undef LOG
 #undef LOGV
+#undef LOGW
 #undef NS_DispatchToMainThread
