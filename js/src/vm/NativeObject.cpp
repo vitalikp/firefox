@@ -1306,10 +1306,12 @@ CallAddPropertyHookDense(JSContext* cx, HandleNativeObject obj, uint32_t index,
     return true;
 }
 
-static bool
-UpdateShapeTypeAndValue(JSContext* cx, HandleNativeObject obj, HandleShape shape, const Value& value)
+static MOZ_ALWAYS_INLINE void
+UpdateShapeTypeAndValue(JSContext* cx, NativeObject* obj, Shape* shape, jsid id,
+                        const Value& value)
 {
-    jsid id = shape->propid();
+    MOZ_ASSERT(id == shape->propid());
+
     if (shape->hasSlot()) {
         obj->setSlotWithType(cx, shape, value, /* overwriting = */ false);
 
@@ -1325,7 +1327,6 @@ UpdateShapeTypeAndValue(JSContext* cx, HandleNativeObject obj, HandleShape shape
         MarkTypePropertyNonData(cx, obj, id);
     if (!shape->writable())
         MarkTypePropertyNonWritable(cx, obj, id);
-    return true;
 }
 
 static bool
@@ -1432,8 +1433,7 @@ AddOrChangeProperty(JSContext* cx, HandleNativeObject obj, HandleId id,
     if (!shape)
         return false;
 
-    if (!UpdateShapeTypeAndValue(cx, obj, shape, desc.value()))
-        return false;
+    UpdateShapeTypeAndValue(cx, obj, shape, id, desc.value());
 
     // Clear any existing dense index after adding a sparse indexed property,
     // and investigate converting the object to dense indexes.
@@ -1669,11 +1669,8 @@ js::NativeDefineProperty(JSContext* cx, HandleNativeObject obj, HandleId id,
         // type for this property that doesn't match the value in the slot.
         // Update the type here, even though this DefineProperty call is
         // otherwise a no-op. (See bug 1125624 comment 13.)
-        if (!prop.isDenseOrTypedArrayElement() && desc.hasValue()) {
-            RootedShape shape(cx, prop.shape());
-            if (!UpdateShapeTypeAndValue(cx, obj, shape, desc.value()))
-                return false;
-        }
+        if (!prop.isDenseOrTypedArrayElement() && desc.hasValue())
+            UpdateShapeTypeAndValue(cx, obj, prop.shape(), id, desc.value());
         return result.succeed();
     }
 
