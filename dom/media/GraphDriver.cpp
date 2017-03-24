@@ -1229,3 +1229,6 @@ void AudioCallbackDriver::CompleteAudioContextOperations(AsyncCubebOperation aOp
 
 
 } // namespace mozilla
+
+// avoid redefined macro in unified build
+#undef LOG
