@@ -7,6 +7,5 @@ DIRS += [
 ]
 
 DevToolsModules(
-    'netmonitor.js',
     'panel.js'
 )
