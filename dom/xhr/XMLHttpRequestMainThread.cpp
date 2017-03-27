@@ -2726,6 +2726,7 @@ XMLHttpRequestMainThread::InitiateFetch(nsIInputStream* aUploadStream,
 
     // Per spec, we throw on sync errors, but not async.
     if (mFlagSynchronous) {
+      mState = State::done;
       return NS_ERROR_DOM_NETWORK_ERR;
     }
   }
@@ -3006,6 +3007,7 @@ XMLHttpRequestMainThread::SendInternal(const BodyExtractorBase* aBody)
   if (!mChannel) {
     // Per spec, silently fail on async request failures; throw for sync.
     if (mFlagSynchronous) {
+      mState = State::done;
       return NS_ERROR_DOM_NETWORK_ERR;
     } else {
       // Defer the actual sending of async events just in case listeners
