@@ -582,8 +582,12 @@ class AutoDetectInvalidation
         disabled_ = true;
     }
 
+    bool shouldSetReturnOverride() const {
+        return !disabled_ && ionScript_->invalidated();
+    }
+
     ~AutoDetectInvalidation() {
-        if (!disabled_ && ionScript_->invalidated())
+        if (MOZ_UNLIKELY(shouldSetReturnOverride()))
             setReturnOverride();
     }
 };
