@@ -414,9 +414,12 @@ Gecko_UpdateAnimations(RawGeckoElementBorrowed aElement,
   }
 
   if (presContext->IsDynamic() && aElement->IsInComposedDoc()) {
+    const ServoComputedValuesWithParent servoValues =
+      { aComputedValues, aParentComputedValues };
+
     presContext->AnimationManager()->
       UpdateAnimations(const_cast<dom::Element*>(aElement), aPseudoTagOrNull,
-                       aComputedValues, aParentComputedValues);
+                       servoValues);
   }
 }
 
