@@ -6112,7 +6112,7 @@ JS_GetRegExpFlags(JSContext* cx, HandleObject obj)
     RegExpGuard shared(cx);
     if (!RegExpToShared(cx, obj, &shared))
         return false;
-    return shared.re()->getFlags();
+    return shared->getFlags();
 }
 
 JS_PUBLIC_API(JSString*)
@@ -6124,7 +6124,7 @@ JS_GetRegExpSource(JSContext* cx, HandleObject obj)
     RegExpGuard shared(cx);
     if (!RegExpToShared(cx, obj, &shared))
         return nullptr;
-    return shared.re()->getSource();
+    return shared->getSource();
 }
 
 /************************************************************************/
