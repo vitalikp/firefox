@@ -461,4 +461,13 @@ interface nsIHttpChannel : nsIChannel
      * this channels is being load in.
      */
     [must_use] attribute uint64_t topLevelContentWindowId;
+
+    /**
+     * ID of the top-level outer content window. Identifies this channel's
+     * top-level window it comes from.
+     *
+     * NOTE: The setter of this attribute is currently for xpcshell test only.
+     *       Don't alter it otherwise.
+     */
+    [must_use] attribute uint64_t topLevelOuterContentWindowId;
 };

@@ -195,6 +195,8 @@ public:
   NS_IMETHOD SetChannelId(const nsACString& aChannelId) override;
   NS_IMETHOD GetTopLevelContentWindowId(uint64_t *aContentWindowId) override;
   NS_IMETHOD SetTopLevelContentWindowId(uint64_t aContentWindowId) override;
+  NS_IMETHOD GetTopLevelOuterContentWindowId(uint64_t *aWindowId) override;
+  NS_IMETHOD SetTopLevelOuterContentWindowId(uint64_t aWindowId) override;
 
   // nsIHttpChannelInternal
   NS_IMETHOD GetDocumentURI(nsIURI **aDocumentURI) override;
@@ -342,11 +344,6 @@ public: /* Necko internal use only... */
     // Callback on main thread when NS_AsyncCopy() is finished populating
     // the new mUploadStream.
     void EnsureUploadStreamIsCloneableComplete(nsresult aStatus);
-
-    void SetTopLevelOuterContentWindowId(uint64_t aTopLevelOuterContentWindowId)
-    {
-      mTopLevelOuterContentWindowId = aTopLevelOuterContentWindowId;
-    }
 
 protected:
   // Handle notifying listener, removing from loadgroup if request failed.
