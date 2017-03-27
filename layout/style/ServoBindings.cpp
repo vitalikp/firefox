@@ -407,6 +407,9 @@ Gecko_UpdateAnimations(RawGeckoElementBorrowed aElement,
 {
   MOZ_ASSERT(NS_IsMainThread());
   MOZ_ASSERT(aElement);
+  MOZ_ASSERT(!aPseudoTagOrNull ||
+             aPseudoTagOrNull == nsCSSPseudoElements::before ||
+             aPseudoTagOrNull == nsCSSPseudoElements::after);
 
   nsPresContext* presContext = nsContentUtils::GetContextForContent(aElement);
   if (!presContext) {
@@ -416,9 +419,12 @@ Gecko_UpdateAnimations(RawGeckoElementBorrowed aElement,
   if (presContext->IsDynamic() && aElement->IsInComposedDoc()) {
     const ServoComputedValuesWithParent servoValues =
       { aComputedValues, aParentComputedValues };
+    CSSPseudoElementType pseudoType =
+      nsCSSPseudoElements::GetPseudoType(aPseudoTagOrNull,
+                                         CSSEnabledState::eForAllContent);
 
     presContext->AnimationManager()->
-      UpdateAnimations(const_cast<dom::Element*>(aElement), aPseudoTagOrNull,
+      UpdateAnimations(const_cast<dom::Element*>(aElement), pseudoType,
                        servoValues);
   }
 }
