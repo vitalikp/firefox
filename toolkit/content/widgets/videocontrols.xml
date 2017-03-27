@@ -219,7 +219,7 @@
                      "playing", "waiting", "canplay", "canplaythrough",
                      "seeking", "seeked", "emptied", "loadedmetadata",
                      "error", "suspend", "stalled",
-                     "mozexitvideosuspend"],
+                     "mozexitvideosuspend", "mozvideoonlyseekcompleted"],
 
       showHours: false,
       firstFrameShown : false,
@@ -675,7 +675,6 @@
           case "seeked":
           case "playing":
           case "canplay":
-            this._cancelShowThrobberWhileResumingVideoDecoder();
           case "canplaythrough":
             this.setupStatusFader();
             break;
@@ -704,6 +703,10 @@
             break;
           case "mozexitvideosuspend":
             this._delayShowThrobberWhileResumingVideoDecoder();
+            break;
+          case "mozvideoonlyseekcompleted":
+            this._cancelShowThrobberWhileResumingVideoDecoder();
+            this.setupStatusFader();
             break;
           default:
             this.log("!!! event " + aEvent.type + " not handled!");
