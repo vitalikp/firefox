@@ -294,12 +294,12 @@ DecodedStream::OnEnded(TrackType aType)
 }
 
 void
-DecodedStream::Start(int64_t aStartTime, const MediaInfo& aInfo)
+DecodedStream::Start(const media::TimeUnit& aStartTime, const MediaInfo& aInfo)
 {
   AssertOwnerThread();
   MOZ_ASSERT(mStartTime.isNothing(), "playback already started.");
 
-  mStartTime.emplace(FromMicroseconds(aStartTime));
+  mStartTime.emplace(aStartTime);
   mLastOutputTime = media::TimeUnit::Zero();
   mInfo = aInfo;
   mPlaying = true;
@@ -343,7 +343,7 @@ DecodedStream::Start(int64_t aStartTime, const MediaInfo& aInfo)
   MozPromiseHolder<GenericPromise> promise;
   mFinishPromise = promise.Ensure(__func__);
   PlaybackInfoInit init {
-    FromMicroseconds(aStartTime), aInfo
+    aStartTime, aInfo
   };
   nsCOMPtr<nsIRunnable> r =
     new R(Move(init), Move(promise), mOutputStreamManager, mAbstractMainThread);
@@ -710,7 +710,7 @@ DecodedStream::SendData()
   }
 }
 
-int64_t
+media::TimeUnit
 DecodedStream::GetEndTime(TrackType aType) const
 {
   AssertOwnerThread();
@@ -718,15 +718,15 @@ DecodedStream::GetEndTime(TrackType aType) const
     auto t = mStartTime.ref() + FramesToTimeUnit(
       mData->mAudioFramesWritten, mInfo.mAudio.mRate);
     if (t.IsValid()) {
-      return t.ToMicroseconds();
+      return t;
     }
   } else if (aType == TrackInfo::kVideoTrack && mData) {
-    return mData->mNextVideoTime.ToMicroseconds();
+    return mData->mNextVideoTime;
   }
-  return 0;
+  return media::TimeUnit::Zero();
 }
 
-int64_t
+media::TimeUnit
 DecodedStream::GetPosition(TimeStamp* aTimeStamp) const
 {
   AssertOwnerThread();
@@ -736,7 +736,7 @@ DecodedStream::GetPosition(TimeStamp* aTimeStamp) const
   if (aTimeStamp) {
     *aTimeStamp = TimeStamp::Now();
   }
-  return (mStartTime.ref() + mLastOutputTime).ToMicroseconds();
+  return mStartTime.ref() + mLastOutputTime;
 }
 
 void
@@ -744,7 +744,7 @@ DecodedStream::NotifyOutput(int64_t aTime)
 {
   AssertOwnerThread();
   mLastOutputTime = FromMicroseconds(aTime);
-  int64_t currentTime = GetPosition();
+  int64_t currentTime = GetPosition().ToMicroseconds();
 
   // Remove audio samples that have been played by MSG from the queue.
   RefPtr<AudioData> a = mAudioQueue.PeekFront();
