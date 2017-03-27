@@ -67,7 +67,8 @@ protected:
   LPARAM mLParam;
 };
 
-PluginWindowEvent::PluginWindowEvent()
+PluginWindowEvent::PluginWindowEvent() :
+  Runnable("PluginWindowEvent")
 {
   Clear();
 }
@@ -162,7 +163,8 @@ class nsDelayedPopupsEnabledEvent : public Runnable
 {
 public:
   explicit nsDelayedPopupsEnabledEvent(nsNPAPIPluginInstance *inst)
-    : mInst(inst)
+    : Runnable("nsDelayedPopupsEnabledEvent"),
+      mInst(inst)
   {}
 
   NS_DECL_NSIRUNNABLE

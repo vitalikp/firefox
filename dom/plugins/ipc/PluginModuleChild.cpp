@@ -2055,7 +2055,10 @@ class GetKeyStateTask : public Runnable
 
 public:
     explicit GetKeyStateTask(int aVirtKey, HANDLE aSemaphore, SHORT* aKeyState) :
-        mVirtKey(aVirtKey), mSemaphore(aSemaphore), mKeyState(aKeyState)
+        Runnable("GetKeyStateTask"),
+        mVirtKey(aVirtKey),
+        mSemaphore(aSemaphore),
+        mKeyState(aKeyState)
     {}
 
     NS_IMETHOD Run() override
@@ -2126,8 +2129,9 @@ class GetFileNameTask : public Runnable
 public:
     explicit GetFileNameTask(GetFileNameFunc func, void* aLpOpenFileName,
                              HANDLE aSemaphore, BOOL* aReturnValue) :
-        mLpOpenFileName(aLpOpenFileName), mSemaphore(aSemaphore),
-        mReturnValue(aReturnValue), mFunc(func)
+        Runnable("GetFileNameTask"), mLpOpenFileName(aLpOpenFileName),
+        mSemaphore(aSemaphore), mReturnValue(aReturnValue),
+        mFunc(func)
     {}
 
     NS_IMETHOD Run() override
