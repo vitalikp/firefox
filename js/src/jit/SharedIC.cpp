@@ -2082,7 +2082,7 @@ ICGetProp_Fallback::Compiler::generateStubCode(MacroAssembler& masm)
     // Ion inlined frames. The return address pushed onto reconstructed stack
     // will point here.
     assumeStubFrame(masm);
-    returnOffset_ = masm.currentOffset();
+    bailoutReturnOffset_.bind(masm.currentOffset());
 
     leaveStubFrame(masm, true);
 
@@ -2100,8 +2100,9 @@ void
 ICGetProp_Fallback::Compiler::postGenerateStubCode(MacroAssembler& masm, Handle<JitCode*> code)
 {
     if (engine_ == Engine::Baseline) {
-        void* address = code->raw() + returnOffset_;
-        cx->compartment()->jitCompartment()->initBaselineGetPropReturnAddr(address);
+        BailoutReturnStub kind = BailoutReturnStub::GetProp;
+        void* address = code->raw() + bailoutReturnOffset_.offset();
+        cx->compartment()->jitCompartment()->initBailoutReturnAddr(address, getKey(), kind);
     }
 }
 
