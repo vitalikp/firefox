@@ -8348,43 +8348,6 @@ class SystemAddonInstallLocation extends MutableDirectoryInstallLocation {
   }
 
   /**
-   * Removes the specified files or directories in the staging directory and
-   * then if the staging directory is empty attempts to remove it.
-   *
-   * @param  aLeafNames
-   *         An array of file or directory to remove from the directory, the
-   *         array may be empty
-   */
-  cleanStagingDir(aLeafNames = []) {
-    let dir = this.getStagingDir();
-
-    for (let name of aLeafNames) {
-      let file = dir.clone();
-      file.append(name);
-      recursiveRemove(file);
-    }
-
-    if (this._stagingDirLock > 0)
-      return;
-
-    let dirEntries = dir.directoryEntries.QueryInterface(Ci.nsIDirectoryEnumerator);
-    try {
-      if (dirEntries.nextFile)
-        return;
-    } finally {
-      dirEntries.close();
-    }
-
-    try {
-      setFilePermissions(dir, FileUtils.PERMS_DIRECTORY);
-      dir.remove(false);
-    } catch (e) {
-      logger.warn("Failed to remove staging dir", e);
-      // Failing to remove the staging directory is ignorable
-    }
-  }
-
-  /**
    * Gets the staging directory to put add-ons that are pending install and
    * uninstall into.
    *
@@ -8406,35 +8369,12 @@ class SystemAddonInstallLocation extends MutableDirectoryInstallLocation {
   }
 
   requestStagingDir() {
-    this._stagingDirLock++;
-    if (this._stagingDirPromise)
-      return this._stagingDirPromise;
-
     this._addonSet = SystemAddonInstallLocation._loadAddonSet();
     if (this._addonSet.directory) {
       this._directory = this._baseDir.clone();
       this._directory.append(this._addonSet.directory);
     }
-
-    OS.File.makeDir(this._directory.path);
-    let stagepath = OS.Path.join(this._directory.path, DIR_STAGE);
-    return this._stagingDirPromise = OS.File.makeDir(stagepath).then(null, (e) => {
-      if (e instanceof OS.File.Error && e.becauseExists)
-        return;
-      logger.error("Failed to create staging directory", e);
-      throw e;
-    });
-  }
-
-  releaseStagingDir() {
-    this._stagingDirLock--;
-
-    if (this._stagingDirLock == 0) {
-      this._stagingDirPromise = null;
-      this.cleanStagingDir();
-    }
-
-    return Promise.resolve();
+    return super.requestStagingDir();
   }
 
   /**
@@ -8462,7 +8402,7 @@ class SystemAddonInstallLocation extends MutableDirectoryInstallLocation {
    * @param {Object} aAddonSet - object containing schema, directory and set
    *                 of system add-on IDs and versions.
    */
-  _saveAddonSet(aAddonSet) {
+  static _saveAddonSet(aAddonSet) {
     Preferences.set(PREF_SYSTEM_ADDON_SET, JSON.stringify(aAddonSet));
   }
 
@@ -8547,7 +8487,7 @@ class SystemAddonInstallLocation extends MutableDirectoryInstallLocation {
     // remove everything from the pref first, if uninstall
     // fails then at least they will not be re-activated on
     // next restart.
-    this._saveAddonSet({ schema: 1, addons: {} });
+    SystemAddonInstallLocation._saveAddonSet({ schema: 1, addons: {} });
 
     // If this is running at app startup, the pref being cleared
     // will cause later stages of startup to notice that the
@@ -8567,7 +8507,7 @@ class SystemAddonInstallLocation extends MutableDirectoryInstallLocation {
     }
   }
 
-  /**
+    /**
    * Removes any directories not currently in use or pending use after a
    * restart. Any errors that happen here don't really matter as we'll attempt
    * to cleanup again next time.
@@ -8657,7 +8597,7 @@ class SystemAddonInstallLocation extends MutableDirectoryInstallLocation {
 
     // Record the new upgrade directory.
     let state = { schema: 1, directory: newDir.leafName, addons: {} };
-    this._saveAddonSet(state);
+    SystemAddonInstallLocation._saveAddonSet(state);
 
     this._nextDir = newDir;
     let location = this;
@@ -8698,7 +8638,7 @@ class SystemAddonInstallLocation extends MutableDirectoryInstallLocation {
       }
 
       previousState = SystemAddonInstallLocation._loadAddonSet();
-      this._saveAddonSet(state);
+      SystemAddonInstallLocation._saveAddonSet(state);
 
       let blockers = aAddons.filter(
         addon => AddonManagerPrivate.hasUpgradeListener(addon.id)
@@ -8712,7 +8652,7 @@ class SystemAddonInstallLocation extends MutableDirectoryInstallLocation {
     } catch (e) {
       // Roll back to previous upgrade set (if present) on restart.
       if (previousState) {
-        this._saveAddonSet(previousState);
+        SystemAddonInstallLocation._saveAddonSet(previousState);
       }
       // Otherwise, roll back to built-in set on restart.
       // TODO try to do these restartlessly
@@ -8731,7 +8671,7 @@ class SystemAddonInstallLocation extends MutableDirectoryInstallLocation {
   * Resumes upgrade of a previously-delayed add-on set.
   */
   async resumeAddonSet(installs) {
-    function resumeAddon(install) {
+    async function resumeAddon(install) {
       install.state = AddonManager.STATE_DOWNLOADED;
       install.installLocation.releaseStagingDir();
       install.install();
@@ -8852,6 +8792,8 @@ class WinRegInstallLocation extends DirectoryInstallLocation {
     *         The scope of add-ons installed in this location
     */
   constructor(aName, aRootKey, aScope) {
+    super(aName, undefined, aScope);
+
     this.locked = true;
     this._name = aName;
     this._rootKey = aRootKey;
@@ -8921,24 +8863,6 @@ class WinRegInstallLocation extends DirectoryInstallLocation {
    */
   get name() {
     return this._name;
-  }
-
-  /**
-   * Gets the scope of this install location.
-   */
-  get scope() {
-    return this._scope;
-  }
-
-  /**
-   * Gets an array of nsIFiles for add-ons installed in this location.
-   */
-  getAddonLocations() {
-    let locations = new Map();
-    for (let id in this._IDToFileMap) {
-      locations.set(id, this._IDToFileMap[id].clone());
-    }
-    return locations;
   }
 
   /**
