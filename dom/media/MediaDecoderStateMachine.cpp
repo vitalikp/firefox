@@ -1469,7 +1469,7 @@ public:
                                           EventVisibility aVisibility)
   {
     MOZ_ASSERT(aSeekJob.mTarget->IsNextFrame());
-    mCurrentTime = mMaster->GetMediaTime().ToMicroseconds();
+    mCurrentTime = mMaster->GetMediaTime();
     mDuration = mMaster->Duration();
     return SeekingState::Enter(Move(aSeekJob), aVisibility);
   }
@@ -1488,7 +1488,7 @@ private:
   {
     auto currentTime = mCurrentTime;
     DiscardFrames(VideoQueue(), [currentTime] (int64_t aSampleTime) {
-      return aSampleTime <= currentTime;
+      return aSampleTime <= currentTime.ToMicroseconds();
     });
 
     if (!NeedMoreVideo()) {
@@ -1549,7 +1549,7 @@ private:
     MOZ_ASSERT(!mSeekJob.mPromise.IsEmpty(), "Seek shouldn't be finished");
     MOZ_ASSERT(NeedMoreVideo());
 
-    if (aVideo->mTime > mCurrentTime) {
+    if (aVideo->mTime > mCurrentTime.ToMicroseconds()) {
       mMaster->PushVideo(aVideo);
       FinishSeek();
     } else {
@@ -1662,8 +1662,8 @@ private:
   /*
    * Internal state.
    */
-  int64_t mCurrentTime;
-  media::TimeUnit mDuration;
+  TimeUnit mCurrentTime;
+  TimeUnit mDuration;
   RefPtr<AysncNextFrameSeekTask> mAsyncSeekTask;
 };
 
