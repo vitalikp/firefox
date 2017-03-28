@@ -27,6 +27,7 @@
 #include "mozilla/css/StyleRule.h"
 #include "mozilla/css/ImportRule.h"
 #include "nsCSSRules.h"
+#include "nsCSSFontFaceRule.h"
 #include "mozilla/css/NameSpaceRule.h"
 #include "nsTArray.h"
 #include "mozilla/StyleSheetInlines.h"
