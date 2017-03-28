@@ -1082,10 +1082,7 @@ public:
         return mTable.Get(aSelector, aList);
       }
 
-      ~SelectorCache()
-      {
-        AgeAllGenerations();
-      }
+      ~SelectorCache();
 
     private:
       nsClassHashtable<nsStringHashKey, nsCSSSelectorList> mTable;
