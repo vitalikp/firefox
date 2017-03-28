@@ -9321,9 +9321,11 @@ nsGlobalWindow::ReallyCloseWindow()
         // XXXbz now that we have mHavePendingClose, is this needed?
         bool isTab = false;
         if (rootWin == AsOuter() ||
-            !bwin || (bwin->IsTabContentWindow(GetOuterWindowInternal(),
-                                               &isTab), isTab))
+            !bwin ||
+            (NS_SUCCEEDED(bwin->IsTabContentWindow(GetOuterWindowInternal(),
+                                                   &isTab)) && isTab)) {
           treeOwnerAsWin->Destroy();
+        }
       }
     }
 
