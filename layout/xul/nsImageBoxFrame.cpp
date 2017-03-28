@@ -406,7 +406,7 @@ nsImageBoxFrame::PaintImage(nsRenderingContext& aRenderingContext,
   }
 
   Maybe<SVGImageContext> svgContext;
-  SVGImageContext::MaybeInitAndStoreContextPaint(svgContext, this, imgCon);
+  SVGImageContext::MaybeStoreContextPaint(svgContext, this, imgCon);
 
   return nsLayoutUtils::DrawSingleImage(
            *aRenderingContext.ThebesContext(),

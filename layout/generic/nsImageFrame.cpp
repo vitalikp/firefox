@@ -1698,7 +1698,7 @@ nsImageFrame::PaintImage(nsRenderingContext& aRenderingContext, nsPoint aPt,
   }
 
   Maybe<SVGImageContext> svgContext;
-  SVGImageContext::MaybeInitAndStoreContextPaint(svgContext, this, aImage);
+  SVGImageContext::MaybeStoreContextPaint(svgContext, this, aImage);
 
   DrawResult result =
     nsLayoutUtils::DrawSingleImage(*aRenderingContext.ThebesContext(),
