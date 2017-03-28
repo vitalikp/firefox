@@ -29,6 +29,7 @@ using namespace mozilla::dom;
 ServoStyleSet::ServoStyleSet()
   : mPresContext(nullptr)
   , mBatching(0)
+  , mAllowResolveStaleStyles(false)
 {
 }
 
@@ -819,7 +820,8 @@ ServoStyleSet::RebuildData()
 already_AddRefed<ServoComputedValues>
 ServoStyleSet::ResolveServoStyle(Element* aElement)
 {
-  return Servo_ResolveStyle(aElement, mRawSet.get()).Consume();
+  return Servo_ResolveStyle(aElement, mRawSet.get(),
+                            mAllowResolveStaleStyles).Consume();
 }
 
 void
