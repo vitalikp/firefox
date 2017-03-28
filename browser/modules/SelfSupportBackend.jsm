@@ -72,10 +72,13 @@ var SelfSupportBackendInternal = {
   _log: null,
   _progressListener: null,
 
+  // Whether we're invited to let test code talk to our frame.
+  _testing: false,
+
   /**
    * Initializes the self support backend.
    */
-  init: function () {
+  init() {
     this._configureLogging();
 
     this._log.trace("init");
@@ -136,6 +139,9 @@ var SelfSupportBackendInternal = {
       this._frame.destroy();
       this._frame = null;
     }
+    if (this._testing) {
+      Services.obs.notifyObservers(this._browser, "self-support-browser-destroyed", "");
+    }
   },
 
   /**
@@ -193,6 +199,9 @@ var SelfSupportBackendInternal = {
       this._browser.setAttribute("disableglobalhistory", "true");
       this._browser.setAttribute("src", aURL);
 
+      if (this._testing) {
+        Services.obs.notifyObservers(this._browser, "self-support-browser-created", "");
+      }
       doc.documentElement.appendChild(this._browser);
     });
   },
