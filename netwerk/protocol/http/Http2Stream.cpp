@@ -443,7 +443,8 @@ Http2Stream::ParseHttpRequestHeaders(const char *buf,
   head->RequestURI(requestURI);
 
   mozilla::OriginAttributes originAttributes;
-  mSocketTransport->GetOriginAttributes(&originAttributes),
+  mSocketTransport->GetOriginAttributes(&originAttributes);
+
   CreatePushHashKey(nsDependentCString(head->IsHTTPS() ? "https" : "http"),
                     authorityHeader, originAttributes, mSession->Serial(),
                     requestURI,
@@ -1545,7 +1546,6 @@ Http2Stream::Finish0RTT(bool aRestart, bool aAlpnChanged)
   }
   return rv;
 }
-
 
 } // namespace net
 } // namespace mozilla
