@@ -2179,6 +2179,9 @@ class BaseCompiler
     // Labels
 
     void insertBreakablePoint(CallSiteDesc::Kind kind) {
+        // The debug trap exit requires WasmTlsReg be loaded. However, since we
+        // are emitting millions of these breakable points inline, we push this
+        // loading of TLS into the FarJumpIsland created by patchCallSites.
         masm.nopPatchableToCall(CallSiteDesc(iter_.errorOffset(), kind));
     }
 
