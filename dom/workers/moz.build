@@ -73,6 +73,8 @@ UNIFIED_SOURCES += [
     'ServiceWorkerScriptCache.cpp',
     'ServiceWorkerUnregisterJob.cpp',
     'ServiceWorkerUpdateJob.cpp',
+    'ServiceWorkerUpdaterChild.cpp',
+    'ServiceWorkerUpdaterParent.cpp',
     'ServiceWorkerWindowClient.cpp',
     'SharedWorker.cpp',
     'WorkerDebuggerManager.cpp',
@@ -87,6 +89,7 @@ UNIFIED_SOURCES += [
 
 IPDL_SOURCES += [
     'PServiceWorkerManager.ipdl',
+    'PServiceWorkerUpdater.ipdl',
     'ServiceWorkerRegistrarTypes.ipdlh',
 ]
 
