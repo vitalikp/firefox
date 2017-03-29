@@ -464,7 +464,7 @@ struct nsCallbackEventRequest
 
 // ----------------------------------------------------------------------------
 #define ASSERT_REFLOW_SCHEDULED_STATE()                                       \
-  NS_ASSERTION(mReflowScheduled ==                                            \
+  NS_ASSERTION(ObservingLayoutFlushes() ==                                    \
                  GetPresContext()->RefreshDriver()->                          \
                    IsLayoutFlushObserver(this), "Unexpected state")
 
@@ -792,11 +792,12 @@ nsIPresShell::nsIPresShell()
     , mFrozen(false)
     , mIsFirstPaint(false)
     , mObservesMutationsForPrint(false)
-    , mReflowScheduled(false)
     , mSuppressInterruptibleReflows(false)
     , mScrollPositionClampingScrollPortSizeSet(false)
     , mNeedLayoutFlush(true)
     , mNeedStyleFlush(true)
+    , mObservingStyleFlushes(false)
+    , mObservingLayoutFlushes(false)
     , mNeedThrottledAnimationFlush(true)
     , mPresShellId(0)
     , mFontSizeInflationEmPerLine(0)
@@ -1841,7 +1842,7 @@ PresShell::Initialize(nscoord aWidth, nscoord aHeight)
     FrameNeedsReflow(rootFrame, nsIPresShell::eResize, NS_FRAME_IS_DIRTY);
     NS_ASSERTION(mDirtyRoots.Contains(rootFrame),
                  "Should be in mDirtyRoots now");
-    NS_ASSERTION(mReflowScheduled, "Why no reflow scheduled?");
+    NS_ASSERTION(mObservingLayoutFlushes, "Why no reflow scheduled?");
   }
 
   // Restore our root scroll position now if we're getting here after EndLoad
@@ -2884,9 +2885,9 @@ PresShell::CancelAllPendingReflows()
 {
   mDirtyRoots.Clear();
 
-  if (mReflowScheduled) {
+  if (mObservingLayoutFlushes) {
     GetPresContext()->RefreshDriver()->RemoveLayoutFlushObserver(this);
-    mReflowScheduled = false;
+    mObservingLayoutFlushes = false;
   }
 
   ASSERT_REFLOW_SCHEDULED_STATE();
@@ -8959,8 +8960,8 @@ void
 PresShell::MaybeScheduleReflow()
 {
   ASSERT_REFLOW_SCHEDULED_STATE();
-  if (mReflowScheduled || mIsDestroying || mIsReflowing ||
-      mDirtyRoots.Length() == 0)
+  if (mObservingLayoutFlushes || mIsDestroying || mIsReflowing ||
+      mDirtyRoots.IsEmpty())
     return;
 
   if (!mPresContext->HasPendingInterrupt() || !ScheduleReflowOffTimer()) {
@@ -8973,13 +8974,8 @@ PresShell::MaybeScheduleReflow()
 void
 PresShell::ScheduleReflow()
 {
-  NS_PRECONDITION(!mReflowScheduled, "Why are we trying to schedule a reflow?");
   ASSERT_REFLOW_SCHEDULED_STATE();
-
-  if (GetPresContext()->RefreshDriver()->AddLayoutFlushObserver(this)) {
-    mReflowScheduled = true;
-  }
-
+  DoObserveLayoutFlushes();
   ASSERT_REFLOW_SCHEDULED_STATE();
 }
 
@@ -9054,7 +9050,7 @@ PresShell::sReflowContinueCallback(nsITimer* aTimer, void* aPresShell)
 bool
 PresShell::ScheduleReflowOffTimer()
 {
-  NS_PRECONDITION(!mReflowScheduled, "Shouldn't get here");
+  NS_PRECONDITION(!mObservingLayoutFlushes, "Shouldn't get here");
   ASSERT_REFLOW_SCHEDULED_STATE();
 
   if (!mReflowContinueTimer) {
@@ -9606,6 +9602,22 @@ nsIPresShell::RemovePostRefreshObserver(nsAPostRefreshObserver* aObserver)
   }
   presContext->RefreshDriver()->RemovePostRefreshObserver(aObserver);
   return true;
+}
+
+void
+nsIPresShell::DoObserveStyleFlushes()
+{
+  MOZ_ASSERT(!ObservingStyleFlushes());
+  mObservingStyleFlushes =
+    mPresContext->RefreshDriver()->AddStyleFlushObserver(this);
+}
+
+void
+nsIPresShell::DoObserveLayoutFlushes()
+{
+  MOZ_ASSERT(!ObservingLayoutFlushes());
+  mObservingLayoutFlushes =
+    mPresContext->RefreshDriver()->AddLayoutFlushObserver(this);
 }
 
 //------------------------------------------------------
