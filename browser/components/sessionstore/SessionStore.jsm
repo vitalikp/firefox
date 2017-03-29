@@ -201,6 +201,14 @@ function debug(aMsg) {
   }
 }
 
+/**
+ * A global value to tell that fingerprinting resistance is enabled or not.
+ * If it's enabled, the session restore won't restore the window's size and
+ * size mode.
+ * This value is controlled by preference privacy.resistFingerprinting.
+ */
+var gResistFingerprintingEnabled = false;
+
 this.SessionStore = {
   get promiseInitialized() {
     return SessionStoreInternal.promiseInitialized;
@@ -681,6 +689,10 @@ var SessionStoreInternal = {
 
     this._max_windows_undo = this._prefBranch.getIntPref("sessionstore.max_windows_undo");
     this._prefBranch.addObserver("sessionstore.max_windows_undo", this, true);
+
+
+    gResistFingerprintingEnabled = Services.prefs.getBoolPref("privacy.resistFingerprinting");
+    Services.prefs.addObserver("privacy.resistFingerprinting", this, false);
   },
 
   /**
@@ -1815,6 +1827,9 @@ var SessionStoreInternal = {
       case "sessionstore.max_windows_undo":
         this._max_windows_undo = this._prefBranch.getIntPref("sessionstore.max_windows_undo");
         this._capClosedWindows();
+        break;
+      case "privacy.resistFingerprinting":
+        gResistFingerprintingEnabled = Services.prefs.getBoolPref("privacy.resistFingerprinting");
         break;
     }
   },
@@ -3819,14 +3834,14 @@ var SessionStoreInternal = {
     if (!isNaN(aLeft) && !isNaN(aTop) && (aLeft != win_("screenX") || aTop != win_("screenY"))) {
       aWindow.moveTo(aLeft, aTop);
     }
-    if (aWidth && aHeight && (aWidth != win_("width") || aHeight != win_("height"))) {
+    if (aWidth && aHeight && (aWidth != win_("width") || aHeight != win_("height")) && !gResistFingerprintingEnabled) {
       // Don't resize the window if it's currently maximized and we would
       // maximize it again shortly after.
       if (aSizeMode != "maximized" || win_("sizemode") != "maximized") {
         aWindow.resizeTo(aWidth, aHeight);
       }
     }
-    if (aSizeMode && win_("sizemode") != aSizeMode) {
+    if (aSizeMode && win_("sizemode") != aSizeMode && !gResistFingerprintingEnabled) {
       switch (aSizeMode) {
       case "maximized":
         aWindow.maximize();
