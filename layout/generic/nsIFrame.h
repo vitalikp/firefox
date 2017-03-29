@@ -1630,6 +1630,11 @@ public:
   bool IsTransformed() const;
 
   /**
+   * True if this frame has any animation of transform in effect.
+   */
+  bool HasAnimationOfTransform() const;
+
+  /**
    * Returns true if the frame is translucent or the frame has opacity
    * animations for the purposes of creating a stacking context.
    */
