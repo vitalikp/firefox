@@ -230,8 +230,8 @@ PROFILER_FUNC(bool profiler_stream_json_for_this_process(SpliceableJSONWriter& a
 // outparams) if the profile is inactive.
 PROFILER_FUNC_VOID(profiler_get_start_params(int* aEntrySize,
                                              double* aInterval,
-                                             mozilla::Vector<const char*>* aFilters,
-                                             mozilla::Vector<const char*>* aFeatures))
+                                             mozilla::Vector<const char*>* aFeatures,
+                                             mozilla::Vector<const char*>* aFilters))
 
 // Get the profile and write it into a file. A no-op if the profile is
 // inactive.
