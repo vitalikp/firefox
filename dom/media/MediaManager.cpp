@@ -3386,6 +3386,8 @@ SourceListener::SourceListener()
 void
 SourceListener::Register(GetUserMediaWindowListener* aListener)
 {
+  LOG(("SourceListener %p registering with window listener %p", this, aListener));
+
   if (mWindowListener) {
     MOZ_ASSERT(false, "Already registered");
     return;
@@ -3409,6 +3411,8 @@ SourceListener::Activate(SourceMediaStream* aStream,
 {
   MOZ_ASSERT(NS_IsMainThread(), "Only call on main thread");
 
+  LOG(("SourceListener %p activating audio=%p video=%p", this, aAudioDevice, aVideoDevice));
+
   if (mActivated) {
     MOZ_ASSERT(false, "Already activated");
     return;
@@ -3430,6 +3434,8 @@ SourceListener::Stop()
   if (mStopped) {
     return;
   }
+
+  LOG(("SourceListener %p stopping", this));
 
   // StopSharing() has some special logic, at least for audio capture.
   // It must be called when all tracks have stopped, before setting mStopped.
@@ -3458,7 +3464,7 @@ SourceListener::Remove()
     return;
   }
 
-  LOG(("SourceListener removed on purpose, mFinished = %d", (int) mFinished));
+  LOG(("SourceListener %p removed on purpose, mFinished = %d", this, (int) mFinished));
   mRemoved = true; // RemoveListener is async, avoid races
   mWindowListener = nullptr;
 
@@ -3478,6 +3484,7 @@ SourceListener::StopTrack(TrackID aTrackID)
 
   switch (aTrackID) {
     case kAudioTrack: {
+      LOG(("SourceListener %p stopping audio track %d", this, aTrackID));
       if (!mAudioDevice) {
         NS_ASSERTION(false, "Can't stop audio. No device.");
         return;
@@ -3492,6 +3499,7 @@ SourceListener::StopTrack(TrackID aTrackID)
       break;
     }
     case kVideoTrack: {
+      LOG(("SourceListener %p stopping video track %d", this, aTrackID));
       if (!mVideoDevice) {
         NS_ASSERTION(false, "Can't stop video. No device.");
         return;
@@ -3518,6 +3526,7 @@ SourceListener::StopTrack(TrackID aTrackID)
 
   if ((!mAudioDevice || mAudioStopped) &&
       (!mVideoDevice || mVideoStopped)) {
+    LOG(("SourceListener %p this was the last track stopped", this));
     Stop();
   }
 
@@ -3537,6 +3546,8 @@ SourceListener::StopSharing()
   if (mStopped) {
     return;
   }
+
+  LOG(("SourceListener %p StopSharing", this));
 
   if (mVideoDevice &&
       (mVideoDevice->GetMediaSource() == MediaSourceEnum::Screen ||
@@ -3662,6 +3673,8 @@ SourceListener::NotifyFinished()
     // Removed explicitly before finished.
     return;
   }
+
+  LOG(("SourceListener %p NotifyFinished", this));
 
   Stop(); // we know it's been activated
   mWindowListener->Remove(this);
