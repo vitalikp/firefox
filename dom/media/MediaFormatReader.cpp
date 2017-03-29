@@ -1329,7 +1329,7 @@ MediaFormatReader::ShouldSkip(bool aSkipToNextKeyframe,
 
 RefPtr<MediaDecoderReader::VideoDataPromise>
 MediaFormatReader::RequestVideoData(bool aSkipToNextKeyframe,
-                                    int64_t aTimeThreshold)
+                                    const media::TimeUnit& aTimeThreshold)
 {
   MOZ_ASSERT(OnTaskQueue());
   MOZ_DIAGNOSTIC_ASSERT(mSeekPromise.IsEmpty(),
@@ -1338,7 +1338,8 @@ MediaFormatReader::RequestVideoData(bool aSkipToNextKeyframe,
   MOZ_DIAGNOSTIC_ASSERT(!mVideo.mSeekRequest.Exists()
                         || mVideo.mTimeThreshold.isSome());
   MOZ_DIAGNOSTIC_ASSERT(!IsSeeking(), "called mid-seek");
-  LOGV("RequestVideoData(%d, %" PRId64 ")", aSkipToNextKeyframe, aTimeThreshold);
+  LOGV("RequestVideoData(%d, %" PRId64 ")",
+       aSkipToNextKeyframe, aTimeThreshold.ToMicroseconds());
 
   if (!HasVideo()) {
     LOG("called with no video track");
@@ -1358,14 +1359,12 @@ MediaFormatReader::RequestVideoData(bool aSkipToNextKeyframe,
                                              __func__);
   }
 
-  media::TimeUnit timeThreshold{ media::TimeUnit::FromMicroseconds(
-    aTimeThreshold) };
   // Ensure we have no pending seek going as ShouldSkip could return out of date
   // information.
   if (!mVideo.HasInternalSeekPending()
-      && ShouldSkip(aSkipToNextKeyframe, timeThreshold)) {
+      && ShouldSkip(aSkipToNextKeyframe, aTimeThreshold)) {
     RefPtr<VideoDataPromise> p = mVideo.EnsurePromise(__func__);
-    SkipVideoDemuxToNextKeyFrame(timeThreshold);
+    SkipVideoDemuxToNextKeyFrame(aTimeThreshold);
     return p;
   }
 
