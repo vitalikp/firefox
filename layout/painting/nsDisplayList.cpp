@@ -2753,6 +2753,7 @@ nsDisplayItem::BuildDisplayItemLayer(nsDisplayListBuilder* aBuilder,
     }
   }
 
+  aManager->TrackDisplayItemLayer(layer);
   layer->SetDisplayItem(this, aBuilder);
   layer->SetBaseTransform(gfx::Matrix4x4::Translation(aContainerParameters.mOffset.x,
                                                       aContainerParameters.mOffset.y, 0));
