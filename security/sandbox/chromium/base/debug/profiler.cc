@@ -52,6 +52,10 @@ void RestartProfilingAfterFork() {
   ProfilerRegisterThread();
 }
 
+bool IsProfilingSupported() {
+  return true;
+}
+
 #else
 
 void StartProfiling(const std::string& name) {
@@ -68,6 +72,10 @@ bool BeingProfiled() {
 }
 
 void RestartProfilingAfterFork() {
+}
+
+bool IsProfilingSupported() {
+  return false;
 }
 
 #endif
