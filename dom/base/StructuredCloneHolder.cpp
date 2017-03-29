@@ -307,6 +307,7 @@ StructuredCloneHolder::Read(nsISupports* aParent,
   // If we are tranferring something, we cannot call 'Read()' more than once.
   if (mSupportsTransferring) {
     mBlobImplArray.Clear();
+    mWasmModuleArray.Clear();
     mClonedSurfaces.Clear();
     Clear();
   }
