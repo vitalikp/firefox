@@ -3876,8 +3876,7 @@ AddBoxesForFrame(nsIFrame* aFrame,
         AddBoxesForFrame(kid, aCallback);
       }
     }
-  } else if (pseudoType == nsCSSAnonBoxes::mozAnonymousBlock ||
-             pseudoType == nsCSSAnonBoxes::mozAnonymousPositionedBlock ||
+  } else if (pseudoType == nsCSSAnonBoxes::mozBlockInsideInlineWrapper ||
              pseudoType == nsCSSAnonBoxes::mozMathMLAnonymousBlock ||
              pseudoType == nsCSSAnonBoxes::mozXULAnonymousBlock) {
     for (nsIFrame* kid : aFrame->PrincipalChildList()) {
@@ -3915,8 +3914,7 @@ nsLayoutUtils::GetFirstNonAnonymousFrame(nsIFrame* aFrame)
           return f;
         }
       }
-    } else if (pseudoType == nsCSSAnonBoxes::mozAnonymousBlock ||
-               pseudoType == nsCSSAnonBoxes::mozAnonymousPositionedBlock ||
+    } else if (pseudoType == nsCSSAnonBoxes::mozBlockInsideInlineWrapper ||
                pseudoType == nsCSSAnonBoxes::mozMathMLAnonymousBlock ||
                pseudoType == nsCSSAnonBoxes::mozXULAnonymousBlock) {
       for (nsIFrame* kid : aFrame->PrincipalChildList()) {
