@@ -13,6 +13,7 @@ include protocol PCacheStorage;
 include protocol PCacheStreamControl;
 include protocol PFileDescriptorSet;
 include protocol PFileSystemRequest;
+include protocol PMemoryStream;
 include protocol PMessagePort;
 include protocol PCameras;
 include protocol PQuota;
@@ -55,6 +56,7 @@ sync protocol PBackground
   manages PCacheStreamControl;
   manages PFileDescriptorSet;
   manages PFileSystemRequest;
+  manages PMemoryStream;
   manages PMessagePort;
   manages PCameras;
   manages PQuota;
@@ -101,6 +103,8 @@ parent:
   async PQuota();
 
   async PFileSystemRequest(FileSystemParams params);
+
+  async PMemoryStream(uint64_t aSize);
 
 child:
   async PCache();

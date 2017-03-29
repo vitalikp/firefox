@@ -24,6 +24,7 @@
 #include "mozilla/dom/cache/ActorUtils.h"
 #include "mozilla/dom/indexedDB/ActorsParent.h"
 #include "mozilla/dom/ipc/BlobParent.h"
+#include "mozilla/dom/ipc/MemoryStreamParent.h"
 #include "mozilla/dom/quota/ActorsParent.h"
 #include "mozilla/ipc/BackgroundParent.h"
 #include "mozilla/ipc/BackgroundUtils.h"
@@ -259,6 +260,26 @@ BackgroundParentImpl::DeallocPBlobParent(PBlobParent* aActor)
   MOZ_ASSERT(aActor);
 
   mozilla::dom::BlobParent::Destroy(aActor);
+  return true;
+}
+
+PMemoryStreamParent*
+BackgroundParentImpl::AllocPMemoryStreamParent(const uint64_t& aSize)
+{
+  AssertIsInMainProcess();
+  AssertIsOnBackgroundThread();
+
+  return new mozilla::dom::MemoryStreamParent(aSize);
+}
+
+bool
+BackgroundParentImpl::DeallocPMemoryStreamParent(PMemoryStreamParent* aActor)
+{
+  AssertIsInMainProcess();
+  AssertIsOnBackgroundThread();
+  MOZ_ASSERT(aActor);
+
+  delete aActor;
   return true;
 }
 
