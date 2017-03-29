@@ -96,6 +96,7 @@
 #include "mozilla/WebBrowserPersistDocumentParent.h"
 #include "nsIGroupedSHistory.h"
 #include "PartialSHistory.h"
+#include "nsString.h"
 
 #if defined(XP_WIN) && defined(ACCESSIBILITY)
 #include "mozilla/a11y/AccessibleWrap.h"
@@ -1458,6 +1459,11 @@ TabParent::RecvSyncMessage(const nsString& aMessage,
                            const IPC::Principal& aPrincipal,
                            nsTArray<StructuredCloneData>* aRetVal)
 {
+  NS_LossyConvertUTF16toASCII messageNameCStr(aMessage);
+  PROFILER_LABEL_DYNAMIC("TabParent", "RecvSyncMessage",
+                         js::ProfileEntry::Category::EVENTS,
+                         messageNameCStr.get());
+
   StructuredCloneData data;
   ipc::UnpackClonedMessageDataForParent(aData, data);
 
@@ -1475,6 +1481,11 @@ TabParent::RecvRpcMessage(const nsString& aMessage,
                           const IPC::Principal& aPrincipal,
                           nsTArray<StructuredCloneData>* aRetVal)
 {
+  NS_LossyConvertUTF16toASCII messageNameCStr(aMessage);
+  PROFILER_LABEL_DYNAMIC("TabParent", "RecvRpcMessage",
+                         js::ProfileEntry::Category::EVENTS,
+                         messageNameCStr.get());
+
   StructuredCloneData data;
   ipc::UnpackClonedMessageDataForParent(aData, data);
 
@@ -1491,6 +1502,11 @@ TabParent::RecvAsyncMessage(const nsString& aMessage,
                             const IPC::Principal& aPrincipal,
                             const ClonedMessageData& aData)
 {
+  NS_LossyConvertUTF16toASCII messageNameCStr(aMessage);
+  PROFILER_LABEL_DYNAMIC("TabParent", "RecvAsyncMessage",
+                         js::ProfileEntry::Category::EVENTS,
+                         messageNameCStr.get());
+
   StructuredCloneData data;
   ipc::UnpackClonedMessageDataForParent(aData, data);
 

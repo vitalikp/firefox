@@ -604,6 +604,15 @@ nsFrameMessageManager::SendMessage(const nsAString& aMessageName,
                                    JS::MutableHandle<JS::Value> aRetval,
                                    bool aIsSync)
 {
+#ifdef MOZ_GECKO_PROFILER
+  if (profiler_is_active()) {
+    NS_LossyConvertUTF16toASCII messageNameCStr(aMessageName);
+    PROFILER_LABEL_DYNAMIC("nsFrameMessageManager", "SendMessage",
+                            js::ProfileEntry::Category::EVENTS,
+                            messageNameCStr.get());
+  }
+#endif
+
   NS_ASSERTION(!IsGlobal(), "Should not call SendSyncMessage in chrome");
   NS_ASSERTION(!IsBroadcaster(), "Should not call SendSyncMessage in chrome");
   NS_ASSERTION(!mParentManager, "Should not have parent manager in content!");
