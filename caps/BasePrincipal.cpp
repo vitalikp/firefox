@@ -52,7 +52,7 @@ BasePrincipal::GetOriginNoSuffix(nsACString& aOrigin)
   if (mOriginNoSuffix) {
     return mOriginNoSuffix->ToUTF8String(aOrigin);
   }
-  return GetOriginInternal(aOrigin);
+  return GetOriginNoSuffixInternal(aOrigin);
 }
 
 bool
@@ -462,10 +462,10 @@ BasePrincipal::FinishInit()
 
   // Then compute the origin without the suffix.
   nsAutoCString originNoSuffix;
-  nsresult rv = GetOriginInternal(originNoSuffix);
+  nsresult rv = GetOriginNoSuffixInternal(originNoSuffix);
   if (NS_FAILED(rv)) {
-    // If GetOriginInternal fails, we will get a null atom for mOriginNoSuffix,
-    // which we deal with anywhere mOriginNoSuffix is used.
+    // If GetOriginNoSuffixInternal fails, we will get a null atom for
+    // mOriginNoSuffix, which we deal with anywhere mOriginNoSuffix is used.
     // Once this is made infallible we can remove those null checks.
     mOriginNoSuffix = nullptr;
     return;
