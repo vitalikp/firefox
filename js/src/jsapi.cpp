@@ -3875,6 +3875,7 @@ JS::TransitiveCompileOptions::copyPODTransitiveOptions(const TransitiveCompileOp
     introductionLineno = rhs.introductionLineno;
     introductionOffset = rhs.introductionOffset;
     hasIntroductionInfo = rhs.hasIntroductionInfo;
+    isProbablySystemOrAddonCode = rhs.isProbablySystemOrAddonCode;
 };
 
 void
@@ -3987,6 +3988,7 @@ JS::CompileOptions::CompileOptions(JSContext* cx, JSVersion version)
     strictOption = cx->options().strictMode();
     extraWarningsOption = cx->compartment()->behaviors().extraWarnings(cx);
     forEachStatementOption = cx->options().forEachStatement();
+    isProbablySystemOrAddonCode = cx->compartment()->isProbablySystemOrAddonCode();
     werrorOption = cx->options().werror();
     if (!cx->options().asmJS())
         asmJSOption = AsmJSOption::Disabled;
