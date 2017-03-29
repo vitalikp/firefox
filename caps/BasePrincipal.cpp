@@ -27,7 +27,8 @@ namespace mozilla {
 
 BasePrincipal::BasePrincipal(PrincipalKind aKind)
   : mKind(aKind)
-  , mDomainSet(false)
+  , mHasExplicitDomain(false)
+  , mInitialized(false)
 {}
 
 BasePrincipal::~BasePrincipal()
@@ -36,6 +37,8 @@ BasePrincipal::~BasePrincipal()
 NS_IMETHODIMP
 BasePrincipal::GetOrigin(nsACString& aOrigin)
 {
+  MOZ_ASSERT(mInitialized);
+
   nsresult rv = GetOriginNoSuffix(aOrigin);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -49,6 +52,8 @@ BasePrincipal::GetOrigin(nsACString& aOrigin)
 NS_IMETHODIMP
 BasePrincipal::GetOriginNoSuffix(nsACString& aOrigin)
 {
+  MOZ_ASSERT(mInitialized);
+
   if (mOriginNoSuffix) {
     return mOriginNoSuffix->ToUTF8String(aOrigin);
   }
@@ -453,8 +458,11 @@ BasePrincipal::AddonAllowsLoad(nsIURI* aURI, bool aExplicit /* = false */)
 }
 
 void
-BasePrincipal::FinishInit()
+BasePrincipal::FinishInit(const OriginAttributes& aOriginAttributes)
 {
+  mInitialized = true;
+  mOriginAttributes = aOriginAttributes;
+
   // First compute the origin suffix since it's infallible.
   nsAutoCString originSuffix;
   mOriginAttributes.CreateSuffix(originSuffix);
