@@ -1636,7 +1636,7 @@ XPCJSContext::~XPCJSContext()
                                           JS_OPTIONS_DOT_STR, this);
 
 #ifdef FUZZING
-    Preferences::UnRegisterCallback(ReloadPrefsCallback, "fuzzing.enabled", this);
+    Preferences::UnregisterCallback(ReloadPrefsCallback, "fuzzing.enabled", this);
 #endif
 }
 
