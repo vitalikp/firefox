@@ -47,6 +47,7 @@ DocGroup::GetKey(nsIPrincipal* aPrincipal, nsACString& aKey)
 void
 DocGroup::RemoveDocument(nsIDocument* aDocument)
 {
+  MOZ_ASSERT(NS_IsMainThread());
   MOZ_ASSERT(mDocuments.Contains(aDocument));
   mDocuments.RemoveElement(aDocument);
 }
