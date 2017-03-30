@@ -161,6 +161,8 @@ VerifyBarriers(JSRuntime* rt, VerifierType type);
 void
 MaybeVerifyBarriers(JSContext* cx, bool always = false);
 
+void DumpArenaInfo();
+
 #else
 
 static inline void
