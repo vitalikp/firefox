@@ -1406,7 +1406,7 @@ static void SetStyleImage(nsStyleContext* aStyleContext,
                  isLocalRef,
                  "unexpected unit; maybe nsCSSValue::Image::Image() failed?");
 #endif
-
+      aResult.SetURLValue(do_AddRef(aValue.GetURLStructValue()));
       break;
     }
     default:
