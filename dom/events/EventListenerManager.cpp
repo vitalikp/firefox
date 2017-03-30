@@ -1270,9 +1270,10 @@ EventListenerManager::HandleEventInternal(nsPresContext* aPresContext,
               // do this extra work when we're not profiling.
               nsAutoString typeStr;
               (*aDOMEvent)->GetType(typeStr);
+              NS_LossyConvertUTF16toASCII typeCStr(typeStr);
               PROFILER_LABEL_DYNAMIC("EventListenerManager", "HandleEventInternal",
                                      js::ProfileEntry::Category::EVENTS,
-                                     NS_LossyConvertUTF16toASCII(typeStr));
+                                     typeCStr.get());
               TimeStamp startTime = TimeStamp::Now();
 
               rv = HandleEventSubType(listener, *aDOMEvent, aCurrentTarget);
