@@ -818,9 +818,6 @@ Gecko_CopyListStyleTypeFrom(nsStyleList* dst, const nsStyleList* src)
   dst->SetCounterStyle(src->GetCounterStyle());
 }
 
-NS_IMPL_HOLDER_FFI_REFCOUNTING(nsIPrincipal, Principal)
-NS_IMPL_HOLDER_FFI_REFCOUNTING(nsIURI, URI)
-
 already_AddRefed<css::URLValue>
 ServoBundledURI::IntoCssUrl()
 {
@@ -828,9 +825,8 @@ ServoBundledURI::IntoCssUrl()
     return nullptr;
   }
 
-  MOZ_ASSERT(mBaseURI);
-  MOZ_ASSERT(mReferrer);
-  MOZ_ASSERT(mPrincipal);
+  MOZ_ASSERT(mExtraData->GetReferrer());
+  MOZ_ASSERT(mExtraData->GetPrincipal());
 
   nsString url;
   nsDependentCSubstring urlString(reinterpret_cast<const char*>(mURLString),
@@ -838,20 +834,9 @@ ServoBundledURI::IntoCssUrl()
   AppendUTF8toUTF16(urlString, url);
   RefPtr<nsStringBuffer> urlBuffer = nsCSSValue::BufferFromString(url);
 
-  RefPtr<css::URLValue> urlValue = new css::URLValue(urlBuffer,
-                                                     do_AddRef(mBaseURI),
-                                                     do_AddRef(mReferrer),
-                                                     do_AddRef(mPrincipal));
+  RefPtr<css::URLValue> urlValue =
+    new css::URLValue(urlBuffer, do_AddRef(mExtraData));
   return urlValue.forget();
-}
-
-GeckoParserExtraData::GeckoParserExtraData(nsIURI* aBaseURI,
-                                           nsIURI* aReferrer,
-                                           nsIPrincipal* aPrincipal)
-    : mBaseURI(new ThreadSafeURIHolder(aBaseURI)),
-      mReferrer(new ThreadSafeURIHolder(aReferrer)),
-      mPrincipal(new ThreadSafePrincipalHolder(aPrincipal))
-{
 }
 
 void
@@ -873,9 +858,8 @@ CreateStyleImageRequest(nsStyleImageRequest::Mode aModeFlags,
                         ServoBundledURI aURI)
 {
   MOZ_ASSERT(aURI.mURLString);
-  MOZ_ASSERT(aURI.mBaseURI);
-  MOZ_ASSERT(aURI.mReferrer);
-  MOZ_ASSERT(aURI.mPrincipal);
+  MOZ_ASSERT(aURI.mExtraData->GetReferrer());
+  MOZ_ASSERT(aURI.mExtraData->GetPrincipal());
 
   nsString url;
   nsDependentCSubstring urlString(reinterpret_cast<const char*>(aURI.mURLString),
@@ -884,8 +868,7 @@ CreateStyleImageRequest(nsStyleImageRequest::Mode aModeFlags,
   RefPtr<nsStringBuffer> urlBuffer = nsCSSValue::BufferFromString(url);
 
   RefPtr<nsStyleImageRequest> req =
-    new nsStyleImageRequest(aModeFlags, urlBuffer, do_AddRef(aURI.mBaseURI),
-                            do_AddRef(aURI.mReferrer), do_AddRef(aURI.mPrincipal));
+    new nsStyleImageRequest(aModeFlags, urlBuffer, do_AddRef(aURI.mExtraData));
   return req.forget();
 }
 
@@ -1218,6 +1201,8 @@ Gecko_NewURLValue(ServoBundledURI aURI)
 
 NS_IMPL_THREADSAFE_FFI_REFCOUNTING(css::URLValue, CSSURLValue);
 
+NS_IMPL_THREADSAFE_FFI_REFCOUNTING(css::URLExtraData, URLExtraData);
+
 NS_IMPL_THREADSAFE_FFI_REFCOUNTING(nsStyleCoord::Calc, Calc);
 
 nsCSSShadowArray*
@@ -1450,7 +1435,7 @@ void
 Gecko_LoadStyleSheet(css::Loader* aLoader,
                      ServoStyleSheet* aParent,
                      RawServoImportRuleBorrowed aImportRule,
-                     nsIURI* aBaseURI,
+                     RawGeckoURLExtraData* aBaseURLData,
                      const uint8_t* aURLString,
                      uint32_t aURLStringLength,
                      const uint8_t* aMediaString,
@@ -1460,7 +1445,7 @@ Gecko_LoadStyleSheet(css::Loader* aLoader,
   MOZ_ASSERT(aLoader, "Should've catched this before");
   MOZ_ASSERT(aParent, "Only used for @import, so parent should exist!");
   MOZ_ASSERT(aURLString, "Invalid URLs shouldn't be loaded!");
-  MOZ_ASSERT(aBaseURI, "Need a base URI");
+  MOZ_ASSERT(aBaseURLData, "Need base URL data");
   RefPtr<nsMediaList> media = new nsMediaList();
   if (aMediaStringLength) {
     MOZ_ASSERT(aMediaString);
@@ -1476,7 +1461,8 @@ Gecko_LoadStyleSheet(css::Loader* aLoader,
   nsDependentCSubstring urlSpec(reinterpret_cast<const char*>(aURLString),
                                 aURLStringLength);
   nsCOMPtr<nsIURI> uri;
-  nsresult rv = NS_NewURI(getter_AddRefs(uri), urlSpec, nullptr, aBaseURI);
+  nsresult rv = NS_NewURI(getter_AddRefs(uri), urlSpec, nullptr,
+                          aBaseURLData->BaseURI());
 
   if (NS_FAILED(rv)) {
     // Servo and Gecko have different ideas of what a valid URL is, so we might

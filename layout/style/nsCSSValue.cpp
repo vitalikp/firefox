@@ -892,9 +892,7 @@ void nsCSSValue::StartImageLoad(nsIDocument* aDocument) const
   mozilla::css::ImageValue* image =
     new mozilla::css::ImageValue(mValue.mURL->GetURI(),
                                  mValue.mURL->mString,
-                                 mValue.mURL->mBaseURI,
-                                 mValue.mURL->mReferrer,
-                                 mValue.mURL->mOriginPrincipal,
+                                 do_AddRef(mValue.mURL->mExtraData),
                                  aDocument);
 
   nsCSSValue* writable = const_cast<nsCSSValue*>(this);
@@ -2764,40 +2762,39 @@ nsCSSValue::Array::SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) cons
   return n;
 }
 
+css::URLExtraData::~URLExtraData()
+{
+  if (!NS_IsMainThread()) {
+    NS_ReleaseOnMainThread(mBaseURI.forget());
+    NS_ReleaseOnMainThread(mReferrer.forget());
+    NS_ReleaseOnMainThread(mPrincipal.forget());
+  }
+}
+
 css::URLValueData::URLValueData(already_AddRefed<PtrHolder<nsIURI>> aURI,
                                 nsStringBuffer* aString,
-                                already_AddRefed<PtrHolder<nsIURI>> aBaseURI,
-                                already_AddRefed<PtrHolder<nsIURI>> aReferrer,
-                                already_AddRefed<PtrHolder<nsIPrincipal>>
-                                  aOriginPrincipal)
+                                already_AddRefed<URLExtraData> aExtraData)
   : mURI(Move(aURI))
-  , mBaseURI(Move(aBaseURI))
   , mString(aString)
-  , mReferrer(Move(aReferrer))
-  , mOriginPrincipal(Move(aOriginPrincipal))
+  , mExtraData(Move(aExtraData))
   , mURIResolved(true)
   , mIsLocalRef(IsLocalRefURL(aString))
 {
   MOZ_ASSERT(mString);
-  MOZ_ASSERT(mBaseURI);
-  MOZ_ASSERT(mOriginPrincipal);
+  MOZ_ASSERT(mExtraData);
+  MOZ_ASSERT(mExtraData->GetPrincipal());
 }
 
 css::URLValueData::URLValueData(nsStringBuffer* aString,
-                                already_AddRefed<PtrHolder<nsIURI>> aBaseURI,
-                                already_AddRefed<PtrHolder<nsIURI>> aReferrer,
-                                already_AddRefed<PtrHolder<nsIPrincipal>>
-                                  aOriginPrincipal)
-  : mBaseURI(Move(aBaseURI))
-  , mString(aString)
-  , mReferrer(Move(aReferrer))
-  , mOriginPrincipal(Move(aOriginPrincipal))
+                                already_AddRefed<URLExtraData> aExtraData)
+  : mString(aString)
+  , mExtraData(Move(aExtraData))
   , mURIResolved(false)
   , mIsLocalRef(IsLocalRefURL(aString))
 {
   MOZ_ASSERT(aString);
-  MOZ_ASSERT(mBaseURI);
-  MOZ_ASSERT(mOriginPrincipal);
+  MOZ_ASSERT(mExtraData);
+  MOZ_ASSERT(mExtraData->GetPrincipal());
 }
 
 bool
@@ -2807,26 +2804,26 @@ css::URLValueData::Equals(const URLValueData& aOther) const
 
   bool eq;
   // Cast away const so we can call nsIPrincipal::Equals.
-  auto& self = *const_cast<URLValueData*>(this);
-  auto& other = const_cast<URLValueData&>(aOther);
+  const URLExtraData* self = mExtraData;
+  const URLExtraData* other = aOther.mExtraData;
   return NS_strcmp(nsCSSValue::GetBufferValue(mString),
                    nsCSSValue::GetBufferValue(aOther.mString)) == 0 &&
           (GetURI() == aOther.GetURI() || // handles null == null
            (mURI && aOther.mURI &&
             NS_SUCCEEDED(mURI->Equals(aOther.mURI, &eq)) &&
             eq)) &&
-          (mBaseURI == aOther.mBaseURI ||
-           (NS_SUCCEEDED(self.mBaseURI.get()->Equals(other.mBaseURI.get(), &eq)) &&
+          (self->BaseURI() == other->BaseURI() ||
+           (NS_SUCCEEDED(self->BaseURI()->Equals(other->BaseURI(), &eq)) &&
             eq)) &&
-          (mOriginPrincipal == aOther.mOriginPrincipal ||
-           self.mOriginPrincipal.get()->Equals(other.mOriginPrincipal.get())) &&
+          (self->GetPrincipal() == other->GetPrincipal() ||
+           self->GetPrincipal()->Equals(other->GetPrincipal())) &&
           mIsLocalRef == aOther.mIsLocalRef;
 }
 
 bool
 css::URLValueData::DefinitelyEqualURIs(const URLValueData& aOther) const
 {
-  return mBaseURI == aOther.mBaseURI &&
+  return mExtraData->BaseURI() == aOther.mExtraData->BaseURI() &&
          (mString == aOther.mString ||
           NS_strcmp(nsCSSValue::GetBufferValue(mString),
                     nsCSSValue::GetBufferValue(aOther.mString)) == 0);
@@ -2836,7 +2833,7 @@ bool
 css::URLValueData::DefinitelyEqualURIsAndPrincipal(
     const URLValueData& aOther) const
 {
-  return mOriginPrincipal == aOther.mOriginPrincipal &&
+  return mExtraData->GetPrincipal() == aOther.mExtraData->GetPrincipal() &&
          DefinitelyEqualURIs(aOther);
 }
 
@@ -2850,7 +2847,7 @@ css::URLValueData::GetURI() const
     nsCOMPtr<nsIURI> newURI;
     NS_NewURI(getter_AddRefs(newURI),
               NS_ConvertUTF16toUTF8(nsCSSValue::GetBufferValue(mString)),
-              nullptr, const_cast<nsIURI*>(mBaseURI.get()));
+              nullptr, mExtraData->BaseURI());
     mURI = new PtrHolder<nsIURI>(newURI.forget());
     mURIResolved = true;
   }
@@ -2930,17 +2927,14 @@ css::URLValueData::SizeOfExcludingThis(mozilla::MallocSizeOf aMallocSizeOf) cons
   // Measurement of the following members may be added later if DMD finds it
   // is worthwhile:
   // - mURI
-  // - mReferrer
-  // - mOriginPrincipal
+  // - mExtraData
   return n;
 }
 
 URLValue::URLValue(nsStringBuffer* aString, nsIURI* aBaseURI, nsIURI* aReferrer,
                    nsIPrincipal* aOriginPrincipal)
-  : URLValueData(aString,
-                 do_AddRef(new PtrHolder<nsIURI>(aBaseURI)),
-                 do_AddRef(new PtrHolder<nsIURI>(aReferrer)),
-                 do_AddRef(new PtrHolder<nsIPrincipal>(aOriginPrincipal)))
+  : URLValueData(aString, do_AddRef(new URLExtraData(aBaseURI, aReferrer,
+                                                     aOriginPrincipal)))
 {
   MOZ_ASSERT(NS_IsMainThread());
 }
@@ -2949,9 +2943,8 @@ URLValue::URLValue(nsIURI* aURI, nsStringBuffer* aString, nsIURI* aBaseURI,
                    nsIURI* aReferrer, nsIPrincipal* aOriginPrincipal)
   : URLValueData(do_AddRef(new PtrHolder<nsIURI>(aURI)),
                  aString,
-                 do_AddRef(new PtrHolder<nsIURI>(aBaseURI)),
-                 do_AddRef(new PtrHolder<nsIURI>(aReferrer)),
-                 do_AddRef(new PtrHolder<nsIPrincipal>(aOriginPrincipal)))
+                 do_AddRef(new URLExtraData(aBaseURI, aReferrer,
+                                            aOriginPrincipal)))
 {
   MOZ_ASSERT(NS_IsMainThread());
 }
@@ -2969,25 +2962,17 @@ css::URLValue::SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const
 }
 
 css::ImageValue::ImageValue(nsIURI* aURI, nsStringBuffer* aString,
-                            nsIURI* aBaseURI, nsIURI* aReferrer,
-                            nsIPrincipal* aOriginPrincipal,
+                            already_AddRefed<URLExtraData> aExtraData,
                             nsIDocument* aDocument)
   : URLValueData(do_AddRef(new PtrHolder<nsIURI>(aURI)),
-                 aString,
-                 do_AddRef(new PtrHolder<nsIURI>(aBaseURI, false)),
-                 do_AddRef(new PtrHolder<nsIURI>(aReferrer)),
-                 do_AddRef(new PtrHolder<nsIPrincipal>(aOriginPrincipal)))
+                 aString, Move(aExtraData))
 {
   Initialize(aDocument);
 }
 
-css::ImageValue::ImageValue(
-    nsStringBuffer* aString,
-    already_AddRefed<PtrHolder<nsIURI>> aBaseURI,
-    already_AddRefed<PtrHolder<nsIURI>> aReferrer,
-    already_AddRefed<PtrHolder<nsIPrincipal>> aOriginPrincipal)
-  : URLValueData(aString, Move(aBaseURI), Move(aReferrer),
-                 Move(aOriginPrincipal))
+css::ImageValue::ImageValue(nsStringBuffer* aString,
+                            already_AddRefed<URLExtraData> aExtraData)
+  : URLValueData(aString, Move(aExtraData))
 {
 }
 
@@ -3005,8 +2990,9 @@ css::ImageValue::Initialize(nsIDocument* aDocument)
     loadingDoc = aDocument;
   }
 
-  loadingDoc->StyleImageLoader()->LoadImage(GetURI(), mOriginPrincipal,
-                                            mReferrer, this);
+  loadingDoc->StyleImageLoader()->LoadImage(GetURI(),
+                                            mExtraData->GetPrincipal(),
+                                            mExtraData->GetReferrer(), this);
 
   if (loadingDoc != aDocument) {
     aDocument->StyleImageLoader()->MaybeRegisterCSSImage(this);
