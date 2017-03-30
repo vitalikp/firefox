@@ -34,19 +34,17 @@ var PrivacyLevel = Object.freeze({
    * @param url The URL we want to save data for.
    * @return bool
    */
-  check: function (url) {
-    return PrivacyLevel.canSave({ isHttps: url.startsWith("https:") });
+  check(url) {
+    return PrivacyLevel.canSave(url.startsWith("https:"));
   },
 
   /**
    * Checks whether we're allowed to save data for a specific site.
    *
-   * @param {isHttps: boolean}
-   *        An object that must have one property: 'isHttps'.
-   *        'isHttps' tells whether the site us secure communication (HTTPS).
+   * @param isHttps A boolean that tells whether the site uses TLS.
    * @return {bool} Whether we can save data for the specified site.
    */
-  canSave: function ({isHttps}) {
+  canSave(isHttps) {
     let level = Services.prefs.getIntPref(PREF);
 
     // Never save any data when full privacy is requested.
