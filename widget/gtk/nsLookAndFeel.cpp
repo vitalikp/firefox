@@ -49,9 +49,9 @@ nsLookAndFeel::nsLookAndFeel()
       mStyle(nullptr),
 #endif
       mDefaultFontCached(false), mButtonFontCached(false),
-      mFieldFontCached(false), mMenuFontCached(false)
+      mFieldFontCached(false), mMenuFontCached(false),
+      mInitialized(false)
 {
-    Init();    
 }
 
 nsLookAndFeel::~nsLookAndFeel()
@@ -206,6 +206,8 @@ GetBorderColors(GtkStyleContext* aContext,
 nsresult
 nsLookAndFeel::NativeGetColor(ColorID aID, nscolor& aColor)
 {
+    EnsureInit();
+
 #if (MOZ_WIDGET_GTK == 3)
     GdkRGBA gdk_color;
 #endif
@@ -657,6 +659,11 @@ nsLookAndFeel::GetIntImpl(IntID aID, int32_t &aResult)
         return res;
     res = NS_OK;
 
+    // We use delayed initialization by EnsureInit() here
+    // to make sure mozilla::Preferences is available (Bug 115807).
+    // eIntID_UseAccessibilityTheme is requested before user preferences
+    // are read, and so EnsureInit(), which depends on preference values,
+    // is deliberately delayed until required.
     switch (aID) {
     case eIntID_CaretBlinkTime:
         {
@@ -819,6 +826,7 @@ nsLookAndFeel::GetIntImpl(IntID aID, int32_t &aResult)
         aResult = NS_STYLE_TEXT_DECORATION_STYLE_WAVY;
         break;
     case eIntID_MenuBarDrag:
+        EnsureInit();
         aResult = sMenuSupportsDrag;
         break;
     case eIntID_ScrollbarButtonAutoRepeatBehavior:
@@ -859,6 +867,7 @@ nsLookAndFeel::GetFloatImpl(FloatID aID, float &aResult)
         aResult = 1.0f;
         break;
     case eFloatID_CaretAspectRatio:
+        EnsureInit();
         aResult = sCaretRatio;
         break;
     default:
@@ -1039,10 +1048,14 @@ nsLookAndFeel::GetFontImpl(FontID aID, nsString& aFontName,
 }
 
 void
-nsLookAndFeel::Init()
+nsLookAndFeel::EnsureInit()
 {
     GdkColor colorValue;
     GdkColor *colorValuePtr;
+
+    if (mInitialized)
+        return;
+    mInitialized = true;
 
 #if (MOZ_WIDGET_GTK == 2)
     NS_ASSERTION(!mStyle, "already initialized");
@@ -1422,6 +1435,7 @@ nsLookAndFeel::Init()
 char16_t
 nsLookAndFeel::GetPasswordCharacterImpl()
 {
+    EnsureInit();
     return sInvisibleCharacter;
 }
 
@@ -1440,7 +1454,7 @@ nsLookAndFeel::RefreshImpl()
     mStyle = nullptr;
 #endif
 
-    Init();
+    mInitialized = false;
 }
 
 bool
