@@ -220,17 +220,20 @@ public:
     return mTextCtrlElement->GetRows();
   }
 
+  void UpdateOverlayTextVisibility(bool aNotify);
+
   // placeholder methods
-  void UpdatePlaceholderVisibility(bool aNotify);
   bool GetPlaceholderVisibility() {
     return mPlaceholderVisibility;
   }
-
   void UpdatePlaceholderText(bool aNotify);
 
   // preview methods
   void SetPreviewText(const nsAString& aValue, bool aNotify);
   void GetPreviewText(nsAString& aValue);
+  bool GetPreviewVisibility() {
+    return mPreviewVisibility;
+  }
 
   /**
    * Get the maxlength attribute
@@ -457,6 +460,7 @@ private:
   bool mSelectionCached; // Whether mSelectionProperties is valid
   mutable bool mSelectionRestoreEagerInit; // Whether we're eager initing because of selection restore
   bool mPlaceholderVisibility;
+  bool mPreviewVisibility;
   bool mIsCommittingComposition;
 };
 

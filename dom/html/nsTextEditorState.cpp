@@ -1055,6 +1055,7 @@ nsTextEditorState::nsTextEditorState(nsITextControlElement* aOwningElement)
   , mSelectionCached(true)
   , mSelectionRestoreEagerInit(false)
   , mPlaceholderVisibility(false)
+  , mPreviewVisibility(false)
   , mIsCommittingComposition(false)
   // When adding more member variable initializations here, add the same
   // also to ::Construct.
@@ -1079,6 +1080,7 @@ nsTextEditorState::Construct(nsITextControlElement* aOwningElement,
     state->mSelectionCached = true;
     state->mSelectionRestoreEagerInit = false;
     state->mPlaceholderVisibility = false;
+    state->mPreviewVisibility = false;
     state->mIsCommittingComposition = false;
     // When adding more member variable initializations here, add the same
     // also to the constructor.
@@ -2715,7 +2717,7 @@ nsTextEditorState::InitializeKeyboardEventListeners()
 void
 nsTextEditorState::ValueWasChanged(bool aNotify)
 {
-  UpdatePlaceholderVisibility(aNotify);
+  UpdateOverlayTextVisibility(aNotify);
 }
 
 void
@@ -2752,6 +2754,8 @@ nsTextEditorState::SetPreviewText(const nsAString& aValue, bool aNotify)
   nsContentUtils::RemoveNewlines(previewValue);
   MOZ_ASSERT(mPreviewDiv->GetFirstChild(), "preview div has no child");
   mPreviewDiv->GetFirstChild()->SetText(previewValue, aNotify);
+
+  UpdateOverlayTextVisibility(aNotify);
 }
 
 void
@@ -2769,12 +2773,14 @@ nsTextEditorState::GetPreviewText(nsAString& aValue)
 }
 
 void
-nsTextEditorState::UpdatePlaceholderVisibility(bool aNotify)
+nsTextEditorState::UpdateOverlayTextVisibility(bool aNotify)
 {
-  nsAutoString value;
+  nsAutoString value, previewValue;
   GetValue(value, true);
+  GetPreviewText(previewValue);
 
-  mPlaceholderVisibility = value.IsEmpty();
+  mPreviewVisibility = value.IsEmpty() && !previewValue.IsEmpty();
+  mPlaceholderVisibility = value.IsEmpty() && previewValue.IsEmpty();
 
   if (mPlaceholderVisibility &&
       !Preferences::GetBool("dom.placeholder.show_on_focus", true)) {

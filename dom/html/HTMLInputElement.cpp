@@ -2988,11 +2988,11 @@ HTMLInputElement::GetPlaceholderNode()
 }
 
 NS_IMETHODIMP_(void)
-HTMLInputElement::UpdatePlaceholderVisibility(bool aNotify)
+HTMLInputElement::UpdateOverlayTextVisibility(bool aNotify)
 {
   nsTextEditorState* state = GetEditorState();
   if (state) {
-    state->UpdatePlaceholderVisibility(aNotify);
+    state->UpdateOverlayTextVisibility(aNotify);
   }
 }
 
@@ -3062,6 +3062,17 @@ NS_IMETHODIMP_(bool)
 HTMLInputElement::IsPreviewEnabled()
 {
   return mIsPreviewEnabled;
+}
+
+NS_IMETHODIMP_(bool)
+HTMLInputElement::GetPreviewVisibility()
+{
+  nsTextEditorState* state = GetEditorState();
+  if (!state) {
+    return false;
+  }
+
+  return state->GetPreviewVisibility();
 }
 
 void

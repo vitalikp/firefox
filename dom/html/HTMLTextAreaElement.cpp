@@ -311,9 +311,9 @@ HTMLTextAreaElement::GetPlaceholderNode()
 }
 
 NS_IMETHODIMP_(void)
-HTMLTextAreaElement::UpdatePlaceholderVisibility(bool aNotify)
+HTMLTextAreaElement::UpdateOverlayTextVisibility(bool aNotify)
 {
-  mState.UpdatePlaceholderVisibility(aNotify);
+  mState.UpdateOverlayTextVisibility(aNotify);
 }
 
 NS_IMETHODIMP_(bool)
@@ -363,6 +363,12 @@ NS_IMETHODIMP_(bool)
 HTMLTextAreaElement::IsPreviewEnabled()
 {
   return mIsPreviewEnabled;
+}
+
+NS_IMETHODIMP_(bool)
+HTMLTextAreaElement::GetPreviewVisibility()
+{
+  return mState.GetPreviewVisibility();
 }
 
 nsresult
