@@ -277,8 +277,7 @@ js::gc::GCRuntime::traceRuntimeForMinorGC(JSTracer* trc, AutoLockForExclusiveAcc
     // the verifier for the last time.
     gcstats::AutoPhase ap(stats(), gcstats::PhaseKind::MARK_ROOTS);
 
-    // FIXME: As per bug 1298816 comment 12, we should be able to remove this.
-    jit::JitRuntime::TraceJitcodeGlobalTable(trc);
+    jit::JitRuntime::TraceJitcodeGlobalTableForMinorGC(trc);
 
     traceRuntimeCommon(trc, TraceRuntime, lock);
 }

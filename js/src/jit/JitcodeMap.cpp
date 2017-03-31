@@ -453,7 +453,7 @@ JitcodeGlobalTable::lookupForSamplerInfallible(void* ptr, JSRuntime* rt, uint32_
     // barrier is not needed. Any JS frames sampled during the sweep phase of
     // the GC must be on stack, and on-stack frames must already be marked at
     // the beginning of the sweep phase. It's not possible to assert this here
-    // as we may not be off thread when called from the gecko profiler.
+    // as we may be off main thread when called from the gecko profiler.
 
     return *entry;
 }
@@ -529,6 +529,12 @@ JitcodeGlobalTable::addEntry(const JitcodeGlobalEntry& entry, JSRuntime* rt)
     }
     skiplistSize_++;
     // verifySkiplist(); - disabled for release.
+
+    // Any entries that may directly contain nursery pointers must be marked
+    // during a minor GC to update those pointers.
+    if (entry.canHoldNurseryPointers())
+        addToNurseryList(&newEntry->ionEntry());
+
     return true;
 }
 
@@ -537,6 +543,9 @@ JitcodeGlobalTable::removeEntry(JitcodeGlobalEntry& entry, JitcodeGlobalEntry** 
                                 JSRuntime* rt)
 {
     MOZ_ASSERT(!TlsContext.get()->isProfilerSamplingEnabled());
+
+    if (entry.canHoldNurseryPointers())
+        removeFromNurseryList(&entry.ionEntry());
 
     // Unlink query entry.
     for (int level = entry.tower_->height() - 1; level >= 0; level--) {
@@ -716,8 +725,12 @@ void
 JitcodeGlobalTable::setAllEntriesAsExpired(JSRuntime* rt)
 {
     AutoSuppressProfilerSampling suppressSampling(TlsContext.get());
-    for (Range r(*this); !r.empty(); r.popFront())
-        r.front()->setAsExpired();
+    for (Range r(*this); !r.empty(); r.popFront()) {
+        auto entry = r.front();
+        if (entry->canHoldNurseryPointers())
+            removeFromNurseryList(&entry->ionEntry());
+        entry->setAsExpired();
+    }
 }
 
 struct Unconditionally
@@ -727,16 +740,21 @@ struct Unconditionally
 };
 
 void
-JitcodeGlobalTable::trace(JSTracer* trc)
+JitcodeGlobalTable::traceForMinorGC(JSTracer* trc)
 {
-    // Trace all entries unconditionally. This is done during minor collection
-    // to tenure and update object pointers.
+    // Trace only entries that can directly contain nursery pointers.
 
     MOZ_ASSERT(trc->runtime()->geckoProfiler().enabled());
+    MOZ_ASSERT(JS::CurrentThreadIsHeapMinorCollecting());
 
     AutoSuppressProfilerSampling suppressSampling(TlsContext.get());
-    for (Range r(*this); !r.empty(); r.popFront())
-        r.front()->trace<Unconditionally>(trc);
+    JitcodeGlobalEntry::IonEntry* entry = nurseryEntries_;
+    while (entry) {
+        entry->trace<Unconditionally>(trc);
+        JitcodeGlobalEntry::IonEntry* prev = entry;
+        entry = entry->nextNursery_;
+        removeFromNurseryList(prev);
+    }
 }
 
 struct IfUnmarked
@@ -798,6 +816,8 @@ JitcodeGlobalTable::markIteratively(GCMarker* marker)
         // types used by optimizations and scripts used for pc to line number
         // mapping, alive as well.
         if (!entry->isSampled(gen, lapCount)) {
+            if (entry->canHoldNurseryPointers())
+                removeFromNurseryList(&entry->ionEntry());
             entry->setAsExpired();
             if (!entry->baseEntry().isJitcodeMarkedFromAnyThread(marker->runtime()))
                 continue;
