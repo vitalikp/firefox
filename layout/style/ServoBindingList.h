@@ -101,6 +101,7 @@ SERVO_BINDING_FUNC(Servo_CssRules_DeleteRule, nsresult,
 BASIC_RULE_FUNCS(Style)
 BASIC_RULE_FUNCS(Media)
 BASIC_RULE_FUNCS(Namespace)
+BASIC_RULE_FUNCS(Page)
 #undef BASIC_RULE_FUNCS
 SERVO_BINDING_FUNC(Servo_CssRules_GetFontFaceRuleAt, nsCSSFontFaceRule*,
                    ServoCssRulesBorrowed rules, uint32_t index)
@@ -119,6 +120,11 @@ SERVO_BINDING_FUNC(Servo_NamespaceRule_GetPrefix, nsIAtom*,
                    RawServoNamespaceRuleBorrowed rule)
 SERVO_BINDING_FUNC(Servo_NamespaceRule_GetURI, nsIAtom*,
                    RawServoNamespaceRuleBorrowed rule)
+SERVO_BINDING_FUNC(Servo_PageRule_GetStyle, RawServoDeclarationBlockStrong,
+                   RawServoPageRuleBorrowed rule)
+SERVO_BINDING_FUNC(Servo_PageRule_SetStyle, void,
+                   RawServoPageRuleBorrowed rule,
+                   RawServoDeclarationBlockBorrowed declarations)
 
 // Animations API
 SERVO_BINDING_FUNC(Servo_ParseProperty,
