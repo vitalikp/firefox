@@ -40,6 +40,7 @@ JS::Zone::Zone(JSRuntime* rt, ZoneGroup* group)
     gcSweepGroupEdges_(group),
     typeDescrObjects_(group, this, SystemAllocPolicy()),
     markedAtoms_(group),
+    atomCache_(group),
     usage(&rt->gc.usage),
     threshold(),
     gcDelayBytes(0),
@@ -92,7 +93,8 @@ bool Zone::init(bool isSystemArg)
            gcSweepGroupEdges().init() &&
            gcWeakKeys().init() &&
            typeDescrObjects().init() &&
-           markedAtoms().init();
+           markedAtoms().init() &&
+           atomCache().init();
 }
 
 void
