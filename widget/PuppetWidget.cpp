@@ -597,7 +597,15 @@ PuppetWidget::GetLayerManager(PLayerTransactionChild* aShadowManager,
       return mLayerManager;
     }
 
-    mLayerManager = new ClientLayerManager(this);
+    if (mTabChild && !mTabChild->IsLayersConnected()) {
+      // If we know for sure that the parent side of this TabChild is not
+      // connected to the compositor, we don't want to use a "remote" layer
+      // manager like WebRender or Client. Instead we use a Basic one which
+      // can do drawing in this process.
+      mLayerManager = new BasicLayerManager(this);
+    } else {
+      mLayerManager = new ClientLayerManager(this);
+    }
   }
 
   // Attach a shadow forwarder if none exists.
