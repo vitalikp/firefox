@@ -169,8 +169,7 @@ RenderFrameParent::BuildLayer(nsDisplayListBuilder* aBuilder,
     return nullptr;
   }
 
-  uint64_t id = GetLayerTreeId();
-  if (!id) {
+  if (!mLayersId) {
     return nullptr;
   }
 
@@ -184,7 +183,7 @@ RenderFrameParent::BuildLayer(nsDisplayListBuilder* aBuilder,
     // use ref layers.
     return nullptr;
   }
-  static_cast<RefLayer*>(layer.get())->SetReferentId(id);
+  static_cast<RefLayer*>(layer.get())->SetReferentId(mLayersId);
   nsIntPoint offset = GetContentRectLayerOffset(aFrame, aBuilder);
   // We can only have an offset if we're a child of an inactive
   // container, but our display item is LAYER_ACTIVE_FORCE which
@@ -248,12 +247,6 @@ RenderFrameParent::TriggerRepaint()
   }
 
   docFrame->InvalidateLayer(nsDisplayItem::TYPE_REMOTE);
-}
-
-uint64_t
-RenderFrameParent::GetLayerTreeId() const
-{
-  return mLayersId;
 }
 
 void
