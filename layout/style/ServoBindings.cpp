@@ -7,6 +7,7 @@
 #include "mozilla/ServoBindings.h"
 
 #include "ChildIterator.h"
+#include "NullPrincipalURI.h"
 #include "gfxFontFamilyList.h"
 #include "nsAnimationManager.h"
 #include "nsAttrValueInlines.h"
@@ -1543,6 +1544,15 @@ Gecko_LoadStyleSheet(css::Loader* aLoader,
   }
 
   aLoader->LoadChildSheet(aParent, uri, media, nullptr, aChildSheet, nullptr);
+}
+
+RawGeckoURLExtraData*
+Gecko_URLExtraData_CreateDummy()
+{
+  RefPtr<css::URLExtraData> data =
+    new css::URLExtraData(NullPrincipalURI::Create(), nullptr,
+                          NullPrincipal::Create());
+  return data.forget().take();
 }
 
 const nsMediaFeature*
