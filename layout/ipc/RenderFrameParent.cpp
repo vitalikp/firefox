@@ -84,7 +84,7 @@ GetFrom(nsFrameLoader* aFrameLoader)
   return nsContentUtils::LayerManagerForDocument(doc);
 }
 
-RenderFrameParent::RenderFrameParent(nsFrameLoader* aFrameLoader, bool* aSuccess)
+RenderFrameParent::RenderFrameParent(nsFrameLoader* aFrameLoader)
   : mLayersId(0)
   , mFrameLoader(aFrameLoader)
   , mFrameLoaderDestroyed(false)
@@ -92,7 +92,6 @@ RenderFrameParent::RenderFrameParent(nsFrameLoader* aFrameLoader, bool* aSuccess
   , mInitted(false)
 {
   mInitted = Init(aFrameLoader);
-  *aSuccess = mInitted;
 }
 
 RenderFrameParent::~RenderFrameParent()
