@@ -48,7 +48,7 @@
 #include "nsTArray.h"                   // for nsTArray
 #include "nsTArrayForwardDeclare.h"     // for InfallibleTArray
 #include "nscore.h"                     // for nsACString, nsAString
-#include "mozilla/Logging.h"                      // for PRLogModuleInfo
+#include "mozilla/Logging.h"            // for LazyLogModule
 #include "nsIWidget.h"                  // For plugin window configuration information structs
 #include "ImageContainer.h"
 

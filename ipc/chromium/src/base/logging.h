@@ -49,7 +49,6 @@ public:
 
 private:
   static mozilla::LazyLogModule gChromiumPRLog;
-//  static PRLogModuleInfo* GetLog();
 
   LogSeverity mSeverity;
   const char* mFile;

@@ -21,7 +21,7 @@
 
 /**
  * nsFrame logging constants. We redefine the nspr
- * PRLogModuleInfo.level field to be a bitfield.  Each bit controls a
+ * LazyLogModule.level field to be a bitfield.  Each bit controls a
  * specific type of logging. Each logging operation has associated
  * inline methods defined below.
  *
