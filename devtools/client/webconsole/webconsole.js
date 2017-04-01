@@ -1940,7 +1940,9 @@ WebConsoleFrame.prototype = {
       return;
     }
     return toolbox.selectTool("netmonitor").then(panel => {
-      return panel.panelWin.NetMonitorController.inspectRequest(requestId);
+      let { NetMonitorController } = panel.panelWin
+        .windowRequire("devtools/client/netmonitor/src/netmonitor-controller");
+      return NetMonitorController.inspectRequest(requestId);
     });
   },
 

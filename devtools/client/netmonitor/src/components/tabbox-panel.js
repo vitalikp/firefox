@@ -86,7 +86,7 @@ function TabboxPanel({
       },
         TimingsPanel({ request }),
       ),
-      request.cause.stacktrace && request.cause.stacktrace.length > 0 &&
+      request.cause && request.cause.stacktrace && request.cause.stacktrace.length > 0 &&
       TabPanel({
         id: "stack-trace",
         title: STACK_TRACE_TITLE,
