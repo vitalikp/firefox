@@ -1251,7 +1251,7 @@ HTMLFormElement::AddElement(nsGenericHTMLFormElement* aChild,
   AssertDocumentOrder(controlList, this);
 #endif
 
-  int32_t type = aChild->GetType();
+  int32_t type = aChild->ControlType();
 
   //
   // If it is a password control, and the password manager has not yet been
@@ -1350,7 +1350,7 @@ HTMLFormElement::RemoveElement(nsGenericHTMLFormElement* aChild,
   // Remove it from the radio group if it's a radio button
   //
   nsresult rv = NS_OK;
-  if (aChild->GetType() == NS_FORM_INPUT_RADIO) {
+  if (aChild->ControlType() == NS_FORM_INPUT_RADIO) {
     RefPtr<HTMLInputElement> radio =
       static_cast<HTMLInputElement*>(aChild);
     radio->WillRemoveFromRadioGroup();
@@ -1831,7 +1831,7 @@ HTMLFormElement::ImplicitSubmissionIsDisabled() const
   uint32_t length = mControls->mElements.Length();
   for (uint32_t i = 0; i < length && numDisablingControlsFound < 2; ++i) {
     if (mControls->mElements[i]->IsSingleLineTextControl(false) ||
-        mControls->mElements[i]->GetType() == NS_FORM_INPUT_NUMBER) {
+        mControls->mElements[i]->ControlType() == NS_FORM_INPUT_NUMBER) {
       numDisablingControlsFound++;
     }
   }
@@ -2037,7 +2037,7 @@ HTMLFormElement::SubmissionCanProceed(Element* aSubmitter)
     nsCOMPtr<nsIFormControl> fc = do_QueryInterface(aSubmitter);
     MOZ_ASSERT(fc);
 
-    uint32_t type = fc->GetType();
+    uint32_t type = fc->ControlType();
     MOZ_ASSERT(type == NS_FORM_INPUT_SUBMIT ||
                type == NS_FORM_INPUT_IMAGE ||
                type == NS_FORM_BUTTON_SUBMIT,
@@ -2238,7 +2238,7 @@ HTMLFormElement::GetNextRadioButton(const nsAString& aName,
       index = 0;
     }
     radio = HTMLInputElement::FromContentOrNull(radioGroup->Item(index));
-    isRadio = radio && radio->GetType() == NS_FORM_INPUT_RADIO;
+    isRadio = radio && radio->ControlType() == NS_FORM_INPUT_RADIO;
     if (!isRadio) {
       continue;
     }
@@ -2266,7 +2266,7 @@ HTMLFormElement::WalkRadioGroup(const nsAString& aName,
     uint32_t len = GetElementCount();
     for (uint32_t i = 0; i < len; i++) {
       control = GetElementAt(i);
-      if (control->GetType() == NS_FORM_INPUT_RADIO) {
+      if (control->ControlType() == NS_FORM_INPUT_RADIO) {
         nsCOMPtr<nsIContent> controlContent = do_QueryInterface(control);
         if (controlContent &&
             controlContent->AttrValueIs(kNameSpaceID_None, nsGkAtoms::name,
@@ -2288,7 +2288,7 @@ HTMLFormElement::WalkRadioGroup(const nsAString& aName,
   // If it's just a lone radio button, then select it.
   nsCOMPtr<nsIFormControl> formControl = do_QueryInterface(item);
   if (formControl) {
-    if (formControl->GetType() == NS_FORM_INPUT_RADIO) {
+    if (formControl->ControlType() == NS_FORM_INPUT_RADIO) {
       aVisitor->Visit(formControl);
     }
     return NS_OK;
@@ -2304,7 +2304,7 @@ HTMLFormElement::WalkRadioGroup(const nsAString& aName,
     nsCOMPtr<nsIDOMNode> node;
     nodeList->Item(i, getter_AddRefs(node));
     nsCOMPtr<nsIFormControl> formControl = do_QueryInterface(node);
-    if (formControl && formControl->GetType() == NS_FORM_INPUT_RADIO &&
+    if (formControl && formControl->ControlType() == NS_FORM_INPUT_RADIO &&
         !aVisitor->Visit(formControl)) {
       break;
     }

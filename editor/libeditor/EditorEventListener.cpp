@@ -1171,7 +1171,7 @@ EditorEventListener::IsFileControlTextBox()
     return false;
   }
   nsCOMPtr<nsIFormControl> formControl = do_QueryInterface(parent);
-  return formControl->GetType() == NS_FORM_INPUT_FILE;
+  return formControl->ControlType() == NS_FORM_INPUT_FILE;
 }
 
 bool
