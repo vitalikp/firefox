@@ -158,12 +158,11 @@ gfxMacFont::gfxMacFont(MacOSFontEntry *aFontEntry, const gfxFontStyle *aFontStyl
       mCGFont(nullptr),
       mCTFont(nullptr),
       mFontFace(nullptr),
-      mVariationFont(false)
+      mVariationFont(aFontEntry->HasVariations())
 {
     mApplySyntheticBold = aNeedsBold;
 
-    auto varCount = aFontStyle->variationSettings.Length();
-    if (varCount > 0) {
+    if (mVariationFont && aFontStyle->variationSettings.Length() > 0) {
         CGFontRef baseFont = aFontEntry->GetFontRef();
         if (!baseFont) {
             mIsValid = false;
@@ -174,7 +173,6 @@ gfxMacFont::gfxMacFont(MacOSFontEntry *aFontEntry, const gfxFontStyle *aFontStyl
         if (variations) {
             mCGFont = ::CGFontCreateCopyWithVariations(baseFont, variations);
             ::CFRelease(variations);
-            mVariationFont = true;
         } else {
             ::CFRetain(baseFont);
             mCGFont = baseFont;
