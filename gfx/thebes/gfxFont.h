@@ -25,6 +25,7 @@
 #include "nsIObserver.h"
 #include "mozilla/MemoryReporting.h"
 #include "mozilla/Attributes.h"
+#include "mozilla/TypedEnumBits.h"
 #include "MainThreadUtils.h"
 #include <algorithm>
 #include "DrawMode.h"
@@ -620,6 +621,11 @@ public:
     typedef mozilla::gfx::DrawTarget DrawTarget;
     typedef mozilla::unicode::Script Script;
 
+    enum class RoundingFlags : uint8_t {
+        kRoundX = 0x01,
+        kRoundY = 0x02
+    };
+
     explicit gfxFontShaper(gfxFont *aFont)
         : mFont(aFont)
     {
@@ -637,6 +643,7 @@ public:
                            uint32_t        aLength,
                            Script          aScript,
                            bool            aVertical,
+                           RoundingFlags   aRounding,
                            gfxShapedText  *aShapedText) = 0;
 
     gfxFont *GetFont() const { return mFont; }
@@ -652,16 +659,13 @@ public:
                       void* aHandleFeatureData);
 
 protected:
-    // Work out whether cairo will snap inter-glyph spacing to pixels.
-    static void GetRoundOffsetsToPixels(DrawTarget* aDrawTarget,
-                                        bool* aRoundX, bool* aRoundY);
-
     // the font this shaper is working with. The font owns a UniquePtr reference
     // to this object, and will destroy it before it dies. Thus, mFont will always
     // be valid.
     gfxFont* MOZ_NON_OWNING_REF mFont;
 };
 
+MOZ_MAKE_ENUM_CLASS_BITWISE_OPERATORS(gfxFontShaper::RoundingFlags)
 
 /*
  * gfxShapedText is an abstract superclass for gfxShapedWord and gfxTextRun.
@@ -1354,6 +1358,8 @@ protected:
     typedef mozilla::unicode::Script Script;
     typedef mozilla::SVGContextPaint SVGContextPaint;
 
+    typedef gfxFontShaper::RoundingFlags RoundingFlags;
+
 public:
     nsrefcnt AddRef(void) {
         NS_PRECONDITION(int32_t(mRefCnt) >= 0, "illegal refcnt");
@@ -1528,6 +1534,10 @@ public:
     { return nullptr; }
 
     gfxFloat SynthesizeSpaceWidth(uint32_t aCh);
+
+    // Work out whether cairo will snap inter-glyph spacing to pixels
+    // when rendering to the given drawTarget.
+    RoundingFlags GetRoundOffsetsToPixels(DrawTarget* aDrawTarget);
 
     // Font metrics
     struct Metrics {
@@ -1778,6 +1788,7 @@ public:
                                  bool aVertical,
                                  int32_t aAppUnitsPerDevUnit,
                                  uint32_t aFlags,
+                                 RoundingFlags aRounding,
                                  gfxTextPerfMetrics *aTextPerf);
 
     // Ensure the ShapedWord cache is initialized. This MUST be called before
@@ -1957,6 +1968,7 @@ protected:
                    uint32_t       aLength,
                    Script         aScript,
                    bool           aVertical,
+                   RoundingFlags  aRounding,
                    gfxShapedText *aShapedText); // where to store the result
 
     // Call the appropriate shaper to generate glyphs for aText and store
@@ -1967,6 +1979,7 @@ protected:
                            uint32_t         aLength,
                            Script           aScript,
                            bool             aVertical,
+                           RoundingFlags    aRounding,
                            gfxShapedText   *aShapedText);
 
     // Helper to adjust for synthetic bold and set character-type flags
@@ -1993,6 +2006,7 @@ protected:
                                    uint32_t    aLength,
                                    Script      aScript,
                                    bool        aVertical,
+                                   RoundingFlags aRounding,
                                    gfxTextRun *aTextRun);
 
     // Shape a fragment of text (a run that is known to contain only
@@ -2007,6 +2021,7 @@ protected:
                                        uint32_t    aLength,
                                        Script      aScript,
                                        bool        aVertical,
+                                       RoundingFlags aRounding,
                                        gfxTextRun *aTextRun);
 
     void CheckForFeaturesInvolvingSpace();
