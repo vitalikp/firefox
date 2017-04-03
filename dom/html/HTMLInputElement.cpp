@@ -1049,6 +1049,28 @@ static nsresult FireEventForAccessibility(nsIDOMHTMLInputElement* aTarget,
                                           const nsAString& aEventType);
 #endif
 
+nsTextEditorState* HTMLInputElement::sCachedTextEditorState = nullptr;
+bool HTMLInputElement::sShutdown = false;
+
+/* static */ void
+HTMLInputElement::ReleaseTextEditorState(nsTextEditorState* aState)
+{
+  if (!sShutdown && !sCachedTextEditorState) {
+    aState->PrepareForReuse();
+    sCachedTextEditorState = aState;
+  } else {
+    delete aState;
+  }
+}
+
+/* static */ void
+HTMLInputElement::Shutdown()
+{
+  sShutdown = true;
+  delete sCachedTextEditorState;
+  sCachedTextEditorState = nullptr;
+}
+
 //
 // construction, destruction
 //
@@ -1080,7 +1102,8 @@ HTMLInputElement::HTMLInputElement(already_AddRefed<mozilla::dom::NodeInfo>& aNo
   , mSelectionCached(true)
 {
   // We are in a type=text so we now we currenty need a nsTextEditorState.
-  mInputData.mState = new nsTextEditorState(this);
+  mInputData.mState =
+    nsTextEditorState::Construct(this, &sCachedTextEditorState);
 
   if (!gUploadLastDir)
     HTMLInputElement::InitUploadLastDir();
@@ -1113,7 +1136,7 @@ HTMLInputElement::FreeData()
     mInputData.mValue = nullptr;
   } else {
     UnbindFromFrame(nullptr);
-    delete mInputData.mState;
+    ReleaseTextEditorState(mInputData.mState);
     mInputData.mState = nullptr;
   }
 }
@@ -5022,7 +5045,8 @@ HTMLInputElement::HandleTypeChange(uint8_t aNewType, bool aNotify)
 
   if (IsSingleLineTextControl()) {
 
-    mInputData.mState = new nsTextEditorState(this);
+    mInputData.mState =
+      nsTextEditorState::Construct(this, &sCachedTextEditorState);
     if (!sp.IsDefault()) {
       mInputData.mState->SetSelectionProperties(sp);
     }

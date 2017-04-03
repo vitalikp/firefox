@@ -852,6 +852,8 @@ public:
 
   void UpdateEntries(const nsTArray<OwningFileOrDirectory>& aFilesOrDirectories);
 
+  static void Shutdown();
+
 protected:
   virtual ~HTMLInputElement();
 
@@ -1764,6 +1766,11 @@ private:
     nsCOMPtr<nsIFilePicker> mFilePicker;
     RefPtr<HTMLInputElement> mInput;
   };
+
+  static void ReleaseTextEditorState(nsTextEditorState* aState);
+
+  static nsTextEditorState* sCachedTextEditorState;
+  static bool sShutdown;
 };
 
 } // namespace dom
