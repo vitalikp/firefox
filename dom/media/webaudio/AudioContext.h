@@ -325,6 +325,8 @@ public:
 
   bool CheckClosed(ErrorResult& aRv);
 
+  void Dispatch(already_AddRefed<nsIRunnable>&& aRunnable);
+
 private:
   void DisconnectFromWindow();
   void RemoveFromDecodeQueue(WebAudioDecodeJob* aDecodeJob);
