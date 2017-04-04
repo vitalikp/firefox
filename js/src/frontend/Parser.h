@@ -30,6 +30,10 @@ class ModuleObject;
 
 namespace frontend {
 
+class ParserBase;
+
+template <template <typename CharT> class ParseHandler, typename CharT> class Parser;
+
 /*
  * The struct ParseContext stores information about the current parsing context,
  * which is part of the parser state (see the field Parser::pc). The current
@@ -143,12 +147,7 @@ class ParseContext : public Nestable<ParseContext>
 
         using Nestable<Scope>::enclosing;
 
-        template <typename ParseHandler>
-        explicit Scope(Parser<ParseHandler>* parser)
-          : Nestable<Scope>(&parser->pc->innermostScope_),
-            declared_(parser->context->frontendCollectionPool()),
-            id_(parser->usedNames.nextScopeId())
-        { }
+        explicit inline Scope(ParserBase* parser);
 
         void dump(ParseContext* pc);
 
@@ -274,12 +273,7 @@ class ParseContext : public Nestable<ParseContext>
     class VarScope : public Scope
     {
       public:
-        template <typename ParseHandler>
-        explicit VarScope(Parser<ParseHandler>* parser)
-          : Scope(parser)
-        {
-            useAsVarScope(parser->pc);
-        }
+        explicit inline VarScope(ParserBase* parser);
     };
 
   private:
@@ -379,11 +373,11 @@ class ParseContext : public Nestable<ParseContext>
     bool funHasReturnVoid;
 
   public:
-    template <typename ParseHandler>
-    ParseContext(Parser<ParseHandler>* prs, SharedContext* sc, Directives* newDirectives)
+    template <template <typename CharT> class ParseHandler, typename CharT>
+    ParseContext(Parser<ParseHandler, CharT>* prs, SharedContext* sc, Directives* newDirectives)
       : Nestable<ParseContext>(&prs->pc),
         traceLog_(sc->context,
-                  mozilla::IsSame<ParseHandler, FullParseHandler>::value
+                  mozilla::IsSame<ParseHandler<CharT>, FullParseHandler<CharT>>::value
                   ? TraceLogger_ParsingFull
                   : TraceLogger_ParsingSyntax,
                   prs->tokenStream),
@@ -782,7 +776,7 @@ class UsedNameTracker
     }
 };
 
-template <typename ParseHandler>
+template <class Parser>
 class AutoAwaitIsKeyword;
 
 class ParserBase : public StrictModeGetter
@@ -970,16 +964,38 @@ class ParserBase : public StrictModeGetter
 
     ObjectBox* newObjectBox(JSObject* obj);
 
+    mozilla::Maybe<GlobalScope::Data*> newGlobalScopeData(ParseContext::Scope& scope);
+    mozilla::Maybe<ModuleScope::Data*> newModuleScopeData(ParseContext::Scope& scope);
+    mozilla::Maybe<EvalScope::Data*> newEvalScopeData(ParseContext::Scope& scope);
+    mozilla::Maybe<FunctionScope::Data*> newFunctionScopeData(ParseContext::Scope& scope,
+                                                              bool hasParameterExprs);
+    mozilla::Maybe<VarScope::Data*> newVarScopeData(ParseContext::Scope& scope);
+    mozilla::Maybe<LexicalScope::Data*> newLexicalScopeData(ParseContext::Scope& scope);
+
   protected:
     enum InvokedPrediction { PredictUninvoked = false, PredictInvoked = true };
     enum ForInitLocation { InForInit, NotInForInit };
 };
 
-template <typename ParseHandler>
+inline
+ParseContext::Scope::Scope(ParserBase* parser)
+  : Nestable<Scope>(&parser->pc->innermostScope_),
+    declared_(parser->context->frontendCollectionPool()),
+    id_(parser->usedNames.nextScopeId())
+{ }
+
+inline
+ParseContext::VarScope::VarScope(ParserBase* parser)
+  : Scope(parser)
+{
+    useAsVarScope(parser->pc);
+}
+
+template <template<typename CharT> class ParseHandler, typename CharT>
 class Parser final : public ParserBase, private JS::AutoGCRooter
 {
   private:
-    using Node = typename ParseHandler::Node;
+    using Node = typename ParseHandler<CharT>::Node;
 
     /*
      * A class for temporarily stashing errors while parsing continues.
@@ -1041,7 +1057,7 @@ class Parser final : public ParserBase, private JS::AutoGCRooter
             unsigned errorNumber_;
         };
 
-        Parser<ParseHandler>& parser_;
+        Parser<ParseHandler, CharT>& parser_;
         Error exprError_;
         Error destructuringError_;
 
@@ -1066,7 +1082,7 @@ class Parser final : public ParserBase, private JS::AutoGCRooter
         void transferErrorTo(ErrorKind kind, PossibleError* other);
 
       public:
-        explicit PossibleError(Parser<ParseHandler>& parser);
+        explicit PossibleError(Parser<ParseHandler, CharT>& parser);
 
         // Set a pending destructuring error. Only a single error may be set
         // per instance, i.e. subsequent calls to this method are ignored and
@@ -1095,18 +1111,18 @@ class Parser final : public ParserBase, private JS::AutoGCRooter
 
   public:
     /* State specific to the kind of parse being performed. */
-    ParseHandler handler;
+    ParseHandler<CharT> handler;
 
     void prepareNodeForMutation(Node node) { handler.prepareNodeForMutation(node); }
     void freeTree(Node node) { handler.freeTree(node); }
 
   public:
     Parser(JSContext* cx, LifoAlloc& alloc, const ReadOnlyCompileOptions& options,
-           const char16_t* chars, size_t length, bool foldConstants, UsedNameTracker& usedNames,
-           Parser<SyntaxParseHandler>* syntaxParser, LazyScript* lazyOuterFunction);
+           const CharT* chars, size_t length, bool foldConstants, UsedNameTracker& usedNames,
+           Parser<SyntaxParseHandler, CharT>* syntaxParser, LazyScript* lazyOuterFunction);
     ~Parser();
 
-    friend class AutoAwaitIsKeyword<ParseHandler>;
+    friend class AutoAwaitIsKeyword<Parser>;
     void setAwaitIsKeyword(bool isKeyword);
 
     bool checkOptions();
@@ -1514,13 +1530,6 @@ class Parser final : public ParserBase, private JS::AutoGCRooter
     // Required on Scope exit.
     bool propagateFreeNamesAndMarkClosedOverBindings(ParseContext::Scope& scope);
 
-    mozilla::Maybe<GlobalScope::Data*> newGlobalScopeData(ParseContext::Scope& scope);
-    mozilla::Maybe<ModuleScope::Data*> newModuleScopeData(ParseContext::Scope& scope);
-    mozilla::Maybe<EvalScope::Data*> newEvalScopeData(ParseContext::Scope& scope);
-    mozilla::Maybe<FunctionScope::Data*> newFunctionScopeData(ParseContext::Scope& scope,
-                                                              bool hasParameterExprs);
-    mozilla::Maybe<VarScope::Data*> newVarScopeData(ParseContext::Scope& scope);
-    mozilla::Maybe<LexicalScope::Data*> newLexicalScopeData(ParseContext::Scope& scope);
     Node finishLexicalScope(ParseContext::Scope& scope, Node body);
 
     Node propertyName(YieldHandling yieldHandling, Node propList,
@@ -1547,22 +1556,22 @@ class Parser final : public ParserBase, private JS::AutoGCRooter
         return handler.newNumber(tok.number(), tok.decimalPoint(), tok.pos);
     }
 
-    static Node null() { return ParseHandler::null(); }
+    static Node null() { return ParseHandler<CharT>::null(); }
 
     JSAtom* prefixAccessorName(PropertyType propType, HandleAtom propAtom);
 
     bool asmJS(Node list);
 };
 
-template <typename ParseHandler>
+template <class Parser>
 class MOZ_STACK_CLASS AutoAwaitIsKeyword
 {
   private:
-    Parser<ParseHandler>* parser_;
+    Parser* parser_;
     bool oldAwaitIsKeyword_;
 
   public:
-    AutoAwaitIsKeyword(Parser<ParseHandler>* parser, bool awaitIsKeyword) {
+    AutoAwaitIsKeyword(Parser* parser, bool awaitIsKeyword) {
         parser_ = parser;
         oldAwaitIsKeyword_ = parser_->awaitIsKeyword_;
         parser_->setAwaitIsKeyword(awaitIsKeyword);

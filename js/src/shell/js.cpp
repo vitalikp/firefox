@@ -4395,8 +4395,9 @@ Parse(JSContext* cx, unsigned argc, Value* vp)
     UsedNameTracker usedNames(cx);
     if (!usedNames.init())
         return false;
-    Parser<FullParseHandler> parser(cx, cx->tempLifoAlloc(), options, chars, length,
-                                    /* foldConstants = */ true, usedNames, nullptr, nullptr);
+    Parser<FullParseHandler, char16_t> parser(cx, cx->tempLifoAlloc(), options, chars, length,
+                                              /* foldConstants = */ true, usedNames, nullptr,
+                                              nullptr);
     if (!parser.checkOptions())
         return false;
 
@@ -4445,9 +4446,9 @@ SyntaxParse(JSContext* cx, unsigned argc, Value* vp)
     UsedNameTracker usedNames(cx);
     if (!usedNames.init())
         return false;
-    Parser<frontend::SyntaxParseHandler> parser(cx, cx->tempLifoAlloc(),
-                                                options, chars, length, false,
-                                                usedNames, nullptr, nullptr);
+    Parser<frontend::SyntaxParseHandler, char16_t> parser(cx, cx->tempLifoAlloc(),
+                                                          options, chars, length, false,
+                                                          usedNames, nullptr, nullptr);
     if (!parser.checkOptions())
         return false;
 
