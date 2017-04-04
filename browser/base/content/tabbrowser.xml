@@ -1993,7 +1993,7 @@
 
             if (aParams.opener) {
               if (aParams.remoteType) {
-                throw new Exception("Cannot set opener window on a remote browser!");
+                throw new Error("Cannot set opener window on a remote browser!");
               }
               b.QueryInterface(Ci.nsIFrameLoaderOwner).presetOpenerWindow(aParams.opener);
             }
@@ -5504,7 +5504,7 @@
       </handler>
       <handler event="DOMAudioPlaybackStarted">
         <![CDATA[
-          var tab = getTabFromAudioEvent(event)
+          var tab = this.getTabFromAudioEvent(event)
           if (!tab) {
             return;
           }
@@ -5528,7 +5528,7 @@
       </handler>
       <handler event="DOMAudioPlaybackStopped">
         <![CDATA[
-          var tab = getTabFromAudioEvent(event)
+          var tab = this.getTabFromAudioEvent(event)
           if (!tab) {
             return;
           }
@@ -5550,7 +5550,7 @@
       </handler>
       <handler event="DOMAudioPlaybackBlockStarted">
         <![CDATA[
-          var tab = getTabFromAudioEvent(event)
+          var tab = this.getTabFromAudioEvent(event)
           if (!tab) {
             return;
           }
@@ -5563,7 +5563,7 @@
       </handler>
       <handler event="DOMAudioPlaybackBlockStopped">
         <![CDATA[
-          var tab = getTabFromAudioEvent(event)
+          var tab = this.getTabFromAudioEvent(event)
           if (!tab) {
             return;
           }

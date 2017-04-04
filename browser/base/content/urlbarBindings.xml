@@ -1221,8 +1221,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             UpdatePopupNotificationsVisibility();
           }
         }
-        if (ExtensionSearchHandler.hasActiveInputSession()) {
-          ExtensionSearchHandler.handleInputCancelled();
+        if (this.ExtensionSearchHandler.hasActiveInputSession()) {
+          this.ExtensionSearchHandler.handleInputCancelled();
         }
       ]]></handler>
 
