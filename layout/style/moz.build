@@ -122,6 +122,7 @@ EXPORTS.mozilla += [
     'StyleSheet.h',
     'StyleSheetInfo.h',
     'StyleSheetInlines.h',
+    'URLExtraData.h',
 ]
 
 EXPORTS.mozilla.dom += [
@@ -229,6 +230,7 @@ UNIFIED_SOURCES += [
     'StyleAnimationValue.cpp',
     'StyleRule.cpp',
     'StyleSheet.cpp',
+    'URLExtraData.cpp',
 ]
 
 SOURCES += [
