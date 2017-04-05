@@ -2683,11 +2683,17 @@ nsTableFrame::GetUsedMargin() const
 NS_DECLARE_FRAME_PROPERTY_DELETABLE(TableBCProperty, BCPropertyData)
 
 BCPropertyData*
-nsTableFrame::GetBCProperty(bool aCreateIfNecessary) const
+nsTableFrame::GetBCProperty() const
+{
+  return Properties().Get(TableBCProperty());
+}
+
+BCPropertyData*
+nsTableFrame::GetOrCreateBCProperty()
 {
   FrameProperties props = Properties();
   BCPropertyData* value = props.Get(TableBCProperty());
-  if (!value && aCreateIfNecessary) {
+  if (!value) {
     value = new BCPropertyData();
     props.Set(TableBCProperty(), value);
   }
@@ -4136,7 +4142,7 @@ nsTableFrame::AddBCDamageArea(const TableArea& aValue)
 
   SetNeedToCalcBCBorders(true);
   // Get the property
-  BCPropertyData* value = GetBCProperty(true);
+  BCPropertyData* value = GetOrCreateBCProperty();
   if (value) {
 #ifdef DEBUG
     VerifyNonNegativeDamageRect(value->mDamageArea);
@@ -4176,7 +4182,7 @@ nsTableFrame::SetFullBCDamageArea()
 
   SetNeedToCalcBCBorders(true);
 
-  BCPropertyData* value = GetBCProperty(true);
+  BCPropertyData* value = GetOrCreateBCProperty();
   if (value) {
     value->mDamageArea = TableArea(0, 0, GetColCount(), GetRowCount());
   }
