@@ -2182,7 +2182,7 @@ class BaseCompiler
         // The debug trap exit requires WasmTlsReg be loaded. However, since we
         // are emitting millions of these breakable points inline, we push this
         // loading of TLS into the FarJumpIsland created by patchCallSites.
-        masm.nopPatchableToCall(CallSiteDesc(iter_.errorOffset(), kind));
+        masm.nopPatchableToCall(CallSiteDesc(iter_.lastOpcodeOffset(), kind));
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -2344,7 +2344,7 @@ class BaseCompiler
         MOZ_ASSERT(localSize_ >= debugFrameReserved);
         if (localSize_ > debugFrameReserved)
             masm.addToStackPtr(Imm32(localSize_ - debugFrameReserved));
-        TrapOffset prologueTrapOffset(func_.lineOrBytecode());
+        BytecodeOffset prologueTrapOffset(func_.lineOrBytecode());
         masm.jump(TrapDesc(prologueTrapOffset, Trap::StackOverflow, debugFrameReserved));
 
         masm.bind(&returnLabel_);
@@ -2393,7 +2393,6 @@ class BaseCompiler
           : lineOrBytecode(lineOrBytecode),
             reloadMachineStateAfter(false),
             usesSystemAbi(false),
-            loadTlsBefore(false),
 #ifdef JS_CODEGEN_ARM
             hardFP(true),
 #endif
@@ -2405,7 +2404,6 @@ class BaseCompiler
         ABIArgGenerator abi;
         bool reloadMachineStateAfter;
         bool usesSystemAbi;
-        bool loadTlsBefore;
 #ifdef JS_CODEGEN_ARM
         bool hardFP;
 #endif
@@ -2417,7 +2415,6 @@ class BaseCompiler
     {
         call.reloadMachineStateAfter = interModule == InterModule::True || useABI == UseABI::System;
         call.usesSystemAbi = useABI == UseABI::System;
-        call.loadTlsBefore = useABI == UseABI::Wasm;
 
         if (call.usesSystemAbi) {
             // Call-outs need to use the appropriate system ABI.
@@ -2605,7 +2602,7 @@ class BaseCompiler
 
     void callSymbolic(SymbolicAddress callee, const FunctionCall& call) {
         CallSiteDesc desc(call.lineOrBytecode, CallSiteDesc::Symbolic);
-        masm.call(callee);
+        masm.call(desc, callee);
     }
 
     // Precondition: sync()
@@ -2646,7 +2643,7 @@ class BaseCompiler
         masm.loadWasmTlsRegFromFrame();
 
         CallSiteDesc desc(call.lineOrBytecode, CallSiteDesc::Symbolic);
-        masm.wasmCallBuiltinInstanceMethod(instanceArg, builtin);
+        masm.wasmCallBuiltinInstanceMethod(desc, instanceArg, builtin);
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -3035,10 +3032,10 @@ class BaseCompiler
         AnyReg src;
         RegI32 dest;
         bool isUnsigned;
-        TrapOffset off;
+        BytecodeOffset off;
 
       public:
-        OutOfLineTruncateF32OrF64ToI32(AnyReg src, RegI32 dest, bool isUnsigned, TrapOffset off)
+        OutOfLineTruncateF32OrF64ToI32(AnyReg src, RegI32 dest, bool isUnsigned, BytecodeOffset off)
           : src(src),
             dest(dest),
             isUnsigned(isUnsigned),
@@ -3069,7 +3066,7 @@ class BaseCompiler
     };
 
     MOZ_MUST_USE bool truncateF32ToI32(RegF32 src, RegI32 dest, bool isUnsigned) {
-        TrapOffset off = trapOffset();
+        BytecodeOffset off = bytecodeOffset();
         OutOfLineCode* ool;
 #if defined(JS_CODEGEN_X86) || defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_ARM)
         ool = new(alloc_) OutOfLineTruncateF32OrF64ToI32(AnyReg(src), dest, isUnsigned, off);
@@ -3089,7 +3086,7 @@ class BaseCompiler
     }
 
     MOZ_MUST_USE bool truncateF64ToI32(RegF64 src, RegI32 dest, bool isUnsigned) {
-        TrapOffset off = trapOffset();
+        BytecodeOffset off = bytecodeOffset();
         OutOfLineCode* ool;
 #if defined(JS_CODEGEN_X86) || defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_ARM)
         ool = new(alloc_) OutOfLineTruncateF32OrF64ToI32(AnyReg(src), dest, isUnsigned, off);
@@ -3114,10 +3111,10 @@ class BaseCompiler
     {
         AnyReg src;
         bool isUnsigned;
-        TrapOffset off;
+        BytecodeOffset off;
 
       public:
-        OutOfLineTruncateCheckF32OrF64ToI64(AnyReg src, bool isUnsigned, TrapOffset off)
+        OutOfLineTruncateCheckF32OrF64ToI64(AnyReg src, bool isUnsigned, BytecodeOffset off)
           : src(src),
             isUnsigned(isUnsigned),
             off(off)
@@ -3155,7 +3152,7 @@ class BaseCompiler
         OutOfLineCode* ool =
             addOutOfLineCode(new (alloc_) OutOfLineTruncateCheckF32OrF64ToI64(AnyReg(src),
                                                                               isUnsigned,
-                                                                              trapOffset()));
+                                                                              bytecodeOffset()));
         if (!ool)
             return false;
         if (isUnsigned)
@@ -3175,7 +3172,7 @@ class BaseCompiler
         OutOfLineCode* ool =
             addOutOfLineCode(new (alloc_) OutOfLineTruncateCheckF32OrF64ToI64(AnyReg(src),
                                                                               isUnsigned,
-                                                                              trapOffset()));
+                                                                              bytecodeOffset()));
         if (!ool)
             return false;
         if (isUnsigned)
@@ -3631,19 +3628,19 @@ class BaseCompiler
     uint32_t readCallSiteLineOrBytecode() {
         if (!func_.callSiteLineNums().empty())
             return func_.callSiteLineNums()[lastReadCallSite_++];
-        return iter_.errorOffset();
+        return iter_.lastOpcodeOffset();
     }
 
     bool done() const {
         return iter_.done();
     }
 
-    TrapOffset trapOffset() const {
-        return iter_.trapOffset();
+    BytecodeOffset bytecodeOffset() const {
+        return iter_.bytecodeOffset();
     }
 
     TrapDesc trap(Trap t) const {
-        return TrapDesc(trapOffset(), t, masm.framePushed());
+        return TrapDesc(bytecodeOffset(), t, masm.framePushed());
     }
 
     ////////////////////////////////////////////////////////////
@@ -5745,9 +5742,7 @@ BaseCompiler::emitCallArgs(const ValTypeVector& argTypes, FunctionCall& baseline
     for (size_t i = 0; i < numArgs; ++i)
         passArg(baselineCall, argTypes[i], peek(numArgs - 1 - i));
 
-    if (baselineCall.loadTlsBefore)
-        masm.loadWasmTlsRegFromFrame();
-
+    masm.loadWasmTlsRegFromFrame();
     return true;
 }
 
@@ -5954,7 +5949,6 @@ BaseCompiler::emitDivOrModI64BuiltinCall(SymbolicAddress callee, ValType operand
 
     needI64(abiReturnRegI64);
 
-    RegI32 temp = needI32();
     RegI64 rhs = popI64();
     RegI64 srcDest = popI64ToSpecific(abiReturnRegI64);
 
@@ -5967,16 +5961,15 @@ BaseCompiler::emitDivOrModI64BuiltinCall(SymbolicAddress callee, ValType operand
     else if (callee == SymbolicAddress::ModI64)
         checkDivideSignedOverflowI64(rhs, srcDest, &done, ZeroOnOverflow(true));
 
-    masm.setupUnalignedABICall(temp);
+    masm.setupWasmABICall();
     masm.passABIArg(srcDest.high);
     masm.passABIArg(srcDest.low);
     masm.passABIArg(rhs.high);
     masm.passABIArg(rhs.low);
-    masm.callWithABI(callee);
+    masm.callWithABI(bytecodeOffset(), callee);
 
     masm.bind(&done);
 
-    freeI32(temp);
     freeI64(rhs);
     pushI64(srcDest);
 }
@@ -5989,21 +5982,20 @@ BaseCompiler::emitConvertInt64ToFloatingCallout(SymbolicAddress callee, ValType 
 {
     sync();
 
-    RegI32 temp = needI32();
     RegI64 input = popI64();
 
     FunctionCall call(0);
 
-    masm.setupUnalignedABICall(temp);
+    masm.setupWasmABICall();
 # ifdef JS_NUNBOX32
     masm.passABIArg(input.high);
     masm.passABIArg(input.low);
 # else
     MOZ_CRASH("BaseCompiler platform hook: emitConvertInt64ToFloatingCallout");
 # endif
-    masm.callWithABI(callee, resultType == ValType::F32 ? MoveOp::FLOAT32 : MoveOp::DOUBLE);
+    masm.callWithABI(bytecodeOffset(), callee,
+                     resultType == ValType::F32 ? MoveOp::FLOAT32 : MoveOp::DOUBLE);
 
-    freeI32(temp);
     freeI64(input);
 
     if (resultType == ValType::F32)
@@ -6038,14 +6030,12 @@ BaseCompiler::emitConvertFloatingToInt64Callout(SymbolicAddress callee, ValType 
 
     sync();
 
-    RegI32 temp = needI32();
     FunctionCall call(0);
 
-    masm.setupUnalignedABICall(temp);
+    masm.setupWasmABICall();
     masm.passABIArg(doubleInput, MoveOp::DOUBLE);
-    masm.callWithABI(callee);
+    masm.callWithABI(bytecodeOffset(), callee);
 
-    freeI32(temp);
     freeF64(doubleInput);
 
     RegI64 rv = captureReturnedI64();
@@ -6057,7 +6047,7 @@ BaseCompiler::emitConvertFloatingToInt64Callout(SymbolicAddress callee, ValType 
     // The OOL check just succeeds or fails, it does not generate a value.
     OutOfLineCode* ool = new (alloc_) OutOfLineTruncateCheckF32OrF64ToI64(AnyReg(inputVal),
                                                                           isUnsigned,
-                                                                          trapOffset());
+                                                                          bytecodeOffset());
     ool = addOutOfLineCode(ool);
     if (!ool)
         return false;
@@ -6404,7 +6394,7 @@ BaseCompiler::emitLoad(ValType type, Scalar::Type viewType)
         return true;
 
     bool omitBoundsCheck = false;
-    MemoryAccessDesc access(viewType, addr.align, addr.offset, Some(trapOffset()));
+    MemoryAccessDesc access(viewType, addr.align, addr.offset, Some(bytecodeOffset()));
 
     size_t temps = loadTemps(access);
     MOZ_ASSERT(temps <= 3);
@@ -6498,7 +6488,7 @@ BaseCompiler::emitStore(ValType resultType, Scalar::Type viewType)
         return true;
 
     bool omitBoundsCheck = false;
-    MemoryAccessDesc access(viewType, addr.align, addr.offset, Some(trapOffset()));
+    MemoryAccessDesc access(viewType, addr.align, addr.offset, Some(bytecodeOffset()));
 
     size_t temps = storeTemps(access, resultType);
 

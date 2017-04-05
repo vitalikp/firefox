@@ -1974,7 +1974,7 @@ MacroAssembler::convertTypedOrValueToFloatingPoint(TypedOrValueRegister src, Flo
 
 void
 MacroAssembler::outOfLineTruncateSlow(FloatRegister src, Register dest, bool widenFloatToDouble,
-                                      bool compilingWasm)
+                                      bool compilingWasm, wasm::BytecodeOffset callOffset)
 {
 #if defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64) || \
     defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
@@ -1988,7 +1988,7 @@ MacroAssembler::outOfLineTruncateSlow(FloatRegister src, Register dest, bool wid
         MOZ_ASSERT(src.isSingle());
         srcSingle = src;
         src = src.asDouble();
-        push(srcSingle);
+        Push(srcSingle);
         convertFloat32ToDouble(srcSingle, src);
     }
 #else
@@ -1998,12 +1998,15 @@ MacroAssembler::outOfLineTruncateSlow(FloatRegister src, Register dest, bool wid
 
     MOZ_ASSERT(src.isDouble());
 
-    setupUnalignedABICall(dest);
-    passABIArg(src, MoveOp::DOUBLE);
-    if (compilingWasm)
-        callWithABI(wasm::SymbolicAddress::ToInt32);
-    else
+    if (compilingWasm) {
+        setupWasmABICall();
+        passABIArg(src, MoveOp::DOUBLE);
+        callWithABI(callOffset, wasm::SymbolicAddress::ToInt32);
+    } else {
+        setupUnalignedABICall(dest);
+        passABIArg(src, MoveOp::DOUBLE);
         callWithABI(mozilla::BitwiseCast<void*, int32_t(*)(double)>(JS::ToInt32));
+    }
     storeCallInt32Result(dest);
 
 #if defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64) || \
@@ -2011,7 +2014,7 @@ MacroAssembler::outOfLineTruncateSlow(FloatRegister src, Register dest, bool wid
     // Nothing
 #elif defined(JS_CODEGEN_X86) || defined(JS_CODEGEN_X64)
     if (widenFloatToDouble)
-        pop(srcSingle);
+        Pop(srcSingle);
 #else
     MOZ_CRASH("MacroAssembler platform hook: outOfLineTruncateSlow");
 #endif
@@ -2646,11 +2649,25 @@ MacroAssembler::setupABICall()
 }
 
 void
+MacroAssembler::setupWasmABICall()
+{
+    MOZ_ASSERT(IsCompilingWasm(), "non-wasm should use setupAlignedABICall");
+    setupABICall();
+
+#if defined(JS_CODEGEN_ARM)
+    // The builtin thunk does the FP -> GPR moving on soft-FP, so
+    // use hard fp unconditionally.
+    abiArgs_.setUseHardFp(true);
+#endif
+    dynamicAlignment_ = false;
+}
+
+void
 MacroAssembler::setupAlignedABICall()
 {
+    MOZ_ASSERT(!IsCompilingWasm(), "wasm should use setupWasmABICall");
     setupABICall();
     dynamicAlignment_ = false;
-    assertStackAlignment(ABIStackAlignment);
 
 #if defined(JS_CODEGEN_ARM64)
     MOZ_CRASH("Not supported on arm64");
@@ -2702,12 +2719,21 @@ MacroAssembler::callWithABINoProfiler(void* fun, MoveOp::Type result)
 }
 
 void
-MacroAssembler::callWithABINoProfiler(wasm::SymbolicAddress imm, MoveOp::Type result)
+MacroAssembler::callWithABI(wasm::BytecodeOffset callOffset, wasm::SymbolicAddress imm,
+                            MoveOp::Type result)
 {
+    MOZ_ASSERT(wasm::NeedsBuiltinThunk(imm));
+
     uint32_t stackAdjust;
     callWithABIPre(&stackAdjust, /* callFromWasm = */ true);
-    call(imm);
-    callWithABIPost(stackAdjust, result);
+
+    // The TLS register is used in builtin thunks and must be set, by ABI:
+    // reload it after passing arguments, which might have used it at spill
+    // points when placing arguments.
+    loadWasmTlsRegFromFrame();
+
+    call(wasm::CallSiteDesc(callOffset.bytecodeOffset, wasm::CallSite::Symbolic), imm);
+    callWithABIPost(stackAdjust, result, /* callFromWasm = */ true);
 }
 
 // ===============================================================
@@ -2803,7 +2829,8 @@ MacroAssembler::wasmCallImport(const wasm::CallSiteDesc& desc, const wasm::Calle
 }
 
 void
-MacroAssembler::wasmCallBuiltinInstanceMethod(const ABIArg& instanceArg,
+MacroAssembler::wasmCallBuiltinInstanceMethod(const wasm::CallSiteDesc& desc,
+                                              const ABIArg& instanceArg,
                                               wasm::SymbolicAddress builtin)
 {
     MOZ_ASSERT(instanceArg != ABIArg());
@@ -2819,7 +2846,7 @@ MacroAssembler::wasmCallBuiltinInstanceMethod(const ABIArg& instanceArg,
         MOZ_CRASH("Unknown abi passing style for pointer");
     }
 
-    call(builtin);
+    call(desc, builtin);
 }
 
 void
@@ -2853,7 +2880,7 @@ MacroAssembler::wasmCallIndirect(const wasm::CallSiteDesc& desc, const wasm::Cal
         break;
     }
 
-    wasm::TrapOffset trapOffset(desc.lineOrBytecode());
+    wasm::BytecodeOffset trapOffset(desc.lineOrBytecode());
 
     // WebAssembly throws if the index is out-of-bounds.
     if (needsBoundsCheck) {

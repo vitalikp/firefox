@@ -411,7 +411,7 @@ wasm::GenerateFunctionPrologue(MacroAssembler& masm, unsigned framePushed, const
 
     // Generate table entry:
     offsets->begin = masm.currentOffset();
-    TrapOffset trapOffset(0);  // ignored by masm.wasmEmitTrapOutOfLineCode
+    BytecodeOffset trapOffset(0);  // ignored by masm.wasmEmitTrapOutOfLineCode
     TrapDesc trap(trapOffset, Trap::IndirectCallBadSig, masm.framePushed());
     switch (sigId.kind()) {
       case SigIdDesc::Kind::Global: {
