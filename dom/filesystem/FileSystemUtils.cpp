@@ -6,6 +6,8 @@
 
 #include "mozilla/dom/FileSystemUtils.h"
 
+#include "mozilla/SystemGroup.h"
+
 namespace mozilla {
 namespace dom {
 
@@ -69,6 +71,29 @@ FileSystemUtils::IsValidRelativeDOMPath(const nsAString& aPath,
   }
 
   return true;
+}
+
+/* static */ nsresult
+FileSystemUtils::DispatchRunnable(nsIGlobalObject* aGlobal,
+                                  already_AddRefed<nsIRunnable>&& aRunnable)
+{
+  nsCOMPtr<nsIRunnable> runnable = aRunnable;
+
+  nsCOMPtr<nsIEventTarget> target;
+  if (!aGlobal) {
+    target = SystemGroup::EventTargetFor(TaskCategory::Other);
+  } else {
+    target = aGlobal->EventTargetFor(TaskCategory::Other);
+  }
+
+  MOZ_ASSERT(target);
+
+  nsresult rv = target->Dispatch(runnable.forget(), NS_DISPATCH_NORMAL);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return rv;
+  }
+
+  return NS_OK;
 }
 
 } // namespace dom
