@@ -2707,12 +2707,17 @@ ScrollFrameHelper::ScheduleSyntheticMouseMove()
 }
 
 void
-ScrollFrameHelper::NotifyApproximateFrameVisibilityUpdate()
+ScrollFrameHelper::NotifyApproximateFrameVisibilityUpdate(bool aIgnoreDisplayPort)
 {
   mLastUpdateFramesPos = GetScrollPosition();
-  mHadDisplayPortAtLastFrameUpdate =
-    nsLayoutUtils::GetDisplayPort(mOuter->GetContent(),
-                                  &mDisplayPortAtLastFrameUpdate);
+  if (aIgnoreDisplayPort) {
+    mHadDisplayPortAtLastFrameUpdate = false;
+    mDisplayPortAtLastFrameUpdate = nsRect();
+  } else {
+    mHadDisplayPortAtLastFrameUpdate =
+      nsLayoutUtils::GetDisplayPort(mOuter->GetContent(),
+                                    &mDisplayPortAtLastFrameUpdate);
+  }
 }
 
 bool
@@ -3242,7 +3247,7 @@ ScrollFrameHelper::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
                                     const nsDisplayListSet& aLists)
 {
   if (aBuilder->IsForFrameVisibility()) {
-    NotifyApproximateFrameVisibilityUpdate();
+    NotifyApproximateFrameVisibilityUpdate(false);
   }
 
   mOuter->DisplayBorderBackgroundOutline(aBuilder, aLists);
