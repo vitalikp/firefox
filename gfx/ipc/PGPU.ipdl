@@ -117,7 +117,7 @@ child:
   async UpdateChildScalars(ScalarAction[] actions);
   async UpdateChildKeyedScalars(KeyedScalarAction[] actions);
 
-  async NotifyDeviceReset();
+  async NotifyDeviceReset(GPUDeviceData status);
 
   // Called in response to GatherProfile.
   async Profile(nsCString aProfile);

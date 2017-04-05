@@ -177,8 +177,9 @@ GPUChild::RecvUpdateChildKeyedScalars(InfallibleTArray<KeyedScalarAction>&& aSca
 }
 
 mozilla::ipc::IPCResult
-GPUChild::RecvNotifyDeviceReset()
+GPUChild::RecvNotifyDeviceReset(const GPUDeviceData& aData)
 {
+  gfxPlatform::GetPlatform()->ImportGPUDeviceData(aData);
   mHost->mListener->OnProcessDeviceReset(mHost);
   return IPC_OK();
 }
