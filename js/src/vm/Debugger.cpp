@@ -1933,8 +1933,12 @@ Debugger::slowPathOnNewScript(JSContext* cx, HandleScript script)
             return JSTRAP_CONTINUE;
         });
 
-    if (status == JSTRAP_ERROR)
+    // dispatchHook may fail due to OOM. This OOM is not handlable at the
+    // callsites of onNewScript in the engine.
+    if (status == JSTRAP_ERROR) {
+        cx->clearPendingException();
         return;
+    }
 
     MOZ_ASSERT(status == JSTRAP_CONTINUE);
 }
@@ -1953,8 +1957,12 @@ Debugger::slowPathOnNewWasmInstance(JSContext* cx, Handle<WasmInstanceObject*> w
             return JSTRAP_CONTINUE;
         });
 
-    if (status == JSTRAP_ERROR)
+    // dispatchHook may fail due to OOM. This OOM is not handlable at the
+    // callsites of onNewWasmInstance in the engine.
+    if (status == JSTRAP_ERROR) {
+        cx->clearPendingException();
         return;
+    }
 
     MOZ_ASSERT(status == JSTRAP_CONTINUE);
 }
