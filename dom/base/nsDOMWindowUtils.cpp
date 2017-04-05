@@ -2453,7 +2453,7 @@ ComputeAnimationValue(nsCSSPropertyID aProperty,
   }
 
   RefPtr<nsStyleContext> styleContext =
-    nsComputedDOMStyle::GetStyleContextForElement(aElement, nullptr, shell);
+    nsComputedDOMStyle::GetStyleContext(aElement, nullptr, shell);
 
   if (!StyleAnimationValue::ComputeValue(aProperty, aElement, styleContext,
                                          aInput, false, aOutput)) {
@@ -2721,7 +2721,7 @@ nsDOMWindowUtils::ComputeAnimationDistance(nsIDOMElement* aElement,
 
   nsIPresShell* shell = element->GetUncomposedDoc()->GetShell();
   RefPtr<nsStyleContext> styleContext = shell
-    ? nsComputedDOMStyle::GetStyleContextForElement(element, nullptr, shell)
+    ? nsComputedDOMStyle::GetStyleContext(element, nullptr, shell)
     : nullptr;
   if (!StyleAnimationValue::ComputeDistance(property, v1, v2, styleContext,
                                             *aResult)) {
