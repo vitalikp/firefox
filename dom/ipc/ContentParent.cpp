@@ -843,9 +843,9 @@ mozilla::ipc::IPCResult
 ContentParent::RecvCreateChildProcess(const IPCTabContext& aContext,
                                       const hal::ProcessPriority& aPriority,
                                       const TabId& aOpenerTabId,
+                                      const TabId& aTabId,
                                       ContentParentId* aCpId,
-                                      bool* aIsForBrowser,
-                                      TabId* aTabId)
+                                      bool* aIsForBrowser)
 {
 #if 0
   if (!CanOpenBrowser(aContext)) {
@@ -876,12 +876,8 @@ ContentParent::RecvCreateChildProcess(const IPCTabContext& aContext,
   ContentProcessManager *cpm = ContentProcessManager::GetSingleton();
   cpm->AddContentProcess(cp, this->ChildID());
 
-  if (cpm->AddGrandchildProcess(this->ChildID(), cp->ChildID())) {
-    // Pre-allocate a TabId here to save one time IPC call at app startup.
-    *aTabId = AllocateTabId(aOpenerTabId, aContext, cp->ChildID());
-    if (*aTabId == 0) {
-      return IPC_FAIL_NO_REASON(this);
-    }
+  if (cpm->AddGrandchildProcess(this->ChildID(), cp->ChildID()) &&
+      cpm->RegisterRemoteFrame(aTabId, aOpenerTabId, aContext, cp->ChildID())) {
     return IPC_OK();
   }
 
@@ -1107,7 +1103,7 @@ ContentParent::CreateBrowser(const TabContext& aContext,
 
   ProcessPriority initialPriority = GetInitialProcessPriority(aFrameElement);
   bool isInContentProcess = !XRE_IsParentProcess();
-  TabId tabId;
+  TabId tabId(nsContentUtils::GenerateTabId());
 
   nsIDocShell* docShell = GetOpenerDocShellHelper(aFrameElement);
   TabId openerTabId;
@@ -1125,7 +1121,7 @@ ContentParent::CreateBrowser(const TabContext& aContext,
   if (isInContentProcess) {
     MOZ_ASSERT(aContext.IsMozBrowserElement());
     constructorSender = CreateContentBridgeParent(aContext, initialPriority,
-                                                  openerTabId, &tabId);
+                                                  openerTabId, tabId);
   } else {
     if (aOpenerContentParent) {
       constructorSender = aOpenerContentParent;
@@ -1136,9 +1132,11 @@ ContentParent::CreateBrowser(const TabContext& aContext,
         return nullptr;
       }
     }
-    tabId = AllocateTabId(openerTabId,
-                          aContext.AsIPCTabContext(),
-                          constructorSender->ChildID());
+    ContentProcessManager* cpm = ContentProcessManager::GetSingleton();
+    cpm->RegisterRemoteFrame(tabId,
+                             openerTabId,
+                             aContext.AsIPCTabContext(),
+                             constructorSender->ChildID());
   }
   if (constructorSender) {
     nsCOMPtr<nsIDocShellTreeOwner> treeOwner;
@@ -1198,7 +1196,7 @@ ContentParent::CreateBrowser(const TabContext& aContext,
 ContentParent::CreateContentBridgeParent(const TabContext& aContext,
                                          const hal::ProcessPriority& aPriority,
                                          const TabId& aOpenerTabId,
-                                         /*out*/ TabId* aTabId)
+                                         const TabId& aTabId)
 {
   MOZ_ASSERT(aTabId);
 
@@ -1208,9 +1206,9 @@ ContentParent::CreateContentBridgeParent(const TabContext& aContext,
   if (!child->SendCreateChildProcess(aContext.AsIPCTabContext(),
                                      aPriority,
                                      aOpenerTabId,
+                                     aTabId,
                                      &cpId,
-                                     &isForBrowser,
-                                     aTabId)) {
+                                     &isForBrowser)) {
     return nullptr;
   }
   if (cpId == 0) {
@@ -4065,27 +4063,8 @@ ContentParent::NotifyUpdatedDictionaries()
   }
 }
 
-/*static*/ TabId
-ContentParent::AllocateTabId(const TabId& aOpenerTabId,
-                             const IPCTabContext& aContext,
-                             const ContentParentId& aCpId)
-{
-  TabId tabId;
-  if (XRE_IsParentProcess()) {
-    ContentProcessManager* cpm = ContentProcessManager::GetSingleton();
-    tabId = cpm->AllocateTabId(aOpenerTabId, aContext, aCpId);
-  }
-  else {
-    ContentChild::GetSingleton()->SendAllocateTabId(aOpenerTabId,
-                                                      aContext,
-                                                      aCpId,
-                                                      &tabId);
-  }
-  return tabId;
-}
-
 /*static*/ void
-ContentParent::DeallocateTabId(const TabId& aTabId,
+ContentParent::UnregisterRemoteFrame(const TabId& aTabId,
                                const ContentParentId& aCpId,
                                bool aMarkedDestroying)
 {
@@ -4095,32 +4074,19 @@ ContentParent::DeallocateTabId(const TabId& aTabId,
 
     cp->NotifyTabDestroyed(aTabId, aMarkedDestroying);
 
-    ContentProcessManager::GetSingleton()->DeallocateTabId(aCpId, aTabId);
+    ContentProcessManager::GetSingleton()->UnregisterRemoteFrame(aCpId, aTabId);
   } else {
-    ContentChild::GetSingleton()->SendDeallocateTabId(aTabId, aCpId,
+    ContentChild::GetSingleton()->SendUnregisterRemoteFrame(aTabId, aCpId,
                                                       aMarkedDestroying);
   }
 }
 
 mozilla::ipc::IPCResult
-ContentParent::RecvAllocateTabId(const TabId& aOpenerTabId,
-                                 const IPCTabContext& aContext,
-                                 const ContentParentId& aCpId,
-                                 TabId* aTabId)
-{
-  *aTabId = AllocateTabId(aOpenerTabId, aContext, aCpId);
-  if (!(*aTabId)) {
-    return IPC_FAIL_NO_REASON(this);
-  }
-  return IPC_OK();
-}
-
-mozilla::ipc::IPCResult
-ContentParent::RecvDeallocateTabId(const TabId& aTabId,
+ContentParent::RecvUnregisterRemoteFrame(const TabId& aTabId,
                                    const ContentParentId& aCpId,
                                    const bool& aMarkedDestroying)
 {
-  DeallocateTabId(aTabId, aCpId, aMarkedDestroying);
+  UnregisterRemoteFrame(aTabId, aCpId, aMarkedDestroying);
   return IPC_OK();
 }
 
