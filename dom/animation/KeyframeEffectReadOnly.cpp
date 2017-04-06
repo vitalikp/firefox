@@ -1243,6 +1243,8 @@ KeyframeEffectReadOnly::GetKeyframes(JSContext*& aCx,
     return;
   }
 
+  bool isServo = mDocument->IsStyledByServo();
+
   for (const Keyframe& keyframe : mKeyframes) {
     // Set up a dictionary object for the explicit members
     BaseComputedKeyframe keyframeDict;
@@ -1270,10 +1272,21 @@ KeyframeEffectReadOnly::GetKeyframes(JSContext*& aCx,
     JS::Rooted<JSObject*> keyframeObject(aCx, &keyframeJSValue.toObject());
     for (const PropertyValuePair& propertyValue : keyframe.mPropertyValues) {
       nsAutoString stringValue;
-      if (propertyValue.mServoDeclarationBlock) {
-        Servo_DeclarationBlock_SerializeOneValue(
-          propertyValue.mServoDeclarationBlock,
-          propertyValue.mProperty, &stringValue);
+      if (isServo) {
+        if (propertyValue.mServoDeclarationBlock) {
+          Servo_DeclarationBlock_SerializeOneValue(
+            propertyValue.mServoDeclarationBlock,
+            propertyValue.mProperty, &stringValue);
+        } else {
+          RawServoAnimationValue* value =
+            mBaseStyleValuesForServo.GetWeak(propertyValue.mProperty);
+
+          if (value) {
+            Servo_AnimationValue_Serialize(value,
+                                           propertyValue.mProperty,
+                                           &stringValue);
+          }
+        }
       } else if (nsCSSProps::IsShorthand(propertyValue.mProperty)) {
          // nsCSSValue::AppendToString does not accept shorthands properties but
          // works with token stream values if we pass eCSSProperty_UNKNOWN as
