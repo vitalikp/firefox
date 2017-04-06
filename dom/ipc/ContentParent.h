@@ -180,7 +180,8 @@ public:
   static TabParent*
   CreateBrowser(const TabContext& aContext,
                 Element* aFrameElement,
-                ContentParent* aOpenerContentParent);
+                ContentParent* aOpenerContentParent,
+                TabParent* aSameTabGroupAs);
 
   static void GetAll(nsTArray<ContentParent*>& aArray);
 
@@ -643,6 +644,7 @@ private:
   virtual PBrowserParent* SendPBrowserConstructor(
       PBrowserParent* actor,
       const TabId& aTabId,
+      const TabId& aSameTabGroupsAs,
       const IPCTabContext& context,
       const uint32_t& chromeFlags,
       const ContentParentId& aCpId,
@@ -768,6 +770,7 @@ private:
   DeallocPRemoteSpellcheckEngineParent(PRemoteSpellcheckEngineParent*) override;
 
   virtual PBrowserParent* AllocPBrowserParent(const TabId& aTabId,
+                                              const TabId& aSameTabGroupAs,
                                               const IPCTabContext& aContext,
                                               const uint32_t& aChromeFlags,
                                               const ContentParentId& aCpId,

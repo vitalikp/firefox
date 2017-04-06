@@ -127,6 +127,15 @@ class Pickle {
   }
 #endif
 
+  bool IgnoreSentinel(PickleIterator* iter) const
+#ifdef MOZ_PICKLE_SENTINEL_CHECKING
+    ;
+#else
+  {
+    return true;
+  }
+#endif
+
   void EndRead(PickleIterator& iter) const;
 
   // Methods for adding to the payload of the Pickle.  These values are

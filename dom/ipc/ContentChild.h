@@ -167,6 +167,7 @@ public:
   virtual mozilla::ipc::IPCResult RecvSetProcessSandbox(const MaybeFileDesc& aBroker) override;
 
   virtual PBrowserChild* AllocPBrowserChild(const TabId& aTabId,
+                                            const TabId& aSameTabGroupAs,
                                             const IPCTabContext& aContext,
                                             const uint32_t& aChromeFlags,
                                             const ContentParentId& aCpID,
@@ -502,6 +503,7 @@ public:
 
   virtual bool SendPBrowserConstructor(PBrowserChild* actor,
                                        const TabId& aTabId,
+                                       const TabId& aSameTabGroupAs,
                                        const IPCTabContext& context,
                                        const uint32_t& chromeFlags,
                                        const ContentParentId& aCpID,
@@ -509,6 +511,7 @@ public:
 
   virtual mozilla::ipc::IPCResult RecvPBrowserConstructor(PBrowserChild* aCctor,
                                                           const TabId& aTabId,
+                                                          const TabId& aSameTabGroupAs,
                                                           const IPCTabContext& aContext,
                                                           const uint32_t& aChromeFlags,
                                                           const ContentParentId& aCpID,

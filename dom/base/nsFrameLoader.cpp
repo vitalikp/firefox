@@ -2805,28 +2805,30 @@ nsFrameLoader::SetClampScrollPosition(bool aClamp)
 }
 
 static
-ContentParent*
+Tuple<ContentParent*, TabParent*>
 GetContentParent(Element* aBrowser)
 {
+  using ReturnTuple = Tuple<ContentParent*, TabParent*>;
+
   nsCOMPtr<nsIBrowser> browser = do_QueryInterface(aBrowser);
   if (!browser) {
-    return nullptr;
+    return ReturnTuple(nullptr, nullptr);
   }
 
   nsCOMPtr<nsIFrameLoader> otherLoader;
   browser->GetSameProcessAsFrameLoader(getter_AddRefs(otherLoader));
   if (!otherLoader) {
-    return nullptr;
+    return ReturnTuple(nullptr, nullptr);
   }
 
   TabParent* tabParent = TabParent::GetFrom(otherLoader);
   if (tabParent &&
       tabParent->Manager() &&
       tabParent->Manager()->IsContentParent()) {
-    return tabParent->Manager()->AsContentParent();
+    return MakeTuple(tabParent->Manager()->AsContentParent(), tabParent);
   }
 
-  return nullptr;
+  return ReturnTuple(nullptr, nullptr);
 }
 
 bool
@@ -2861,7 +2863,8 @@ nsFrameLoader::TryRemoteBrowser()
   }
 
   TabParent* openingTab = TabParent::GetFrom(parentDocShell->GetOpener());
-  ContentParent* openerContentParent = nullptr;
+  RefPtr<ContentParent> openerContentParent;
+  RefPtr<TabParent> sameTabGroupAs;
 
   if (openingTab &&
       openingTab->Manager() &&
@@ -2901,7 +2904,7 @@ nsFrameLoader::TryRemoteBrowser()
     }
 
     // Try to get the related content parent from our browser element.
-    openerContentParent = GetContentParent(mOwnerContent);
+    Tie(openerContentParent, sameTabGroupAs) = GetContentParent(mOwnerContent);
   }
 
   uint32_t chromeFlags = 0;
@@ -2923,7 +2926,8 @@ nsFrameLoader::TryRemoteBrowser()
   NS_ENSURE_SUCCESS(rv, false);
 
   nsCOMPtr<Element> ownerElement = mOwnerContent;
-  mRemoteBrowser = ContentParent::CreateBrowser(context, ownerElement, openerContentParent);
+  mRemoteBrowser = ContentParent::CreateBrowser(context, ownerElement,
+                                                openerContentParent, sameTabGroupAs);
   if (!mRemoteBrowser) {
     return false;
   }

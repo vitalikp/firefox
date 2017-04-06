@@ -1068,7 +1068,8 @@ ContentParent::RecvFindPlugins(const uint32_t& aPluginEpoch,
 /*static*/ TabParent*
 ContentParent::CreateBrowser(const TabContext& aContext,
                              Element* aFrameElement,
-                             ContentParent* aOpenerContentParent)
+                             ContentParent* aOpenerContentParent,
+                             TabParent* aSameTabGroupAs)
 {
   PROFILER_LABEL_FUNC(js::ProfileEntry::Category::OTHER);
 
@@ -1149,6 +1150,7 @@ ContentParent::CreateBrowser(const TabContext& aContext,
     constructorSender->SendPBrowserConstructor(
       // DeallocPBrowserParent() releases this ref.
       tp.forget().take(), tabId,
+      aSameTabGroupAs ? aSameTabGroupAs->GetTabId() : TabId(0),
       aContext.AsIPCTabContext(),
       chromeFlags,
       constructorSender->ChildID(),
@@ -2784,12 +2786,14 @@ ContentParent::DeallocPJavaScriptParent(PJavaScriptParent *parent)
 
 PBrowserParent*
 ContentParent::AllocPBrowserParent(const TabId& aTabId,
+                                   const TabId& aSameTabGroupAs,
                                    const IPCTabContext& aContext,
                                    const uint32_t& aChromeFlags,
                                    const ContentParentId& aCpId,
                                    const bool& aIsForBrowser)
 {
   return nsIContentParent::AllocPBrowserParent(aTabId,
+                                               aSameTabGroupAs,
                                                aContext,
                                                aChromeFlags,
                                                aCpId,
@@ -3803,6 +3807,7 @@ ContentParent::SendPBlobConstructor(PBlobParent* aActor,
 PBrowserParent*
 ContentParent::SendPBrowserConstructor(PBrowserParent* aActor,
                                        const TabId& aTabId,
+                                       const TabId& aSameTabGroupAs,
                                        const IPCTabContext& aContext,
                                        const uint32_t& aChromeFlags,
                                        const ContentParentId& aCpId,
@@ -3810,6 +3815,7 @@ ContentParent::SendPBrowserConstructor(PBrowserParent* aActor,
 {
   return PContentParent::SendPBrowserConstructor(aActor,
                                                  aTabId,
+                                                 aSameTabGroupAs,
                                                  aContext,
                                                  aChromeFlags,
                                                  aCpId,
