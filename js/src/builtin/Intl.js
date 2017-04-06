@@ -1828,13 +1828,19 @@ function collatorSearchLocaleData() {
  * Spec: ECMAScript Internationalization API Specification, 12.3.2.
  */
 function collatorCompareToBind(x, y) {
-    // Steps 1.a.i-ii implemented by ECMAScript declaration binding instantiation,
-    // ES5.1 10.5, step 4.d.ii.
+    // Step 1.
+    var collator = this;
 
-    // Step 1.a.iii-v.
+    // Step 2.
+    assert(IsObject(collator), "collatorCompareToBind called with non-object");
+    assert(IsCollator(collator), "collatorCompareToBind called with non-Collator");
+
+    // Steps 3-6
     var X = ToString(x);
     var Y = ToString(y);
-    return intl_CompareStrings(this, X, Y);
+
+    // Step 7.
+    return intl_CompareStrings(collator, X, Y);
 }
 
 
@@ -1848,23 +1854,26 @@ function collatorCompareToBind(x, y) {
  * Spec: ECMAScript Internationalization API Specification, 10.3.2.
  */
 function Intl_Collator_compare_get() {
-    // Check "this Collator object" per introduction of section 10.3.
-    if (!IsObject(this) || !IsCollator(this))
+    // Step 1.
+    var collator = this;
+
+    // Steps 2-3.
+    if (!IsObject(collator) || !IsCollator(collator))
         ThrowTypeError(JSMSG_INTL_OBJECT_NOT_INITED, "Collator", "compare", "Collator");
 
-    var internals = getCollatorInternals(this);
+    var internals = getCollatorInternals(collator);
 
-    // Step 1.
+    // Step 4.
     if (internals.boundCompare === undefined) {
-        // Step 1.a.
+        // Step 4.a.
         var F = collatorCompareToBind;
 
-        // Steps 1.b-d.
-        var bc = callFunction(FunctionBind, F, this);
+        // Steps 4.b-d.
+        var bc = callFunction(FunctionBind, F, collator);
         internals.boundCompare = bc;
     }
 
-    // Step 2.
+    // Step 5.
     return internals.boundCompare;
 }
 _SetCanonicalName(Intl_Collator_compare_get, "get compare");
@@ -2278,12 +2287,18 @@ function numberFormatLocaleData() {
  * Spec: ECMAScript Internationalization API Specification, 11.3.2.
  */
 function numberFormatFormatToBind(value) {
-    // Steps 1.a.i implemented by ECMAScript declaration binding instantiation,
-    // ES5.1 10.5, step 4.d.ii.
+    // Step 1.
+    var nf = this;
 
-    // Step 1.a.ii-iii.
+    // Step 2.
+    assert(IsObject(nf), "InitializeNumberFormat called with non-object");
+    assert(IsNumberFormat(nf), "InitializeNumberFormat called with non-NumberFormat");
+
+    // Steps 3-4.
     var x = ToNumber(value);
-    return intl_FormatNumber(this, x, /* formatToParts = */ false);
+
+    // Step 5.
+    return intl_FormatNumber(nf, x, /* formatToParts = */ false);
 }
 
 
@@ -3050,13 +3065,19 @@ function dateTimeFormatLocaleData() {
  *
  * Spec: ECMAScript Internationalization API Specification, 12.3.2.
  */
-function dateTimeFormatFormatToBind() {
-    // Steps 1.a.i-ii
-    var date = arguments.length > 0 ? arguments[0] : undefined;
+function dateTimeFormatFormatToBind(date) {
+    // Step 1.
+    var dtf = this;
+
+    // Step 2.
+    assert(IsObject(dtf), "dateTimeFormatFormatToBind called with non-Object");
+    assert(IsDateTimeFormat(dtf), "dateTimeFormatFormatToBind called with non-DateTimeFormat");
+
+    // Steps 3-4.
     var x = (date === undefined) ? std_Date_now() : ToNumber(date);
 
-    // Step 1.a.iii.
-    return intl_FormatDateTime(this, x, /* formatToParts = */ false);
+    // Step 5.
+    return intl_FormatDateTime(dtf, x, /* formatToParts = */ false);
 }
 
 /**
@@ -3088,7 +3109,10 @@ function Intl_DateTimeFormat_format_get() {
 _SetCanonicalName(Intl_DateTimeFormat_format_get, "get format");
 
 
-function Intl_DateTimeFormat_formatToParts() {
+/**
+ * Intl.DateTimeFormat.prototype.formatToParts ( date )
+ */
+function Intl_DateTimeFormat_formatToParts(date) {
     // Steps 1-3.
     var dtf = UnwrapDateTimeFormat(this, "formatToParts");
 
@@ -3096,7 +3120,6 @@ function Intl_DateTimeFormat_formatToParts() {
     getDateTimeFormatInternals(dtf);
 
     // Steps 4-5.
-    var date = arguments.length > 0 ? arguments[0] : undefined;
     var x = (date === undefined) ? std_Date_now() : ToNumber(date);
 
     // Step 6.
