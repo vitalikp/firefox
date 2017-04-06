@@ -763,6 +763,15 @@ ServoStyleSet::GetComputedKeyframeValuesFor(
   return result;
 }
 
+already_AddRefed<ServoComputedValues>
+ServoStyleSet::GetBaseComputedValuesForElement(Element* aElement,
+                                               nsIAtom* aPseudoTag)
+{
+  return Servo_StyleSet_GetBaseComputedValuesForElement(mRawSet.get(),
+                                                        aElement,
+                                                        aPseudoTag).Consume();
+}
+
 void
 ServoStyleSet::RebuildData()
 {
