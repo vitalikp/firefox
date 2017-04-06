@@ -677,6 +677,7 @@ KeyframeEffectReadOnly::ComposeStyleRule(
   }
 
   Servo_AnimationCompose(&aAnimationValues,
+                         &mBaseStyleValuesForServo,
                          aProperty.mProperty,
                          &aSegment,
                          &aComputedTiming);
