@@ -27,6 +27,7 @@
 #include <hb.h>
 
 using namespace mozilla;
+using namespace mozilla::gfx;
 using mozilla::intl::LocaleService;
 
 #define LOG_FONTLIST(args) MOZ_LOG(gfxPlatform::GetLog(eGfxLog_fontlist), \
@@ -567,7 +568,26 @@ gfxFont *
 gfxDWriteFontEntry::CreateFontInstance(const gfxFontStyle* aFontStyle,
                                        bool aNeedsBold)
 {
-    return new gfxDWriteFont(this, aFontStyle, aNeedsBold);
+    WeakPtr<UnscaledFont>& unscaledFontPtr =
+        aNeedsBold ? mUnscaledFontBold : mUnscaledFont;
+    RefPtr<UnscaledFontDWrite> unscaledFont =
+        static_cast<UnscaledFontDWrite*>(unscaledFontPtr.get());
+    if (!unscaledFont) {
+        DWRITE_FONT_SIMULATIONS sims = DWRITE_FONT_SIMULATIONS_NONE;
+        if (aNeedsBold) {
+            sims |= DWRITE_FONT_SIMULATIONS_BOLD;
+        }
+        RefPtr<IDWriteFontFace> fontFace;
+        nsresult rv = CreateFontFace(getter_AddRefs(fontFace), sims);
+        if (NS_FAILED(rv)) {
+            return nullptr;
+        }
+
+        unscaledFont = new UnscaledFontDWrite(fontFace, sims);
+        unscaledFontPtr = unscaledFont;
+    }
+
+    return new gfxDWriteFont(unscaledFont, this, aFontStyle, aNeedsBold);
 }
 
 nsresult

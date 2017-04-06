@@ -4991,6 +4991,7 @@ nsDisplayText::nsDisplayText(nsDisplayListBuilder* aBuilder, nsTextFrame* aFrame
     std::vector<Glyph> glyphs;
     Color color;
     if (!capture->ContainsOnlyColoredGlyphs(mFont, color, glyphs)
+        || !mFont
         || !mFont->CanSerialize()
         || XRE_IsParentProcess()) {
       mFont = nullptr;

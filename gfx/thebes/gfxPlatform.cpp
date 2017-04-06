@@ -1128,6 +1128,7 @@ gfxPlatform::GetScaledFontForFont(DrawTarget* aTarget, gfxFont *aFont)
   nativeFont.mType = NativeFontType::CAIRO_FONT_FACE;
   nativeFont.mFont = aFont->GetCairoScaledFont();
   return Factory::CreateScaledFontForNativeFont(nativeFont,
+                                                aFont->GetUnscaledFont(),
                                                 aFont->GetAdjustedSize());
 }
 
@@ -2239,7 +2240,9 @@ gfxPlatform::GetScaledFontForFontWithCairoSkia(DrawTarget* aTarget, gfxFont* aFo
     if (aTarget->GetBackendType() == BackendType::CAIRO || aTarget->GetBackendType() == BackendType::SKIA) {
         nativeFont.mType = NativeFontType::CAIRO_FONT_FACE;
         nativeFont.mFont = aFont->GetCairoScaledFont();
-        return Factory::CreateScaledFontForNativeFont(nativeFont, aFont->GetAdjustedSize());
+        return Factory::CreateScaledFontForNativeFont(nativeFont,
+                                                      aFont->GetUnscaledFont(),
+                                                      aFont->GetAdjustedSize());
     }
 
     return nullptr;

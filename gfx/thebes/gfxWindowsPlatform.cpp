@@ -589,11 +589,13 @@ gfxWindowsPlatform::GetScaledFontForFont(DrawTarget* aTarget, gfxFont *aFont)
 
         if (aTarget->GetBackendType() == BackendType::CAIRO) {
           return Factory::CreateScaledFontWithCairo(nativeFont,
+                                                    font->GetUnscaledFont(),
                                                     font->GetAdjustedSize(),
                                                     font->GetCairoScaledFont());
         }
 
         return Factory::CreateScaledFontForNativeFont(nativeFont,
+                                                      font->GetUnscaledFont(),
                                                       font->GetAdjustedSize());
     }
 
@@ -608,11 +610,14 @@ gfxWindowsPlatform::GetScaledFontForFont(DrawTarget* aTarget, gfxFont *aFont)
 
     if (aTarget->GetBackendType() == BackendType::CAIRO) {
       return Factory::CreateScaledFontWithCairo(nativeFont,
+                                                aFont->GetUnscaledFont(),
                                                 aFont->GetAdjustedSize(),
                                                 aFont->GetCairoScaledFont());
     }
 
-    return Factory::CreateScaledFontForNativeFont(nativeFont, aFont->GetAdjustedSize());
+    return Factory::CreateScaledFontForNativeFont(nativeFont,
+                                                  aFont->GetUnscaledFont(),
+                                                  aFont->GetAdjustedSize());
 }
 
 static const char kFontAparajita[] = "Aparajita";

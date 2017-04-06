@@ -34,6 +34,7 @@
 #include <usp10.h>
 
 using namespace mozilla;
+using namespace mozilla::gfx;
 
 #define ROUND(x) floor((x) + 0.5)
 
@@ -245,6 +246,21 @@ GDIFontEntry::CopyFontTable(uint32_t aTableTag, nsTArray<uint8_t>& aBuffer)
         }
     }
     return NS_ERROR_FAILURE;
+}
+
+already_AddRefed<UnscaledFontGDI>
+GDIFontEntry::LookupUnscaledFont(HFONT aFont)
+{
+    RefPtr<UnscaledFontGDI> unscaledFont =
+        static_cast<UnscaledFontGDI*>(mUnscaledFont.get());
+    if (!unscaledFont) {
+        LOGFONT lf;
+        GetObject(aFont, sizeof(LOGFONT), &lf);
+        unscaledFont = new UnscaledFontGDI(lf);
+        mUnscaledFont = unscaledFont;
+    }
+
+    return unscaledFont.forget();
 }
 
 void
