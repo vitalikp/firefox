@@ -2246,9 +2246,9 @@ nsFlexContainerFrame::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
 
   typedef CSSOrderAwareFrameIterator::OrderState OrderState;
   OrderState orderState =
-    HasAnyStateBits(NS_STATE_FLEX_CHILDREN_REORDERED)
-    ? OrderState::eKnownUnordered
-    : OrderState::eKnownOrdered;
+    HasAnyStateBits(NS_STATE_FLEX_NORMAL_FLOW_CHILDREN_IN_CSS_ORDER)
+    ? OrderState::eKnownOrdered
+    : OrderState::eKnownUnordered;
 
   CSSOrderAwareFrameIterator iter(this, kPrincipalList,
                                   CSSOrderAwareFrameIterator::eIncludeAll,
@@ -3564,9 +3564,9 @@ nsFlexContainerFrame::GenerateFlexLines(
                                   OrderingPropertyForIter(this));
 
   if (iter.ItemsAreAlreadyInOrder()) {
-    RemoveStateBits(NS_STATE_FLEX_CHILDREN_REORDERED);
+    AddStateBits(NS_STATE_FLEX_NORMAL_FLOW_CHILDREN_IN_CSS_ORDER);
   } else {
-    AddStateBits(NS_STATE_FLEX_CHILDREN_REORDERED);
+    RemoveStateBits(NS_STATE_FLEX_NORMAL_FLOW_CHILDREN_IN_CSS_ORDER);
   }
 
   for (; !iter.AtEnd(); iter.Next()) {
