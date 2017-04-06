@@ -1087,7 +1087,7 @@ protected:
 
   nsCOMPtr<nsILinkHandler> mLinkHandler;
 
-  ParagraphSeparator mDefaultParagraphSeparator = ParagraphSeparator::div;
+  ParagraphSeparator mDefaultParagraphSeparator;
 
 public:
   friend class HTMLEditorEventListener;
