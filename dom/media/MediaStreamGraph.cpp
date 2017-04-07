@@ -3294,7 +3294,7 @@ MediaInputPort::BlockSourceTrackId(TrackID aTrackId, BlockingMode aBlockingMode)
   MOZ_ASSERT(IsTrackIDExplicit(aTrackId),
              "Only explicit TrackID is allowed");
 
-  RefPtr<Pledge<bool>> pledge = new Pledge<bool>();
+  auto pledge = MakeRefPtr<Pledge<bool>>();
   nsCOMPtr<nsIRunnable> runnable = NewRunnableFrom([pledge]() {
     MOZ_ASSERT(NS_IsMainThread());
     pledge->Resolve(true);
