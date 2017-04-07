@@ -833,11 +833,6 @@ private:
       }
       mInputStream = nullptr;
     }
-    for (RefPtr<MediaInputPort>& inputPort : mInputPorts) {
-      MOZ_ASSERT(inputPort);
-      inputPort->Destroy();
-    }
-    mInputPorts.Clear();
 
     if (mTrackUnionStream) {
       if (mEncoder) {
@@ -862,6 +857,12 @@ private:
       mTrackUnionStream->Destroy();
       mTrackUnionStream = nullptr;
     }
+
+    for (RefPtr<MediaInputPort>& inputPort : mInputPorts) {
+      MOZ_ASSERT(inputPort);
+      inputPort->Destroy();
+    }
+    mInputPorts.Clear();
 
     if (mMediaStream) {
       mMediaStream->UnregisterTrackListener(this);
