@@ -1068,7 +1068,6 @@ ExtensionManager = {
   extensions: new Map(),
 
   init() {
-    Schemas.init();
     ExtensionChild.initOnce();
 
     Services.cpmm.addMessageListener("Extension:Startup", this);
