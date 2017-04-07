@@ -1563,6 +1563,8 @@ gfxFontGroup::gfxFontGroup(const FontFamilyList& aFontFamilyList,
 
 gfxFontGroup::~gfxFontGroup()
 {
+    // Should not be dropped by stylo
+    MOZ_ASSERT(NS_IsMainThread());
 }
 
 void
