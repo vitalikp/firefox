@@ -179,6 +179,7 @@
 #include "nsIXPConnect.h"
 #include "nsJSUtils.h"
 #include "nsLWBrkCIID.h"
+#include "nsMappedAttributes.h"
 #include "nsNetCID.h"
 #include "nsNetUtil.h"
 #include "nsNodeInfoManager.h"
@@ -2006,6 +2007,7 @@ nsContentUtils::Shutdown()
   NS_IF_RELEASE(sSameOriginChecker);
 
   HTMLInputElement::Shutdown();
+  nsMappedAttributes::Shutdown();
 }
 
 /**
