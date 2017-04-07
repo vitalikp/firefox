@@ -114,13 +114,15 @@ ContainerParser::MediaSegmentRange()
   return mCompleteMediaSegmentRange;
 }
 
-class WebMContainerParser : public ContainerParser {
+class WebMContainerParser : public ContainerParser
+{
 public:
   explicit WebMContainerParser(const MediaContainerType& aType)
     : ContainerParser(aType)
     , mParser(0)
     , mOffset(0)
-  {}
+  {
+  }
 
   static const unsigned NS_PER_USEC = 1000;
   static const unsigned USEC_PER_SEC = 1000000;
@@ -197,7 +199,8 @@ public:
       mCompleteMediaSegmentRange = MediaByteRange(mLastMapping.ref().mSyncOffset,
                                                   mOffset);
       mLastMapping.reset();
-      MSE_DEBUG(WebMContainerParser, "New cluster found at start, ending previous one");
+      MSE_DEBUG(WebMContainerParser,
+                "New cluster found at start, ending previous one");
       return NS_ERROR_NOT_AVAILABLE;
     }
 
@@ -292,8 +295,9 @@ public:
                                                   endOffset);
     } else if (mapping[endIdx].mClusterEndOffset >= 0 &&
                mOffset >= mapping[endIdx].mClusterEndOffset) {
-      mCompleteMediaSegmentRange = MediaByteRange(mapping[endIdx].mSyncOffset,
-                                                  mParser.EndSegmentOffset(mapping[endIdx].mClusterEndOffset));
+      mCompleteMediaSegmentRange = MediaByteRange(
+        mapping[endIdx].mSyncOffset,
+        mParser.EndSegmentOffset(mapping[endIdx].mClusterEndOffset));
     }
 
     Maybe<WebMTimeDataOffset> previousMapping;
@@ -318,10 +322,15 @@ public:
     aStart = mapping[0].mTimecode / NS_PER_USEC;
     aEnd = (mapping[completeIdx].mTimecode + frameDuration) / NS_PER_USEC;
 
-    MSE_DEBUG(WebMContainerParser, "[%" PRId64 ", %" PRId64 "] [fso=%" PRId64
-              ", leo=%" PRId64 ", l=%zu processedIdx=%u fs=%" PRId64 "]",
-              aStart, aEnd, mapping[0].mSyncOffset,
-              mapping[completeIdx].mEndOffset, mapping.Length(), completeIdx,
+    MSE_DEBUG(WebMContainerParser,
+              "[%" PRId64 ", %" PRId64 "] [fso=%" PRId64 ", leo=%" PRId64
+              ", l=%zu processedIdx=%u fs=%" PRId64 "]",
+              aStart,
+              aEnd,
+              mapping[0].mSyncOffset,
+              mapping[completeIdx].mEndOffset,
+              mapping.Length(),
+              completeIdx,
               mCompleteMediaSegmentRange.mEnd);
 
     return NS_OK;
@@ -341,11 +350,13 @@ private:
 };
 
 #ifdef MOZ_FMP4
-class MP4ContainerParser : public ContainerParser {
+class MP4ContainerParser : public ContainerParser
+{
 public:
   explicit MP4ContainerParser(const MediaContainerType& aType)
     : ContainerParser(aType)
-  {}
+  {
+  }
 
   MediaResult IsInitSegmentPresent(MediaByteBuffer* aData) override
   {
@@ -536,8 +547,8 @@ public:
     return NS_OK;
   }
 
-  // Gaps of up to 35ms (marginally longer than a single frame at 30fps) are considered
-  // to be sequential frames.
+  // Gaps of up to 35ms (marginally longer than a single frame at 30fps) are
+  // considered to be sequential frames.
   int64_t GetRoundingError() override
   {
     return 35000;
@@ -550,13 +561,16 @@ private:
 #endif // MOZ_FMP4
 
 #ifdef MOZ_FMP4
-class ADTSContainerParser : public ContainerParser {
+class ADTSContainerParser : public ContainerParser
+{
 public:
   explicit ADTSContainerParser(const MediaContainerType& aType)
     : ContainerParser(aType)
-  {}
+  {
+  }
 
-  typedef struct {
+  typedef struct
+  {
     size_t header_length; // Length of just the initialization data.
     size_t frame_length;  // Includes header_length;
     uint8_t aac_frames;   // Number of AAC frames in the ADTS frame.
@@ -660,7 +674,8 @@ public:
       return NS_ERROR_NOT_AVAILABLE;
     }
     mHasInitData = true;
-    mCompleteInitSegmentRange = MediaByteRange(0, int64_t(header.header_length));
+    mCompleteInitSegmentRange =
+      MediaByteRange(0, int64_t(header.header_length));
 
     // Cache raw header in case the caller wants a copy.
     mInitData = new MediaByteBuffer(header.header_length);
@@ -699,14 +714,14 @@ public:
 /*static*/ ContainerParser*
 ContainerParser::CreateForMIMEType(const MediaContainerType& aType)
 {
-  if (aType.Type() == MEDIAMIMETYPE("video/webm")
-      || aType.Type() == MEDIAMIMETYPE("audio/webm")) {
+  if (aType.Type() == MEDIAMIMETYPE("video/webm") ||
+      aType.Type() == MEDIAMIMETYPE("audio/webm")) {
     return new WebMContainerParser(aType);
   }
 
 #ifdef MOZ_FMP4
-  if (aType.Type() == MEDIAMIMETYPE("video/mp4")
-      || aType.Type() == MEDIAMIMETYPE("audio/mp4")) {
+  if (aType.Type() == MEDIAMIMETYPE("video/mp4") ||
+      aType.Type() == MEDIAMIMETYPE("audio/mp4")) {
     return new MP4ContainerParser(aType);
   }
   if (aType.Type() == MEDIAMIMETYPE("audio/aac")) {
