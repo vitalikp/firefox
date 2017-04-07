@@ -446,6 +446,9 @@ bool Gecko_MatchStringArgPseudo(RawGeckoElementBorrowed element,
 
 void Gecko_Construct_nsStyleVariables(nsStyleVariables* ptr);
 
+void Gecko_RegisterProfilerThread(const char* name);
+void Gecko_UnregisterProfilerThread();
+
 // Allocator hinting.
 void Gecko_SetJemallocThreadLocalArena(bool enabled);
 
