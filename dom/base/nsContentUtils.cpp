@@ -289,6 +289,8 @@ bool nsContentUtils::sGettersDecodeURLHash = false;
 bool nsContentUtils::sPrivacyResistFingerprinting = false;
 bool nsContentUtils::sSendPerformanceTimingNotifications = false;
 bool nsContentUtils::sUseActivityCursor = false;
+bool nsContentUtils::sAnimationsAPICoreEnabled = false;
+bool nsContentUtils::sAnimationsAPIElementAnimateEnabled = false;
 
 int32_t nsContentUtils::sPrivacyMaxInnerWidth = 1000;
 int32_t nsContentUtils::sPrivacyMaxInnerHeight = 1000;
@@ -626,6 +628,12 @@ nsContentUtils::Init()
 
   Preferences::AddBoolVarCache(&sUseActivityCursor,
                                "ui.use_activity_cursor", false);
+
+  Preferences::AddBoolVarCache(&sAnimationsAPICoreEnabled,
+                               "dom.animations-api.core.enabled", false);
+
+  Preferences::AddBoolVarCache(&sAnimationsAPIElementAnimateEnabled,
+                               "dom.animations-api.element-animate.enabled", false);
 
   Element::InitCCCallbacks();
 
