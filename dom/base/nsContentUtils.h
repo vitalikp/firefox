@@ -2859,6 +2859,9 @@ public:
   static bool
   IsLocalRefURL(const nsString& aString);
 
+  static bool
+  IsCustomElementsEnabled() { return sIsCustomElementsEnabled; }
+
 private:
   static bool InitializeEventTable();
 
@@ -2966,6 +2969,7 @@ private:
   static bool sIsFrameTimingPrefEnabled;
   static bool sIsExperimentalAutocompleteEnabled;
   static bool sIsWebComponentsEnabled;
+  static bool sIsCustomElementsEnabled;
   static bool sPrivacyResistFingerprinting;
   static bool sSendPerformanceTimingNotifications;
   static bool sUseActivityCursor;
