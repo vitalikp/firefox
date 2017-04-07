@@ -34,6 +34,8 @@ namespace mozilla {
 
 ContainerParser::ContainerParser(const MediaContainerType& aType)
   : mHasInitData(false)
+  , mTotalParsed(0)
+  , mGlobalOffset(0)
   , mType(aType)
 {
 }
@@ -196,8 +198,8 @@ public:
       // now that a new one is starting.
       // We use mOffset as end position to ensure that any blocks not reported
       // by WebMBufferParser are properly skipped.
-      mCompleteMediaSegmentRange = MediaByteRange(mLastMapping.ref().mSyncOffset,
-                                                  mOffset);
+      mCompleteMediaSegmentRange =
+        MediaByteRange(mLastMapping.ref().mSyncOffset, mOffset) + mGlobalOffset;
       mLastMapping.reset();
       MSE_DEBUG(WebMContainerParser,
                 "New cluster found at start, ending previous one");
@@ -211,8 +213,10 @@ public:
       mInitData = new MediaByteBuffer();
       mResource = new SourceBufferResource(
                         MediaContainerType(MEDIAMIMETYPE("video/webm")));
+      mCompleteInitSegmentRange = MediaByteRange();
       mCompleteMediaHeaderRange = MediaByteRange();
       mCompleteMediaSegmentRange = MediaByteRange();
+      mGlobalOffset = mTotalParsed;
     }
 
     // XXX if it only adds new mappings, overlapped but not available
@@ -236,7 +240,8 @@ public:
           // Super unlikely OOM
           return NS_ERROR_OUT_OF_MEMORY;
         }
-        mCompleteInitSegmentRange = MediaByteRange(0, mParser.mInitEndOffset);
+        mCompleteInitSegmentRange =
+          MediaByteRange(0, mParser.mInitEndOffset) + mGlobalOffset;
         char* buffer = reinterpret_cast<char*>(mInitData->Elements());
         mResource->ReadFromCache(buffer, 0, mParser.mInitEndOffset);
         MSE_DEBUG(WebMContainerParser, "Stashed init of %" PRId64 " bytes.",
@@ -248,6 +253,7 @@ public:
       mHasInitData = true;
     }
     mOffset += aData->Length();
+    mTotalParsed += aData->Length();
 
     if (mapping.IsEmpty()) {
       return NS_ERROR_NOT_AVAILABLE;
@@ -280,8 +286,9 @@ public:
     }
 
     if (mCompleteMediaHeaderRange.IsEmpty()) {
-      mCompleteMediaHeaderRange = MediaByteRange(mapping[0].mSyncOffset,
-                                                 mapping[0].mEndOffset);
+      mCompleteMediaHeaderRange =
+        MediaByteRange(mapping[0].mSyncOffset, mapping[0].mEndOffset) +
+        mGlobalOffset;
     }
 
     if (foundNewCluster && mOffset >= mapping[endIdx].mEndOffset) {
@@ -291,13 +298,15 @@ public:
         // We have a new init segment before this cluster.
         endOffset = mapping[endIdx+1].mInitOffset;
       }
-      mCompleteMediaSegmentRange = MediaByteRange(mapping[endIdx].mSyncOffset,
-                                                  endOffset);
+      mCompleteMediaSegmentRange =
+        MediaByteRange(mapping[endIdx].mSyncOffset, endOffset) + mGlobalOffset;
     } else if (mapping[endIdx].mClusterEndOffset >= 0 &&
                mOffset >= mapping[endIdx].mClusterEndOffset) {
-      mCompleteMediaSegmentRange = MediaByteRange(
-        mapping[endIdx].mSyncOffset,
-        mParser.EndSegmentOffset(mapping[endIdx].mClusterEndOffset));
+      mCompleteMediaSegmentRange =
+        MediaByteRange(
+          mapping[endIdx].mSyncOffset,
+          mParser.EndSegmentOffset(mapping[endIdx].mClusterEndOffset))
+        + mGlobalOffset;
     }
 
     Maybe<WebMTimeDataOffset> previousMapping;
@@ -495,7 +504,12 @@ public:
       // timestampOffsets.
       mParser = new mp4_demuxer::MoofParser(mStream, 0, /* aIsAudio = */ false);
       mInitData = new MediaByteBuffer();
+      mCompleteInitSegmentRange = MediaByteRange();
+      mCompleteMediaHeaderRange = MediaByteRange();
+      mCompleteMediaSegmentRange = MediaByteRange();
+      mGlobalOffset = mTotalParsed;
     } else if (!mStream || !mParser) {
+      mTotalParsed += aData->Length();
       return NS_ERROR_NOT_AVAILABLE;
     }
 
@@ -508,7 +522,7 @@ public:
     if (initSegment || !HasCompleteInitData()) {
       MediaByteRange& range = mParser->mInitRange;
       if (range.Length()) {
-        mCompleteInitSegmentRange = range;
+        mCompleteInitSegmentRange = range + mGlobalOffset;
         if (!mInitData->SetLength(range.Length(), fallible)) {
           // Super unlikely OOM
           return NS_ERROR_OUT_OF_MEMORY;
@@ -522,12 +536,16 @@ public:
       }
       mHasInitData = true;
     }
+    mTotalParsed += aData->Length();
 
     mp4_demuxer::Interval<mp4_demuxer::Microseconds> compositionRange =
       mParser->GetCompositionRange(byteRanges);
 
-    mCompleteMediaHeaderRange = mParser->FirstCompleteMediaHeader();
-    mCompleteMediaSegmentRange = mParser->FirstCompleteMediaSegment();
+    mCompleteMediaHeaderRange =
+      mParser->FirstCompleteMediaHeader() + mGlobalOffset;
+    mCompleteMediaSegmentRange =
+      mParser->FirstCompleteMediaSegment() + mGlobalOffset;
+
     ErrorResult rv;
     if (HasCompleteInitData()) {
       mResource->EvictData(mParser->mOffset, mParser->mOffset, rv);
