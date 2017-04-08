@@ -2163,7 +2163,7 @@ void nsXULWindow::PlaceWindowLayersBehind(uint32_t aLowLevel,
 
   // get next lower window
   bool more;
-  while (windowEnumerator->HasMoreElements(&more), more) {
+  while (NS_SUCCEEDED(windowEnumerator->HasMoreElements(&more)) && more) {
     uint32_t nextZ; // z-level of nextWindow
     nsCOMPtr<nsISupports> nextWindow;
     windowEnumerator->GetNext(getter_AddRefs(nextWindow));
@@ -2316,4 +2316,3 @@ nsXULWindow::GetTabCount(uint32_t* aResult)
   *aResult = 0;
   return NS_OK;
 }
-
