@@ -218,7 +218,7 @@ void
 ServoStyleSet::ResolveMappedAttrDeclarationBlocks()
 {
   if (nsHTMLStyleSheet* sheet = mPresContext->Document()->GetAttributeStyleSheet()) {
-    sheet->CalculateMappedServoDeclarations();
+    sheet->CalculateMappedServoDeclarations(mPresContext);
   }
 
   mPresContext->Document()->ResolveScheduledSVGPresAttrs();
