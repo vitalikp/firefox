@@ -2990,16 +2990,11 @@ TabChild::ReinitRendering()
   // This guarantees the correct association is in place before our
   // PLayerTransaction constructor message arrives on the cross-process
   // compositor bridge.
-  SendEnsureLayersConnected();
-
-  RefPtr<CompositorBridgeChild> cb = CompositorBridgeChild::Get();
-
-  // Refresh the compositor options since we may now be attached to a different
-  // compositor than we were previously.
   CompositorOptions options;
-  Unused << cb->SendGetCompositorOptions(mLayersId, &options);
+  SendEnsureLayersConnected(&options);
   mCompositorOptions = Some(options);
 
+  RefPtr<CompositorBridgeChild> cb = CompositorBridgeChild::Get();
   bool success;
   nsTArray<LayersBackend> ignored;
   PLayerTransactionChild* shadowManager =

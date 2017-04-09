@@ -307,7 +307,7 @@ RenderFrameParent::TakeFocusForClickFromTap()
 }
 
 void
-RenderFrameParent::EnsureLayersConnected()
+RenderFrameParent::EnsureLayersConnected(CompositorOptions* aCompositorOptions)
 {
   RefPtr<LayerManager> lm = GetFrom(mFrameLoader);
   if (!lm) {
@@ -319,6 +319,7 @@ RenderFrameParent::EnsureLayersConnected()
   }
 
   mLayersConnected = lm->GetCompositorBridgeChild()->SendNotifyChildRecreated(mLayersId, &mCompositorOptions);
+  *aCompositorOptions = mCompositorOptions;
 }
 
 } // namespace layout
