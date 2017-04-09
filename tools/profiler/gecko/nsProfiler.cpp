@@ -362,7 +362,7 @@ nsProfiler::WillGatherOOPProfile()
 }
 
 void
-nsProfiler::GatheredOOPProfile()
+nsProfiler::GatheredOOPProfile(const nsACString& aProfile)
 {
   MOZ_RELEASE_ASSERT(NS_IsMainThread());
 
@@ -370,7 +370,7 @@ nsProfiler::GatheredOOPProfile()
     return;
   }
 
-  mGatherer->GatheredOOPProfile();
+  mGatherer->GatheredOOPProfile(aProfile);
 }
 
 void
