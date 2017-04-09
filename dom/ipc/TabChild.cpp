@@ -1170,9 +1170,10 @@ TabChild::RecvLoadURL(const nsCString& aURI,
 void
 TabChild::DoFakeShow(const TextureFactoryIdentifier& aTextureFactoryIdentifier,
                      const uint64_t& aLayersId,
+                     const CompositorOptions& aCompositorOptions,
                      PRenderFrameChild* aRenderFrame, const ShowInfo& aShowInfo)
 {
-  InitRenderingState(aTextureFactoryIdentifier, aLayersId, aRenderFrame);
+  InitRenderingState(aTextureFactoryIdentifier, aLayersId, aCompositorOptions, aRenderFrame);
   RecvShow(ScreenIntSize(0, 0), aShowInfo, mParentIsActive, nsSizeMode_Normal);
   mDidFakeShow = true;
 }
@@ -1258,13 +1259,14 @@ TabChild::RecvShow(const ScreenIntSize& aSize,
 mozilla::ipc::IPCResult
 TabChild::RecvInitRendering(const TextureFactoryIdentifier& aTextureFactoryIdentifier,
                             const uint64_t& aLayersId,
+                            const CompositorOptions& aCompositorOptions,
                             const bool& aLayersConnected,
                             PRenderFrameChild* aRenderFrame)
 {
   MOZ_ASSERT((!mDidFakeShow && aRenderFrame) || (mDidFakeShow && !aRenderFrame));
 
   mLayersConnected = aLayersConnected;
-  InitRenderingState(aTextureFactoryIdentifier, aLayersId, aRenderFrame);
+  InitRenderingState(aTextureFactoryIdentifier, aLayersId, aCompositorOptions, aRenderFrame);
   return IPC_OK();
 }
 
@@ -2577,6 +2579,7 @@ TabChild::InitTabChildGlobal()
 void
 TabChild::InitRenderingState(const TextureFactoryIdentifier& aTextureFactoryIdentifier,
                              const uint64_t& aLayersId,
+                             const CompositorOptions& aCompositorOptions,
                              PRenderFrameChild* aRenderFrame)
 {
     mPuppetWidget->InitIMEState();
@@ -2597,9 +2600,7 @@ TabChild::InitRenderingState(const TextureFactoryIdentifier& aTextureFactoryIden
       return;
     }
 
-    CompositorOptions options;
-    Unused << compositorChild->SendGetCompositorOptions(aLayersId, &options);
-    mCompositorOptions = Some(options);
+    mCompositorOptions = Some(aCompositorOptions);
 
     mRemoteFrame = static_cast<RenderFrameChild*>(aRenderFrame);
     if (aLayersId != 0) {

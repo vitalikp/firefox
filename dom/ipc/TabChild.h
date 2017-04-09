@@ -349,6 +349,7 @@ public:
   virtual mozilla::ipc::IPCResult
   RecvInitRendering(const TextureFactoryIdentifier& aTextureFactoryIdentifier,
                     const uint64_t& aLayersId,
+                    const mozilla::layers::CompositorOptions& aCompositorOptions,
                     const bool& aLayersConnected,
                     PRenderFrameChild* aRenderFrame) override;
 
@@ -612,6 +613,7 @@ public:
   // Call RecvShow(nsIntSize(0, 0)) and block future calls to RecvShow().
   void DoFakeShow(const TextureFactoryIdentifier& aTextureFactoryIdentifier,
                   const uint64_t& aLayersId,
+                  const mozilla::layers::CompositorOptions& aCompositorOptions,
                   PRenderFrameChild* aRenderFrame,
                   const ShowInfo& aShowInfo);
 
@@ -712,6 +714,7 @@ private:
 
   void InitRenderingState(const TextureFactoryIdentifier& aTextureFactoryIdentifier,
                           const uint64_t& aLayersId,
+                          const mozilla::layers::CompositorOptions& aCompositorOptions,
                           PRenderFrameChild* aRenderFrame);
   void InitAPZState();
 
