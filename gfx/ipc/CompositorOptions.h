@@ -41,6 +41,10 @@ public:
 
   bool UseAPZ() const { return mUseAPZ; }
 
+  bool operator==(const CompositorOptions& aOther) {
+    return mUseAPZ == aOther.mUseAPZ;
+  }
+
   friend struct IPC::ParamTraits<CompositorOptions>;
 
 private:
