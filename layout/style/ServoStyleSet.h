@@ -70,6 +70,7 @@ public:
   void Shutdown();
 
   size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const;
+  const RawServoStyleSet& RawSet() const { return *mRawSet; }
 
   bool GetAuthorStyleDisabled() const;
   nsresult SetAuthorStyleDisabled(bool aStyleDisabled);
