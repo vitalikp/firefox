@@ -1114,7 +1114,8 @@ CacheIndex::RemoveAll()
 
 // static
 nsresult
-CacheIndex::HasEntry(const nsACString &aKey, EntryStatus *_retval, bool *_pinned)
+CacheIndex::HasEntry(const nsACString &aKey, EntryStatus *_retval,
+                     const std::function<void(const CacheIndexEntry*)> &aCB)
 {
   LOG(("CacheIndex::HasEntry() [key=%s]", PromiseFlatCString(aKey).get()));
 
@@ -1123,12 +1124,13 @@ CacheIndex::HasEntry(const nsACString &aKey, EntryStatus *_retval, bool *_pinned
   sum.update(aKey.BeginReading(), aKey.Length());
   sum.finish(hash);
 
-  return HasEntry(hash, _retval, _pinned);
+  return HasEntry(hash, _retval, aCB);
 }
 
 // static
 nsresult
-CacheIndex::HasEntry(const SHA1Sum::Hash &hash, EntryStatus *_retval, bool *_pinned)
+CacheIndex::HasEntry(const SHA1Sum::Hash &hash, EntryStatus *_retval,
+                     const std::function<void(const CacheIndexEntry*)> &aCB)
 {
   StaticMutexAutoLock lock(sLock);
 
@@ -1140,10 +1142,6 @@ CacheIndex::HasEntry(const SHA1Sum::Hash &hash, EntryStatus *_retval, bool *_pin
 
   if (!index->IsIndexUsable()) {
     return NS_ERROR_NOT_AVAILABLE;
-  }
-
-  if (_pinned) {
-    *_pinned = false;
   }
 
   const CacheIndexEntry *entry = nullptr;
@@ -1180,8 +1178,8 @@ CacheIndex::HasEntry(const SHA1Sum::Hash &hash, EntryStatus *_retval, bool *_pin
       }
     } else {
       *_retval = EXISTS;
-      if (_pinned && entry->IsPinned()) {
-        *_pinned = true;
+      if (aCB) {
+        aCB(entry);
       }
     }
   }
