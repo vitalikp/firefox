@@ -47,6 +47,19 @@ IsLocalRefURL(nsStringBuffer* aString)
   return false;
 }
 
+static bool
+MightHaveRef(nsStringBuffer* aString)
+{
+  char16_t* current = static_cast<char16_t*>(aString->Data());
+  for (; *current != '\0'; current++) {
+    if (*current == '#') {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 nsCSSValue::nsCSSValue(int32_t aValue, nsCSSUnit aUnit)
   : mUnit(aUnit)
 {
@@ -2904,6 +2917,18 @@ css::URLValueData::HasRef() const
   }
 
   return false;
+}
+
+bool
+css::URLValueData::MightHaveRef() const
+{
+  if (mMightHaveRef.isNothing()) {
+    // ::MightHaveRef is O(N), use it only use it only when MightHaveRef is
+    // called.
+    mMightHaveRef.emplace(::MightHaveRef(mString));
+  }
+
+  return mMightHaveRef.value();
 }
 
 already_AddRefed<nsIURI>
