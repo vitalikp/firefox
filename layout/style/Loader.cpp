@@ -53,6 +53,7 @@
 #include "nsGkAtoms.h"
 #include "nsIThreadInternal.h"
 #include "nsINetworkPredictor.h"
+#include "mozilla/dom/MediaList.h"
 #include "mozilla/dom/ShadowRoot.h"
 #include "mozilla/dom/URL.h"
 #include "mozilla/AsyncEventDispatcher.h"
@@ -65,7 +66,6 @@
 #include "nsXULPrototypeCache.h"
 #endif
 
-#include "nsMediaList.h"
 #include "nsIDOMStyleSheet.h"
 #include "nsError.h"
 
@@ -1269,24 +1269,18 @@ void
 Loader::PrepareSheet(StyleSheet* aSheet,
                      const nsSubstring& aTitle,
                      const nsSubstring& aMediaString,
-                     nsMediaList* aMediaList,
+                     MediaList* aMediaList,
                      Element* aScopeElement,
                      bool aIsAlternate)
 {
   NS_PRECONDITION(aSheet, "Must have a sheet!");
 
-  RefPtr<nsMediaList> mediaList(aMediaList);
+  RefPtr<MediaList> mediaList(aMediaList);
 
   if (!aMediaString.IsEmpty()) {
     NS_ASSERTION(!aMediaList,
                  "must not provide both aMediaString and aMediaList");
-    mediaList = new nsMediaList();
-
-    nsCSSParser mediumParser(this);
-
-    // We have aMediaString only when linked from link elements, style
-    // elements, or PIs, so pass true.
-    mediumParser.ParseMediaList(aMediaString, nullptr, 0, mediaList);
+    mediaList = MediaList::Create(GetStyleBackendType(), aMediaString);
   }
 
   aSheet->SetMedia(mediaList);
@@ -2190,7 +2184,7 @@ HaveAncestorDataWithURI(SheetLoadData *aData, nsIURI *aURI)
 nsresult
 Loader::LoadChildSheet(StyleSheet* aParentSheet,
                        nsIURI* aURL,
-                       nsMediaList* aMedia,
+                       dom::MediaList* aMedia,
                        ImportRule* aGeckoParentRule,
                        const RawServoStyleSheet* aServoChildSheet,
                        LoaderReusableStyleSheets* aReusableSheets)
