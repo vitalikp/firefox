@@ -151,6 +151,7 @@ static const char BEFORE_FIRST_PAINT[] = "before-first-paint";
 
 typedef nsDataHashtable<nsUint64HashKey, TabChild*> TabChildMap;
 static TabChildMap* sTabChildren;
+StaticMutex sTabChildrenMutex;
 
 TabChildBase::TabChildBase()
   : mTabChildGlobal(nullptr)
@@ -1077,6 +1078,8 @@ TabChild::DestroyWindow()
 
 
     if (mLayersId != 0) {
+      StaticMutexAutoLock lock(sTabChildrenMutex);
+
       MOZ_ASSERT(sTabChildren);
       sTabChildren->Remove(mLayersId);
       if (!sTabChildren->Count()) {
@@ -2574,6 +2577,9 @@ TabChild::InitRenderingState(const TextureFactoryIdentifier& aTextureFactoryIden
       return;
     }
 
+    // Cache the TabGroup so it can be fetched off the main thread.
+    TabGroup();
+
     MOZ_ASSERT(aLayersId != 0);
     mTextureFactoryIdentifier = aTextureFactoryIdentifier;
 
@@ -2591,6 +2597,8 @@ TabChild::InitRenderingState(const TextureFactoryIdentifier& aTextureFactoryIden
 
     mRemoteFrame = static_cast<RenderFrameChild*>(aRenderFrame);
     if (aLayersId != 0) {
+      StaticMutexAutoLock lock(sTabChildrenMutex);
+
       if (!sTabChildren) {
         sTabChildren = new TabChildMap;
       }
@@ -2866,6 +2874,8 @@ TabChild::DoSendAsyncMessage(JSContext* aCx,
 /* static */ nsTArray<RefPtr<TabChild>>
 TabChild::GetAll()
 {
+  StaticMutexAutoLock lock(sTabChildrenMutex);
+
   nsTArray<RefPtr<TabChild>> list;
   if (!sTabChildren) {
     return list;
@@ -2892,6 +2902,7 @@ TabChild::GetFrom(nsIPresShell* aPresShell)
 TabChild*
 TabChild::GetFrom(uint64_t aLayersId)
 {
+  StaticMutexAutoLock lock(sTabChildrenMutex);
   if (!sTabChildren) {
     return nullptr;
   }
@@ -3227,9 +3238,15 @@ TabChildSHistoryListener::SHistoryDidUpdate(bool aTruncate /* = false */)
 mozilla::dom::TabGroup*
 TabChild::TabGroup()
 {
+  if (mTabGroup) {
+    return mTabGroup;
+  }
+
+  MOZ_ASSERT(NS_IsMainThread());
   nsCOMPtr<nsPIDOMWindowOuter> window = do_GetInterface(WebNavigation());
   MOZ_ASSERT(window);
-  return window->TabGroup();
+  mTabGroup = window->TabGroup();
+  return mTabGroup;
 }
 
 /*******************************************************************************
