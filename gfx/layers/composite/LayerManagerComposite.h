@@ -470,8 +470,6 @@ private:
                            CSSIntRegion> VisibleRegions;
   VisibleRegions mVisibleRegions;
 
-  UniquePtr<FPSState> mFPS;
-
   bool mInTransaction;
   bool mIsCompositorReady;
 
