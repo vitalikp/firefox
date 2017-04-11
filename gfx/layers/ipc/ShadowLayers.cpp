@@ -15,6 +15,7 @@
 #include "RenderTrace.h"                // for RenderTraceScope
 #include "gfx2DGlue.h"                  // for Moz2D transition helpers
 #include "gfxPlatform.h"                // for gfxImageFormat, gfxPlatform
+#include "gfxPrefs.h"
 //#include "gfxSharedImageSurface.h"      // for gfxSharedImageSurface
 #include "ipc/IPCMessageUtils.h"        // for gfxContentType, null_t
 #include "IPDLActor.h"
@@ -582,6 +583,11 @@ ShadowLayerForwarder::EndTransaction(const nsIntRegion& aRegionToClear,
     return false;
   }
 
+  Maybe<TimeStamp> startTime;
+  if (gfxPrefs::LayersDrawFPS()) {
+    startTime = Some(TimeStamp::Now());
+  }
+
   GetCompositorBridgeChild()->WillEndTransaction();
 
   MOZ_ASSERT(aId);
@@ -719,6 +725,11 @@ ShadowLayerForwarder::EndTransaction(const nsIntRegion& aRegionToClear,
     PlatformSyncBeforeUpdate();
   }
 
+  if (startTime) {
+    mPaintTiming.serializeMs() = (TimeStamp::Now() - startTime.value()).ToMilliseconds();
+    startTime = Some(TimeStamp::Now());
+  }
+
   AutoTArray<EditReply, 10> replies;
   if (mTxn->mSwapRequired) {
     MOZ_LAYERS_LOG(("[LayersForwarder] sending transaction..."));
@@ -737,6 +748,11 @@ ShadowLayerForwarder::EndTransaction(const nsIntRegion& aRegionToClear,
       MOZ_LAYERS_LOG(("[LayersForwarder] WARNING: sending transaction failed!"));
       return false;
     }
+  }
+
+  if (startTime) {
+    mPaintTiming.sendMs() = (TimeStamp::Now() - startTime.value()).ToMilliseconds();
+    mShadowManager->SendRecordPaintTimes(mPaintTiming);
   }
 
   *aSent = true;

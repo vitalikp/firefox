@@ -394,6 +394,10 @@ public:
     return NS_IsMainThread();
   }
 
+  PaintTiming& GetPaintTiming() {
+    return mPaintTiming;
+  }
+
   // Returns true if aSurface wraps a Shmem.
   static bool IsShmem(SurfaceDescriptor* aSurface);
 
@@ -446,6 +450,7 @@ private:
   UniquePtr<ActiveResourceTracker> mActiveResourceTracker;
   uint64_t mNextLayerHandle;
   nsDataHashtable<nsUint64HashKey, CompositableClient*> mCompositables;
+  PaintTiming mPaintTiming;
 };
 
 class CompositableClient;

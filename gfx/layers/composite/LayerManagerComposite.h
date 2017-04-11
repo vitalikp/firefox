@@ -52,6 +52,7 @@ class CanvasLayerComposite;
 class ColorLayerComposite;
 class Compositor;
 class ContainerLayerComposite;
+class Diagnostics;
 struct EffectChain;
 class ImageLayer;
 class ImageLayerComposite;
@@ -171,6 +172,9 @@ public:
     return false;
   }
 
+  void RecordPaintTimes(const PaintTiming& aTiming);
+  void RecordUpdateTime(float aValue);
+
   TimeStamp GetCompositionTime() const {
     return mCompositionTime;
   }
@@ -198,6 +202,7 @@ protected:
   // true if the last frame was deemed 'too complicated' to be rendered.
   float mWarningLevel;
   mozilla::TimeStamp mWarnTime;
+  UniquePtr<Diagnostics> mDiagnostics;
 
   bool mWindowOverlayChanged;
   TimeDuration mLastPaintTime;
