@@ -822,7 +822,7 @@ ServoStyleSet::StyleSubtreeForReconstruct(Element* aRoot)
 void
 ServoStyleSet::NoteStyleSheetsChanged()
 {
-  Servo_StyleSet_NoteStyleSheetsChanged(mRawSet.get());
+  Servo_StyleSet_NoteStyleSheetsChanged(mRawSet.get(), mAuthorStyleDisabled);
 }
 
 #ifdef DEBUG
