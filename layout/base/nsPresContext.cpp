@@ -89,6 +89,7 @@
 #include "nsCSSParser.h"
 #include "nsBidiUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "nsBidi.h"
 
 #include "mozilla/dom/URL.h"
 
@@ -2975,6 +2976,17 @@ nsPresContext::GetRestyleGeneration() const
     return 0;
   }
   return mRestyleManager->GetRestyleGeneration();
+}
+
+nsBidi&
+nsPresContext::GetBidiEngine()
+{
+  MOZ_ASSERT(NS_IsMainThread());
+
+  if (!mBidiEngine) {
+    mBidiEngine.reset(new nsBidi());
+  }
+  return *mBidiEngine;
 }
 
 nsRootPresContext::nsRootPresContext(nsIDocument* aDocument,

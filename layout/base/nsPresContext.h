@@ -9,6 +9,7 @@
 #define nsPresContext_h___
 
 #include "mozilla/Attributes.h"
+#include "mozilla/UniquePtr.h"
 #include "mozilla/WeakPtr.h"
 #include "nsColor.h"
 #include "nsCoord.h"
@@ -45,6 +46,7 @@
 #include "mozilla/StyleBackendType.h"
 
 class nsAString;
+class nsBidi;
 class nsIPrintSettings;
 class nsDocShell;
 class nsIDocShell;
@@ -1136,6 +1138,8 @@ public:
     mHasWarnedAboutTooLargeDashedOrDottedRadius = true;
   }
 
+  nsBidi& GetBidiEngine();
+
 protected:
   friend class nsRunnableMethod<nsPresContext>;
   void ThemeChangedInternal();
@@ -1289,6 +1293,8 @@ protected:
   nsCOMPtr<nsILanguageAtomService> mLangService;
   nsCOMPtr<nsIPrintSettings> mPrintSettings;
   nsCOMPtr<nsITimer>    mPrefChangedTimer;
+
+  mozilla::UniquePtr<nsBidi> mBidiEngine;
 
   FramePropertyTable    mPropertyTable;
 
