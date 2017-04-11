@@ -929,6 +929,27 @@ Gecko_CopyFontFamilyFrom(nsFont* dst, const nsFont* src)
 }
 
 void
+Gecko_SetImageOrientation(nsStyleVisibility* aVisibility,
+                          double aRadians, bool aFlip)
+{
+  aVisibility->mImageOrientation =
+    nsStyleImageOrientation::CreateAsAngleAndFlip(aRadians, aFlip);
+}
+
+void
+Gecko_SetImageOrientationAsFromImage(nsStyleVisibility* aVisibility)
+{
+  aVisibility->mImageOrientation = nsStyleImageOrientation::CreateAsFromImage();
+}
+
+void
+Gecko_CopyImageOrientationFrom(nsStyleVisibility* aDst,
+                               const nsStyleVisibility* aSrc)
+{
+  aDst->mImageOrientation = aSrc->mImageOrientation;
+}
+
+void
 Gecko_SetListStyleType(nsStyleList* aList, uint32_t aType)
 {
   aList->mCounterStyle = CounterStyleManager::GetBuiltinStyle(aType);
