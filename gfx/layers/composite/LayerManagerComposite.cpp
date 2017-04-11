@@ -148,7 +148,7 @@ LayerManagerComposite::LayerManagerComposite(Compositor* aCompositor)
 , mIsCompositorReady(false)
 , mGeometryChanged(true)
 {
-  mTextRenderer = new TextRenderer(aCompositor);
+  mTextRenderer = new TextRenderer();
   mDiagnostics = MakeUnique<Diagnostics>();
   MOZ_ASSERT(aCompositor);
 
@@ -620,6 +620,7 @@ LayerManagerComposite::RenderDebugOverlay(const IntRect& aBounds)
 
     std::string text = mDiagnostics->GetFrameOverlayString();
     mTextRenderer->RenderText(
+      mCompositor,
       text,
       IntPoint(2, 5),
       Matrix4x4(),
@@ -1314,7 +1315,6 @@ LayerManagerComposite::ChangeCompositor(Compositor* aNewCompositor)
     mCompositor->CancelFrame();
   }
   mCompositor = aNewCompositor;
-  mTextRenderer = new TextRenderer(aNewCompositor);
   mTwoPassTmpTarget = nullptr;
 }
 
