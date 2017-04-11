@@ -618,7 +618,11 @@ LayerManagerComposite::RenderDebugOverlay(const IntRect& aBounds)
     }
 #endif
 
-    std::string text = mDiagnostics->GetFrameOverlayString();
+    GPUStats stats;
+    stats.mScreenPixels = mRenderBounds.width * mRenderBounds.height;
+    mCompositor->GetFrameStats(&stats);
+
+    std::string text = mDiagnostics->GetFrameOverlayString(stats);
     mTextRenderer->RenderText(
       mCompositor,
       text,
@@ -915,6 +919,8 @@ LayerManagerComposite::Render(const nsIntRegion& aInvalidRegion, const nsIntRegi
   // Allow widget to render a custom foreground.
   mCompositor->GetWidget()->DrawWindowOverlay(
     &widgetContext, LayoutDeviceIntRect::FromUnknownRect(actualBounds));
+
+  mCompositor->NormalDrawingDone();
 
   // Debugging
   RenderDebugOverlay(actualBounds);

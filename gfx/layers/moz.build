@@ -99,6 +99,8 @@ EXPORTS.mozilla.layers += [
     'composite/ColorLayerComposite.h',
     'composite/ContainerLayerComposite.h',
     'composite/ContentHost.h',
+    'composite/Diagnostics.h',
+    'composite/FPSCounter.h',
     'composite/FrameUniformityData.h',
     'composite/GPUVideoTextureHost.h',
     'composite/ImageComposite.h',
