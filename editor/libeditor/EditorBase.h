@@ -1045,6 +1045,8 @@ protected:
   bool mIsInEditAction;
   // Whether caret is hidden forcibly.
   bool mHidingCaret;
+  // Whether spellchecker dictionary is initialized after focused.
+  bool mSpellCheckerDictionaryUpdated;
 
   friend bool NSCanUnload(nsISupports* serviceMgr);
   friend class AutoRules;
