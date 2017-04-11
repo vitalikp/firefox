@@ -925,6 +925,18 @@ exports.CSS_PROPERTIES = {
       "unset"
     ]
   },
+  "-moz-context-properties": {
+    "isInherited": true,
+    "subproperties": [
+      "-moz-context-properties"
+    ],
+    "supports": [],
+    "values": [
+      "inherit",
+      "initial",
+      "unset"
+    ]
+  },
   "-moz-control-character-visibility": {
     "isInherited": true,
     "subproperties": [
@@ -2970,6 +2982,7 @@ exports.CSS_PROPERTIES = {
       "column-width",
       "contain",
       "content",
+      "-moz-context-properties",
       "-moz-control-character-visibility",
       "counter-increment",
       "counter-reset",
@@ -3403,6 +3416,7 @@ exports.CSS_PROPERTIES = {
       "geometricprecision",
       "grab",
       "grabbing",
+      "grayscale",
       "grid",
       "groove",
       "groupbox",
