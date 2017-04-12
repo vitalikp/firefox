@@ -26,6 +26,7 @@
 
 
 using namespace stagefright;
+using mozilla::media::TimeUnit;
 
 namespace mp4_demuxer
 {
@@ -289,10 +290,10 @@ MP4MetadataStagefright::GetTrackInfo(mozilla::TrackInfo::TrackType aType,
   if (e) {
     metaData = mMetadataExtractor->getMetaData();
     int64_t movieDuration;
-    if (!e->mDuration &&
+    if (!e->mDuration.IsPositive() &&
         metaData->findInt64(kKeyMovieDuration, &movieDuration)) {
       // No duration in track, use movie extend header box one.
-      e->mDuration = movieDuration;
+      e->mDuration = TimeUnit::FromMicroseconds(movieDuration);
     }
   }
 

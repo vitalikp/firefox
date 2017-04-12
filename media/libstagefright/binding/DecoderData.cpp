@@ -15,6 +15,7 @@
 
 
 using namespace stagefright;
+using mozilla::media::TimeUnit;
 
 namespace mp4_demuxer
 {
@@ -111,7 +112,8 @@ UpdateTrackInfo(mozilla::TrackInfo& aConfig,
 {
   mozilla::CryptoTrack& crypto = aConfig.mCrypto;
   aConfig.mMimeType = aMimeType;
-  aConfig.mDuration = FindInt64(aMetaData, kKeyDuration);
+  aConfig.mDuration = TimeUnit::FromMicroseconds(
+    FindInt64(aMetaData, kKeyDuration));
   aConfig.mMediaTime = FindInt64(aMetaData, kKeyMediaTime);
   aConfig.mTrackId = FindInt32(aMetaData, kKeyTrackID);
   aConfig.mCrypto.mValid = aMetaData->findInt32(kKeyCryptoMode, &crypto.mMode) &&

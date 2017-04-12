@@ -389,8 +389,7 @@ WebMDemuxer::ReadMetadata()
       uint64_t duration = 0;
       r = nestegg_duration(context, &duration);
       if (!r) {
-        mInfo.mVideo.mDuration =
-          media::TimeUnit::FromNanoseconds(duration).ToMicroseconds();
+        mInfo.mVideo.mDuration = media::TimeUnit::FromNanoseconds(duration);
       }
       mInfo.mVideo.mCrypto = GetTrackCrypto(TrackInfo::kVideoTrack, track);
       if (mInfo.mVideo.mCrypto.mValid) {
@@ -457,8 +456,7 @@ WebMDemuxer::ReadMetadata()
       uint64_t duration = 0;
       r = nestegg_duration(context, &duration);
       if (!r) {
-        mInfo.mAudio.mDuration =
-          media::TimeUnit::FromNanoseconds(duration).ToMicroseconds();
+        mInfo.mAudio.mDuration = media::TimeUnit::FromNanoseconds(duration);
       }
       mInfo.mAudio.mCrypto = GetTrackCrypto(TrackInfo::kAudioTrack, track);
       if (mInfo.mAudio.mCrypto.mValid) {
