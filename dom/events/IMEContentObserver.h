@@ -101,7 +101,8 @@ public:
   bool IsEditorHandlingEventForComposition() const;
   bool KeepAliveDuringDeactive() const
   {
-    return mIMENotificationRequests.WantDuringDeactive();
+    return mIMENotificationRequests &&
+           mIMENotificationRequests->WantDuringDeactive();
   }
   nsIWidget* GetWidget() const { return mWidget; }
   nsIEditor* GetEditor() const { return mEditor; }
@@ -149,12 +150,14 @@ private:
   void MaybeNotifyIMEOfFocusSet();
   void PostTextChangeNotification();
   void MaybeNotifyIMEOfTextChange(const TextChangeDataBase& aTextChangeData);
+  void CancelNotifyingIMEOfTextChange();
   void PostSelectionChangeNotification();
   void MaybeNotifyIMEOfSelectionChange(bool aCausedByComposition,
                                        bool aCausedBySelectionEvent,
                                        bool aOccurredDuringComposition);
   void PostPositionChangeNotification();
   void MaybeNotifyIMEOfPositionChange();
+  void CancelNotifyingIMEOfPositionChange();
   void PostCompositionEventHandledNotification();
 
   void NotifyContentAdded(nsINode* aContainer, int32_t aStart, int32_t aEnd);
@@ -168,6 +171,16 @@ private:
    */
   void UnregisterObservers();
   void FlushMergeableNotifications();
+  bool NeedsTextChangeNotification() const
+  {
+    return mIMENotificationRequests &&
+           mIMENotificationRequests->WantTextChange();
+  }
+  bool NeedsPositionChangeNotification() const
+  {
+    return mIMENotificationRequests &&
+           mIMENotificationRequests->WantPositionChanged();
+  }
   void ClearPendingNotifications()
   {
     mNeedsToNotifyIMEOfFocusSet = false;
@@ -328,7 +341,7 @@ private:
 
   EventStateManager* mESM;
 
-  IMENotificationRequests mIMENotificationRequests;
+  const IMENotificationRequests* mIMENotificationRequests;
   uint32_t mPreAttrChangeLength;
   uint32_t mSuppressNotifications;
   int64_t mPreCharacterDataChangeLength;
