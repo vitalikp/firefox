@@ -87,6 +87,7 @@ class nsIControllers;
 class nsIJSID;
 class nsIScriptContext;
 class nsIScriptTimeoutHandler;
+class nsITabChild;
 class nsITimeoutHandler;
 class nsIWebBrowserChrome;
 class mozIDOMWindowProxy;
@@ -446,6 +447,8 @@ public:
 
   using EventTarget::EventListenerAdded;
   virtual void EventListenerAdded(nsIAtom* aType) override;
+  using EventTarget::EventListenerRemoved;
+  virtual void EventListenerRemoved(nsIAtom* aType) override;
 
   // nsIInterfaceRequestor
   NS_DECL_NSIINTERFACEREQUESTOR
@@ -1901,6 +1904,8 @@ protected:
 
   // These member variables are used on both inner and the outer windows.
   nsCOMPtr<nsIPrincipal> mDocumentPrincipal;
+  // mTabChild is only ever populated in the content process.
+  nsCOMPtr<nsITabChild>  mTabChild;
 
   uint32_t mSuspendDepth;
   uint32_t mFreezeDepth;
@@ -1979,6 +1984,8 @@ protected:
 
   // This is the CC generation the last time we called CanSkip.
   uint32_t mCanSkipCCGeneration;
+
+  int64_t mBeforeUnloadListenerCount; // Inner windows only
 
 #ifdef ENABLE_INTL_API
   RefPtr<mozilla::dom::IntlUtils> mIntlUtils;
