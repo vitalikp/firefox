@@ -647,6 +647,10 @@ nsHttpChannel::ContinueConnect()
     while (suspendCount--)
         mTransactionPump->Suspend();
 
+    if (mSuspendCount && mClassOfService & nsIClassOfService::Throttleable) {
+        gHttpHandler->ThrottleTransaction(mTransaction, true);
+    }
+
     return NS_OK;
 }
 
@@ -1417,16 +1421,6 @@ nsHttpChannel::CallOnStartRequest()
     } else {
         NS_WARNING("OnStartRequest skipped because of null listener");
         mOnStartRequestCalled = true;
-    }
-
-    if (mClassOfService & nsIClassOfService::Throttleable) {
-        nsIThrottlingService *throttler = gHttpHandler->GetThrottlingService();
-        if (throttler) {
-            // This may immediately Suspend() this channel. We also may have
-            // done this already, during AsyncOpen. However, calling AddChannel
-            // twice doesn't hurt anything.
-            throttler->AddChannel(this);
-        }
     }
 
     // Install stream converter if required.
@@ -6257,14 +6251,6 @@ nsHttpChannel::BeginConnectContinue()
         return mStatus;
     }
 
-    if (mClassOfService & nsIClassOfService::Throttleable) {
-        nsIThrottlingService *throttler = gHttpHandler->GetThrottlingService();
-        if (throttler) {
-            // This may immediately Suspend() this channel.
-            throttler->AddChannel(this);
-        }
-    }
-
     if (!(mLoadFlags & LOAD_CLASSIFY_URI)) {
         return ContinueBeginConnectWithResult();
     }
@@ -6401,24 +6387,56 @@ nsHttpChannel::ContinueBeginConnect()
 //-----------------------------------------------------------------------------
 // HttpChannel::nsIClassOfService
 //-----------------------------------------------------------------------------
+
+void
+nsHttpChannel::OnClassOfServiceUpdated()
+{
+    bool throttleable = !!(mClassOfService & nsIClassOfService::Throttleable);
+
+    if (mSuspendCount && mTransaction) {
+        gHttpHandler->ThrottleTransaction(mTransaction, throttleable);
+    }
+
+    nsIThrottlingService *throttler = gHttpHandler->GetThrottlingService();
+    if (throttler) {
+        if (throttleable) {
+            throttler->AddChannel(this);
+        } else {
+            throttler->RemoveChannel(this);
+        }
+    }
+}
+
 NS_IMETHODIMP
 nsHttpChannel::SetClassFlags(uint32_t inFlags)
 {
+    uint32_t previous = mClassOfService;
     mClassOfService = inFlags;
+    if (previous != mClassOfService) {
+        OnClassOfServiceUpdated();
+    }
     return NS_OK;
 }
 
 NS_IMETHODIMP
 nsHttpChannel::AddClassFlags(uint32_t inFlags)
 {
+    uint32_t previous = mClassOfService;
     mClassOfService |= inFlags;
+    if (previous != mClassOfService) {
+        OnClassOfServiceUpdated();
+    }
     return NS_OK;
 }
 
 NS_IMETHODIMP
 nsHttpChannel::ClearClassFlags(uint32_t inFlags)
 {
+    uint32_t previous = mClassOfService;
     mClassOfService &= ~inFlags;
+    if (previous != mClassOfService) {
+        OnClassOfServiceUpdated();
+    }
     return NS_OK;
 }
 
@@ -7749,6 +7767,10 @@ nsHttpChannel::DoAuthRetry(nsAHttpConnection *conn)
     while (suspendCount--)
         mTransactionPump->Suspend();
 
+    if (mSuspendCount && mClassOfService & nsIClassOfService::Throttleable) {
+        gHttpHandler->ThrottleTransaction(mTransaction, true);
+    }
+
     return NS_OK;
 }
 
@@ -8455,6 +8477,10 @@ nsHttpChannel::SuspendInternal()
 
     if (mSuspendCount == 1) {
         mSuspendTimestamp = TimeStamp::NowLoRes();
+
+        if (mClassOfService & nsIClassOfService::Throttleable && mTransaction) {
+            gHttpHandler->ThrottleTransaction(mTransaction, true);
+        }
     }
 
     nsresult rvTransaction = NS_OK;
@@ -8479,6 +8505,10 @@ nsHttpChannel::ResumeInternal()
     if (--mSuspendCount == 0) {
         mSuspendTotalTime += (TimeStamp::NowLoRes() - mSuspendTimestamp).
                                ToMilliseconds();
+
+        if (mClassOfService & nsIClassOfService::Throttleable && mTransaction) {
+            gHttpHandler->ThrottleTransaction(mTransaction, false);
+        }
 
         if (mCallOnResume) {
             nsresult rv = AsyncCall(mCallOnResume);

@@ -4185,5 +4185,11 @@ Http2Session::JoinConnection(const nsACString &hostname, int32_t port)
   return false;
 }
 
+void
+Http2Session::ThrottleResponse(bool aThrottle)
+{
+  // Response throttling on an h2 connection will be implemented later.
+}
+
 } // namespace net
 } // namespace mozilla
