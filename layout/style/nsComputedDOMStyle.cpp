@@ -647,7 +647,7 @@ nsComputedDOMStyle::DoGetStyleContextNoFlush(Element* aElement,
       NS_WARNING("stylo: ServoStyleSets cannot supply UA-only styles yet");
       return nullptr;
     }
-    return servoSet->ResolveTransientStyle(aElement, type);
+    return servoSet->ResolveTransientStyle(aElement, aPseudo, type);
   }
 
   RefPtr<nsStyleContext> parentContext;
