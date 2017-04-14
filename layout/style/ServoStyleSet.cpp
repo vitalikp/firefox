@@ -16,6 +16,7 @@
 #include "mozilla/dom/KeyframeEffectReadOnly.h"
 #include "nsCSSAnonBoxes.h"
 #include "nsCSSPseudoElements.h"
+#include "nsCSSRuleProcessor.h"
 #include "nsDeviceContext.h"
 #include "nsHTMLStyleSheet.h"
 #include "nsIDocumentInlines.h"
@@ -243,6 +244,8 @@ void
 ServoStyleSet::PreTraverseSync()
 {
   ResolveMappedAttrDeclarationBlocks();
+
+  nsCSSRuleProcessor::InitSystemMetrics();
 
   // This is lazily computed and pseudo matching needs to access
   // it so force computation early.
