@@ -118,7 +118,7 @@ SERVO_BINDING_FUNC(Servo_NamespaceRule_GetURI, nsIAtom*,
 // Animations API
 SERVO_BINDING_FUNC(Servo_ParseProperty,
                    RawServoDeclarationBlockStrong,
-                   const nsACString* property, const nsACString* value,
+                   nsCSSPropertyID property, const nsACString* value,
                    RawGeckoURLExtraData* data)
 SERVO_BINDING_FUNC(Servo_ParseEasing, bool,
                    const nsAString* easing,
