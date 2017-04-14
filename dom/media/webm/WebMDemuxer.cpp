@@ -722,7 +722,7 @@ WebMDemuxer::GetNextPacket(TrackInfo::TrackType aType,
       }
     }
     sample->mTimecode = media::TimeUnit::FromMicroseconds(tstamp);
-    sample->mTime = tstamp;
+    sample->mTime = media::TimeUnit::FromMicroseconds(tstamp);
     sample->mDuration = media::TimeUnit::FromMicroseconds(next_tstamp - tstamp);
     sample->mOffset = holder->Offset();
     sample->mKeyframe = isKeyframe;
@@ -1012,7 +1012,7 @@ WebMTrackDemuxer::Seek(const media::TimeUnit& aTime)
   // Check what time we actually seeked to.
   if (mSamples.GetSize() > 0) {
     const RefPtr<MediaRawData>& sample = mSamples.First();
-    seekTime = media::TimeUnit::FromMicroseconds(sample->mTime);
+    seekTime = sample->mTime;
   }
   SetNextKeyFrameTime();
 
@@ -1070,7 +1070,7 @@ WebMTrackDemuxer::SetNextKeyFrameTime()
     return;
   }
 
-  int64_t frameTime = -1;
+  auto frameTime = media::TimeUnit::Invalid();
 
   mNextKeyframeTime.reset();
 
@@ -1111,8 +1111,8 @@ WebMTrackDemuxer::SetNextKeyFrameTime()
   // in the right order.
   mSamples.PushFront(Move(skipSamplesQueue));
 
-  if (frameTime != -1) {
-    mNextKeyframeTime.emplace(media::TimeUnit::FromMicroseconds(frameTime));
+  if (frameTime.IsValid()) {
+    mNextKeyframeTime.emplace(frameTime);
     WEBM_DEBUG("Next Keyframe %f (%u queued %.02fs)",
                mNextKeyframeTime.value().ToSeconds(),
                uint32_t(mSamples.GetSize()),
@@ -1150,8 +1150,7 @@ WebMTrackDemuxer::UpdateSamples(nsTArray<RefPtr<MediaRawData>>& aSamples)
     }
   }
   if (mNextKeyframeTime.isNothing()
-      || aSamples.LastElement()->mTime
-         >= mNextKeyframeTime.value().ToMicroseconds()) {
+      || aSamples.LastElement()->mTime >= mNextKeyframeTime.value()) {
     SetNextKeyFrameTime();
   }
 }
@@ -1177,13 +1176,13 @@ WebMTrackDemuxer::SkipToNextRandomAccessPoint(
   bool found = false;
   RefPtr<MediaRawData> sample;
   nsresult rv = NS_OK;
-  int64_t sampleTime;
 
   WEBM_DEBUG("TimeThreshold: %f", aTimeThreshold.ToSeconds());
   while (!found && NS_SUCCEEDED((rv = NextSample(sample)))) {
     parsed++;
-    sampleTime = sample->mTime;
-    if (sample->mKeyframe && sampleTime >= aTimeThreshold.ToMicroseconds()) {
+    if (sample->mKeyframe && sample->mTime >= aTimeThreshold) {
+      WEBM_DEBUG("next sample: %f (parsed: %d)",
+                 sample->mTime.ToSeconds(), parsed);
       found = true;
       mSamples.Reset();
       mSamples.PushFront(sample.forget());
@@ -1193,9 +1192,6 @@ WebMTrackDemuxer::SkipToNextRandomAccessPoint(
     SetNextKeyFrameTime();
   }
   if (found) {
-    WEBM_DEBUG("next sample: %f (parsed: %d)",
-               media::TimeUnit::FromMicroseconds(sampleTime).ToSeconds(),
-               parsed);
     return SkipAccessPointPromise::CreateAndResolve(parsed, __func__);
   } else {
     SkipFailureHolder failure(NS_ERROR_DOM_MEDIA_END_OF_STREAM, parsed);

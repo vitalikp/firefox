@@ -1647,7 +1647,7 @@ MediaFormatReader::NotifyNewOutput(
   auto& decoder = GetDecoderData(aTrack);
   for (auto& sample : aResults) {
     LOGV("Received new %s sample time:%" PRId64 " duration:%" PRId64,
-         TrackTypeToStr(aTrack), sample->mTime,
+         TrackTypeToStr(aTrack), sample->mTime.ToMicroseconds(),
          sample->mDuration.ToMicroseconds());
     decoder.mOutput.AppendElement(sample);
     decoder.mNumSamplesOutput++;
@@ -1932,19 +1932,19 @@ MediaFormatReader::HandleDemuxedSamples(
       if (sample->mKeyframe) {
         ScheduleUpdate(aTrack);
       } else {
-        auto time = TimeInterval(
-          TimeUnit::FromMicroseconds(sample->mTime), sample->GetEndTime());
+        auto time = TimeInterval(sample->mTime, sample->GetEndTime());
         InternalSeekTarget seekTarget =
           decoder.mTimeThreshold.refOr(InternalSeekTarget(time, false));
         LOG("Stream change occurred on a non-keyframe. Seeking to:%" PRId64,
-            sample->mTime);
+            sample->mTime.ToMicroseconds());
         InternalSeek(aTrack, seekTarget);
       }
       return;
     }
 
     LOGV("Input:%" PRId64 " (dts:%" PRId64 " kf:%d)",
-         sample->mTime, sample->mTimecode.ToMicroseconds(), sample->mKeyframe);
+         sample->mTime.ToMicroseconds(), sample->mTimecode.ToMicroseconds(),
+         sample->mKeyframe);
     decoder.mNumSamplesInput++;
     decoder.mSizeOfQueue++;
     if (aTrack == TrackInfo::kVideoTrack) {
@@ -2107,7 +2107,7 @@ MediaFormatReader::Update(TrackType aTrack)
   while (decoder.mTimeThreshold && decoder.mOutput.Length()) {
     RefPtr<MediaData>& output = decoder.mOutput[0];
     InternalSeekTarget target = decoder.mTimeThreshold.ref();
-    media::TimeUnit time = media::TimeUnit::FromMicroseconds(output->mTime);
+    media::TimeUnit time = output->mTime;
     if (time >= target.Time()) {
       // We have reached our internal seek target.
       decoder.mTimeThreshold.reset();
@@ -2117,7 +2117,7 @@ MediaFormatReader::Update(TrackType aTrack)
     if (time < target.Time() || (target.mDropTarget && target.Contains(time))) {
       LOGV("Internal Seeking: Dropping %s frame time:%f wanted:%f (kf:%d)",
            TrackTypeToStr(aTrack),
-           media::TimeUnit::FromMicroseconds(output->mTime).ToSeconds(),
+           output->mTime.ToSeconds(),
            target.Time().ToSeconds(),
            output->mKeyframe);
       decoder.mOutput.RemoveElementAt(0);
@@ -2127,7 +2127,8 @@ MediaFormatReader::Update(TrackType aTrack)
 
   while (decoder.mOutput.Length()
          && decoder.mOutput[0]->mType == MediaData::NULL_DATA) {
-    LOGV("Dropping null data. Time: %" PRId64, decoder.mOutput[0]->mTime);
+    LOGV("Dropping null data. Time: %" PRId64,
+         decoder.mOutput[0]->mTime.ToMicroseconds());
     decoder.mOutput.RemoveElementAt(0);
     decoder.mSizeOfQueue -= 1;
   }
@@ -2139,8 +2140,7 @@ MediaFormatReader::Update(TrackType aTrack)
       decoder.mOutput.RemoveElementAt(0);
       decoder.mSizeOfQueue -= 1;
       decoder.mLastSampleTime =
-        Some(TimeInterval(TimeUnit::FromMicroseconds(output->mTime),
-                          output->GetEndTime()));
+        Some(TimeInterval(output->mTime, output->GetEndTime()));
       decoder.mNumSamplesOutputTotal++;
       ReturnOutput(output, aTrack);
       // We have a decoded sample ready to be returned.
@@ -2150,17 +2150,17 @@ MediaFormatReader::Update(TrackType aTrack)
         a.mStats.mDecodedFrames = static_cast<uint32_t>(delta);
         mLastReportedNumDecodedFrames = decoder.mNumSamplesOutputTotal;
         if (output->mKeyframe) {
-          if (mPreviousDecodedKeyframeTime_us < output->mTime) {
+          if (mPreviousDecodedKeyframeTime_us < output->mTime.ToMicroseconds()) {
             // There is a previous keyframe -> Record inter-keyframe stats.
             uint64_t segment_us =
-              output->mTime - mPreviousDecodedKeyframeTime_us;
+              output->mTime.ToMicroseconds() - mPreviousDecodedKeyframeTime_us;
             a.mStats.mInterKeyframeSum_us += segment_us;
             a.mStats.mInterKeyframeCount += 1;
             if (a.mStats.mInterKeyFrameMax_us < segment_us) {
               a.mStats.mInterKeyFrameMax_us = segment_us;
             }
           }
-          mPreviousDecodedKeyframeTime_us = output->mTime;
+          mPreviousDecodedKeyframeTime_us = output->mTime.ToMicroseconds();
         }
         nsCString error;
         mVideo.mIsHardwareAccelerated =
@@ -2300,7 +2300,7 @@ MediaFormatReader::ReturnOutput(MediaData* aData, TrackType aTrack)
   MOZ_ASSERT(GetDecoderData(aTrack).HasPromise());
   MOZ_DIAGNOSTIC_ASSERT(aData->mType != MediaData::NULL_DATA);
   LOG("Resolved data promise for %s [%" PRId64 ", %" PRId64 "]", TrackTypeToStr(aTrack),
-      aData->mTime, aData->GetEndTime().ToMicroseconds());
+      aData->mTime.ToMicroseconds(), aData->GetEndTime().ToMicroseconds());
 
   if (aTrack == TrackInfo::kAudioTrack) {
     AudioData* audioData = static_cast<AudioData*>(aData);
@@ -2427,8 +2427,7 @@ MediaFormatReader::DropDecodedSamples(TrackType aTrack)
   auto& decoder = GetDecoderData(aTrack);
   size_t lengthDecodedQueue = decoder.mOutput.Length();
   if (lengthDecodedQueue && decoder.mTimeThreshold.isSome()) {
-    TimeUnit time =
-      TimeUnit::FromMicroseconds(decoder.mOutput.LastElement()->mTime);
+    TimeUnit time = decoder.mOutput.LastElement()->mTime;
     if (time >= decoder.mTimeThreshold.ref().Time()) {
       // We would have reached our internal seek target.
       decoder.mTimeThreshold.reset();
@@ -3019,8 +3018,7 @@ MediaFormatReader::OnFirstDemuxCompleted(
 
   auto& decoder = GetDecoderData(aType);
   MOZ_ASSERT(decoder.mFirstDemuxedSampleTime.isNothing());
-  decoder.mFirstDemuxedSampleTime.emplace(
-    TimeUnit::FromMicroseconds(aSamples->mSamples[0]->mTime));
+  decoder.mFirstDemuxedSampleTime.emplace(aSamples->mSamples[0]->mTime);
   MaybeResolveMetadataPromise();
 }
 
