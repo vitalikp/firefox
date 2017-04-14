@@ -1356,7 +1356,7 @@ OggTrackDemuxer::NextSample()
     // We've encountered an end of bitstream packet; check for a chained
     // bitstream following this one.
     // This will also update mSharedAudioTrackInfo.
-    mParent->ReadOggChain(TimeUnit::FromMicroseconds(data->GetEndTime()));
+    mParent->ReadOggChain(data->GetEndTime());
   }
   return data;
 }

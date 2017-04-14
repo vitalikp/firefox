@@ -448,7 +448,7 @@ TrackBuffersManager::DoEvictData(const TimeUnit& aPlaybackTime,
       }
       partialEvict = 0;
     }
-    if (frame->GetEndTime() >= lowerLimit.ToMicroseconds()) {
+    if (frame->GetEndTime() >= lowerLimit) {
       break;
     }
     partialEvict += frame->ComputedSizeOfIncludingThis();
@@ -1392,13 +1392,13 @@ TrackBuffersManager::PresentationInterval(const TrackBuffer& aSamples) const
 {
   TimeInterval presentationInterval =
     TimeInterval(TimeUnit::FromMicroseconds(aSamples[0]->mTime),
-                 TimeUnit::FromMicroseconds(aSamples[0]->GetEndTime()));
+                 aSamples[0]->GetEndTime());
 
   for (uint32_t i = 1; i < aSamples.Length(); i++) {
     auto& sample = aSamples[i];
     presentationInterval = presentationInterval.Span(
       TimeInterval(TimeUnit::FromMicroseconds(sample->mTime),
-                   TimeUnit::FromMicroseconds(sample->GetEndTime())));
+                   sample->GetEndTime()));
   }
   return presentationInterval;
 }
@@ -1460,13 +1460,12 @@ TrackBuffersManager::ProcessFrames(TrackBuffer& aSamples, TrackData& aTrackData)
                "kf:%d)",
                aTrackData.mInfo->mMimeType.get(),
                sample->mTime,
-               sample->GetEndTime(),
+               sample->GetEndTime().ToMicroseconds(),
                sample->mTimecode,
                sample->mDuration.ToMicroseconds(),
                sample->mKeyframe);
 
-    const TimeUnit sampleEndTime =
-      TimeUnit::FromMicroseconds(sample->GetEndTime());
+    const TimeUnit sampleEndTime = sample->GetEndTime();
     if (sampleEndTime > aTrackData.mLastParsedEndTime) {
       aTrackData.mLastParsedEndTime = sampleEndTime;
     }
@@ -1667,7 +1666,7 @@ TrackBuffersManager::CheckNextInsertionIndex(TrackData& aTrackData,
   for (uint32_t i = 0; i < data.Length(); i++) {
     const RefPtr<MediaRawData>& sample = data[i];
     if (sample->mTime >= target.mStart.ToMicroseconds() ||
-        sample->GetEndTime() > target.mStart.ToMicroseconds()) {
+        sample->GetEndTime() > target.mStart) {
       aTrackData.mNextInsertionIndex = Some(i);
       return true;
     }
@@ -1810,7 +1809,7 @@ TrackBuffersManager::RemoveFrames(const TimeIntervals& aIntervals,
     const RefPtr<MediaRawData> sample = data[i];
     TimeInterval sampleInterval =
       TimeInterval(TimeUnit::FromMicroseconds(sample->mTime),
-                   TimeUnit::FromMicroseconds(sample->GetEndTime()));
+                   sample->GetEndTime());
     if (aIntervals.Contains(sampleInterval)) {
       if (firstRemovedIndex.isNothing()) {
         firstRemovedIndex = Some(i);
@@ -1848,7 +1847,7 @@ TrackBuffersManager::RemoveFrames(const TimeIntervals& aIntervals,
     const RefPtr<MediaRawData> sample = data[i];
     TimeInterval sampleInterval =
       TimeInterval(TimeUnit::FromMicroseconds(sample->mTime),
-                   TimeUnit::FromMicroseconds(sample->GetEndTime()));
+                   sample->GetEndTime());
     removedIntervals += sampleInterval;
     if (sample->mDuration > maxSampleDuration) {
       maxSampleDuration = sample->mDuration;
@@ -2089,7 +2088,7 @@ uint32_t TrackBuffersManager::FindSampleIndex(const TrackBuffer& aTrackBuffer,
   for (uint32_t i = 0; i < aTrackBuffer.Length(); i++) {
     const RefPtr<MediaRawData>& sample = aTrackBuffer[i];
     if (sample->mTime >= target.ToMicroseconds() ||
-        sample->GetEndTime() > target.ToMicroseconds()) {
+        sample->GetEndTime() > target) {
       return i;
     }
   }
@@ -2216,7 +2215,7 @@ TrackBuffersManager::SkipToNextRandomAccessPoint(TrackInfo::TrackType aTrack,
     }
     nextSampleTimecode =
       TimeUnit::FromMicroseconds(sample->mTimecode) + sample->mDuration;
-    nextSampleTime = TimeUnit::FromMicroseconds(sample->GetEndTime());
+    nextSampleTime = sample->GetEndTime();
     parsed++;
   }
 
@@ -2332,8 +2331,7 @@ TrackBuffersManager::GetSample(TrackInfo::TrackType aTrack,
     // Estimate decode timestamp and timestamp of the next sample.
     TimeUnit nextSampleTimecode =
       TimeUnit::FromMicroseconds(sample->mTimecode) + sample->mDuration;
-    TimeUnit nextSampleTime =
-      TimeUnit::FromMicroseconds(sample->GetEndTime());
+    TimeUnit nextSampleTime = sample->GetEndTime();
     const MediaRawData* nextSample =
       GetSample(aTrack,
                 trackData.mNextGetSampleIndex.ref(),
@@ -2390,8 +2388,7 @@ TrackBuffersManager::GetSample(TrackInfo::TrackType aTrack,
   trackData.mNextGetSampleIndex = Some(uint32_t(pos)+1);
   trackData.mNextSampleTimecode =
     TimeUnit::FromMicroseconds(sample->mTimecode) + sample->mDuration;
-  trackData.mNextSampleTime =
-    TimeUnit::FromMicroseconds(sample->GetEndTime());
+  trackData.mNextSampleTime = sample->GetEndTime();
   aResult = NS_OK;
   return p.forget();
 }
@@ -2444,7 +2441,7 @@ TrackBuffersManager::FindCurrentPosition(TrackInfo::TrackType aTrack,
     const RefPtr<MediaRawData>& sample = track[i];
     TimeInterval sampleInterval{
       TimeUnit::FromMicroseconds(sample->mTime),
-      TimeUnit::FromMicroseconds(sample->GetEndTime()),
+      sample->GetEndTime(),
       aFuzz};
 
     if (sampleInterval.ContainsWithStrictEnd(trackData.mNextSampleTimecode)) {
@@ -2487,7 +2484,7 @@ TrackBuffersManager::GetNextRandomAccessPoint(TrackInfo::TrackType aTrack,
     }
     nextSampleTimecode =
       TimeUnit::FromMicroseconds(sample->mTimecode) + sample->mDuration;
-    nextSampleTime = TimeUnit::FromMicroseconds(sample->GetEndTime());
+    nextSampleTime = sample->GetEndTime();
   }
   return TimeUnit::FromInfinity();
 }

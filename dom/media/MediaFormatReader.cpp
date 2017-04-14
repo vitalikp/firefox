@@ -1932,9 +1932,8 @@ MediaFormatReader::HandleDemuxedSamples(
       if (sample->mKeyframe) {
         ScheduleUpdate(aTrack);
       } else {
-        TimeInterval time =
-          TimeInterval(TimeUnit::FromMicroseconds(sample->mTime),
-                       TimeUnit::FromMicroseconds(sample->GetEndTime()));
+        auto time = TimeInterval(
+          TimeUnit::FromMicroseconds(sample->mTime), sample->GetEndTime());
         InternalSeekTarget seekTarget =
           decoder.mTimeThreshold.refOr(InternalSeekTarget(time, false));
         LOG("Stream change occurred on a non-keyframe. Seeking to:%" PRId64,
@@ -2141,7 +2140,7 @@ MediaFormatReader::Update(TrackType aTrack)
       decoder.mSizeOfQueue -= 1;
       decoder.mLastSampleTime =
         Some(TimeInterval(TimeUnit::FromMicroseconds(output->mTime),
-                          TimeUnit::FromMicroseconds(output->GetEndTime())));
+                          output->GetEndTime()));
       decoder.mNumSamplesOutputTotal++;
       ReturnOutput(output, aTrack);
       // We have a decoded sample ready to be returned.
@@ -2301,7 +2300,7 @@ MediaFormatReader::ReturnOutput(MediaData* aData, TrackType aTrack)
   MOZ_ASSERT(GetDecoderData(aTrack).HasPromise());
   MOZ_DIAGNOSTIC_ASSERT(aData->mType != MediaData::NULL_DATA);
   LOG("Resolved data promise for %s [%" PRId64 ", %" PRId64 "]", TrackTypeToStr(aTrack),
-      aData->mTime, aData->GetEndTime());
+      aData->mTime, aData->GetEndTime().ToMicroseconds());
 
   if (aTrack == TrackInfo::kAudioTrack) {
     AudioData* audioData = static_cast<AudioData*>(aData);
