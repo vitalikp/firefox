@@ -794,7 +794,7 @@ struct SVGDrawingParameters
     , viewportSize(aSize)
     , animationTime(aAnimationTime)
     , flags(aFlags)
-    , opacity(aSVGContext ? aSVGContext->GetGlobalOpacity() : aOpacity)
+    , opacity(aOpacity)
   {
     if (aSVGContext) {
       auto sz = aSVGContext->GetViewportSize();
