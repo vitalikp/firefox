@@ -74,6 +74,12 @@ public:
   void GetDownload(nsAString & aDownload);
   void SetDownload(const nsAString & aDownload, ErrorResult& rv);
 
+  virtual void NodeInfoChanged(nsIDocument* aOldDoc) final override
+  {
+    ClearHasPendingLinkUpdate();
+    SVGAElementBase::NodeInfoChanged(aOldDoc);
+  }
+
 protected:
   virtual ~SVGAElement();
 

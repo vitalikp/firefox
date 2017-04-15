@@ -1135,6 +1135,8 @@ public:
    *
    * If you override this method,
    * please call up to the parent NodeInfoChanged.
+   *
+   * If you change this, change also the similar method in Link.
    */
   virtual void NodeInfoChanged(nsIDocument* aOldDoc) {}
 
