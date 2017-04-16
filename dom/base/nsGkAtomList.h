@@ -2138,12 +2138,14 @@ GK_ATOM(onphoto, "onphoto")
 GK_ATOM(onactivestatechanged, "onactivestatechanged")
 
 // Content property names
+GK_ATOM(afterPseudoProperty, "afterPseudoProperty")  // nsXMLElement*
 GK_ATOM(animationsProperty, "AnimationsProperty")        // FrameAnimations*
 GK_ATOM(animationsOfBeforeProperty, "AnimationsOfBeforeProperty") // FrameAnimations*
 GK_ATOM(animationsOfAfterProperty, "AnimationsOfAfterProperty") // FrameAnimations*
 GK_ATOM(animationEffectsProperty, "AnimationEffectsProperty") // EffectSet*
 GK_ATOM(animationEffectsForBeforeProperty, "AnimationsEffectsForBeforeProperty") // EffectSet*
 GK_ATOM(animationEffectsForAfterProperty, "AnimationsEffectsForAfterProperty") // EffectSet*
+GK_ATOM(beforePseudoProperty, "beforePseudoProperty")  // nsXMLElement*
 GK_ATOM(cssPseudoElementBeforeProperty, "CSSPseudoElementBeforeProperty") // CSSPseudoElement*
 GK_ATOM(cssPseudoElementAfterProperty, "CSSPseudoElementAfterProperty") // CSSPseudoElement*
 GK_ATOM(transitionsProperty, "TransitionsProperty")        // FrameTransitions*

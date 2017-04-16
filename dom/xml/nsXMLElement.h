@@ -36,6 +36,9 @@ public:
 
   virtual nsIDOMNode* AsDOMNode() override { return this; }
 
+  virtual void UnbindFromTree(bool aDeep = true,
+                              bool aNullParent = true) override;
+
 protected:
   virtual ~nsXMLElement() {}
 
