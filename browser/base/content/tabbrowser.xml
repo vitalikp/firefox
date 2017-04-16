@@ -1525,6 +1525,7 @@
             var aOriginPrincipal;
             var aOpener;
             var aCreateLazyBrowser;
+            var aNextTabParentId;
             if (arguments.length == 2 &&
                 typeof arguments[1] == "object" &&
                 !(arguments[1] instanceof Ci.nsIURI)) {
@@ -1549,6 +1550,7 @@
               aOpener                   = params.opener;
               aIsPrerendered            = params.isPrerendered;
               aCreateLazyBrowser        = params.createLazyBrowser;
+              aNextTabParentId          = params.nextTabParentId;
             }
 
             var bgLoad = (aLoadInBackground != null) ? aLoadInBackground :
@@ -1575,7 +1577,8 @@
                                   originPrincipal: aOriginPrincipal,
                                   sameProcessAsFrameLoader: aSameProcessAsFrameLoader,
                                   opener: aOpener,
-                                  isPrerendered: aIsPrerendered });
+                                  isPrerendered: aIsPrerendered,
+                                  nextTabParentId: aNextTabParentId });
             if (!bgLoad)
               this.selectedTab = tab;
 
@@ -2015,6 +2018,11 @@
 
             b.setAttribute("autoscrollpopup", this._autoScrollPopup.id);
 
+            if (aParams.nextTabParentId) {
+              // Gecko is going to read this attribute and use it.
+              b.setAttribute("nextTabParentId", aParams.nextTabParentId.toString());
+            }
+
             if (aParams.sameProcessAsFrameLoader) {
               b.sameProcessAsFrameLoader = aParams.sameProcessAsFrameLoader;
             }
@@ -2219,6 +2227,7 @@
             var aOpener;
             var aCreateLazyBrowser;
             var aSkipBackgroundNotify;
+            var aNextTabParentId;
             if (arguments.length == 2 &&
                 typeof arguments[1] == "object" &&
                 !(arguments[1] instanceof Ci.nsIURI)) {
@@ -2246,6 +2255,7 @@
               aIsPrerendered            = params.isPrerendered;
               aCreateLazyBrowser        = params.createLazyBrowser;
               aSkipBackgroundNotify     = params.skipBackgroundNotify;
+              aNextTabParentId          = params.nextTabParentId;
             }
 
             // if we're adding tabs, we're past interrupt mode, ditch the owner
@@ -2351,7 +2361,8 @@
                                         userContextId: aUserContextId,
                                         sameProcessAsFrameLoader: aSameProcessAsFrameLoader,
                                         opener: aOpener,
-                                        isPrerendered: aIsPrerendered });
+                                        isPrerendered: aIsPrerendered,
+                                        nextTabParentId: aNextTabParentId });
             }
 
             t.linkedBrowser = b;
