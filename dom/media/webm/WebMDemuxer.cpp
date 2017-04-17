@@ -38,6 +38,7 @@ extern mozilla::LazyLogModule gMediaDemuxerLog;
 namespace mozilla {
 
 using namespace gfx;
+using media::TimeUnit;
 
 LazyLogModule gNesteggLog("Nestegg");
 
@@ -389,7 +390,7 @@ WebMDemuxer::ReadMetadata()
       uint64_t duration = 0;
       r = nestegg_duration(context, &duration);
       if (!r) {
-        mInfo.mVideo.mDuration = media::TimeUnit::FromNanoseconds(duration);
+        mInfo.mVideo.mDuration = TimeUnit::FromNanoseconds(duration);
       }
       mInfo.mVideo.mCrypto = GetTrackCrypto(TrackInfo::kVideoTrack, track);
       if (mInfo.mVideo.mCrypto.mValid) {
@@ -412,8 +413,7 @@ WebMDemuxer::ReadMetadata()
         mInfo.mAudio.mMimeType = "audio/opus";
         OpusDataDecoder::AppendCodecDelay(
           mInfo.mAudio.mCodecSpecificConfig,
-          media::TimeUnit::FromNanoseconds(params.codec_delay)
-            .ToMicroseconds());
+          TimeUnit::FromNanoseconds(params.codec_delay).ToMicroseconds());
       }
       mSeekPreroll = params.seek_preroll;
       mInfo.mAudio.mRate = params.rate;
@@ -456,7 +456,7 @@ WebMDemuxer::ReadMetadata()
       uint64_t duration = 0;
       r = nestegg_duration(context, &duration);
       if (!r) {
-        mInfo.mAudio.mDuration = media::TimeUnit::FromNanoseconds(duration);
+        mInfo.mAudio.mDuration = TimeUnit::FromNanoseconds(duration);
       }
       mInfo.mAudio.mCrypto = GetTrackCrypto(TrackInfo::kAudioTrack, track);
       if (mInfo.mAudio.mCrypto.mValid) {
@@ -721,9 +721,9 @@ WebMDemuxer::GetNextPacket(TrackInfo::TrackType aType,
         return NS_ERROR_OUT_OF_MEMORY;
       }
     }
-    sample->mTimecode = media::TimeUnit::FromMicroseconds(tstamp);
-    sample->mTime = media::TimeUnit::FromMicroseconds(tstamp);
-    sample->mDuration = media::TimeUnit::FromMicroseconds(next_tstamp - tstamp);
+    sample->mTimecode = TimeUnit::FromMicroseconds(tstamp);
+    sample->mTime = TimeUnit::FromMicroseconds(tstamp);
+    sample->mDuration = TimeUnit::FromMicroseconds(next_tstamp - tstamp);
     sample->mOffset = holder->Offset();
     sample->mKeyframe = isKeyframe;
     if (discardPadding && i == count - 1) {
@@ -736,7 +736,7 @@ WebMDemuxer::GetNextPacket(TrackInfo::TrackType aType,
         WEBM_DEBUG("Invalid negative discard padding");
       } else {
         discardFrames = TimeUnitToFrames(
-          media::TimeUnit::FromNanoseconds(discardPadding), mInfo.mAudio.mRate);
+          TimeUnit::FromNanoseconds(discardPadding), mInfo.mAudio.mRate);
       }
       if (discardFrames.isValid()) {
         sample->mDiscardPadding = discardFrames.value();
@@ -860,7 +860,7 @@ WebMDemuxer::PushVideoPacket(NesteggPacketHolder* aItem)
 
 nsresult
 WebMDemuxer::SeekInternal(TrackInfo::TrackType aType,
-                          const media::TimeUnit& aTarget)
+                          const TimeUnit& aTarget)
 {
   EnsureUpToDateIndex();
   uint32_t trackToSeek = mHasVideo ? mVideoTrack : mAudioTrack;
@@ -876,21 +876,21 @@ WebMDemuxer::SeekInternal(TrackInfo::TrackType aType,
       startTime = 0;
     }
     WEBM_DEBUG("Seek Target: %f",
-               media::TimeUnit::FromNanoseconds(target).ToSeconds());
+               TimeUnit::FromNanoseconds(target).ToSeconds());
     if (target < mSeekPreroll || target - mSeekPreroll < startTime) {
       target = startTime;
     } else {
       target -= mSeekPreroll;
     }
     WEBM_DEBUG("SeekPreroll: %f StartTime: %f Adjusted Target: %f",
-               media::TimeUnit::FromNanoseconds(mSeekPreroll).ToSeconds(),
-               media::TimeUnit::FromNanoseconds(startTime).ToSeconds(),
-               media::TimeUnit::FromNanoseconds(target).ToSeconds());
+               TimeUnit::FromNanoseconds(mSeekPreroll).ToSeconds(),
+               TimeUnit::FromNanoseconds(startTime).ToSeconds(),
+               TimeUnit::FromNanoseconds(target).ToSeconds());
   }
   int r = nestegg_track_seek(Context(aType), trackToSeek, target);
   if (r == -1) {
     WEBM_DEBUG("track_seek for track %u to %f failed, r=%d", trackToSeek,
-               media::TimeUnit::FromNanoseconds(target).ToSeconds(), r);
+               TimeUnit::FromNanoseconds(target).ToSeconds(), r);
     // Try seeking directly based on cluster information in memory.
     int64_t offset = 0;
     bool rv = mBufferedState->GetOffsetForTime(target, &offset);
@@ -937,8 +937,8 @@ WebMDemuxer::GetBuffered()
       duration += startOffset;
     }
     WEBM_DEBUG("Duration: %f StartTime: %f",
-               media::TimeUnit::FromNanoseconds(duration).ToSeconds(),
-               media::TimeUnit::FromNanoseconds(startOffset).ToSeconds());
+               TimeUnit::FromNanoseconds(duration).ToSeconds(),
+               TimeUnit::FromNanoseconds(startOffset).ToSeconds());
   }
   for (uint32_t index = 0; index < ranges.Length(); index++) {
     uint64_t start, end;
@@ -951,12 +951,12 @@ WebMDemuxer::GetBuffered()
 
       if (duration && end > duration) {
         WEBM_DEBUG("limit range to duration, end: %f duration: %f",
-                   media::TimeUnit::FromNanoseconds(end).ToSeconds(),
-                   media::TimeUnit::FromNanoseconds(duration).ToSeconds());
+                   TimeUnit::FromNanoseconds(end).ToSeconds(),
+                   TimeUnit::FromNanoseconds(duration).ToSeconds());
         end = duration;
       }
-      media::TimeUnit startTime = media::TimeUnit::FromNanoseconds(start);
-      media::TimeUnit endTime = media::TimeUnit::FromNanoseconds(end);
+      auto startTime = TimeUnit::FromNanoseconds(start);
+      auto endTime = TimeUnit::FromNanoseconds(end);
       WEBM_DEBUG("add range %f-%f", startTime.ToSeconds(), endTime.ToSeconds());
       buffered += media::TimeInterval(startTime, endTime);
     }
@@ -995,19 +995,19 @@ WebMTrackDemuxer::GetInfo() const
 }
 
 RefPtr<WebMTrackDemuxer::SeekPromise>
-WebMTrackDemuxer::Seek(const media::TimeUnit& aTime)
+WebMTrackDemuxer::Seek(const TimeUnit& aTime)
 {
   // Seeks to aTime. Upon success, SeekPromise will be resolved with the
   // actual time seeked to. Typically the random access point time
 
-  media::TimeUnit seekTime = aTime;
+  auto seekTime = aTime;
   mSamples.Reset();
   mParent->SeekInternal(mType, aTime);
   nsresult rv = mParent->GetNextPacket(mType, &mSamples);
   if (NS_FAILED(rv)) {
     if (rv == NS_ERROR_DOM_MEDIA_END_OF_STREAM) {
       // Ignore the error for now, the next GetSample will be rejected with EOS.
-      return SeekPromise::CreateAndResolve(media::TimeUnit(), __func__);
+      return SeekPromise::CreateAndResolve(TimeUnit::Zero(), __func__);
     }
     return SeekPromise::CreateAndReject(rv, __func__);
   }
@@ -1074,7 +1074,7 @@ WebMTrackDemuxer::SetNextKeyFrameTime()
     return;
   }
 
-  auto frameTime = media::TimeUnit::Invalid();
+  auto frameTime = TimeUnit::Invalid();
 
   mNextKeyframeTime.reset();
 
@@ -1160,12 +1160,11 @@ WebMTrackDemuxer::UpdateSamples(nsTArray<RefPtr<MediaRawData>>& aSamples)
 }
 
 nsresult
-WebMTrackDemuxer::GetNextRandomAccessPoint(media::TimeUnit* aTime)
+WebMTrackDemuxer::GetNextRandomAccessPoint(TimeUnit* aTime)
 {
   if (mNextKeyframeTime.isNothing()) {
     // There's no next key frame.
-    *aTime =
-      media::TimeUnit::FromMicroseconds(std::numeric_limits<int64_t>::max());
+    *aTime = TimeUnit::FromInfinity();
   } else {
     *aTime = mNextKeyframeTime.ref();
   }
@@ -1173,8 +1172,7 @@ WebMTrackDemuxer::GetNextRandomAccessPoint(media::TimeUnit* aTime)
 }
 
 RefPtr<WebMTrackDemuxer::SkipAccessPointPromise>
-WebMTrackDemuxer::SkipToNextRandomAccessPoint(
-  const media::TimeUnit& aTimeThreshold)
+WebMTrackDemuxer::SkipToNextRandomAccessPoint(const TimeUnit& aTimeThreshold)
 {
   uint32_t parsed = 0;
   bool found = false;
@@ -1216,7 +1214,7 @@ WebMTrackDemuxer::BreakCycles()
 }
 
 int64_t
-WebMTrackDemuxer::GetEvictionOffset(const media::TimeUnit& aTime)
+WebMTrackDemuxer::GetEvictionOffset(const TimeUnit& aTime)
 {
   int64_t offset;
   if (!mParent->GetOffsetForTime(aTime.ToNanoseconds(), &offset)) {

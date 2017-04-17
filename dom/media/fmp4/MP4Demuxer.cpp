@@ -438,8 +438,7 @@ MP4TrackDemuxer::GetNextRandomAccessPoint(media::TimeUnit* aTime)
 {
   if (mNextKeyframeTime.isNothing()) {
     // There's no next key frame.
-    *aTime =
-      media::TimeUnit::FromMicroseconds(std::numeric_limits<int64_t>::max());
+    *aTime = media::TimeUnit::FromInfinity();
   } else {
     *aTime = mNextKeyframeTime.value();
   }

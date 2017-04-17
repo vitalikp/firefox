@@ -419,7 +419,7 @@ public:
   {
     return mDecoder->GetDescriptionName();
   }
-  void SetSeekThreshold(const media::TimeUnit& aTime) override
+  void SetSeekThreshold(const TimeUnit& aTime) override
   {
     mDecoder->SetSeekThreshold(aTime);
   }
@@ -755,7 +755,7 @@ public:
     return mInfo->Clone();
   }
 
-  RefPtr<SeekPromise> Seek(const media::TimeUnit& aTime) override
+  RefPtr<SeekPromise> Seek(const TimeUnit& aTime) override
   {
     RefPtr<Wrapper> self = this;
     return InvokeAsync(
@@ -801,7 +801,7 @@ public:
   }
 
   RefPtr<SkipAccessPointPromise>
-  SkipToNextRandomAccessPoint(const media::TimeUnit& aTimeThreshold) override
+  SkipToNextRandomAccessPoint(const TimeUnit& aTimeThreshold) override
   {
     RefPtr<Wrapper> self = this;
     return InvokeAsync(
@@ -1357,8 +1357,8 @@ MediaFormatReader::OnDemuxerInitDone(nsresult)
   // For others, we must demux the first sample to know the start time for each
   // track.
   if (!mDemuxer->ShouldComputeStartTime()) {
-    mAudio.mFirstDemuxedSampleTime.emplace(TimeUnit::FromMicroseconds(0));
-    mVideo.mFirstDemuxedSampleTime.emplace(TimeUnit::FromMicroseconds(0));
+    mAudio.mFirstDemuxedSampleTime.emplace(TimeUnit::Zero());
+    mVideo.mFirstDemuxedSampleTime.emplace(TimeUnit::Zero());
   } else {
     if (HasAudio()) {
       RequestDemuxSamples(TrackInfo::kAudioTrack);
@@ -1435,10 +1435,10 @@ MediaFormatReader::GetDecoderData(TrackType aTrack)
 
 bool
 MediaFormatReader::ShouldSkip(bool aSkipToNextKeyframe,
-                              media::TimeUnit aTimeThreshold)
+                              TimeUnit aTimeThreshold)
 {
   MOZ_ASSERT(HasVideo());
-  media::TimeUnit nextKeyframe;
+  TimeUnit nextKeyframe;
   nsresult rv = mVideo.mTrackDemuxer->GetNextRandomAccessPoint(&nextKeyframe);
   if (NS_FAILED(rv)) {
     return aSkipToNextKeyframe;
@@ -1452,7 +1452,7 @@ MediaFormatReader::ShouldSkip(bool aSkipToNextKeyframe,
 
 RefPtr<MediaDecoderReader::VideoDataPromise>
 MediaFormatReader::RequestVideoData(bool aSkipToNextKeyframe,
-                                    const media::TimeUnit& aTimeThreshold)
+                                    const TimeUnit& aTimeThreshold)
 {
   MOZ_ASSERT(OnTaskQueue());
   MOZ_DIAGNOSTIC_ASSERT(mSeekPromise.IsEmpty(),
@@ -1973,7 +1973,7 @@ MediaFormatReader::InternalSeek(TrackType aTrack,
   RefPtr<MediaFormatReader> self = this;
   decoder.mTrackDemuxer->Seek(decoder.mTimeThreshold.ref().Time())
     ->Then(OwnerThread(), __func__,
-           [self, aTrack] (media::TimeUnit aTime) {
+           [self, aTrack] (TimeUnit aTime) {
              auto& decoder = self->GetDecoderData(aTrack);
              decoder.mSeekRequest.Complete();
              MOZ_ASSERT(
@@ -2107,7 +2107,7 @@ MediaFormatReader::Update(TrackType aTrack)
   while (decoder.mTimeThreshold && decoder.mOutput.Length()) {
     RefPtr<MediaData>& output = decoder.mOutput[0];
     InternalSeekTarget target = decoder.mTimeThreshold.ref();
-    media::TimeUnit time = output->mTime;
+    auto time = output->mTime;
     if (time >= target.Time()) {
       // We have reached our internal seek target.
       decoder.mTimeThreshold.reset();
@@ -2236,7 +2236,7 @@ MediaFormatReader::Update(TrackType aTrack)
     decoder.mError.reset();
     LOG("%s decoded error count %d", TrackTypeToStr(aTrack),
                                      decoder.mNumOfConsecutiveError);
-    media::TimeUnit nextKeyframe;
+    TimeUnit nextKeyframe;
     if (aTrack == TrackType::kVideoTrack && !decoder.HasInternalSeekPending()
         && NS_SUCCEEDED(
              decoder.mTrackDemuxer->GetNextRandomAccessPoint(&nextKeyframe))) {
@@ -2427,7 +2427,7 @@ MediaFormatReader::DropDecodedSamples(TrackType aTrack)
   auto& decoder = GetDecoderData(aTrack);
   size_t lengthDecodedQueue = decoder.mOutput.Length();
   if (lengthDecodedQueue && decoder.mTimeThreshold.isSome()) {
-    TimeUnit time = decoder.mOutput.LastElement()->mTime;
+    auto time = decoder.mOutput.LastElement()->mTime;
     if (time >= decoder.mTimeThreshold.ref().Time()) {
       // We would have reached our internal seek target.
       decoder.mTimeThreshold.reset();
@@ -2441,7 +2441,7 @@ MediaFormatReader::DropDecodedSamples(TrackType aTrack)
 }
 
 void
-MediaFormatReader::SkipVideoDemuxToNextKeyFrame(media::TimeUnit aTimeThreshold)
+MediaFormatReader::SkipVideoDemuxToNextKeyFrame(TimeUnit aTimeThreshold)
 {
   MOZ_ASSERT(OnTaskQueue());
   LOG("Skipping up to %" PRId64, aTimeThreshold.ToMicroseconds());
@@ -2632,7 +2632,7 @@ MediaFormatReader::OnSeekFailed(TrackType aTrack, const MediaResult& aError)
 
       // Ensure we have the most up to date buffered ranges.
       UpdateReceivedNewData(TrackType::kAudioTrack);
-      Maybe<media::TimeUnit> nextSeekTime;
+      Maybe<TimeUnit> nextSeekTime;
       // Find closest buffered time found after video seeked time.
       for (const auto& timeRange : mAudio.mTimeRanges) {
         if (timeRange.mStart >= mPendingSeekTime.ref()) {
@@ -2666,7 +2666,7 @@ MediaFormatReader::DoVideoSeek()
 {
   MOZ_ASSERT(mPendingSeekTime.isSome());
   LOGV("Seeking video to %" PRId64, mPendingSeekTime.ref().ToMicroseconds());
-  media::TimeUnit seekTime = mPendingSeekTime.ref();
+  auto seekTime = mPendingSeekTime.ref();
   mVideo.mTrackDemuxer->Seek(seekTime)
     ->Then(OwnerThread(), __func__, this,
            &MediaFormatReader::OnVideoSeekCompleted,
@@ -2675,7 +2675,7 @@ MediaFormatReader::DoVideoSeek()
 }
 
 void
-MediaFormatReader::OnVideoSeekCompleted(media::TimeUnit aTime)
+MediaFormatReader::OnVideoSeekCompleted(TimeUnit aTime)
 {
   MOZ_ASSERT(OnTaskQueue());
   LOGV("Video seeked to %" PRId64, aTime.ToMicroseconds());
@@ -2749,7 +2749,7 @@ MediaFormatReader::DoAudioSeek()
 {
   MOZ_ASSERT(mPendingSeekTime.isSome());
   LOGV("Seeking audio to %" PRId64, mPendingSeekTime.ref().ToMicroseconds());
-  media::TimeUnit seekTime = mPendingSeekTime.ref();
+  auto seekTime = mPendingSeekTime.ref();
   mAudio.mTrackDemuxer->Seek(seekTime)
     ->Then(OwnerThread(), __func__, this,
            &MediaFormatReader::OnAudioSeekCompleted,
@@ -2758,7 +2758,7 @@ MediaFormatReader::DoAudioSeek()
 }
 
 void
-MediaFormatReader::OnAudioSeekCompleted(media::TimeUnit aTime)
+MediaFormatReader::OnAudioSeekCompleted(TimeUnit aTime)
 {
   MOZ_ASSERT(OnTaskQueue());
   LOGV("Audio seeked to %" PRId64, aTime.ToMicroseconds());
@@ -2856,7 +2856,7 @@ MediaFormatReader::UpdateBuffered()
   if (HasVideo()) {
     mVideo.mTimeRanges = mVideo.mTrackDemuxer->GetBuffered();
     bool hasLastEnd;
-    media::TimeUnit lastEnd = mVideo.mTimeRanges.GetEnd(&hasLastEnd);
+    auto lastEnd = mVideo.mTimeRanges.GetEnd(&hasLastEnd);
     if (hasLastEnd) {
       if (mVideo.mLastTimeRangesEnd
           && mVideo.mLastTimeRangesEnd.ref() < lastEnd) {
@@ -2870,7 +2870,7 @@ MediaFormatReader::UpdateBuffered()
   if (HasAudio()) {
     mAudio.mTimeRanges = mAudio.mTrackDemuxer->GetBuffered();
     bool hasLastEnd;
-    media::TimeUnit lastEnd = mAudio.mTimeRanges.GetEnd(&hasLastEnd);
+    auto lastEnd = mAudio.mTimeRanges.GetEnd(&hasLastEnd);
     if (hasLastEnd) {
       if (mAudio.mLastTimeRangesEnd
           && mAudio.mLastTimeRangesEnd.ref() < lastEnd) {
@@ -2892,12 +2892,12 @@ MediaFormatReader::UpdateBuffered()
   }
 
   if (!intervals.Length()
-      || intervals.GetStart() == media::TimeUnit::FromMicroseconds(0)) {
+      || intervals.GetStart() == TimeUnit::Zero()) {
     // IntervalSet already starts at 0 or is empty, nothing to shift.
     mBuffered = intervals;
   } else {
     mBuffered =
-      intervals.Shift(media::TimeUnit() - mInfo.mStartTime);
+      intervals.Shift(TimeUnit::Zero() - mInfo.mStartTime);
   }
 }
 
