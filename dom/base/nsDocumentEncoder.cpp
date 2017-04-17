@@ -143,6 +143,25 @@ protected:
 
   virtual bool IncludeInContext(nsINode *aNode);
 
+  class MOZ_STACK_CLASS AutoReleaseDocumentIfNeeded final
+  {
+  public:
+    explicit AutoReleaseDocumentIfNeeded(nsDocumentEncoder* aEncoder)
+      : mEncoder(aEncoder)
+    {
+    }
+
+    ~AutoReleaseDocumentIfNeeded()
+    {
+      if (mEncoder->mFlags & RequiresReinitAfterOutput) {
+        mEncoder->mDocument = nullptr;
+      }
+    }
+
+  private:
+    nsDocumentEncoder* mEncoder;
+  };
+
   nsCOMPtr<nsIDocument>          mDocument;
   nsCOMPtr<nsISelection>         mSelection;
   RefPtr<nsRange>              mRange;
@@ -1016,6 +1035,8 @@ nsDocumentEncoder::EncodeToStringWithMaxLength(uint32_t aMaxLength,
 
   if (!mDocument)
     return NS_ERROR_NOT_INITIALIZED;
+
+  AutoReleaseDocumentIfNeeded autoReleaseDocument(this);
 
   aOutputString.Truncate();
 
