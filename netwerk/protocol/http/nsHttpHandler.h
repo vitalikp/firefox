@@ -371,7 +371,7 @@ private:
     void     PrefsChanged(nsIPrefBranch *prefs, const char *pref);
 
     MOZ_MUST_USE nsresult SetAccept(const char *);
-    MOZ_MUST_USE nsresult SetAcceptLanguages(const char *);
+    MOZ_MUST_USE nsresult SetAcceptLanguages();
     MOZ_MUST_USE nsresult SetAcceptEncodings(const char *, bool mIsSecure);
 
     MOZ_MUST_USE nsresult InitConnectionMgr();
@@ -464,6 +464,7 @@ private:
     nsCString      mUserAgent;
     nsXPIDLCString mUserAgentOverride;
     bool           mUserAgentIsDirty; // true if mUserAgent should be rebuilt
+    bool           mAcceptLanguagesIsDirty;
 
 
     bool           mPromptTempRedirect;
