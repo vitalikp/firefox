@@ -324,7 +324,6 @@ protected:
     bool
     GetPluginDetails();
 
-    nsresult          mAsyncNewRv;
     uint32_t          mRunID;
 
     RefPtr<layers::TextureClientRecycleAllocator> mTextureAllocatorForDirectBitmap;
