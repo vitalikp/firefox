@@ -17,6 +17,7 @@
 #include "nsCSSParser.h"
 #include "nsCSSPseudoElements.h"
 #include "nsCSSRuleProcessor.h"
+#include "nsCSSRules.h"
 #include "nsContentUtils.h"
 #include "nsDOMTokenList.h"
 #include "nsDeviceContext.h"
@@ -29,6 +30,7 @@
 #include "nsIPresShell.h"
 #include "nsIPresShellInlines.h"
 #include "nsIPrincipal.h"
+#include "nsIURI.h"
 #include "nsFontMetrics.h"
 #include "nsMappedAttributes.h"
 #include "nsMediaFeatures.h"
@@ -1987,6 +1989,26 @@ void
 Gecko_UnregisterProfilerThread()
 {
   profiler_unregister_thread();
+}
+
+bool
+Gecko_DocumentRule_UseForPresentation(RawGeckoPresContextBorrowed aPresContext,
+                                      const nsACString* aPattern,
+                                      css::URLMatchingFunction aURLMatchingFunction)
+{
+  MOZ_ASSERT(NS_IsMainThread());
+
+  nsIDocument *doc = aPresContext->Document();
+  nsIURI *docURI = doc->GetDocumentURI();
+  nsAutoCString docURISpec;
+  if (docURI) {
+    // If GetSpec fails (due to OOM) just skip these URI-specific CSS rules.
+    nsresult rv = docURI->GetSpec(docURISpec);
+    NS_ENSURE_SUCCESS(rv, false);
+  }
+
+  return css::DocumentRule::UseForPresentation(doc, docURI, docURISpec,
+                                               *aPattern, aURLMatchingFunction);
 }
 
 void
