@@ -983,7 +983,13 @@ METHOD(Dirxml, "dirxml");
 
 METHOD(Group, "group")
 METHOD(GroupCollapsed, "groupCollapsed")
-METHOD(GroupEnd, "groupEnd")
+
+/* static */ void
+Console::GroupEnd(const GlobalObject& aGlobal)
+{
+  const Sequence<JS::Value> data;
+  Method(aGlobal, MethodGroupEnd, NS_LITERAL_STRING("groupEnd"), data);
+}
 
 /* static */ void
 Console::Time(const GlobalObject& aGlobal, const JS::Handle<JS::Value> aTime)
@@ -1495,7 +1501,7 @@ Console::PopulateConsoleNotificationInTheTargetScope(JSContext* aCx,
                                                      const Sequence<JS::Value>& aArguments,
                                                      JSObject* aTargetScope,
                                                      JS::MutableHandle<JS::Value> aEventValue,
-                                                     ConsoleCallData* aData) const
+                                                     ConsoleCallData* aData)
 {
   MOZ_ASSERT(aCx);
   MOZ_ASSERT(aData);
@@ -1568,7 +1574,6 @@ Console::PopulateConsoleNotificationInTheTargetScope(JSContext* aCx,
     case MethodAssert:
     case MethodGroup:
     case MethodGroupCollapsed:
-    case MethodGroupEnd:
       event.mArguments.Construct();
       event.mStyles.Construct();
       if (NS_WARN_IF(!ProcessArguments(aCx, aArguments,
@@ -1588,9 +1593,14 @@ Console::PopulateConsoleNotificationInTheTargetScope(JSContext* aCx,
   }
 
   if (aData->mMethodName == MethodGroup ||
-      aData->mMethodName == MethodGroupCollapsed ||
-      aData->mMethodName == MethodGroupEnd) {
-    ComposeGroupName(aCx, event.mArguments.Value(), event.mGroupName);
+      aData->mMethodName == MethodGroupCollapsed) {
+    ComposeAndStoreGroupName(aCx, event.mArguments.Value(), event.mGroupName);
+  }
+
+  else if (aData->mMethodName == MethodGroupEnd) {
+    if (!UnstoreGroupName(event.mGroupName)) {
+      return false;
+    }
   }
 
   else if (aData->mMethodName == MethodTime && !aArguments.IsEmpty()) {
@@ -1957,9 +1967,9 @@ Console::MakeFormatString(nsCString& aFormat, int32_t aInteger,
 }
 
 void
-Console::ComposeGroupName(JSContext* aCx,
-                          const Sequence<JS::Value>& aData,
-                          nsAString& aName) const
+Console::ComposeAndStoreGroupName(JSContext* aCx,
+                                  const Sequence<JS::Value>& aData,
+                                  nsAString& aName)
 {
   for (uint32_t i = 0; i < aData.Length(); ++i) {
     if (i != 0) {
@@ -1979,6 +1989,21 @@ Console::ComposeGroupName(JSContext* aCx,
 
     aName.Append(string);
   }
+
+  mGroupStack.AppendElement(aName);
+}
+
+bool
+Console::UnstoreGroupName(nsAString& aName)
+{
+  if (mGroupStack.IsEmpty()) {
+    return false;
+  }
+
+  uint32_t pos = mGroupStack.Length() - 1;
+  aName = mGroupStack[pos];
+  mGroupStack.RemoveElementAt(pos);
+  return true;
 }
 
 bool
@@ -2272,7 +2297,7 @@ Console::ReleaseCallData(ConsoleCallData* aCallData)
 
 void
 Console::NotifyHandler(JSContext* aCx, const Sequence<JS::Value>& aArguments,
-                       ConsoleCallData* aCallData) const
+                       ConsoleCallData* aCallData)
 {
   AssertIsOnOwningThread();
   MOZ_ASSERT(!NS_IsMainThread());
