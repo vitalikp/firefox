@@ -324,7 +324,6 @@ protected:
     bool
     GetPluginDetails();
 
-    bool              mIsNPShutdownPending;
     nsresult          mAsyncNewRv;
     uint32_t          mRunID;
 
