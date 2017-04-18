@@ -34,7 +34,6 @@
 
 namespace mozilla {
 namespace plugins {
-class PluginAsyncSurrogate;
 class PluginTag;
 } // namespace plugins
 } // namespace mozilla
@@ -424,7 +423,6 @@ class PluginDestructionGuard : public mozilla::LinkedListElement<PluginDestructi
 {
 public:
   explicit PluginDestructionGuard(nsNPAPIPluginInstance *aInstance);
-  explicit PluginDestructionGuard(mozilla::plugins::PluginAsyncSurrogate *aSurrogate);
   explicit PluginDestructionGuard(NPP npp);
 
   ~PluginDestructionGuard();
@@ -439,17 +437,6 @@ protected:
     mDelayedDestroy = false;
 
     sList.insertBack(this);
-  }
-
-  void InitAsync()
-  {
-    NS_ASSERTION(NS_IsMainThread(), "Should be on the main thread");
-
-    mDelayedDestroy = false;
-
-    // Instances with active surrogates must be inserted *in front of* sList so
-    // that they appear to be at the bottom of the stack
-    sList.insertFront(this);
   }
 
   RefPtr<nsNPAPIPluginInstance> mInstance;

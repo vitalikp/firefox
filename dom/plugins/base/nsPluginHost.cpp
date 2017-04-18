@@ -52,7 +52,6 @@
 #include "mozilla/dom/ContentParent.h"
 #include "mozilla/dom/FakePluginTagInitBinding.h"
 #include "mozilla/LoadInfo.h"
-#include "mozilla/plugins/PluginAsyncSurrogate.h"
 #include "mozilla/plugins/PluginBridge.h"
 #include "mozilla/plugins/PluginTypes.h"
 #include "mozilla/Preferences.h"
@@ -112,7 +111,6 @@
 using namespace mozilla;
 using mozilla::TimeStamp;
 using mozilla::plugins::PluginTag;
-using mozilla::plugins::PluginAsyncSurrogate;
 using mozilla::dom::FakePluginTagInit;
 
 // Null out a strong ref to a linked list iteratively to avoid
@@ -3996,12 +3994,6 @@ PluginDestructionGuard::PluginDestructionGuard(nsNPAPIPluginInstance *aInstance)
   : mInstance(aInstance)
 {
   Init();
-}
-
-PluginDestructionGuard::PluginDestructionGuard(PluginAsyncSurrogate *aSurrogate)
-  : mInstance(static_cast<nsNPAPIPluginInstance*>(aSurrogate->GetNPP()->ndata))
-{
-  InitAsync();
 }
 
 PluginDestructionGuard::PluginDestructionGuard(NPP npp)
