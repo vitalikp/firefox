@@ -491,7 +491,6 @@ PluginModuleParent::PluginModuleParent(bool aIsChrome)
     , mTaskFactory(this)
     , mSandboxLevel(0)
     , mIsFlashPlugin(false)
-    , mNPInitialized(false)
     , mIsNPShutdownPending(false)
     , mAsyncNewRv(NS_ERROR_NOT_INITIALIZED)
 {
@@ -1625,7 +1624,6 @@ PluginModuleChromeParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* 
 
     SetPluginFuncs(mNPPIface);
 
-    mNPInitialized = true;
     return NS_OK;
 }
 
@@ -1703,7 +1701,6 @@ PluginModuleChromeParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPError* error)
         return NS_OK;
     }
 
-    mNPInitialized = true;
     return NS_OK;
 }
 
