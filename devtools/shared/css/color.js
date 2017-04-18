@@ -140,7 +140,7 @@ CssColor.prototype = {
     if (!this.valid) {
       return false;
     }
-    return this._getRGBATuple().a !== 1;
+    return this.getRGBATuple().a !== 1;
   },
 
   get valid() {
@@ -152,7 +152,7 @@ CssColor.prototype = {
    */
   get transparent() {
     try {
-      let tuple = this._getRGBATuple();
+      let tuple = this.getRGBATuple();
       return !(tuple.r || tuple.g || tuple.b || tuple.a);
     } catch (e) {
       return false;
@@ -170,7 +170,7 @@ CssColor.prototype = {
     }
 
     try {
-      let tuple = this._getRGBATuple();
+      let tuple = this.getRGBATuple();
 
       if (tuple.a !== 1) {
         return this.hex;
@@ -226,7 +226,7 @@ CssColor.prototype = {
       return this.longAlphaHex;
     }
 
-    let tuple = this._getRGBATuple();
+    let tuple = this.getRGBATuple();
     return "#" + ((1 << 24) + (tuple.r << 16) + (tuple.g << 8) +
                   (tuple.b << 0)).toString(16).substr(-6);
   },
@@ -237,7 +237,7 @@ CssColor.prototype = {
       return invalidOrSpecialValue;
     }
 
-    let tuple = this._getRGBATuple();
+    let tuple = this.getRGBATuple();
     return "#" + ((1 << 24) + (tuple.r << 16) + (tuple.g << 8) +
                   (tuple.b << 0)).toString(16).substr(-6) +
                   Math.round(tuple.a * 255).toString(16).padEnd(2, "0");
@@ -253,7 +253,7 @@ CssColor.prototype = {
         // The color is valid and begins with rgb(.
         return this.authored;
       }
-      let tuple = this._getRGBATuple();
+      let tuple = this.getRGBATuple();
       return "rgb(" + tuple.r + ", " + tuple.g + ", " + tuple.b + ")";
     }
     return this.rgba;
@@ -268,7 +268,7 @@ CssColor.prototype = {
       // The color is valid and begins with rgba(.
       return this.authored;
     }
-    let components = this._getRGBATuple();
+    let components = this.getRGBATuple();
     return "rgba(" + components.r + ", " +
                      components.g + ", " +
                      components.b + ", " +
@@ -300,7 +300,7 @@ CssColor.prototype = {
       return this.authored;
     }
     if (this.hasAlpha) {
-      let a = this._getRGBATuple().a;
+      let a = this.getRGBATuple().a;
       return this._hsl(a);
     }
     return this._hsl(1);
@@ -400,7 +400,7 @@ CssColor.prototype = {
    * Returns a RGBA 4-Tuple representation of a color or transparent as
    * appropriate.
    */
-  _getRGBATuple: function () {
+  getRGBATuple: function () {
     let tuple = colorToRGBA(this.authored, this.cssColor4);
 
     tuple.a = parseFloat(tuple.a.toFixed(1));
@@ -431,7 +431,7 @@ CssColor.prototype = {
       return this.authored;
     }
 
-    let {r, g, b} = this._getRGBATuple();
+    let {r, g, b} = this.getRGBATuple();
     let [h, s, l] = rgbToHsl([r, g, b]);
     if (maybeAlpha !== undefined) {
       return "hsla(" + h + ", " + s + "%, " + l + "%, " + maybeAlpha + ")";
@@ -524,7 +524,7 @@ function setAlpha(colorValue, alpha, useCssColor4ColorFunction = false) {
     alpha = 1;
   }
 
-  let { r, g, b } = color._getRGBATuple();
+  let { r, g, b } = color.getRGBATuple();
   return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
 }
 

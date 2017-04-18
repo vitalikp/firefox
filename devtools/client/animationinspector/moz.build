@@ -9,5 +9,6 @@ DIRS += [
 ]
 
 DevToolsModules(
-    'utils.js',
+    'graph-helper.js',
+    'utils.js'
 )
