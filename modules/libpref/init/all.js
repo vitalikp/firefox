@@ -3049,9 +3049,6 @@ pref("dom.ipc.plugins.reportCrashURL", true);
 // Defaults to 30 seconds.
 pref("dom.ipc.plugins.unloadTimeoutSecs", 30);
 
-// Asynchronous plugin initialization is on hold.
-pref("dom.ipc.plugins.asyncInit.enabled", false);
-
 #ifdef RELEASE_OR_BETA
 pref("dom.ipc.plugins.asyncdrawing.enabled", false);
 #else
