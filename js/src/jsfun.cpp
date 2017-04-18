@@ -879,7 +879,7 @@ CreateFunctionPrototype(JSContext* cx, JSProtoKey key)
                                              sourceObject,
                                              begin,
                                              ss->length(),
-                                             0));
+                                             0, 0));
     if (!script || !JSScript::initFunctionPrototype(cx, script, functionProto))
         return nullptr;
 
@@ -1016,7 +1016,13 @@ js::FunctionToString(JSContext* cx, HandleFunction fun, bool prettyPrint)
     }
 
     bool funIsNonArrowLambda = fun->isLambda() && !fun->isArrow();
-    bool haveSource = fun->isInterpreted() && !fun->isSelfHostedBuiltin();
+
+    // Default class constructors are self-hosted, but have their source
+    // objects overridden to refer to the span of the class statement or
+    // expression. Non-default class constructors are never self-hosted. So,
+    // all class constructors always have source.
+    bool haveSource = fun->isInterpreted() && (fun->isClassConstructor() ||
+                                               !fun->isSelfHostedBuiltin());
 
     // If we're not in pretty mode, put parentheses around lambda functions
     // so that eval returns lambda, not function statement.
@@ -1057,7 +1063,7 @@ js::FunctionToString(JSContext* cx, HandleFunction fun, bool prettyPrint)
     };
 
     if (haveSource) {
-        Rooted<JSFlatString*> src(cx, JSScript::sourceDataWithPrelude(cx, script));
+        Rooted<JSFlatString*> src(cx, JSScript::sourceDataForToString(cx, script));
         if (!src)
             return nullptr;
 
@@ -1077,27 +1083,18 @@ js::FunctionToString(JSContext* cx, HandleFunction fun, bool prettyPrint)
             return nullptr;
         }
     } else {
-        bool derived = fun->infallibleIsDefaultClassConstructor(cx);
-        if (derived && fun->isDerivedClassConstructor()) {
-            if (!AppendPrelude() ||
-                !out.append("(...args) {\n    ") ||
-                !out.append("super(...args);\n}"))
-            {
-                return nullptr;
-            }
-        } else {
-            if (!AppendPrelude() ||
-                !out.append("() {\n    "))
-                return nullptr;
+        // Default class constructors should always haveSource.
+        MOZ_ASSERT(!fun->infallibleIsDefaultClassConstructor(cx));
 
-            if (!derived) {
-                if (!out.append("[native code]"))
-                    return nullptr;
-            }
+        if (!AppendPrelude() ||
+            !out.append("() {\n    "))
+            return nullptr;
 
-            if (!out.append("\n}"))
-                return nullptr;
-        }
+        if (!out.append("[native code]"))
+            return nullptr;
+
+        if (!out.append("\n}"))
+            return nullptr;
     }
     return out.finishString();
 }
