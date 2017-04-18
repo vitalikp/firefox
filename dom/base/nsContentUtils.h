@@ -2852,6 +2852,13 @@ public:
   static already_AddRefed<nsIEventTarget>
   GetEventTargetByLoadInfo(nsILoadInfo* aLoadInfo, mozilla::TaskCategory aCategory);
 
+  /**
+   * Detect whether a string is a local-url.
+   * https://drafts.csswg.org/css-values/#local-urls
+   */
+  static bool
+  IsLocalRefURL(const nsString& aString);
+
 private:
   static bool InitializeEventTable();
 
