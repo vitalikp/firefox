@@ -399,7 +399,6 @@ PluginModuleChromeParent::LoadModule(const char* aFilePath, uint32_t aPluginId,
             new PluginModuleChromeParent(aFilePath, aPluginId,
                                          aPluginTag->mSandboxLevel));
     UniquePtr<LaunchCompleteTask> onLaunchedRunnable(new LaunchedTask(parent));
-    parent->mSubprocess->SetCallRunnableImmediately();
     TimeStamp launchStart = TimeStamp::Now();
     bool launched = parent->mSubprocess->Launch(Move(onLaunchedRunnable),
                                                 aPluginTag->mSandboxLevel);
@@ -464,18 +463,6 @@ PluginModuleChromeParent::OnProcessLaunched(const bool aSucceeded)
 #ifdef MOZ_GECKO_PROFILER
     Unused << SendInitProfiler(ProfilerParent::CreateForProcess(OtherPid()));
 #endif
-}
-
-bool
-PluginModuleChromeParent::WaitForIPCConnection()
-{
-    PluginProcessParent* process = Process();
-    MOZ_ASSERT(process);
-    process->SetCallRunnableImmediately();
-    if (!process->WaitUntilConnected()) {
-        return false;
-    }
-    return true;
 }
 
 PluginModuleParent::PluginModuleParent(bool aIsChrome)
