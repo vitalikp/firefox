@@ -3644,6 +3644,7 @@ HTMLMediaElement::HTMLMediaElement(already_AddRefed<mozilla::dom::NodeInfo>& aNo
     mDefaultPlaybackStartPosition(0.0),
     mIsAudioTrackAudible(false),
     mHasSuspendTaint(false),
+    mMediaTracksConstructed(false),
     mVisibilityState(Visibility::UNTRACKED),
     mErrorSink(new ErrorSink(this)),
     mAudioChannelWrapper(new AudioChannelAgentCallback(this, mAudioChannel))
@@ -7317,7 +7318,11 @@ HTMLMediaElement::GetDocument() const
 void
 HTMLMediaElement::ConstructMediaTracks(const MediaInfo* aInfo)
 {
-  MOZ_ASSERT(aInfo);
+  if (mMediaTracksConstructed || !aInfo) {
+    return;
+  }
+
+  mMediaTracksConstructed = true;
 
   AudioTrackList* audioList = AudioTracks();
   if (audioList && aInfo->HasAudio()) {
@@ -7349,6 +7354,8 @@ HTMLMediaElement::RemoveMediaTracks()
   if (mVideoTrackList) {
     mVideoTrackList->RemoveTracks();
   }
+
+  mMediaTracksConstructed = false;
 }
 
 class MediaElementGMPCrashHelper : public GMPCrashHelper
