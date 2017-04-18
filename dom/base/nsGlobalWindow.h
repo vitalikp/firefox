@@ -444,7 +444,7 @@ public:
                            nsIWidget* aWidget, nsIScreen* aScreen);
   bool FullScreen() const;
 
-  // Inner windows only.
+  using EventTarget::EventListenerAdded;
   virtual void EventListenerAdded(nsIAtom* aType) override;
 
   // nsIInterfaceRequestor
