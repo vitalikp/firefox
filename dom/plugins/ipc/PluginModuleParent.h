@@ -89,8 +89,6 @@ public:
 
     bool RemovePendingSurrogate(const RefPtr<PluginAsyncSurrogate>& aSurrogate);
 
-    /** @return the state of the pref that controls async plugin init */
-    bool IsStartingAsync() const { return mIsStartingAsync; }
     /** @return whether this modules NP_Initialize has successfully completed
         executing */
     bool IsInitialized() const { return mNPInitialized; }
@@ -299,8 +297,6 @@ public:
     virtual nsresult ContentsScaleFactorChanged(NPP instance, double aContentsScaleFactor) override;
 #endif
 
-    void InitAsyncSurrogates();
-
     layers::TextureClientRecycleAllocator* EnsureTextureAllocatorForDirectBitmap();
     layers::TextureClientRecycleAllocator* EnsureTextureAllocatorForDXGISurface();
 
@@ -308,7 +304,6 @@ protected:
     void NotifyFlashHang();
     void NotifyPluginCrashed();
     void OnInitFailure();
-    bool MaybeRunDeferredShutdown();
     bool DoShutdown(NPError* error);
 
     bool GetSetting(NPNVariable aVariable);
@@ -341,10 +336,8 @@ protected:
 
     friend class mozilla::plugins::PluginAsyncSurrogate;
 
-    bool              mIsStartingAsync;
     bool              mNPInitialized;
     bool              mIsNPShutdownPending;
-    nsTArray<RefPtr<PluginAsyncSurrogate>> mSurrogateInstances;
     nsresult          mAsyncNewRv;
     uint32_t          mRunID;
 
@@ -395,14 +388,6 @@ class PluginModuleChromeParent
      */
     static PluginLibrary* LoadModule(const char* aFilePath, uint32_t aPluginId,
                                      nsPluginTag* aPluginTag);
-
-    /**
-     * The following two functions are called by SetupBridge to determine
-     * whether an existing plugin module was reused, or whether a new module
-     * was instantiated by the plugin host.
-     */
-    static void ClearInstantiationFlag() { sInstantiated = false; }
-    static bool DidInstantiate() { return sInstantiated; }
 
     virtual ~PluginModuleChromeParent();
 
@@ -463,9 +448,6 @@ class PluginModuleChromeParent
 
     virtual mozilla::ipc::IPCResult
     RecvNP_InitializeResult(const NPError& aError) override;
-
-    void
-    SetContentParent(dom::ContentParent* aContentParent);
 
     bool
     SendAssociatePluginId();
@@ -600,7 +582,6 @@ private:
     // processes in existence!
     dom::ContentParent* mContentParent;
     nsCOMPtr<nsIObserver> mPluginOfflineObserver;
-    static bool sInstantiated;
 #if defined(XP_WIN) && defined(MOZ_SANDBOX)
     mozilla::SandboxPermissions mSandboxPermissions;
 #endif
