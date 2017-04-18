@@ -84,7 +84,7 @@ protected:
     DeallocPPluginInstanceParent(PPluginInstanceParent* aActor) override;
 
 public:
-    explicit PluginModuleParent(bool aIsChrome, bool aAllowAsyncInit);
+    explicit PluginModuleParent(bool aIsChrome);
     virtual ~PluginModuleParent();
 
     bool RemovePendingSurrogate(const RefPtr<PluginAsyncSurrogate>& aSurrogate);
@@ -355,7 +355,7 @@ protected:
 class PluginModuleContentParent : public PluginModuleParent
 {
   public:
-    explicit PluginModuleContentParent(bool aAllowAsyncInit);
+    explicit PluginModuleContentParent();
 
     static PluginLibrary* LoadModule(uint32_t aPluginId, nsPluginTag* aPluginTag);
 
@@ -513,8 +513,7 @@ private:
 
     // aFilePath is UTF8, not native!
     explicit PluginModuleChromeParent(const char* aFilePath, uint32_t aPluginId,
-                                      int32_t aSandboxLevel,
-                                      bool aAllowAsyncInit);
+                                      int32_t aSandboxLevel);
 
     void CleanupFromTimeout(const bool aByHangUI);
 
