@@ -558,7 +558,6 @@ private:
 
     friend class LaunchedTask;
 
-    nsresult            mAsyncInitRv;
     nsCOMPtr<nsIObserver> mPluginOfflineObserver;
 #if defined(XP_WIN) && defined(MOZ_SANDBOX)
     mozilla::SandboxPermissions mSandboxPermissions;

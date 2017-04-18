@@ -430,7 +430,7 @@ PluginModuleChromeParent::OnProcessLaunched(const bool aSucceeded)
     }
     // We may have already been initialized by another call that was waiting
     // for process connect. If so, this function doesn't need to run.
-    if (mAsyncInitRv != NS_ERROR_NOT_INITIALIZED || mShutdown) {
+    if (mShutdown) {
         return;
     }
 
@@ -536,7 +536,6 @@ PluginModuleChromeParent::PluginModuleChromeParent(const char* aFilePath,
     , mHangUIEnabled(true)
     , mIsTimerReset(true)
 #endif
-    , mAsyncInitRv(NS_ERROR_NOT_INITIALIZED)
 {
     NS_ASSERTION(mSubprocess, "Out of memory!");
     mSandboxLevel = aSandboxLevel;
