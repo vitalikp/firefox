@@ -78,6 +78,9 @@ using namespace mozilla::dom;
 #include "mozilla/ServoArcTypeList.h"
 #undef SERVO_ARC_TYPE
 
+
+static Mutex* sServoFontMetricsLock = nullptr;
+
 uint32_t
 Gecko_ChildrenCount(RawGeckoNodeBorrowed aNode)
 {
@@ -1054,7 +1057,7 @@ void
 Gecko_nsFont_InitSystem(nsFont* aDest, int32_t aFontId,
                         const nsStyleFont* aFont, RawGeckoPresContextBorrowed aPresContext)
 {
-
+  MutexAutoLock lock(*sServoFontMetricsLock);
   const nsFont* defaultVariableFont =
     aPresContext->GetDefaultFont(kPresContext_DefaultVariableFont_ID,
                                  aFont->mLanguage);
@@ -1065,9 +1068,11 @@ Gecko_nsFont_InitSystem(nsFont* aDest, int32_t aFontId,
   // itself, so this will do.
   nsFont* system = new (aDest) nsFont(*defaultVariableFont);
 
-  *system = *defaultVariableFont;
+  MOZ_RELEASE_ASSERT(system);
+
+  *aDest = *defaultVariableFont;
   LookAndFeel::FontID fontID = static_cast<LookAndFeel::FontID>(aFontId);
-  nsRuleNode::ComputeSystemFont(system, fontID, aPresContext, defaultVariableFont);
+  nsRuleNode::ComputeSystemFont(aDest, fontID, aPresContext, defaultVariableFont);
 }
 
 void
@@ -1808,8 +1813,6 @@ Gecko_GetBaseSize(nsIAtom* aLanguage)
 
   return sizes;
 }
-
-static Mutex* sServoFontMetricsLock = nullptr;
 
 void
 InitializeServo()
