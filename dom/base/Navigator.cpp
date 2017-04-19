@@ -70,10 +70,6 @@
 #include "mozilla/dom/MediaDevices.h"
 #include "MediaManager.h"
 
-#ifdef MOZ_AUDIO_CHANNEL_MANAGER
-#include "AudioChannelManager.h"
-#endif
-
 #include "nsIDOMGlobalPropertyInitializer.h"
 #include "nsJSUtils.h"
 
@@ -204,9 +200,6 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(Navigator)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mConnection)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mStorageManager)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mAuthentication)
-#ifdef MOZ_AUDIO_CHANNEL_MANAGER
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mAudioChannelManager)
-#endif
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mMediaDevices)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mTimeManager)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mServiceWorkerContainer)
@@ -264,12 +257,6 @@ Navigator::Invalidate()
   }
 
   mMediaDevices = nullptr;
-
-#ifdef MOZ_AUDIO_CHANNEL_MANAGER
-  if (mAudioChannelManager) {
-    mAudioChannelManager = nullptr;
-  }
-#endif
 
   if (mTimeManager) {
     mTimeManager = nullptr;
@@ -1560,23 +1547,6 @@ Navigator::CheckPermission(nsPIDOMWindowInner* aWindow, const char* aType)
   uint32_t permission = GetPermission(aWindow, aType);
   return permission == nsIPermissionManager::ALLOW_ACTION;
 }
-
-#ifdef MOZ_AUDIO_CHANNEL_MANAGER
-system::AudioChannelManager*
-Navigator::GetMozAudioChannelManager(ErrorResult& aRv)
-{
-  if (!mAudioChannelManager) {
-    if (!mWindow) {
-      aRv.Throw(NS_ERROR_UNEXPECTED);
-      return nullptr;
-    }
-    mAudioChannelManager = new system::AudioChannelManager();
-    mAudioChannelManager->Init(mWindow);
-  }
-
-  return mAudioChannelManager;
-}
-#endif
 
 JSObject*
 Navigator::WrapObject(JSContext* cx, JS::Handle<JSObject*> aGivenProto)

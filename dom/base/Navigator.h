@@ -80,12 +80,6 @@ namespace time {
 class TimeManager;
 } // namespace time
 
-namespace system {
-#ifdef MOZ_AUDIO_CHANNEL_MANAGER
-class AudioChannelManager;
-#endif
-} // namespace system
-
 class Navigator final : public nsIDOMNavigator
                       , public nsIMozNavigatorNetwork
                       , public nsWrapperCache
@@ -198,9 +192,6 @@ public:
 #ifdef MOZ_TIME_MANAGER
   time::TimeManager* GetMozTime(ErrorResult& aRv);
 #endif // MOZ_TIME_MANAGER
-#ifdef MOZ_AUDIO_CHANNEL_MANAGER
-  system::AudioChannelManager* GetMozAudioChannelManager(ErrorResult& aRv);
-#endif // MOZ_AUDIO_CHANNEL_MANAGER
 
   Presentation* GetPresentation(ErrorResult& aRv);
 
@@ -288,9 +279,6 @@ private:
   RefPtr<PowerManager> mPowerManager;
   RefPtr<network::Connection> mConnection;
   RefPtr<WebAuthentication> mAuthentication;
-#ifdef MOZ_AUDIO_CHANNEL_MANAGER
-  RefPtr<system::AudioChannelManager> mAudioChannelManager;
-#endif
   RefPtr<MediaDevices> mMediaDevices;
   RefPtr<time::TimeManager> mTimeManager;
   RefPtr<ServiceWorkerContainer> mServiceWorkerContainer;
