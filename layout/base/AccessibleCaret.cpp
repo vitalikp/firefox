@@ -383,7 +383,7 @@ AccessibleCaret::GetZoomLevel()
   // Full zoom on desktop.
   float fullZoom = mPresShell->GetPresContext()->GetFullZoom();
 
-  // Pinch-zoom on B2G or fennec.
+  // Pinch-zoom on fennec.
   float resolution = mPresShell->GetCumulativeResolution();
 
   return fullZoom * resolution;
