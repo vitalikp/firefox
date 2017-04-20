@@ -44,7 +44,7 @@ nsFormControlFrame::GetMinISize(nsRenderingContext *aRenderingContext)
 {
   nscoord result;
   DISPLAY_MIN_WIDTH(this, result);
-#if !defined(MOZ_WIDGET_ANDROID) && !defined(MOZ_WIDGET_GONK)
+#if !defined(MOZ_WIDGET_ANDROID)
   result = StyleDisplay()->mAppearance == NS_THEME_NONE ? 0 : DefaultSize();
 #else
   result = DefaultSize();
@@ -57,7 +57,7 @@ nsFormControlFrame::GetPrefISize(nsRenderingContext *aRenderingContext)
 {
   nscoord result;
   DISPLAY_PREF_WIDTH(this, result);
-#if !defined(MOZ_WIDGET_ANDROID) && !defined(MOZ_WIDGET_GONK)
+#if !defined(MOZ_WIDGET_ANDROID)
   result = StyleDisplay()->mAppearance == NS_THEME_NONE ? 0 : DefaultSize();
 #else
   result = DefaultSize();
@@ -77,7 +77,7 @@ nsFormControlFrame::ComputeAutoSize(nsRenderingContext* aRC,
                                     ComputeSizeFlags    aFlags)
 {
   LogicalSize size(aWM, 0, 0);
-#if !defined(MOZ_WIDGET_ANDROID) && !defined(MOZ_WIDGET_GONK)
+#if !defined(MOZ_WIDGET_ANDROID)
   if (StyleDisplay()->mAppearance == NS_THEME_NONE) {
     return size;
   }
