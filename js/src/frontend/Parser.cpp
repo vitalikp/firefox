@@ -3693,7 +3693,7 @@ Parser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling inHandli
             }
 
 #if JS_HAS_EXPR_CLOSURES
-            addTelemetry(JSCompartment::DeprecatedExpressionClosure);
+            addTelemetry(DeprecatedLanguageExtension::ExpressionClosure);
             if (!warnOnceAboutExprClosure())
                 return false;
 #else
@@ -6102,7 +6102,7 @@ Parser<ParseHandler, CharT>::forStatement(YieldHandling yieldHandling)
         if (matched) {
             iflags = JSITER_FOREACH;
             isForEach = true;
-            addTelemetry(JSCompartment::DeprecatedForEach);
+            addTelemetry(DeprecatedLanguageExtension::ForEach);
             if (!warnOnceAboutForEach())
                 return null();
         }
@@ -6613,7 +6613,7 @@ Parser<ParseHandler, CharT>::yieldExpression(InHandling inHandling)
         }
 
         pc->functionBox()->setGeneratorKind(LegacyGenerator);
-        addTelemetry(JSCompartment::DeprecatedLegacyGenerator);
+        addTelemetry(DeprecatedLanguageExtension::LegacyGenerator);
 
         MOZ_FALLTHROUGH;
 
@@ -10074,7 +10074,7 @@ Parser<ParseHandler, CharT>::exprInParens(InHandling inHandling, YieldHandling y
 }
 
 void
-ParserBase::addTelemetry(JSCompartment::DeprecatedLanguageExtension e)
+ParserBase::addTelemetry(DeprecatedLanguageExtension e)
 {
     if (context->helperThread())
         return;
