@@ -6896,6 +6896,21 @@ nsHttpChannel::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult st
         }
     }
 
+    enum RaceCacheAndNetStatus
+    {
+        kDidNotRaceUsedNetwork = 0,
+        kDidNotRaceUsedCache = 1,
+        kRaceUsedNetwork = 2,
+        kRaceUsedCache = 3
+    };
+
+    RaceCacheAndNetStatus rcwnStatus = kDidNotRaceUsedNetwork;
+    if (request == mTransactionPump) {
+        rcwnStatus = mRaceCacheWithNetwork ?  kRaceUsedNetwork : kDidNotRaceUsedNetwork;
+    } else if (request == mCachePump) {
+        rcwnStatus = mRaceCacheWithNetwork ? kRaceUsedCache : kDidNotRaceUsedCache;
+    }
+
     nsCOMPtr<nsICompressConvStats> conv = do_QueryInterface(mCompressListener);
     if (conv) {
         conv->GetDecodedDataLength(&mDecodedBodySize);
