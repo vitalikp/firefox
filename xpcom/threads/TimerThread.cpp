@@ -356,7 +356,7 @@ TimerThread::Shutdown()
     return NS_ERROR_NOT_INITIALIZED;
   }
 
-  nsTArray<RefPtr<nsTimerImpl>> timers;
+  nsTArray<Entry> timers;
   {
     // lock scope
     MonitorAutoLock lock(mMonitor);
@@ -380,8 +380,10 @@ TimerThread::Shutdown()
 
   uint32_t timersCount = timers.Length();
   for (uint32_t i = 0; i < timersCount; i++) {
-    RefPtr<nsTimerImpl> timer = timers[i].forget();
-    timer->Cancel();
+    RefPtr<nsTimerImpl> timer = timers[i].mTimerImpl.forget();
+    if (timer) {
+      timer->Cancel();
+    }
   }
 
   mThread->Shutdown();    // wait for the thread to die
@@ -454,8 +456,10 @@ TimerThread::Run()
       TimeStamp now = TimeStamp::Now();
       nsTimerImpl* timer = nullptr;
 
+      RemoveLeadingCanceledTimersInternal();
+
       if (!mTimers.IsEmpty()) {
-        timer = mTimers[0];
+        timer = mTimers[0].mTimerImpl;
 
         if (now >= timer->mTimeout || forceRunThisTimer) {
     next:
@@ -466,7 +470,7 @@ TimerThread::Run()
           // for TimerThread::mMonitor, under nsTimerImpl::Release.
 
           RefPtr<nsTimerImpl> timerRef(timer);
-          RemoveTimerInternal(timer);
+          mTimers.RemoveElementAt(0);
           timer = nullptr;
 
           MOZ_LOG(GetTimerLog(), LogLevel::Debug,
@@ -509,8 +513,10 @@ TimerThread::Run()
         }
       }
 
+      RemoveLeadingCanceledTimersInternal();
+
       if (!mTimers.IsEmpty()) {
-        timer = mTimers[0];
+        timer = mTimers[0].mTimerImpl;
 
         TimeStamp timeout = timer->mTimeout;
 
@@ -624,8 +630,8 @@ TimerThread::AddTimerInternal(nsTimerImpl* aTimer)
 
   TimeStamp now = TimeStamp::Now();
 
-  TimerAdditionComparator c(now, aTimer);
-  RefPtr<nsTimerImpl>* insertSlot = mTimers.InsertElementSorted(aTimer, c);
+  Entry* insertSlot = mTimers.InsertElementSorted(
+    Entry(now, aTimer->mTimeout, aTimer));
 
   if (!insertSlot) {
     return -1;
@@ -644,7 +650,30 @@ bool
 TimerThread::RemoveTimerInternal(nsTimerImpl* aTimer)
 {
   mMonitor.AssertCurrentThreadOwns();
-  mTimers.RemoveElement(aTimer);
+  for (uint32_t i = 0; i < mTimers.Length(); ++i) {
+    if (mTimers[i].mTimerImpl == aTimer) {
+      mTimers[i].mTimerImpl = nullptr;
+      return true;
+    }
+  }
+  return false;
+}
+
+void
+TimerThread::RemoveLeadingCanceledTimersInternal()
+{
+  mMonitor.AssertCurrentThreadOwns();
+
+  uint32_t firstActive = 0;
+  while (firstActive < mTimers.Length() && !mTimers[firstActive].mTimerImpl) {
+    firstActive += 1;
+  }
+
+  if (firstActive == 0) {
+    return;
+  }
+
+  mTimers.RemoveElementsAt(0, firstActive);
 }
 
 already_AddRefed<nsTimerImpl>
