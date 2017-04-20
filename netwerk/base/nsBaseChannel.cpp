@@ -493,6 +493,12 @@ nsBaseChannel::GetLoadInfo(nsILoadInfo** aLoadInfo)
 }
 
 NS_IMETHODIMP
+nsBaseChannel::GetIsDocument(bool *aIsDocument)
+{
+  return NS_GetIsDocumentChannel(this, aIsDocument);
+}
+
+NS_IMETHODIMP
 nsBaseChannel::GetNotificationCallbacks(nsIInterfaceRequestor **aCallbacks)
 {
   NS_IF_ADDREF(*aCallbacks = mCallbacks);

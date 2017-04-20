@@ -27,6 +27,7 @@
 #include "nsObjCExceptions.h"
 #include "nsProxyRelease.h"
 #include "nsContentSecurityManager.h"
+#include "nsNetUtil.h"
 
 #include <Cocoa/Cocoa.h>
 
@@ -431,6 +432,12 @@ NS_IMETHODIMP
 nsIconChannel::SetLoadFlags(uint32_t aLoadAttributes)
 {
   return mPump->SetLoadFlags(aLoadAttributes);
+}
+
+NS_IMETHODIMP
+nsIconChannel::GetIsDocument(bool *aIsDocument)
+{
+  return NS_GetIsDocumentChannel(this, aIsDocument);
 }
 
 NS_IMETHODIMP
