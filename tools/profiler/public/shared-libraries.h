@@ -102,10 +102,6 @@ public:
   const std::string &GetVersion() const { return mVersion; }
   const std::string &GetArch() const { return mArch; }
 
-  void SetNativeDebugPath(nsString path) {
-    mDebugPath = path;
-  }
-
 private:
   SharedLibrary() {}
 
