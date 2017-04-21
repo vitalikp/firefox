@@ -87,6 +87,8 @@ public:
       mWasCompiledOMT(false),
       mOffThreadToken(nullptr),
       mScriptText(),
+      mScriptBytecode(),
+      mBytecodeOffset(0),
       mJSVersion(aVersion),
       mLineNo(1),
       mCORSMode(aCORSMode),
@@ -193,9 +195,16 @@ public:
   bool mWasCompiledOMT;   // True if the script has been compiled off main thread.
   void* mOffThreadToken;  // Off-thread parsing token.
   nsString mSourceMapURL; // Holds source map url for loaded scripts
+
   // Holds script text for non-inline scripts. Don't use nsString so we can give
   // ownership to jsapi.
   mozilla::Vector<char16_t> mScriptText;
+
+  // Holds the SRI serialized hash and the script bytecode for non-inline
+  // scripts.
+  mozilla::Vector<uint8_t> mScriptBytecode;
+  uint32_t mBytecodeOffset; // Offset of the bytecode in mScriptBytecode
+
   uint32_t mJSVersion;
   nsCOMPtr<nsIURI> mURI;
   nsCOMPtr<nsIPrincipal> mOriginPrincipal;
@@ -727,6 +736,12 @@ private:
   bool EnsureDecoder(nsIIncrementalStreamLoader *aLoader,
                      const uint8_t* aData, uint32_t aDataLength,
                      bool aEndOfStream, nsCString& oCharset);
+
+  /*
+   * When streaming bytecode, we have the opportunity to fallback early if SRI
+   * does not match the expectation of the document.
+   */
+  nsresult MaybeDecodeSRI();
 
   // Query the channel to find the data type associated with the input stream.
   nsresult EnsureKnownDataType(nsIIncrementalStreamLoader *aLoader);
