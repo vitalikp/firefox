@@ -8810,12 +8810,6 @@ nsHttpChannel::TriggerNetwork(int32_t aTimeout)
 
     if (!aTimeout) {
         mNetworkTriggered = true;
-        if (!mOnCacheAvailableCalled) {
-            // If the network was triggered before onCacheEntryAvailable was
-            // called, we are either racing network and cache, or the load is
-            // bypassing the cache.
-            mRaceCacheWithNetwork = true;
-        }
         if (mNetworkTriggerTimer) {
             mNetworkTriggerTimer->Cancel();
             mNetworkTriggerTimer = nullptr;
@@ -8861,6 +8855,13 @@ nsHttpChannel::MaybeRaceCacheWithNetwork()
 
     MOZ_ASSERT(sRCWNEnabled, "The pref must be truned on.");
     LOG(("nsHttpChannel::MaybeRaceCacheWithNetwork [this=%p]\n", this));
+
+    if (!mOnCacheAvailableCalled) {
+        // If the network was triggered before onCacheEntryAvailable was
+        // called, it means we are racing the network with the cache.
+        mRaceCacheWithNetwork = true;
+    }
+
     return TriggerNetwork(0);
 }
 
@@ -8868,6 +8869,11 @@ NS_IMETHODIMP
 nsHttpChannel::Test_triggerNetwork(int32_t aTimeout)
 {
     MOZ_ASSERT(NS_IsMainThread(), "Must be called on the main thread");
+    if (!mOnCacheAvailableCalled) {
+        // If the network was triggered before onCacheEntryAvailable was
+        // called, it means we are racing the network with the cache.
+        mRaceCacheWithNetwork = true;
+    }
     return TriggerNetwork(aTimeout);
 }
 
