@@ -120,12 +120,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         this._prefs.removeObserver("", this);
         this._prefs = null;
         this.inputField.controllers.removeController(this._copyCutController);
-        this.inputField.removeEventListener("paste", this, false);
-        this.inputField.removeEventListener("mousedown", this, false);
-        this.inputField.removeEventListener("mousemove", this, false);
-        this.inputField.removeEventListener("mouseout", this, false);
-        this.inputField.removeEventListener("overflow", this, false);
-        this.inputField.removeEventListener("underflow", this, false);
+        this.inputField.removeEventListener("paste", this);
+        this.inputField.removeEventListener("mousedown", this);
+        this.inputField.removeEventListener("mousemove", this);
+        this.inputField.removeEventListener("mouseout", this);
+        this.inputField.removeEventListener("overflow", this);
+        this.inputField.removeEventListener("underflow", this);
+
+        // Null out the one-offs' popup and textbox so that it cleans up its
+        // internal state for both.  Most importantly, it removes the event
+        // listeners that it added to both.
+        this.popup.oneOffSearchButtons.popup = null;
+        this.popup.oneOffSearchButtons.textbox = null;
       ]]></destructor>
 
       <field name="_value">""</field>
