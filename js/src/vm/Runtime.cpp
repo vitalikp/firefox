@@ -43,6 +43,8 @@
 #include "js/MemoryMetrics.h"
 #include "js/SliceBudget.h"
 #include "vm/Debugger.h"
+#include "vm/TraceLogging.h"
+#include "vm/TraceLoggingGraph.h"
 #include "wasm/WasmSignalHandlers.h"
 
 #include "jscntxtinlines.h"
@@ -473,6 +475,10 @@ JSRuntime::addSizeOfIncludingThis(mozilla::MallocSizeOf mallocSizeOf, JS::Runtim
         rtSizes->contexts += cx->sizeOfExcludingThis(mallocSizeOf);
         rtSizes->temporary += cx->tempLifoAlloc().sizeOfExcludingThis(mallocSizeOf);
         rtSizes->interpreterStack += cx->interpreterStack().sizeOfExcludingThis(mallocSizeOf);
+#ifdef JS_TRACE_LOGGING
+        if (cx->traceLogger)
+            rtSizes->tracelogger += cx->traceLogger->sizeOfIncludingThis(mallocSizeOf);
+#endif
     }
 
     if (MathCache* cache = caches().maybeGetMathCache())
