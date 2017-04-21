@@ -1888,6 +1888,9 @@ nsScriptLoader::AttemptAsyncScriptCompile(nsScriptLoadRequest* aRequest)
   }
 
   mDocument->BlockOnload();
+
+  // Once the compilation is finished, an event would be added to the event loop
+  // to call nsScriptLoader::ProcessOffThreadRequest with the same request.
   aRequest->mProgress = nsScriptLoadRequest::Progress::Compiling;
 
   Unused << runnable.forget();
@@ -2129,6 +2132,8 @@ nsScriptLoader::FillCompileOptionsForRequest(const AutoJSAPI&jsapi,
 nsresult
 nsScriptLoader::EvaluateScript(nsScriptLoadRequest* aRequest)
 {
+  MOZ_ASSERT(aRequest->IsReadyToRun());
+
   // We need a document to evaluate scripts.
   if (!mDocument) {
     return NS_ERROR_FAILURE;
@@ -2619,6 +2624,7 @@ nsScriptLoader::PrepareLoadedRequest(nsScriptLoadRequest* aRequest,
   if (aRequest->IsCanceled()) {
     return NS_BINDING_ABORTED;
   }
+  MOZ_ASSERT(aRequest->IsLoading());
 
   // If we don't have a document, then we need to abort further
   // evaluation.
@@ -2835,7 +2841,9 @@ nsScriptLoadHandler::nsScriptLoadHandler(nsScriptLoader *aScriptLoader,
     mSRIDataVerifier(aSRIDataVerifier),
     mSRIStatus(NS_OK),
     mDecoder()
-{}
+{
+  MOZ_ASSERT(mRequest->IsLoading());
+}
 
 nsScriptLoadHandler::~nsScriptLoadHandler()
 {}
