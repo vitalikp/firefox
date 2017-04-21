@@ -18,7 +18,6 @@
 
 #include "jsprf.h"
 
-#include "jit/CacheIRSpewer.h"
 #include "jit/Ion.h"
 #include "jit/MIR.h"
 #include "jit/MIRGenerator.h"
@@ -463,8 +462,6 @@ jit::CheckLogging()
             "  bl-dbg-osr    Baseline debug mode on stack recompile messages\n"
             "  bl-all        All baseline spew\n"
             "\n"
-            "  cacheir-logs  CacheIR IC attach logging\n"
-            "\n"
         );
         exit(0);
         /*NOTREACHED*/
@@ -562,9 +559,6 @@ jit::CheckLogging()
         EnableChannel(JitSpew_BaselineBailouts);
         EnableChannel(JitSpew_BaselineDebugModeOSR);
     }
-
-    if (ContainsFlag(env, "cacheir-logs"))
-        GetCacheIRSpewerSingleton().init();
 
     JitSpewPrinter().init(stderr);
 }
