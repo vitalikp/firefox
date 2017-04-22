@@ -1198,7 +1198,12 @@ JSContext::JSContext(JSRuntime* runtime, const JS::ContextOptions& options)
     osrTempData_(nullptr),
     ionReturnOverride_(MagicValue(JS_ARG_POISON)),
     jitStackLimit(UINTPTR_MAX),
-    jitStackLimitNoInterrupt(UINTPTR_MAX)
+    jitStackLimitNoInterrupt(UINTPTR_MAX),
+    getIncumbentGlobalCallback(nullptr),
+    enqueuePromiseJobCallback(nullptr),
+    enqueuePromiseJobCallbackData(nullptr),
+    promiseRejectionTrackerCallback(nullptr),
+    promiseRejectionTrackerCallbackData(nullptr)
 {
     MOZ_ASSERT(static_cast<JS::RootingContext*>(this) ==
                JS::RootingContext::get(this));
