@@ -469,6 +469,20 @@ class ObjectGroupCompartment::NewTable : public JS::WeakCache<js::GCHashSet<NewE
     explicit NewTable(Zone* zone) : Base(zone, Table()) {}
 };
 
+MOZ_ALWAYS_INLINE ObjectGroup*
+ObjectGroupCompartment::DefaultNewGroupCache::lookup(const Class* clasp, TaggedProto proto,
+                                                     JSObject* associated)
+{
+    if (group_ &&
+        associated_ == associated &&
+        group_->proto() == proto &&
+        (!clasp || group_->clasp() == clasp))
+    {
+        return group_;
+    }
+    return nullptr;
+}
+
 /* static */ ObjectGroup*
 ObjectGroup::defaultNewGroup(JSContext* cx, const Class* clasp,
                              TaggedProto proto, JSObject* associated)
@@ -480,20 +494,6 @@ ObjectGroup::defaultNewGroup(JSContext* cx, const Class* clasp,
     // function. The group starts out as a plain object but might mutate into an
     // unboxed plain object.
     MOZ_ASSERT_IF(!clasp, !!associated);
-
-    AutoEnterAnalysis enter(cx);
-
-    ObjectGroupCompartment::NewTable*& table = cx->compartment()->objectGroups.defaultNewTable;
-
-    if (!table) {
-        table = cx->new_<ObjectGroupCompartment::NewTable>(cx->zone());
-        if (!table || !table->init()) {
-            js_delete(table);
-            table = nullptr;
-            ReportOutOfMemory(cx);
-            return nullptr;
-        }
-    }
 
     if (associated && !associated->is<TypeDescr>()) {
         MOZ_ASSERT(!clasp);
@@ -521,6 +521,25 @@ ObjectGroup::defaultNewGroup(JSContext* cx, const Class* clasp,
             clasp = &PlainObject::class_;
     }
 
+    ObjectGroupCompartment& groups = cx->compartment()->objectGroups;
+
+    if (ObjectGroup* group = groups.defaultNewGroupCache.lookup(clasp, proto, associated))
+        return group;
+
+    AutoEnterAnalysis enter(cx);
+
+    ObjectGroupCompartment::NewTable*& table = groups.defaultNewTable;
+
+    if (!table) {
+        table = cx->new_<ObjectGroupCompartment::NewTable>(cx->zone());
+        if (!table || !table->init()) {
+            js_delete(table);
+            table = nullptr;
+            ReportOutOfMemory(cx);
+            return nullptr;
+        }
+    }
+
     if (proto.isObject() && !proto.toObject()->isDelegate()) {
         RootedObject protoObj(cx, proto.toObject());
         if (!JSObject::setDelegate(cx, protoObj))
@@ -544,6 +563,7 @@ ObjectGroup::defaultNewGroup(JSContext* cx, const Class* clasp,
         MOZ_ASSERT_IF(!clasp, group->clasp() == &PlainObject::class_ ||
                               group->clasp() == &UnboxedPlainObject::class_);
         MOZ_ASSERT(group->proto() == proto);
+        groups.defaultNewGroupCache.put(group, associated);
         return group;
     }
 
@@ -590,6 +610,7 @@ ObjectGroup::defaultNewGroup(JSContext* cx, const Class* clasp,
         AddTypePropertyId(cx, group, nullptr, NameToId(names.columnNumber), TypeSet::Int32Type());
     }
 
+    groups.defaultNewGroupCache.put(group, associated);
     return group;
 }
 
@@ -1689,6 +1710,7 @@ ObjectGroupCompartment::removeDefaultNewGroup(const Class* clasp, TaggedProto pr
     MOZ_RELEASE_ASSERT(p);
 
     defaultNewTable->get().remove(p);
+    defaultNewGroupCache.purge();
 }
 
 void
@@ -1700,6 +1722,7 @@ ObjectGroupCompartment::replaceDefaultNewGroup(const Class* clasp, TaggedProto p
     auto p = defaultNewTable->lookup(lookup);
     MOZ_RELEASE_ASSERT(p);
     defaultNewTable->get().remove(p);
+    defaultNewGroupCache.purge();
     {
         AutoEnterOOMUnsafeRegion oomUnsafe;
         if (!defaultNewTable->putNew(lookup, NewEntry(group, associated)))
@@ -1778,6 +1801,7 @@ ObjectGroupCompartment::clearTables()
         defaultNewTable->clear();
     if (lazyTable && lazyTable->initialized())
         lazyTable->clear();
+    defaultNewGroupCache.purge();
 }
 
 /* static */ bool
