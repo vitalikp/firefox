@@ -542,7 +542,7 @@ CycleCollectedJSRuntime::CycleCollectedJSRuntime(JSContext* aMainContext)
 }
 
 void
-CycleCollectedJSRuntime::Shutdown()
+CycleCollectedJSRuntime::Shutdown(JSContext* cx)
 {
 }
 
@@ -1270,7 +1270,7 @@ CycleCollectedJSRuntime::DeferredFinalize(nsISupports* aSupports)
 void
 CycleCollectedJSRuntime::DumpJSHeap(FILE* aFile)
 {
-  js::DumpHeap(MainContext(), aFile, js::CollectNurseryBeforeDump);
+  js::DumpHeap(mJSContext, aFile, js::CollectNurseryBeforeDump);
 }
 
 IncrementalFinalizeRunnable::IncrementalFinalizeRunnable(CycleCollectedJSRuntime* aRt,
@@ -1470,7 +1470,7 @@ void
 CycleCollectedJSRuntime::PrepareWaitingZonesForGC()
 {
   if (mZonesWaitingForGC.Count() == 0) {
-    JS::PrepareForFullGC(MainContext());
+    JS::PrepareForFullGC(mJSContext);
   } else {
     for (auto iter = mZonesWaitingForGC.Iter(); !iter.Done(); iter.Next()) {
       JS::PrepareZoneForGC(iter.Get()->GetKey());
