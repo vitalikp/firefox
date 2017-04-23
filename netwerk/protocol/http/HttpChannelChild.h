@@ -113,6 +113,8 @@ public:
   mozilla::ipc::IPCResult RecvNotifyTrackingProtectionDisabled() override;
   void FlushedForDiversion();
 
+  void OnCopyComplete(nsresult aStatus) override;
+
 protected:
   mozilla::ipc::IPCResult RecvOnStartRequest(const nsresult& channelStatus,
                                              const nsHttpResponseHead& responseHead,
@@ -165,6 +167,10 @@ protected:
   virtual void DoNotifyListenerCleanup() override;
 
   NS_IMETHOD GetResponseSynthesized(bool* aSynthesized) override;
+
+  nsresult
+  AsyncCall(void (HttpChannelChild::*funcPtr)(),
+            nsRunnableMethod<HttpChannelChild> **retval = nullptr) override;
 
 private:
   // this section is for main-thread-only object
