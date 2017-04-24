@@ -13,6 +13,7 @@ include protocol PCacheStorage;
 include protocol PCacheStreamControl;
 include protocol PFileDescriptorSet;
 include protocol PFileSystemRequest;
+include protocol PIPCBlobInputStream;
 include protocol PMemoryStream;
 include protocol PMessagePort;
 include protocol PCameras;
@@ -56,6 +57,7 @@ sync protocol PBackground
   manages PCacheStreamControl;
   manages PFileDescriptorSet;
   manages PFileSystemRequest;
+  manages PIPCBlobInputStream;
   manages PMemoryStream;
   manages PMessagePort;
   manages PCameras;
@@ -111,6 +113,8 @@ child:
   async PCacheStreamControl();
 
   async PParentToChildStream();
+
+  async PIPCBlobInputStream(nsID aID, uint64_t aSize);
 
 both:
   async PBlob(BlobConstructorParams params);
