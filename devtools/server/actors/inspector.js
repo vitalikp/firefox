@@ -2414,6 +2414,8 @@ var WalkerActor = protocol.ActorClassWithSpec(walkerSpec, {
           this.rootDoc.defaultView) {
         this.onFrameUnload({ window: this.rootDoc.defaultView });
       }
+      // Update all DOM objects references to target the new document.
+      this.rootWin = window;
       this.rootDoc = window.document;
       this.rootNode = this.document();
       this.queueMutation({
@@ -2937,7 +2939,7 @@ function DocumentWalker(node, rootWin,
     whatToShow = nodeFilterConstants.SHOW_ALL,
     filter = standardTreeWalkerFilter,
     skipTo = SKIP_TO_PARENT) {
-  if (!rootWin.location) {
+  if (Cu.isDeadWrapper(rootWin) || !rootWin.location) {
     throw new Error("Got an invalid root window in DocumentWalker");
   }
 
