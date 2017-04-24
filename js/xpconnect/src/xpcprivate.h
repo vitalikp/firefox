@@ -401,7 +401,8 @@ private:
 class XPCJSContext final : public mozilla::CycleCollectedJSContext
 {
 public:
-    static XPCJSContext* newXPCJSContext();
+    static void InitTLS();
+    static XPCJSContext* NewXPCJSContext(XPCJSContext* aPrimaryContext);
     static XPCJSContext* Get();
     static XPCJSContext* GetOnly() { return XPCJSContext::Get(); }
 
@@ -489,7 +490,7 @@ private:
     XPCJSContext();
 
     MOZ_IS_CLASS_INIT
-    nsresult Initialize();
+    nsresult Initialize(XPCJSContext* aPrimaryContext);
 
     XPCCallContext*          mCallContext;
     AutoMarkingPtr*          mAutoRoots;
