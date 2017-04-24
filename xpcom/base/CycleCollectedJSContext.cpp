@@ -70,6 +70,8 @@ CycleCollectedJSContext::~CycleCollectedJSContext()
     return;
   }
 
+  mRuntime->RemoveContext(this);
+
   if (mIsPrimaryContext) {
     mRuntime->Shutdown(mJSContext);
   }
@@ -113,6 +115,8 @@ CycleCollectedJSContext::~CycleCollectedJSContext()
 void
 CycleCollectedJSContext::InitializeCommon()
 {
+  mRuntime->AddContext(this);
+
   mOwningThread->SetScriptObserver(this);
   // The main thread has a base recursion depth of 0, workers of 1.
   mBaseRecursionDepth = RecursionDepth();
