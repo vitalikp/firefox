@@ -33,8 +33,7 @@ namespace {
 void
 AssertValidValueToTake(const IPCStream& aVal)
 {
-  MOZ_ASSERT(aVal.type() == IPCStream::TPChildToParentStreamChild ||
-             aVal.type() == IPCStream::TPParentToChildStreamParent ||
+  MOZ_ASSERT(aVal.type() == IPCStream::TIPCRemoteStream ||
              aVal.type() == IPCStream::TInputStreamParamsWithFds);
 }
 
@@ -161,7 +160,11 @@ SerializeInputStream(nsIInputStream* aStream, IPCStream& aValue, M* aManager)
   }
 
   MOZ_ASSERT(asyncStream);
-  aValue = IPCStreamSource::Create(asyncStream, aManager);
+
+  IPCRemoteStream remoteStream;
+  remoteStream.stream() = IPCStreamSource::Create(asyncStream, aManager);
+  aValue = remoteStream;
+
   return true;
 }
 
@@ -289,12 +292,16 @@ CleanupIPCStream(IPCStream& aValue, bool aConsumedByIPC)
     return;
   }
 
+  MOZ_ASSERT(aValue.type() == IPCStream::TIPCRemoteStream);
+  IPCRemoteStreamType& remoteInputStream =
+    aValue.get_IPCRemoteStream().stream();
+
   IPCStreamSource* source = nullptr;
-  if (aValue.type() == IPCStream::TPChildToParentStreamChild) {
-    source = IPCStreamSource::Cast(aValue.get_PChildToParentStreamChild());
+  if (remoteInputStream.type() == IPCRemoteStreamType::TPChildToParentStreamChild) {
+    source = IPCStreamSource::Cast(remoteInputStream.get_PChildToParentStreamChild());
   } else {
-    MOZ_ASSERT(aValue.type() == IPCStream::TPParentToChildStreamParent);
-    source = IPCStreamSource::Cast(aValue.get_PParentToChildStreamParent());
+    MOZ_ASSERT(remoteInputStream.type() == IPCRemoteStreamType::TPParentToChildStreamParent);
+    source = IPCStreamSource::Cast(remoteInputStream.get_PParentToChildStreamParent());
   }
 
   MOZ_ASSERT(source);
@@ -345,15 +352,19 @@ NormalizeOptionalValue(nsIInputStream* aStream,
 already_AddRefed<nsIInputStream>
 DeserializeIPCStream(const IPCStream& aValue)
 {
-  if (aValue.type() == IPCStream::TPChildToParentStreamParent) {
-    auto sendStream =
-      IPCStreamDestination::Cast(aValue.get_PChildToParentStreamParent());
-    return sendStream->TakeReader();
-  }
+  if (aValue.type() == IPCStream::TIPCRemoteStream) {
+    const IPCRemoteStreamType& remoteInputStream =
+      aValue.get_IPCRemoteStream().stream();
+    if (remoteInputStream.type() == IPCRemoteStreamType::TPChildToParentStreamParent) {
+      auto sendStream =
+        IPCStreamDestination::Cast(remoteInputStream.get_PChildToParentStreamParent());
+      return sendStream->TakeReader();
+    }
 
-  if (aValue.type() == IPCStream::TPParentToChildStreamChild) {
+    MOZ_ASSERT(remoteInputStream.type() == IPCRemoteStreamType::TPParentToChildStreamChild);
+
     auto sendStream =
-      IPCStreamDestination::Cast(aValue.get_PParentToChildStreamChild());
+      IPCStreamDestination::Cast(remoteInputStream.get_PParentToChildStreamChild());
     return sendStream->TakeReader();
   }
 
