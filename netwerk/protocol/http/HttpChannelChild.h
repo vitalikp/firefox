@@ -39,6 +39,7 @@ class nsInputStreamPump;
 namespace mozilla {
 namespace net {
 
+class HttpBackgroundChannelChild;
 class InterceptedChannelContent;
 class InterceptStreamListener;
 
@@ -113,6 +114,11 @@ public:
   void FlushedForDiversion();
 
   void OnCopyComplete(nsresult aStatus) override;
+
+  // Callback while background channel is ready.
+  void OnBackgroundChildReady(HttpBackgroundChannelChild* aBgChild);
+  // Callback while background channel is destroyed.
+  void OnBackgroundChildDestroyed();
 
 protected:
   mozilla::ipc::IPCResult RecvOnStartRequest(const nsresult& channelStatus,
@@ -314,6 +320,12 @@ private:
   // is synthesized.
   bool mSuspendParentAfterSynthesizeResponse;
 
+  RefPtr<HttpBackgroundChannelChild> mBgChild;
+
+  // Remove the association with background channel after OnStopRequest
+  // or AsyncAbort.
+  void CleanupBackgroundChannel();
+
   // Needed to call AsyncOpen in FinishInterceptedRedirect
   nsCOMPtr<nsIStreamListener> mInterceptedRedirectListener;
   nsCOMPtr<nsISupports> mInterceptedRedirectContext;
@@ -407,6 +419,7 @@ private:
   friend class HttpAsyncAborter<HttpChannelChild>;
   friend class InterceptStreamListener;
   friend class InterceptedChannelContent;
+  friend class HttpBackgroundChannelChild;
 };
 
 // A stream listener interposed between the nsInputStreamPump used for intercepted channels

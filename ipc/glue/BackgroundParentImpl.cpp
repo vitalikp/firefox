@@ -838,7 +838,11 @@ BackgroundParentImpl::AllocPHttpBackgroundChannelParent(const uint64_t& aChannel
   AssertIsInMainProcess();
   AssertIsOnBackgroundThread();
 
-  return new net::HttpBackgroundChannelParent();
+  RefPtr<net::HttpBackgroundChannelParent> actor =
+    new net::HttpBackgroundChannelParent();
+
+  // hold extra refcount for IPDL
+  return actor.forget().take();
 }
 
 mozilla::ipc::IPCResult
@@ -850,7 +854,13 @@ BackgroundParentImpl::RecvPHttpBackgroundChannelConstructor(
   AssertIsInMainProcess();
   AssertIsOnBackgroundThread();
 
-  //TODO
+  net::HttpBackgroundChannelParent* aParent =
+    static_cast<net::HttpBackgroundChannelParent*>(aActor);
+
+  if (NS_WARN_IF(NS_FAILED(aParent->Init(aChannelId)))) {
+    return IPC_FAIL_NO_REASON(this);
+  }
+
   return IPC_OK();
 }
 
@@ -862,7 +872,10 @@ BackgroundParentImpl::DeallocPHttpBackgroundChannelParent(
   AssertIsInMainProcess();
   AssertIsOnBackgroundThread();
 
-  //TODO
+  // release extra refcount hold by AllocPHttpBackgroundChannelParent
+  RefPtr<net::HttpBackgroundChannelParent> actor =
+    dont_AddRef(static_cast<net::HttpBackgroundChannelParent*>(aActor));
+
   return true;
 }
 
