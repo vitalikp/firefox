@@ -1830,6 +1830,7 @@ nsStyleGradient::operator==(const nsStyleGradient& aOther) const
       mSize != aOther.mSize ||
       mRepeating != aOther.mRepeating ||
       mLegacySyntax != aOther.mLegacySyntax ||
+      mMozLegacySyntax != aOther.mMozLegacySyntax ||
       mBgPosX != aOther.mBgPosX ||
       mBgPosY != aOther.mBgPosY ||
       mAngle != aOther.mAngle ||
@@ -1860,6 +1861,7 @@ nsStyleGradient::nsStyleGradient()
   , mSize(NS_STYLE_GRADIENT_SIZE_FARTHEST_CORNER)
   , mRepeating(false)
   , mLegacySyntax(false)
+  , mMozLegacySyntax(false)
 {
 }
 

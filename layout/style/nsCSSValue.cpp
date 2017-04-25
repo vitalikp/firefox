@@ -3154,6 +3154,7 @@ nsCSSValueGradient::nsCSSValueGradient(bool aIsRadial,
   : mIsRadial(aIsRadial),
     mIsRepeating(aIsRepeating),
     mIsLegacySyntax(false),
+    mIsMozLegacySyntax(false),
     mIsExplicitSize(false),
     mBgPos(eCSSUnit_None),
     mAngle(eCSSUnit_None)
