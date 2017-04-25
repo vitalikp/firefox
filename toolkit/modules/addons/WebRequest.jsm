@@ -19,8 +19,6 @@ Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/Task.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-XPCOMUtils.defineLazyModuleGetter(this, "BrowserUtils",
-                                  "resource://gre/modules/BrowserUtils.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "ExtensionUtils",
                                   "resource://gre/modules/ExtensionUtils.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "WebRequestCommon",
@@ -287,7 +285,7 @@ var ContentPolicyManager = {
 
   runChannelListener(kind, data) {
     let listeners = HttpObserverManager.listeners[kind];
-    let uri = BrowserUtils.makeURI(data.url);
+    let uri = Services.io.newURI(data.url);
     let policyType = data.type;
     for (let [callback, opts] of listeners.entries()) {
       if (!HttpObserverManager.shouldRunListener(policyType, uri, opts.filter)) {
@@ -773,7 +771,7 @@ HttpObserverManager = {
           try {
             this.maybeResume(channel);
 
-            channel.redirectTo(BrowserUtils.makeURI(result.redirectUrl));
+            channel.redirectTo(Services.io.newURI(result.redirectUrl));
             return;
           } catch (e) {
             Cu.reportError(e);
