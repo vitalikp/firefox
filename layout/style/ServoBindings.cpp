@@ -19,6 +19,7 @@
 #include "nsCSSRuleProcessor.h"
 #include "nsContentUtils.h"
 #include "nsDOMTokenList.h"
+#include "nsDeviceContext.h"
 #include "nsIContentInlines.h"
 #include "nsIDOMNode.h"
 #include "nsIDocument.h"
@@ -1794,6 +1795,13 @@ Gecko_GetFontMetrics(RawGeckoPresContextBorrowed aPresContext,
                            GetMetrics(fm->Orientation()).zeroOrAveCharWidth;
   ret.mChSize = ceil(aPresContext->AppUnitsPerDevPixel() * zeroWidth);
   return ret;
+}
+
+int32_t
+Gecko_GetAppUnitsPerPhysicalInch(RawGeckoPresContextBorrowed aPresContext)
+{
+  nsPresContext* presContext = const_cast<nsPresContext*>(aPresContext);
+  return presContext->DeviceContext()->AppUnitsPerPhysicalInch();
 }
 
 void
