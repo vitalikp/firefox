@@ -2222,6 +2222,7 @@ nsImageFrame::LoadIcon(const nsAString& aSpec,
                        nullptr,
                        contentPolicyType,
                        EmptyString(),
+                       false,        /* aUseUrgentStartForChannel */
                        aRequest);
 }
 
