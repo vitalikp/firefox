@@ -301,6 +301,15 @@ FrameLayerBuilder::DisplayItemData::GetFrameListChanges()
   return mFrameListChanges;
 }
 
+FrameLayerBuilder::DisplayItemData*
+FrameLayerBuilder::DisplayItemData::AssertDisplayItemData(FrameLayerBuilder::DisplayItemData* aData)
+{
+  MOZ_RELEASE_ASSERT(aData);
+  MOZ_RELEASE_ASSERT(sAliveDisplayItemDatas && sAliveDisplayItemDatas->Contains(aData));
+  MOZ_RELEASE_ASSERT(aData->mLayer);
+  return aData;
+}
+
 /**
  * This is the userdata we associate with a layer manager.
  */
@@ -1785,15 +1794,6 @@ FrameLayerBuilder::FlashPaint(gfxContext *aContext)
   aContext->Paint();
 }
 
-static FrameLayerBuilder::DisplayItemData*
-AssertDisplayItemData(FrameLayerBuilder::DisplayItemData* aData)
-{
-  MOZ_RELEASE_ASSERT(aData);
-  MOZ_RELEASE_ASSERT(sAliveDisplayItemDatas && sAliveDisplayItemDatas->Contains(aData));
-  MOZ_RELEASE_ASSERT(aData->mLayer);
-  return aData;
-}
-
 FrameLayerBuilder::DisplayItemData*
 FrameLayerBuilder::GetDisplayItemData(nsIFrame* aFrame, uint32_t aKey)
 {
@@ -1801,7 +1801,7 @@ FrameLayerBuilder::GetDisplayItemData(nsIFrame* aFrame, uint32_t aKey)
     aFrame->Properties().Get(LayerManagerDataProperty());
   if (array) {
     for (uint32_t i = 0; i < array->Length(); i++) {
-      DisplayItemData* item = AssertDisplayItemData(array->ElementAt(i));
+      DisplayItemData* item = DisplayItemData::AssertDisplayItemData(array->ElementAt(i));
       if (item->mDisplayItemKey == aKey &&
           item->mLayer->Manager() == mRetainingManager) {
         return item;
@@ -2031,7 +2031,7 @@ FrameLayerBuilder::GetDisplayItemDataForManager(nsDisplayItem* aItem,
     aItem->Frame()->Properties().Get(LayerManagerDataProperty());
   if (array) {
     for (uint32_t i = 0; i < array->Length(); i++) {
-      DisplayItemData* item = AssertDisplayItemData(array->ElementAt(i));
+      DisplayItemData* item = DisplayItemData::AssertDisplayItemData(array->ElementAt(i));
       if (item->mDisplayItemKey == aItem->GetPerFrameKey() &&
           item->mLayer->Manager() == aManager) {
         return item;
@@ -2048,7 +2048,7 @@ FrameLayerBuilder::HasRetainedDataFor(nsIFrame* aFrame, uint32_t aDisplayItemKey
     aFrame->Properties().Get(LayerManagerDataProperty());
   if (array) {
     for (uint32_t i = 0; i < array->Length(); i++) {
-      if (AssertDisplayItemData(array->ElementAt(i))->mDisplayItemKey == aDisplayItemKey) {
+      if (DisplayItemData::AssertDisplayItemData(array->ElementAt(i))->mDisplayItemKey == aDisplayItemKey) {
         return true;
       }
     }
@@ -2066,7 +2066,7 @@ FrameLayerBuilder::IterateRetainedDataFor(nsIFrame* aFrame, DisplayItemDataCallb
   }
 
   for (uint32_t i = 0; i < array->Length(); i++) {
-    DisplayItemData* data = AssertDisplayItemData(array->ElementAt(i));
+    DisplayItemData* data = DisplayItemData::AssertDisplayItemData(array->ElementAt(i));
     if (data->mDisplayItemKey != nsDisplayItem::TYPE_ZERO) {
       aCallback(aFrame, data);
     }
@@ -2134,43 +2134,13 @@ FrameLayerBuilder::GetDebugOldLayerFor(nsIFrame* aFrame, uint32_t aDisplayItemKe
   }
 
   for (uint32_t i = 0; i < array->Length(); i++) {
-    DisplayItemData *data = AssertDisplayItemData(array->ElementAt(i));
+    DisplayItemData *data = DisplayItemData::AssertDisplayItemData(array->ElementAt(i));
 
     if (data->mDisplayItemKey == aDisplayItemKey) {
       return data->mLayer;
     }
   }
   return nullptr;
-}
-
-/* static */ PaintedLayer*
-FrameLayerBuilder::GetDebugSingleOldPaintedLayerForFrame(nsIFrame* aFrame)
-{
-  const nsTArray<DisplayItemData*>* array =
-    aFrame->Properties().Get(LayerManagerDataProperty());
-
-  if (!array) {
-    return nullptr;
-  }
-
-  Layer* layer = nullptr;
-  for (DisplayItemData* data : *array) {
-    AssertDisplayItemData(data);
-    if (!data->mLayer->AsPaintedLayer()) {
-      continue;
-    }
-    if (layer && layer != data->mLayer) {
-      // More than one layer assigned, bail.
-      return nullptr;
-    }
-    layer = data->mLayer;
-  }
-
-  if (!layer) {
-    return nullptr;
-  }
-
-  return layer->AsPaintedLayer();
 }
 
 // Reset state that should not persist when a layer is recycled.
@@ -5766,7 +5736,7 @@ FrameLayerBuilder::InvalidateAllLayersForFrame(nsIFrame *aFrame)
     aFrame->Properties().Get(LayerManagerDataProperty());
   if (array) {
     for (uint32_t i = 0; i < array->Length(); i++) {
-      AssertDisplayItemData(array->ElementAt(i))->mParent->mInvalidateAllLayers = true;
+      DisplayItemData::AssertDisplayItemData(array->ElementAt(i))->mParent->mInvalidateAllLayers = true;
     }
   }
 }
@@ -5783,7 +5753,7 @@ FrameLayerBuilder::GetDedicatedLayer(nsIFrame* aFrame, uint32_t aDisplayItemKey)
     aFrame->Properties().Get(LayerManagerDataProperty());
   if (array) {
     for (uint32_t i = 0; i < array->Length(); i++) {
-      DisplayItemData *element = AssertDisplayItemData(array->ElementAt(i));
+      DisplayItemData *element = DisplayItemData::AssertDisplayItemData(array->ElementAt(i));
       if (!element->mParent->mLayerManager->IsWidgetLayerManager()) {
         continue;
       }
@@ -5842,7 +5812,7 @@ FrameLayerBuilder::GetPaintedLayerScaleForFrame(nsIFrame* aFrame)
     }
 
     for (uint32_t i = 0; i < array->Length(); i++) {
-      Layer* layer = AssertDisplayItemData(array->ElementAt(i))->mLayer;
+      Layer* layer = DisplayItemData::AssertDisplayItemData(array->ElementAt(i))->mLayer;
       ContainerLayer* container = layer->AsContainerLayer();
       if (!container ||
           !layer->Manager()->IsWidgetLayerManager()) {
@@ -6282,7 +6252,7 @@ FrameLayerBuilder::GetMostRecentGeometry(nsDisplayItem* aItem)
   // Find our display item data, if it exists, and return its geometry.
   uint32_t itemPerFrameKey = aItem->GetPerFrameKey();
   for (uint32_t i = 0; i < dataArray->Length(); i++) {
-    DisplayItemData* data = AssertDisplayItemData(dataArray->ElementAt(i));
+    DisplayItemData* data = DisplayItemData::AssertDisplayItemData(dataArray->ElementAt(i));
     if (data->GetDisplayItemKey() == itemPerFrameKey) {
       return data->GetGeometry();
     }
