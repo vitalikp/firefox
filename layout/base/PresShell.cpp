@@ -4565,19 +4565,6 @@ nsIPresShell::RestyleForCSSRuleChanges()
     mPresContext->RebuildCounterStyles();
   }
 
-  // Tell Servo that the contents of style sheets have changed.
-  //
-  // NB: It's important to do so before bailing out.
-  //
-  // Even if we have no frames, we can end up styling those when creating
-  // them, and it's important for Servo to know that it needs to use the
-  // correct styles.
-  // We don't do this notification if author styles are disabled, because
-  // the ServoStyleSet has already taken care of it.
-  if (mStyleSet->IsServo() && !mStyleSet->AsServo()->GetAuthorStyleDisabled()) {
-    mStyleSet->AsServo()->NoteStyleSheetsChanged();
-  }
-
   Element* root = mDocument->GetRootElement();
   if (!mDidInitialize) {
     // Nothing to do here, since we have no frames yet
@@ -4613,6 +4600,11 @@ PresShell::RecordStyleSheetChange(StyleSheet* aStyleSheet)
 
   if (mStylesHaveChanged)
     return;
+
+  // Tell Servo that the contents of style sheets have changed.
+  if (ServoStyleSet* set = mStyleSet->GetAsServo()) {
+    set->NoteStyleSheetsChanged();
+  }
 
   if (aStyleSheet->IsGecko()) {
     // XXXheycam ServoStyleSheets don't support <style scoped> yet.
