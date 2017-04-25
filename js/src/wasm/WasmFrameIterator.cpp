@@ -487,7 +487,7 @@ static inline void
 AssertMatchesCallSite(const WasmActivation& activation, void* callerPC, void* callerFP)
 {
 #ifdef DEBUG
-    Code* code = activation.compartment()->wasm.lookupCode(callerPC);
+    const Code* code = activation.compartment()->wasm.lookupCode(callerPC);
     MOZ_ASSERT(code);
 
     const CodeRange* callerCodeRange = code->lookupRange(callerPC);
@@ -931,7 +931,7 @@ wasm::LookupFaultingInstance(WasmActivation* activation, void* pc, void* fp)
     // simulators which call this function at every load/store before even
     // knowing whether there is a fault.
 
-    Code* code = activation->compartment()->wasm.lookupCode(pc);
+    const Code* code = activation->compartment()->wasm.lookupCode(pc);
     if (!code)
         return nullptr;
 
