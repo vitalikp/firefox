@@ -1190,6 +1190,8 @@ XPCJSRuntime::Shutdown(JSContext* cx)
 #ifdef FUZZING
     Preferences::UnregisterCallback(ReloadPrefsCallback, "fuzzing.enabled");
 #endif
+
+    CycleCollectedJSRuntime::Shutdown(cx);
 }
 
 XPCJSRuntime::~XPCJSRuntime()
