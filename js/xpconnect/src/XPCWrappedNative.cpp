@@ -892,7 +892,7 @@ XPCWrappedNative::FlatJSObjectFinalized()
 void
 XPCWrappedNative::FlatJSObjectMoved(JSObject* obj, const JSObject* old)
 {
-    JS::AutoAssertGCCallback inCallback(obj);
+    JS::AutoAssertGCCallback inCallback;
     MOZ_ASSERT(mFlatJSObject == old);
 
     nsWrapperCache* cache = nullptr;
