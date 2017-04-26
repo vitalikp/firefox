@@ -54,7 +54,6 @@ JS::Zone::Zone(JSRuntime* rt, ZoneGroup* group)
     gcLastSweepGroupIndex(group, 0),
 #endif
     jitZone_(group, nullptr),
-    gcState_(NoGC),
     gcScheduled_(false),
     gcPreserveCode_(group, false),
     jitUsingBarriers_(group, false),
