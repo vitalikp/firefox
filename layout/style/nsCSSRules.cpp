@@ -36,7 +36,6 @@
 #include "nsDOMClassInfoID.h"
 #include "mozilla/dom/CSSStyleDeclarationBinding.h"
 #include "mozilla/dom/CSSImportRuleBinding.h"
-#include "mozilla/dom/CSSSupportsRuleBinding.h"
 #include "mozilla/dom/CSSMozDocumentRuleBinding.h"
 #include "mozilla/dom/CSSFontFaceRuleBinding.h"
 #include "mozilla/dom/CSSFontFeatureValuesRuleBinding.h"
@@ -2265,7 +2264,7 @@ namespace mozilla {
 CSSSupportsRule::CSSSupportsRule(bool aConditionMet,
                                  const nsString& aCondition,
                                  uint32_t aLineNumber, uint32_t aColumnNumber)
-  : css::ConditionRule(aLineNumber, aColumnNumber)
+  : dom::CSSSupportsRule(aLineNumber, aColumnNumber)
   , mUseGroup(aConditionMet)
   , mCondition(aCondition)
 {
@@ -2276,7 +2275,7 @@ CSSSupportsRule::~CSSSupportsRule()
 }
 
 CSSSupportsRule::CSSSupportsRule(const CSSSupportsRule& aCopy)
-  : css::ConditionRule(aCopy),
+  : dom::CSSSupportsRule(aCopy),
     mUseGroup(aCopy.mUseGroup),
     mCondition(aCopy.mCondition)
 {
@@ -2300,12 +2299,6 @@ CSSSupportsRule::List(FILE* out, int32_t aIndent) const
 }
 #endif
 
-/* virtual */ int32_t
-CSSSupportsRule::GetType() const
-{
-  return Rule::SUPPORTS_RULE;
-}
-
 /* virtual */ already_AddRefed<mozilla::css::Rule>
 CSSSupportsRule::Clone() const
 {
@@ -2325,16 +2318,7 @@ NS_IMPL_RELEASE_INHERITED(CSSSupportsRule, css::ConditionRule)
 
 // QueryInterface implementation for CSSSupportsRule
 NS_INTERFACE_MAP_BEGIN(CSSSupportsRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSGroupingRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSConditionRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSSupportsRule)
-NS_INTERFACE_MAP_END_INHERITING(ConditionRule)
-
-uint16_t
-CSSSupportsRule::Type() const
-{
-  return nsIDOMCSSRule::SUPPORTS_RULE;
-}
+NS_INTERFACE_MAP_END_INHERITING(dom::CSSSupportsRule)
 
 void
 CSSSupportsRule::GetCssTextImpl(nsAString& aCssText) const
@@ -2342,25 +2326,6 @@ CSSSupportsRule::GetCssTextImpl(nsAString& aCssText) const
   aCssText.AssignLiteral("@supports ");
   aCssText.Append(mCondition);
   css::GroupRule::AppendRulesToCssText(aCssText);
-}
-
-// nsIDOMCSSGroupingRule methods
-NS_IMETHODIMP
-CSSSupportsRule::GetCssRules(nsIDOMCSSRuleList* *aRuleList)
-{
-  return css::GroupRule::GetCssRules(aRuleList);
-}
-
-NS_IMETHODIMP
-CSSSupportsRule::InsertRule(const nsAString & aRule, uint32_t aIndex, uint32_t* _retval)
-{
-  return css::GroupRule::InsertRule(aRule, aIndex, _retval);
-}
-
-NS_IMETHODIMP
-CSSSupportsRule::DeleteRule(uint32_t aIndex)
-{
-  return css::GroupRule::DeleteRule(aIndex);
 }
 
 // nsIDOMCSSConditionRule methods
@@ -2377,13 +2342,6 @@ CSSSupportsRule::SetConditionText(const nsAString& aConditionText)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-void
-CSSSupportsRule::SetConditionText(const nsAString& aConditionText,
-                                  ErrorResult& aRv)
-{
-  aRv.Throw(NS_ERROR_NOT_IMPLEMENTED);
-}
-
 /* virtual */ size_t
 CSSSupportsRule::SizeOfIncludingThis(MallocSizeOf aMallocSizeOf) const
 {
@@ -2391,13 +2349,6 @@ CSSSupportsRule::SizeOfIncludingThis(MallocSizeOf aMallocSizeOf) const
   n += css::GroupRule::SizeOfExcludingThis(aMallocSizeOf);
   n += mCondition.SizeOfExcludingThisIfUnshared(aMallocSizeOf);
   return n;
-}
-
-/* virtual */ JSObject*
-CSSSupportsRule::WrapObject(JSContext* aCx,
-                            JS::Handle<JSObject*> aGivenProto)
-{
-  return CSSSupportsRuleBinding::Wrap(aCx, this, aGivenProto);
 }
 
 } // namespace mozilla
