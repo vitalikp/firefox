@@ -1974,8 +1974,7 @@ profiler_init(void* aStackTop)
     // indicates that the profiler has initialized successfully.
     gPS = new PS();
 
-    bool ignore;
-    gPS->SetStartTime(lock, mozilla::TimeStamp::ProcessCreation(ignore));
+    gPS->SetStartTime(lock, mozilla::TimeStamp::ProcessCreation());
 
     locked_register_thread(lock, kMainThreadName, aStackTop);
 
@@ -2280,8 +2279,7 @@ locked_profiler_start(PS::LockRef aLock, int aEntries, double aInterval,
   MOZ_RELEASE_ASSERT(NS_IsMainThread());
   MOZ_RELEASE_ASSERT(gPS && !gPS->IsActive(aLock));
 
-  bool ignore;
-  gPS->SetStartTime(aLock, mozilla::TimeStamp::ProcessCreation(ignore));
+  gPS->SetStartTime(aLock, mozilla::TimeStamp::ProcessCreation());
 
   // Fall back to the default value if the passed-in value is unreasonable.
   int entries = aEntries > 0 ? aEntries : PROFILE_DEFAULT_ENTRIES;

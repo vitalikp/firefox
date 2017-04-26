@@ -3019,9 +3019,7 @@ nsDocShell::PopProfileTimelineMarkers(
 nsresult
 nsDocShell::Now(DOMHighResTimeStamp* aWhen)
 {
-  bool ignore;
-  *aWhen =
-    (TimeStamp::Now() - TimeStamp::ProcessCreation(ignore)).ToMilliseconds();
+  *aWhen = (TimeStamp::Now() - TimeStamp::ProcessCreation()).ToMilliseconds();
   return NS_OK;
 }
 
