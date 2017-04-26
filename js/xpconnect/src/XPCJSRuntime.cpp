@@ -817,9 +817,6 @@ XPCJSRuntime::FinalizeCallback(JSFreeOp* fop,
         {
             MOZ_ASSERT(self->mDoingFinalization, "bad state");
 
-            // Sweep scopes needing cleanup
-            XPCWrappedNativeScope::KillDyingScopes();
-
             MOZ_ASSERT(self->mGCIsRunning, "bad state");
             self->mGCIsRunning = false;
 
@@ -827,6 +824,9 @@ XPCJSRuntime::FinalizeCallback(JSFreeOp* fop,
         }
         case JSFINALIZE_GROUP_END:
         {
+            // Sweep scopes needing cleanup
+            XPCWrappedNativeScope::KillDyingScopes();
+
             MOZ_ASSERT(self->mDoingFinalization, "bad state");
             self->mDoingFinalization = false;
 
@@ -909,7 +909,7 @@ XPCJSRuntime::WeakPointerZonesCallback(JSContext* cx, void* data)
 
     self->mWrappedJSMap->UpdateWeakPointersAfterGC();
 
-    XPCWrappedNativeScope::UpdateWeakPointersAfterGC();
+    XPCWrappedNativeScope::UpdateWeakPointersInAllScopesAfterGC();
 }
 
 /* static */ void
