@@ -650,7 +650,7 @@ static const int SAMPLER_MAX_STRING_LENGTH = 128;
 
 static void
 AddPseudoEntry(PSLockRef aLock, ProfileBuffer* aBuffer,
-               volatile js::ProfileEntry& entry, PseudoStack* stack)
+               volatile js::ProfileEntry& entry, PseudoStack* aPseudoStack)
 {
   // Pseudo-frames with the BEGIN_PSEUDO_JS flag are just annotations and
   // should not be recorded in the profile.
@@ -684,7 +684,8 @@ AddPseudoEntry(PSLockRef aLock, ProfileBuffer* aBuffer,
       if (script) {
         if (!entry.pc()) {
           // The JIT only allows the top-most entry to have a nullptr pc.
-          MOZ_ASSERT(&entry == &stack->mStack[stack->stackSize() - 1]);
+          MOZ_ASSERT(&entry ==
+                     &aPseudoStack->mStack[aPseudoStack->stackSize() - 1]);
         } else {
           lineno = JS_PCToLineNumber(script, entry.pc());
         }
@@ -2706,11 +2707,11 @@ profiler_thread_sleep()
 
   MOZ_RELEASE_ASSERT(CorePS::Exists());
 
-  PseudoStack *stack = tlsPseudoStack.get();
-  if (!stack) {
+  PseudoStack* pseudoStack = tlsPseudoStack.get();
+  if (!pseudoStack) {
     return;
   }
-  stack->setSleeping();
+  pseudoStack->setSleeping();
 }
 
 void
@@ -2720,11 +2721,11 @@ profiler_thread_wake()
 
   MOZ_RELEASE_ASSERT(CorePS::Exists());
 
-  PseudoStack *stack = tlsPseudoStack.get();
-  if (!stack) {
+  PseudoStack* pseudoStack = tlsPseudoStack.get();
+  if (!pseudoStack) {
     return;
   }
-  stack->setAwake();
+  pseudoStack->setAwake();
 }
 
 bool
@@ -2733,11 +2734,11 @@ profiler_thread_is_sleeping()
   MOZ_RELEASE_ASSERT(NS_IsMainThread());
   MOZ_RELEASE_ASSERT(CorePS::Exists());
 
-  PseudoStack *stack = tlsPseudoStack.get();
-  if (!stack) {
+  PseudoStack* pseudoStack = tlsPseudoStack.get();
+  if (!pseudoStack) {
     return false;
   }
-  return stack->isSleeping();
+  return pseudoStack->isSleeping();
 }
 
 void
@@ -2748,12 +2749,12 @@ profiler_js_interrupt_callback()
 
   MOZ_RELEASE_ASSERT(CorePS::Exists());
 
-  PseudoStack *stack = tlsPseudoStack.get();
-  if (!stack) {
+  PseudoStack* pseudoStack = tlsPseudoStack.get();
+  if (!pseudoStack) {
     return;
   }
 
-  stack->pollJSSampling();
+  pseudoStack->pollJSSampling();
 }
 
 double
@@ -2782,9 +2783,9 @@ profiler_get_backtrace()
     return nullptr;
   }
 
-  PseudoStack* stack = tlsPseudoStack.get();
-  if (!stack) {
-    MOZ_ASSERT(stack);
+  PseudoStack* pseudoStack = tlsPseudoStack.get();
+  if (!pseudoStack) {
+    MOZ_ASSERT(pseudoStack);
     return nullptr;
   }
 
@@ -2794,7 +2795,7 @@ profiler_get_backtrace()
 
   UniquePlatformData platformData = AllocPlatformData(tid);
 
-  TickSample sample(WrapNotNull(stack), platformData.get());
+  TickSample sample(WrapNotNull(pseudoStack), platformData.get());
 
 #if defined(HAVE_NATIVE_UNWIND)
 #if defined(GP_OS_windows) || defined(GP_OS_linux) || defined(GP_OS_android)
@@ -2890,8 +2891,8 @@ locked_profiler_add_marker(PSLockRef aLock, const char* aMarker,
   // aPayload must be freed if we return early.
   mozilla::UniquePtr<ProfilerMarkerPayload> payload(aPayload);
 
-  PseudoStack *stack = tlsPseudoStack.get();
-  if (!stack) {
+  PseudoStack* pseudoStack = tlsPseudoStack.get();
+  if (!pseudoStack) {
     return;
   }
 
@@ -2899,7 +2900,7 @@ locked_profiler_add_marker(PSLockRef aLock, const char* aMarker,
                             ? payload->GetStartTime()
                             : mozilla::TimeStamp::Now();
   mozilla::TimeDuration delta = origin - CorePS::ProcessStartTime(aLock);
-  stack->addMarker(aMarker, payload.release(), delta.ToMilliseconds());
+  pseudoStack->addMarker(aMarker, payload.release(), delta.ToMilliseconds());
 }
 
 void
@@ -2972,12 +2973,12 @@ profiler_set_js_context(JSContext* aCx)
 
   MOZ_ASSERT(aCx);
 
-  PseudoStack* stack = tlsPseudoStack.get();
-  if (!stack) {
+  PseudoStack* pseudoStack = tlsPseudoStack.get();
+  if (!pseudoStack) {
     return;
   }
 
-  stack->setJSContext(aCx);
+  pseudoStack->setJSContext(aCx);
 }
 
 void
@@ -2987,12 +2988,12 @@ profiler_clear_js_context()
 
   MOZ_RELEASE_ASSERT(CorePS::Exists());
 
-  PseudoStack* stack = tlsPseudoStack.get();
-  if (!stack) {
+  PseudoStack* pseudoStack = tlsPseudoStack.get();
+  if (!pseudoStack) {
     return;
   }
 
-  if (!stack->mContext) {
+  if (!pseudoStack->mContext) {
     return;
   }
 
@@ -3015,10 +3016,10 @@ profiler_clear_js_context()
     ActivePS::SetIsPaused(lock, false);
   }
 
-  // We don't call stack->stopJSSampling() here; there's no point doing
+  // We don't call pseudoStack->stopJSSampling() here; there's no point doing
   // that for a JS thread that is in the process of disappearing.
 
-  stack->mContext = nullptr;
+  pseudoStack->mContext = nullptr;
 }
 
 // END externally visible functions
