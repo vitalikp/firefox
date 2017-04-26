@@ -44,6 +44,7 @@ class AnimValuesStyleRule;
 enum class CSSPseudoElementType : uint8_t;
 class ErrorResult;
 struct AnimationRule;
+struct ServoComputedValuesWithParent;
 struct TimingParams;
 class EffectSet;
 
@@ -104,13 +105,6 @@ struct AnimationProperty
   {
     return !(*this == aOther);
   }
-};
-
-struct ServoComputedValuesWithParent
-{
-  const ServoComputedValues* mCurrentStyle;
-  const ServoComputedValues* mParentStyle;
-  explicit operator bool() const { return true; }
 };
 
 struct ElementPropertyTransition;
