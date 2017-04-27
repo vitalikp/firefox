@@ -434,6 +434,7 @@ SourceBuffer::AppendDataCompletedWithSuccess(SourceBufferTask::AppendBufferResul
     if (!mActive) {
       mActive = true;
       mMediaSource->SourceBufferIsActive(this);
+      mMediaSource->GetDecoder()->NotifyInitDataArrived();
     }
   }
   if (mActive) {
