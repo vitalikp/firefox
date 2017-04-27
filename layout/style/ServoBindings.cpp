@@ -361,10 +361,15 @@ Gecko_DropElementSnapshot(ServoElementSnapshotOwned aSnapshot)
   }
 }
 
-RawServoDeclarationBlockStrongBorrowedOrNull
-Gecko_GetStyleAttrDeclarationBlock(RawGeckoElementBorrowed aElement)
+typedef DeclarationBlock*(*DeclarationBlockGetter)(RawGeckoElementBorrowed);
+
+static RawServoDeclarationBlockStrongBorrowedOrNull
+UnwrapDeclarationBlock(RawGeckoElementBorrowed aElement,
+                       DeclarationBlockGetter aGetterFunc)
 {
-  DeclarationBlock* decl = aElement->GetInlineStyleDeclaration();
+  MOZ_ASSERT(aElement, "Invalid GeckoElement");
+
+  DeclarationBlock* decl = aGetterFunc(aElement);
   if (!decl) {
     return nullptr;
   }
@@ -375,6 +380,22 @@ Gecko_GetStyleAttrDeclarationBlock(RawGeckoElementBorrowed aElement)
     return nullptr;
   }
   return decl->AsServo()->RefRawStrong();
+}
+
+RawServoDeclarationBlockStrongBorrowedOrNull
+Gecko_GetStyleAttrDeclarationBlock(RawGeckoElementBorrowed aElement)
+{
+  return UnwrapDeclarationBlock(aElement, [](RawGeckoElementBorrowed elem) {
+    return elem->GetInlineStyleDeclaration();
+  });
+}
+
+RawServoDeclarationBlockStrongBorrowedOrNull
+Gecko_GetSMILOverrideDeclarationBlock(RawGeckoElementBorrowed aElement)
+{
+  return UnwrapDeclarationBlock(aElement, [](RawGeckoElementBorrowed elem) {
+    return const_cast<dom::Element*>(elem)->GetSMILOverrideStyleDeclaration();
+  });
 }
 
 RawServoDeclarationBlockStrongBorrowedOrNull
