@@ -203,11 +203,11 @@ class MOZ_STACK_CLASS JS_PUBLIC_API(AutoEnterCycleCollection)
     JSRuntime* runtime;
 
   public:
-    explicit AutoEnterCycleCollection(JSContext* cx);
+    explicit AutoEnterCycleCollection(JSRuntime* rt);
     ~AutoEnterCycleCollection();
 #else
   public:
-    explicit AutoEnterCycleCollection(JSContext* cx) {}
+    explicit AutoEnterCycleCollection(JSRuntime* rt) {}
     ~AutoEnterCycleCollection() {}
 #endif
 };
