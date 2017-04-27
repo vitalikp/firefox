@@ -1396,7 +1396,7 @@ GetPropIRGenerator::tryAttachDenseElement(HandleObject obj, ObjOperandId objId,
 }
 
 static bool
-CanAttachDenseElementHole(JSObject* obj)
+CanAttachDenseElementHole(JSObject* obj, bool ownProp)
 {
     // Make sure the objects on the prototype don't have any indexed properties
     // or that such properties can't appear without a shape change.
@@ -1409,6 +1409,10 @@ CanAttachDenseElementHole(JSObject* obj)
 
         if (ClassCanHaveExtraProperties(obj->getClass()))
             return false;
+
+        // Don't need to check prototype for OwnProperty checks
+        if (ownProp)
+            return true;
 
         JSObject* proto = obj->staticPrototype();
         if (!proto)
@@ -1437,7 +1441,7 @@ GetPropIRGenerator::tryAttachDenseElementHole(HandleObject obj, ObjOperandId obj
     if (obj->as<NativeObject>().containsDenseElement(index))
         return false;
 
-    if (!CanAttachDenseElementHole(obj))
+    if (!CanAttachDenseElementHole(obj, false))
         return false;
 
     // Guard on the shape, to prevent non-dense elements from appearing.
@@ -2073,7 +2077,7 @@ InIRGenerator::tryAttachDenseInHole(uint32_t index, Int32OperandId indexId,
     if (obj->as<NativeObject>().containsDenseElement(index))
         return false;
 
-    if (!CanAttachDenseElementHole(obj))
+    if (!CanAttachDenseElementHole(obj, false))
         return false;
 
     // Guard on the shape, to prevent non-dense elements from appearing.
