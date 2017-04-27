@@ -1299,7 +1299,7 @@ WebSocketChannel::OnNetworkChanged()
       NS_DISPATCH_NORMAL);
   }
 
-  MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread, "not socket thread");
+  MOZ_ASSERT(OnSocketThread(), "not on socket thread");
 
   LOG(("WebSocketChannel::OnNetworkChanged() - on socket thread %p", this));
 
@@ -1500,7 +1500,7 @@ nsresult
 WebSocketChannel::ProcessInput(uint8_t *buffer, uint32_t count)
 {
   LOG(("WebSocketChannel::ProcessInput %p [%d %d]\n", this, count, mBuffered));
-  MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread, "not socket thread");
+  MOZ_ASSERT(OnSocketThread(), "not on socket thread");
 
   nsresult rv;
 
@@ -1989,7 +1989,7 @@ void
 WebSocketChannel::EnqueueOutgoingMessage(nsDeque &aQueue,
                                          OutboundMessage *aMsg)
 {
-  MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread, "not socket thread");
+  MOZ_ASSERT(OnSocketThread(), "not on socket thread");
 
   LOG(("WebSocketChannel::EnqueueOutgoingMessage %p "
        "queueing msg %p [type=%s len=%d]\n",
@@ -2023,7 +2023,7 @@ void
 WebSocketChannel::PrimeNewOutgoingMessage()
 {
   LOG(("WebSocketChannel::PrimeNewOutgoingMessage() %p\n", this));
-  MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread, "not socket thread");
+  MOZ_ASSERT(OnSocketThread(), "not on socket thread");
   MOZ_ASSERT(!mCurrentOut, "Current message in progress");
 
   nsresult rv = NS_OK;
@@ -2489,7 +2489,7 @@ WebSocketChannel::ReleaseSession()
 {
   LOG(("WebSocketChannel::ReleaseSession() %p stopped = %d\n",
        this, !!mStopped));
-  MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread, "not socket thread");
+  MOZ_ASSERT(OnSocketThread(), "not on socket thread");
 
   if (mStopped)
     return;
@@ -2978,7 +2978,7 @@ nsresult
 WebSocketChannel::StartPinging()
 {
   LOG(("WebSocketChannel::StartPinging() %p", this));
-  MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread, "not socket thread");
+  MOZ_ASSERT(OnSocketThread(), "not on socket thread");
   MOZ_ASSERT(mPingInterval);
   MOZ_ASSERT(!mPingTimer);
 
@@ -3227,8 +3227,7 @@ WebSocketChannel::Notify(nsITimer *timer)
 
   if (timer == mCloseTimer) {
     MOZ_ASSERT(mClientClosed, "Close Timeout without local close");
-    MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread,
-               "not socket thread");
+    MOZ_ASSERT(OnSocketThread(), "not on socket thread");
 
     mCloseTimer = nullptr;
     if (mStopped || mServerClosed)                /* no longer relevant */
@@ -3256,8 +3255,7 @@ WebSocketChannel::Notify(nsITimer *timer)
     LOG(("WebSocketChannel: connecting [this=%p] after reconnect delay", this));
     BeginOpen(false);
   } else if (timer == mPingTimer) {
-    MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread,
-               "not socket thread");
+    MOZ_ASSERT(OnSocketThread(), "not on socket thread");
 
     if (mClientClosed || mServerClosed || mRequestedClose) {
       // no point in worrying about ping now
@@ -3925,7 +3923,7 @@ NS_IMETHODIMP
 WebSocketChannel::OnInputStreamReady(nsIAsyncInputStream *aStream)
 {
   LOG(("WebSocketChannel::OnInputStreamReady() %p\n", this));
-  MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread, "not socket thread");
+  MOZ_ASSERT(OnSocketThread(), "not on socket thread");
 
   if (!mSocketIn) // did we we clean up the socket after scheduling InputReady?
     return NS_OK;
@@ -3978,7 +3976,7 @@ NS_IMETHODIMP
 WebSocketChannel::OnOutputStreamReady(nsIAsyncOutputStream *aStream)
 {
   LOG(("WebSocketChannel::OnOutputStreamReady() %p\n", this));
-  MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread, "not socket thread");
+  MOZ_ASSERT(OnSocketThread(), "not on socket thread");
   nsresult rv;
 
   if (!mCurrentOut)
