@@ -214,7 +214,7 @@ private:
   ~AudioChannelService();
 
   void RefreshAgents(nsPIDOMWindowOuter* aWindow,
-                     std::function<void(AudioChannelAgent*)> aFunc);
+                     const std::function<void(AudioChannelAgent*)>& aFunc);
 
   static void CreateServiceIfNeeded();
 
