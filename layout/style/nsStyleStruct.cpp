@@ -2010,16 +2010,6 @@ nsStyleImageRequest::nsStyleImageRequest(Mode aModeFlags,
 
 nsStyleImageRequest::nsStyleImageRequest(
     Mode aModeFlags,
-    const nsAString& aURL,
-    already_AddRefed<URLExtraData> aExtraData)
-  : mImageValue(new css::ImageValue(aURL, Move(aExtraData)))
-  , mModeFlags(aModeFlags)
-  , mResolved(false)
-{
-}
-
-nsStyleImageRequest::nsStyleImageRequest(
-    Mode aModeFlags,
     mozilla::css::ImageValue* aImageValue)
   : mImageValue(aImageValue)
   , mModeFlags(aModeFlags)
@@ -2083,10 +2073,6 @@ nsStyleImageRequest::Resolve(nsPresContext* aPresContext)
 
   mDocGroup = doc->GetDocGroup();
 
-  // For now, just have unique nsCSSValue/ImageValue objects.  We should
-  // really store the ImageValue on the Servo specified value, so that we can
-  // share imgRequestProxys that come from the same rule in the same
-  // document.
   mImageValue->Initialize(doc);
 
   nsCSSValue value;
