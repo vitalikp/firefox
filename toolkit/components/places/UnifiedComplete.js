@@ -250,8 +250,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "PlacesUtils",
                                   "resource://gre/modules/PlacesUtils.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "TelemetryStopwatch",
                                   "resource://gre/modules/TelemetryStopwatch.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "NetUtil",
-                                  "resource://gre/modules/NetUtil.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "Preferences",
                                   "resource://gre/modules/Preferences.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "Sqlite",
@@ -1190,20 +1188,25 @@ Search.prototype = {
       return false;
     }
 
-    let style = (this._enableActions ? "action " : "") + "keyword";
-    let actionURL = PlacesUtils.mozActionURI("keyword", {
-      url,
-      input: this._originalSearchString,
-      postData,
-    });
-    let value = this._enableActions ? actionURL : url;
+    let style = "keyword";
+    let value = url;
+    if (this._enableActions) {
+      style = "action " + style;
+      value = PlacesUtils.mozActionURI("keyword", {
+        url,
+        input: this._originalSearchString,
+        postData,
+      });
+    }
     // The title will end up being "host: queryString"
     let comment = entry.url.host;
 
     this._addMatch({
       value,
       comment,
-      icon: "page-icon:" + url,
+      // Don't use the url with replaced strings, since the icon doesn't change
+      // but the string does, it may cause pointless icon flicker on typing.
+      icon: "page-icon:" + entry.url.href,
       style,
       frecency: FRECENCY_DEFAULT });
     return true;
@@ -1226,8 +1229,8 @@ Search.prototype = {
     //  * If the protocol differs we should not match. For example if the user
     //    searched https we should not return http.
     try {
-      let prefixURI = NetUtil.newURI(this._strippedPrefix + match.token);
-      let finalURI = NetUtil.newURI(match.url);
+      let prefixURI = Services.io.newURI(this._strippedPrefix + match.token);
+      let finalURI = Services.io.newURI(match.url);
       if (prefixURI.scheme != finalURI.scheme)
         return false;
     } catch (e) {}
@@ -1349,7 +1352,7 @@ Search.prototype = {
         icon = "page-icon:" + url;
       } else {
         icon = PlacesUtils.favicons
-                          .getFaviconLinkForIcon(NetUtil.newURI(icon)).spec;
+                          .getFaviconLinkForIcon(Services.io.newURI(icon)).spec;
       }
 
       let match = {
