@@ -2166,6 +2166,14 @@ public:
   }
 
   /**
+   * Returns true if the requestIdleCallback API should be enabled.
+   */
+  static bool RequestIdleCallbackEnabled()
+  {
+    return sRequestIdleCallbackEnabled;
+  }
+
+  /**
    * Return true if this doc is controlled by a ServiceWorker.
    */
   static bool IsControlledByServiceWorker(nsIDocument* aDocument);
@@ -3001,6 +3009,7 @@ private:
   static bool sAnimationsAPIElementAnimateEnabled;
   static bool sGetBoxQuadsEnabled;
   static bool sSkipCursorMoveForSameValueSet;
+  static bool sRequestIdleCallbackEnabled;
   static uint32_t sCookiesLifetimePolicy;
   static uint32_t sCookiesBehavior;
 
