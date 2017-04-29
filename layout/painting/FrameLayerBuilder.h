@@ -342,7 +342,8 @@ public:
   static void Shutdown();
 
   void Init(nsDisplayListBuilder* aBuilder, LayerManager* aManager,
-            PaintedLayerData* aLayerData = nullptr);
+            PaintedLayerData* aLayerData = nullptr,
+            const DisplayItemClip* aInactiveLayerClip = nullptr);
 
   /**
    * Call this to notify that we have just started a transaction on the
@@ -726,6 +727,11 @@ public:
     return mContainingPaintedLayer;
   }
 
+  const DisplayItemClip* GetInactiveLayerClip() const
+  {
+    return mInactiveLayerClip;
+  }
+
   bool IsBuildingRetainedLayers()
   {
     return !mContainingPaintedLayer && mRetainingManager;
@@ -773,6 +779,12 @@ protected:
    * inactive layer will be placed.
    */
   PaintedLayerData*                   mContainingPaintedLayer;
+
+  /**
+   * When building layers for an inactive layer, this stores the clip
+   * of the display item that built the inactive layer.
+   */
+  const DisplayItemClip*              mInactiveLayerClip;
 
   /**
    * Saved generation counter so we can detect DOM changes.

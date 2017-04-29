@@ -118,6 +118,8 @@ static inline MaskLayerImageCache* GetMaskLayerImageCache()
 
 FrameLayerBuilder::FrameLayerBuilder()
   : mRetainingManager(nullptr)
+  , mContainingPaintedLayer(nullptr)
+  , mInactiveLayerClip(nullptr)
   , mDetectedDOMModification(false)
   , mInvalidateAllLayers(false)
   , mInLayerTreeCompressionMode(false)
@@ -1771,7 +1773,8 @@ FrameLayerBuilder::Shutdown()
 
 void
 FrameLayerBuilder::Init(nsDisplayListBuilder* aBuilder, LayerManager* aManager,
-                        PaintedLayerData* aLayerData)
+                        PaintedLayerData* aLayerData,
+                        const DisplayItemClip* aInactiveLayerClip)
 {
   mDisplayListBuilder = aBuilder;
   mRootPresContext = aBuilder->RootReferenceFrame()->PresContext()->GetRootPresContext();
@@ -1779,6 +1782,7 @@ FrameLayerBuilder::Init(nsDisplayListBuilder* aBuilder, LayerManager* aManager,
     mInitialDOMGeneration = mRootPresContext->GetDOMGeneration();
   }
   mContainingPaintedLayer = aLayerData;
+  mInactiveLayerClip = aInactiveLayerClip;
   aManager->SetUserData(&gLayerManagerLayerBuilder, this);
 }
 
@@ -3297,12 +3301,24 @@ void ContainerState::FinishPaintedLayerData(PaintedLayerData& aData, FindOpaqueB
 
   PaintedLayerData* containingPaintedLayerData =
      mLayerBuilder->GetContainingPaintedLayerData();
+  // If we're building layers for an inactive layer, the event regions are
+  // clipped to the inactive layer's clip prior to being combined into the
+  // event regions of the containing PLD.
+  // For the dispatch-to-content and maybe-hit regions, rounded corners on
+  // the clip are ignored, since these are approximate regions. For the
+  // remaining regions, rounded corners in the clip cause the region to
+  // be combined into the corresponding "imprecise" region of the
+  // containing's PLD (e.g. the maybe-hit region instead of the hit region).
+  const DisplayItemClip* inactiveLayerClip = mLayerBuilder->GetInactiveLayerClip();
   if (containingPaintedLayerData) {
     if (!data->mDispatchToContentHitRegion.GetBounds().IsEmpty()) {
       nsRect rect = nsLayoutUtils::TransformFrameRectToAncestor(
         mContainerReferenceFrame,
         data->mDispatchToContentHitRegion.GetBounds(),
         containingPaintedLayerData->mReferenceFrame);
+      if (inactiveLayerClip) {
+        rect = inactiveLayerClip->ApplyNonRoundedIntersection(rect);
+      }
       containingPaintedLayerData->mDispatchToContentHitRegion.Or(
         containingPaintedLayerData->mDispatchToContentHitRegion, rect);
     }
@@ -3311,6 +3327,9 @@ void ContainerState::FinishPaintedLayerData(PaintedLayerData& aData, FindOpaqueB
         mContainerReferenceFrame,
         data->mMaybeHitRegion.GetBounds(),
         containingPaintedLayerData->mReferenceFrame);
+      if (inactiveLayerClip) {
+        rect = inactiveLayerClip->ApplyNonRoundedIntersection(rect);
+      }
       containingPaintedLayerData->mMaybeHitRegion.Or(
         containingPaintedLayerData->mMaybeHitRegion, rect);
       containingPaintedLayerData->mMaybeHitRegion.SimplifyOutward(8);
@@ -3322,7 +3341,8 @@ void ContainerState::FinishPaintedLayerData(PaintedLayerData& aData, FindOpaqueB
       containingPaintedLayerData->mReferenceFrame,
       &containingPaintedLayerData->mHitRegion,
       &containingPaintedLayerData->mMaybeHitRegion,
-      &matrixCache);
+      &matrixCache,
+      inactiveLayerClip);
     // See the comment in nsDisplayList::AddFrame, where the touch action regions
     // are handled. The same thing applies here.
     bool alreadyHadRegions =
@@ -3335,21 +3355,24 @@ void ContainerState::FinishPaintedLayerData(PaintedLayerData& aData, FindOpaqueB
       containingPaintedLayerData->mReferenceFrame,
       &containingPaintedLayerData->mNoActionRegion,
       &containingPaintedLayerData->mDispatchToContentHitRegion,
-      &matrixCache);
+      &matrixCache,
+      inactiveLayerClip);
     nsLayoutUtils::TransformToAncestorAndCombineRegions(
       data->mHorizontalPanRegion,
       mContainerReferenceFrame,
       containingPaintedLayerData->mReferenceFrame,
       &containingPaintedLayerData->mHorizontalPanRegion,
       &containingPaintedLayerData->mDispatchToContentHitRegion,
-      &matrixCache);
+      &matrixCache,
+      inactiveLayerClip);
     nsLayoutUtils::TransformToAncestorAndCombineRegions(
       data->mVerticalPanRegion,
       mContainerReferenceFrame,
       containingPaintedLayerData->mReferenceFrame,
       &containingPaintedLayerData->mVerticalPanRegion,
       &containingPaintedLayerData->mDispatchToContentHitRegion,
-      &matrixCache);
+      &matrixCache,
+      inactiveLayerClip);
     if (alreadyHadRegions) {
       containingPaintedLayerData->mDispatchToContentHitRegion.OrWith(
         containingPaintedLayerData->CombinedTouchActionRegion());
@@ -4625,7 +4648,7 @@ FrameLayerBuilder::AddPaintedDisplayItem(PaintedLayerData* aLayerData,
     if (tempManager) {
       FLB_LOG_PAINTED_LAYER_DECISION(aLayerData, "Creating nested FLB for item %p\n", aItem);
       FrameLayerBuilder* layerBuilder = new FrameLayerBuilder();
-      layerBuilder->Init(mDisplayListBuilder, tempManager, aLayerData);
+      layerBuilder->Init(mDisplayListBuilder, tempManager, aLayerData, &aClip);
 
       tempManager->BeginTransaction();
       if (mRetainingManager) {

@@ -121,6 +121,7 @@
 #include "mozilla/StyleSetHandleInlines.h"
 #include "RegionBuilder.h"
 #include "SVGSVGElement.h"
+#include "DisplayItemClip.h"
 
 #ifdef MOZ_XUL
 #include "nsXULPopupManager.h"
@@ -8863,7 +8864,8 @@ nsLayoutUtils::TransformToAncestorAndCombineRegions(
   const nsIFrame* aAncestorFrame,
   nsRegion* aPreciseTargetDest,
   nsRegion* aImpreciseTargetDest,
-  Maybe<Matrix4x4>* aMatrixCache)
+  Maybe<Matrix4x4>* aMatrixCache,
+  const DisplayItemClip* aClip)
 {
   if (aRegion.IsEmpty()) {
     return;
@@ -8873,6 +8875,12 @@ nsLayoutUtils::TransformToAncestorAndCombineRegions(
   for (nsRegion::RectIterator it = aRegion.RectIter(); !it.Done(); it.Next()) {
     nsRect transformed = TransformFrameRectToAncestor(
       aFrame, it.Get(), aAncestorFrame, &isPrecise, aMatrixCache);
+    if (aClip) {
+      transformed = aClip->ApplyNonRoundedIntersection(transformed);
+      if (aClip->GetRoundedRectCount() > 0) {
+        isPrecise = false;
+      }
+    }
     transformedRegion.OrWith(transformed);
   }
   nsRegion* dest = isPrecise ? aPreciseTargetDest : aImpreciseTargetDest;
