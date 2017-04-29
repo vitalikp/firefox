@@ -1247,6 +1247,7 @@ nsStyleSVGReset::HasMask() const
 // nsStyleSVGPaint implementation
 nsStyleSVGPaint::nsStyleSVGPaint(nsStyleSVGPaintType aType)
   : mType(aType)
+  , mFallbackType(eStyleSVGFallbackType_NotSet)
   , mFallbackColor(NS_RGB(0, 0, 0))
 {
   MOZ_ASSERT(aType == nsStyleSVGPaintType(0) ||
@@ -1281,6 +1282,7 @@ nsStyleSVGPaint::Reset()
       MOZ_FALLTHROUGH;
     case eStyleSVGPaintType_ContextFill:
     case eStyleSVGPaintType_ContextStroke:
+      mFallbackType = eStyleSVGFallbackType_NotSet;
       mFallbackColor = NS_RGB(0, 0, 0);
       break;
   }
