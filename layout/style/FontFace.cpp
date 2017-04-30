@@ -12,6 +12,8 @@
 #include "mozilla/dom/TypedArray.h"
 #include "mozilla/dom/UnionTypes.h"
 #include "mozilla/CycleCollectedJSContext.h"
+#include "mozilla/ServoStyleSet.h"
+#include "mozilla/ServoUtils.h"
 #include "nsCSSFontFaceRule.h"
 #include "nsCSSParser.h"
 #include "nsIDocument.h"
@@ -113,6 +115,10 @@ FontFace::FontFace(nsISupports* aParent, FontFaceSet* aFontFaceSet)
 
 FontFace::~FontFace()
 {
+  // Assert that we don't drop any FontFace objects during a Servo traversal,
+  // since PostTraversalTask objects can hold raw pointers to FontFaces.
+  MOZ_ASSERT(!ServoStyleSet::IsInServoTraversal());
+
   SetUserFontEntry(nullptr);
 
   if (mSourceBuffer) {
@@ -358,6 +364,8 @@ FontFace::Status()
 Promise*
 FontFace::Load(ErrorResult& aRv)
 {
+  MOZ_ASSERT(NS_IsMainThread());
+
   mFontFaceSet->FlushUserFontSet();
 
   EnsurePromise();
@@ -415,6 +423,8 @@ FontFace::DoLoad()
 Promise*
 FontFace::GetLoaded(ErrorResult& aRv)
 {
+  MOZ_ASSERT(NS_IsMainThread());
+
   mFontFaceSet->FlushUserFontSet();
 
   EnsurePromise();
@@ -430,6 +440,8 @@ FontFace::GetLoaded(ErrorResult& aRv)
 void
 FontFace::SetStatus(FontFaceLoadStatus aStatus)
 {
+  AssertIsMainThreadOrServoFontMetricsLocked();
+
   if (mStatus == aStatus) {
     return;
   }
@@ -455,7 +467,7 @@ FontFace::SetStatus(FontFaceLoadStatus aStatus)
 
   if (mStatus == FontFaceLoadStatus::Loaded) {
     if (mLoaded) {
-      mLoaded->MaybeResolve(this);
+      DoResolve();
     }
   } else if (mStatus == FontFaceLoadStatus::Error) {
     if (mSourceType == eSourceType_Buffer) {
@@ -464,6 +476,34 @@ FontFace::SetStatus(FontFaceLoadStatus aStatus)
       Reject(NS_ERROR_DOM_NETWORK_ERR);
     }
   }
+}
+
+void
+FontFace::DoResolve()
+{
+  AssertIsMainThreadOrServoFontMetricsLocked();
+
+  if (ServoStyleSet* ss = ServoStyleSet::Current()) {
+    // See comments in Gecko_GetFontMetrics.
+    ss->AppendTask(PostTraversalTask::ResolveFontFaceLoadedPromise(this));
+    return;
+  }
+
+  mLoaded->MaybeResolve(this);
+}
+
+void
+FontFace::DoReject(nsresult aResult)
+{
+  AssertIsMainThreadOrServoFontMetricsLocked();
+
+  if (ServoStyleSet* ss = ServoStyleSet::Current()) {
+    // See comments in Gecko_GetFontMetrics.
+    ss->AppendTask(PostTraversalTask::RejectFontFaceLoadedPromise(this, aResult));
+    return;
+  }
+
+  mLoaded->MaybeReject(aResult);
 }
 
 bool
@@ -742,8 +782,10 @@ FontFace::RemoveFontFaceSet(FontFaceSet* aFontFaceSet)
 void
 FontFace::Reject(nsresult aResult)
 {
+  AssertIsMainThreadOrServoFontMetricsLocked();
+
   if (mLoaded) {
-    mLoaded->MaybeReject(aResult);
+    DoReject(aResult);
   } else if (mLoadedRejection == NS_OK) {
     mLoadedRejection = aResult;
   }
@@ -752,6 +794,8 @@ FontFace::Reject(nsresult aResult)
 void
 FontFace::EnsurePromise()
 {
+  MOZ_ASSERT(NS_IsMainThread());
+
   if (mLoaded) {
     return;
   }
