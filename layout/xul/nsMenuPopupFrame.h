@@ -338,8 +338,6 @@ public:
     return !sTimeoutOfIncrementalSearch || time - sLastKeyTime <= sTimeoutOfIncrementalSearch;
   }
 
-  virtual nsIAtom* GetType() const override { return nsGkAtoms::menuPopupFrame; }
-
 #ifdef DEBUG_FRAME_DUMP
   virtual nsresult GetFrameName(nsAString& aResult) const override
   {

@@ -459,17 +459,11 @@ nsBlockFrame::GetDebugStateBits() const
 }
 #endif
 
-nsIAtom*
-nsBlockFrame::GetType() const
-{
-  return nsGkAtoms::blockFrame;
-}
-
 void
 nsBlockFrame::InvalidateFrame(uint32_t aDisplayItemKey)
 {
   if (nsSVGUtils::IsInSVGTextSubtree(this)) {
-    NS_ASSERTION(GetParent()->GetType() == nsGkAtoms::svgTextFrame,
+    NS_ASSERTION(GetParent()->IsSVGTextFrame(),
                  "unexpected block frame in SVG text");
     GetParent()->InvalidateFrame();
     return;
@@ -481,7 +475,7 @@ void
 nsBlockFrame::InvalidateFrameWithRect(const nsRect& aRect, uint32_t aDisplayItemKey)
 {
   if (nsSVGUtils::IsInSVGTextSubtree(this)) {
-    NS_ASSERTION(GetParent()->GetType() == nsGkAtoms::svgTextFrame,
+    NS_ASSERTION(GetParent()->IsSVGTextFrame(),
                  "unexpected block frame in SVG text");
     GetParent()->InvalidateFrame();
     return;
@@ -1015,7 +1009,7 @@ CalculateContainingBlockSizeForAbsolutes(WritingMode aWM,
   cbSize.BSize(aWM) -= border.BStartEnd(aWM);
 
   if (frame->GetParent()->GetContent() == frame->GetContent() &&
-      frame->GetParent()->GetType() != nsGkAtoms::canvasFrame) {
+      !frame->GetParent()->IsCanvasFrame()) {
     // We are a wrapped frame for the content (and the wrapper is not the
     // canvas frame, whose size is not meaningful here).
     // Use the container's dimensions, if they have been precomputed.
@@ -1032,7 +1026,7 @@ CalculateContainingBlockSizeForAbsolutes(WritingMode aWM,
     const ReflowInput* lastButOneRI = &aReflowInput;
     while (aLastRI->mParentReflowInput &&
            aLastRI->mParentReflowInput->mFrame->GetContent() == frame->GetContent() &&
-           aLastRI->mParentReflowInput->mFrame->GetType() != nsGkAtoms::fieldSetFrame) {
+           !aLastRI->mParentReflowInput->mFrame->IsFieldSetFrame()) {
       lastButOneRI = aLastRI;
       aLastRI = aLastRI->mParentReflowInput;
     }
@@ -1603,7 +1597,7 @@ nsBlockFrame::ComputeFinalSize(const ReflowInput& aReflowInput,
   }
 
   if (NS_UNCONSTRAINEDSIZE != aReflowInput.ComputedBSize()
-      && (GetParent()->GetType() != nsGkAtoms::columnSetFrame ||
+      && (!GetParent()->IsColumnSetFrame() ||
           aReflowInput.mParentReflowInput->AvailableBSize() == NS_UNCONSTRAINEDSIZE)) {
     ComputeFinalBSize(aReflowInput, &aState.mReflowStatus,
                       aState.mBCoord + nonCarriedOutBDirMargin,
@@ -3011,10 +3005,10 @@ nsBlockFrame::AttributeChanged(int32_t         aNameSpaceID,
       // XXXldb I think that's a bad assumption.
       nsContainerFrame* ancestor = GetParent();
       for (; ancestor; ancestor = ancestor->GetParent()) {
-        auto frameType = ancestor->GetType();
-        if (frameType == nsGkAtoms::blockFrame ||
-            frameType == nsGkAtoms::flexContainerFrame ||
-            frameType == nsGkAtoms::gridContainerFrame) {
+        auto frameType = ancestor->Type();
+        if (frameType == FrameType::Block ||
+            frameType == FrameType::FlexContainer ||
+            frameType == FrameType::GridContainer) {
           break;
         }
       }
@@ -4249,7 +4243,7 @@ nsBlockFrame::ReflowInlineFrame(BlockReflowInput& aState,
     // don't split the line and don't stop the line reflow...
     // But if we are going to stop anyways we'd better split the line.
     if ((!frameReflowStatus.FirstLetterComplete() &&
-         nsGkAtoms::placeholderFrame != aFrame->GetType()) ||
+         !aFrame->IsPlaceholderFrame()) ||
         *aLineReflowStatus == LineReflowStatus::Stop) {
       // Split line after the current frame
       *aLineReflowStatus = LineReflowStatus::Stop;
@@ -5092,8 +5086,7 @@ nsBlockFrame::GetInsideBullet() const
   }
   NS_ASSERTION(!HasOutsideBullet(), "invalid bullet state");
   nsBulletFrame* frame = Properties().Get(InsideBulletProperty());
-  NS_ASSERTION(frame && frame->GetType() == nsGkAtoms::bulletFrame,
-               "bogus inside bullet frame");
+  NS_ASSERTION(frame && frame->IsBulletFrame(), "bogus inside bullet frame");
   return frame;
 }
 
@@ -5115,7 +5108,7 @@ nsBlockFrame::GetOutsideBulletList() const
   nsFrameList* list =
     Properties().Get(OutsideBulletProperty());
   NS_ASSERTION(list && list->GetLength() == 1 &&
-               list->FirstChild()->GetType() == nsGkAtoms::bulletFrame,
+               list->FirstChild()->IsBulletFrame(),
                "bogus outside bullet list");
   return list;
 }
@@ -5285,12 +5278,12 @@ nsBlockFrame::RemoveFrame(ChildListID aListID,
 static bool
 ShouldPutNextSiblingOnNewLine(nsIFrame* aLastFrame)
 {
-  nsIAtom* type = aLastFrame->GetType();
-  if (type == nsGkAtoms::brFrame) {
+  FrameType type = aLastFrame->Type();
+  if (type == FrameType::Br) {
     return true;
   }
   // XXX the TEXT_OFFSETS_NEED_FIXING check is a wallpaper for bug 822910.
-  if (type == nsGkAtoms::textFrame &&
+  if (type == FrameType::Text &&
       !(aLastFrame->GetStateBits() & TEXT_OFFSETS_NEED_FIXING)) {
     return aLastFrame->HasSignificantTerminalNewline();
   }
@@ -5385,7 +5378,7 @@ nsBlockFrame::AddFrames(nsFrameList& aFrameList, nsIFrame* aPrevSibling)
     nsIFrame* newFrame = e.get();
     NS_ASSERTION(!aPrevSibling || aPrevSibling->GetNextSibling() == newFrame,
                  "Unexpected aPrevSibling");
-    NS_ASSERTION(newFrame->GetType() != nsGkAtoms::placeholderFrame ||
+    NS_ASSERTION(!newFrame->IsPlaceholderFrame() ||
                  (!newFrame->IsAbsolutelyPositioned() &&
                   !newFrame->IsFloating()),
                  "Placeholders should not float or be positioned");
@@ -6163,7 +6156,7 @@ nsBlockFrame::AdjustFloatAvailableSpace(BlockReflowInput& aState,
 
   if (availBSize != NS_UNCONSTRAINEDSIZE &&
       !aState.mFlags.mFloatFragmentsInsideColumnEnabled &&
-      nsLayoutUtils::GetClosestFrameOfType(this, nsGkAtoms::columnSetFrame)) {
+      nsLayoutUtils::GetClosestFrameOfType(this, FrameType::ColumnSet)) {
     // Tell the float it has unrestricted block-size, so it won't break.
     // If the float doesn't actually fit in the column it will fail to be
     // placed, and either move to the block-start of the next column or just
@@ -6282,7 +6275,7 @@ nsBlockFrame::ReflowFloat(BlockReflowInput& aState,
     aState.mReflowStatus.SetNextInFlowNeedsReflow();
   }
 
-  if (aFloat->GetType() == nsGkAtoms::letterFrame) {
+  if (aFloat->IsLetterFrame()) {
     // We never split floating first letters; an incomplete state for
     // such frames simply means that there is more content to be
     // reflowed on the line.
@@ -6951,9 +6944,9 @@ nsBlockFrame::SetInitialChildList(ChildListID     aListID,
        pseudo == nsCSSAnonBoxes::buttonContent ||
        pseudo == nsCSSAnonBoxes::columnContent ||
        (pseudo == nsCSSAnonBoxes::scrolledContent &&
-        GetParent()->GetType() != nsGkAtoms::listControlFrame) ||
+        !GetParent()->IsListControlFrame()) ||
        pseudo == nsCSSAnonBoxes::mozSVGText) &&
-      GetType() != nsGkAtoms::comboboxControlFrame &&
+      !IsComboboxControlFrame() &&
       !IsFrameOfType(eMathML) &&
       RefPtr<nsStyleContext>(GetFirstLetterStyle(PresContext())) != nullptr;
     NS_ASSERTION(haveFirstLetterStyle ==
@@ -7185,9 +7178,10 @@ nsBlockFrame::DoCollectFloats(nsIFrame* aFrame, nsFrameList& aList,
   while (aFrame) {
     // Don't descend into float containing blocks.
     if (!aFrame->IsFloatContainingBlock()) {
-      nsIFrame *outOfFlowFrame =
-        aFrame->GetType() == nsGkAtoms::placeholderFrame ?
-          nsLayoutUtils::GetFloatFromPlaceholder(aFrame) : nullptr;
+      nsIFrame* outOfFlowFrame =
+        aFrame->IsPlaceholderFrame()
+          ? nsLayoutUtils::GetFloatFromPlaceholder(aFrame)
+          : nullptr;
       while (outOfFlowFrame && outOfFlowFrame->GetParent() == this) {
         RemoveFloat(outOfFlowFrame);
         // Remove the IS_PUSHED_FLOAT bit, in case |outOfFlowFrame| came from
@@ -7288,7 +7282,7 @@ nsBlockFrame::IsMarginRoot(bool* aBStartMarginRoot, bool* aBEndMarginRoot)
       *aBEndMarginRoot = false;
       return;
     }
-    if (parent->GetType() == nsGkAtoms::columnSetFrame) {
+    if (parent->IsColumnSetFrame()) {
       *aBStartMarginRoot = GetPrevInFlow() == nullptr;
       *aBEndMarginRoot = GetNextInFlow() == nullptr;
       return;

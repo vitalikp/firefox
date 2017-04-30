@@ -167,6 +167,16 @@ typedef uint32_t nsSplittableType;
 
 //----------------------------------------------------------------------
 
+namespace mozilla {
+
+enum class FrameType : uint8_t {
+#define FRAME_TYPE(ty_) ty_,
+#include "mozilla/FrameTypeList.h"
+#undef FRAME_TYPE
+};
+
+} // namespace mozilla
+
 enum nsSelectionAmount {
   eSelectCharacter = 0, // a single Unicode character;
                         // do not use this (prefer Cluster) unless you
@@ -595,7 +605,7 @@ public:
 
   NS_DECL_QUERYFRAME_TARGET(nsIFrame)
 
-  nsIFrame()
+  explicit nsIFrame(mozilla::FrameType aType)
     : mRect()
     , mContent(nullptr)
     , mStyleContext(nullptr)
@@ -603,6 +613,7 @@ public:
     , mNextSibling(nullptr)
     , mPrevSibling(nullptr)
     , mState(NS_FRAME_FIRST_REFLOW | NS_FRAME_IS_DIRTY)
+    , mType(aType)
     , mMayHaveRoundedCorners(false)
     , mHasImageRequest(false)
   {
@@ -2580,11 +2591,16 @@ public:
   nsIWidget* GetNearestWidget(nsPoint& aOffset) const;
 
   /**
-   * Get the "type" of the frame. May return nullptr.
+   * Get the "type" of the frame.
    *
-   * @see nsGkAtoms
+   * @see mozilla::FrameType
    */
-  virtual nsIAtom* GetType() const = 0;
+  mozilla::FrameType Type() const { return mType; }
+
+#define FRAME_TYPE(name_)                                                      \
+  bool Is##name_##Frame() const { return mType == mozilla::FrameType::name_; }
+#include "mozilla/FrameTypeList.h"
+#undef FRAME_TYPE
 
   /**
    * Returns a transformation matrix that converts points in this frame's
@@ -3773,6 +3789,9 @@ protected:
 
   /** @see GetWritingMode() */
   mozilla::WritingMode mWritingMode;
+
+  /** The type of the frame. */
+  mozilla::FrameType mType;
 
   bool mMayHaveRoundedCorners : 1;
 

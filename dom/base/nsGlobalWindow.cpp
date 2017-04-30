@@ -13669,7 +13669,7 @@ nsGlobalWindow::BeginWindowMove(Event& aMouseDownEvent, Element* aPanel,
 #ifdef MOZ_XUL
   if (aPanel) {
     nsIFrame* frame = aPanel->GetPrimaryFrame();
-    if (!frame || frame->GetType() != nsGkAtoms::menuPopupFrame) {
+    if (!frame || !frame->IsMenuPopupFrame()) {
       return;
     }
 

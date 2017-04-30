@@ -47,7 +47,7 @@ NS_NewRangeFrame(nsIPresShell* aPresShell, nsStyleContext* aContext)
 }
 
 nsRangeFrame::nsRangeFrame(nsStyleContext* aContext)
-  : nsContainerFrame(aContext)
+  : nsContainerFrame(aContext, FrameType::Range)
 {
 }
 
@@ -857,12 +857,6 @@ double
 nsRangeFrame::GetValue() const
 {
   return static_cast<dom::HTMLInputElement*>(mContent)->GetValueAsDecimal().toDouble();
-}
-
-nsIAtom*
-nsRangeFrame::GetType() const
-{
-  return nsGkAtoms::rangeFrame;
 }
 
 #define STYLES_DISABLING_NATIVE_THEMING \

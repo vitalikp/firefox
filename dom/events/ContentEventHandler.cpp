@@ -951,7 +951,7 @@ ContentEventHandler::ExpandToClusterBoundary(nsIContent* aContent,
       *aXPOffset == static_cast<uint32_t>(endOffset)) {
     return NS_OK;
   }
-  if (frame->GetType() != nsGkAtoms::textFrame) {
+  if (!frame->IsTextFrame()) {
     return NS_ERROR_FAILURE;
   }
   nsTextFrame* textFrame = static_cast<nsTextFrame*>(frame);
@@ -1612,7 +1612,7 @@ ContentEventHandler::GetLastFrameInRangeForTextRect(nsRange* aRange)
   // If the last frame is a text frame, we need to check if the range actually
   // includes at least one character in the range.  Therefore, if it's not a
   // text frame, we need to do nothing anymore.
-  if (lastFrame->GetType() != nsGkAtoms::textFrame) {
+  if (!lastFrame->IsTextFrame()) {
     return FrameAndNodeOffset(lastFrame, nodePosition.mOffset);
   }
 
@@ -1650,7 +1650,7 @@ ContentEventHandler::GetLineBreakerRectBefore(nsIFrame* aFrame)
   // If it's not a <br> frame, this method computes the line breaker's rect
   // outside the frame.  Therefore, we need to compute with parent frame's
   // font metrics in such case.
-  if (aFrame->GetType() != nsGkAtoms::brFrame && aFrame->GetParent()) {
+  if (!aFrame->IsBrFrame() && aFrame->GetParent()) {
     frameForFontMetrics = aFrame->GetParent();
   }
 
@@ -1695,7 +1695,7 @@ ContentEventHandler::GetLineBreakerRectBefore(nsIFrame* aFrame)
   //
   // However, this is a hack for unusual scenario.  This hack shouldn't be
   // used as far as possible.
-  if (aFrame->GetType() != nsGkAtoms::brFrame) {
+  if (!aFrame->IsBrFrame()) {
     if (kWritingMode.IsVertical()) {
       if (kWritingMode.IsLineInverted()) {
         // above of top-left corner of aFrame.
@@ -1868,7 +1868,7 @@ ContentEventHandler::OnQueryTextRectArray(WidgetQueryContentEvent* aEvent)
 
     // If the first frame is a text frame, the result should be computed with
     // the frame's API.
-    if (firstFrame->GetType() == nsGkAtoms::textFrame) {
+    if (firstFrame->IsTextFrame()) {
       rv = firstFrame->GetCharacterRectsInRange(firstFrame.mOffsetInNode,
                                                 kEndOffset - offset, charRects);
       if (NS_WARN_IF(NS_FAILED(rv)) || NS_WARN_IF(charRects.IsEmpty())) {
@@ -1934,8 +1934,7 @@ ContentEventHandler::OnQueryTextRectArray(WidgetQueryContentEvent* aEvent)
       // compute it with the cached last character's rect.  (However, don't
       // use this path if it's a <br> frame because trusting <br> frame's rect
       // is better than guessing the rect from the previous character.)
-      if (firstFrame->GetType() != nsGkAtoms::brFrame &&
-          aEvent->mInput.mOffset != offset) {
+      if (!firstFrame->IsBrFrame() && aEvent->mInput.mOffset != offset) {
         baseFrame = lastFrame;
         brRect = lastCharRect;
         if (!wasLineBreaker) {
@@ -1953,7 +1952,7 @@ ContentEventHandler::OnQueryTextRectArray(WidgetQueryContentEvent* aEvent)
       // If it's not a <br> frame and it's the first character rect at the
       // queried range, we need to the previous character of the start of
       // the queried range if there is a text node.
-      else if (firstFrame->GetType() != nsGkAtoms::brFrame && lastTextContent) {
+      else if (!firstFrame->IsBrFrame() && lastTextContent) {
         FrameRelativeRect brRectRelativeToLastTextFrame =
           GuessLineBreakerRectAfter(lastTextContent);
         if (NS_WARN_IF(!brRectRelativeToLastTextFrame.IsValid())) {
@@ -2176,11 +2175,11 @@ ContentEventHandler::OnQueryTextRect(WidgetQueryContentEvent* aEvent)
       FrameRelativeRect relativeRect;
       // If there is a <br> frame at the end, it represents an empty line at
       // the end with moz-<br> or content <br> in a block level element.
-      if (lastFrame->GetType() == nsGkAtoms::brFrame) {
+      if (lastFrame->IsBrFrame()) {
         relativeRect = GetLineBreakerRectBefore(lastFrame);
       }
       // If there is a text frame at the end, use its information.
-      else if (lastFrame->GetType() == nsGkAtoms::textFrame) {
+      else if (lastFrame->IsTextFrame()) {
         relativeRect = GuessLineBreakerRectAfter(lastFrame->GetContent());
       }
       // If there is an empty frame which is neither a text frame nor a <br>
@@ -2229,7 +2228,7 @@ ContentEventHandler::OnQueryTextRect(WidgetQueryContentEvent* aEvent)
   // If the first frame is a text frame, the result should be computed with
   // the frame's rect but not including the rect before start point of the
   // queried range.
-  if (firstFrame->GetType() == nsGkAtoms::textFrame) {
+  if (firstFrame->IsTextFrame()) {
     rect.SetRect(nsPoint(0, 0), firstFrame->GetRect().Size());
     rv = ConvertToRootRelativeOffset(firstFrame, rect);
     if (NS_WARN_IF(NS_FAILED(rv))) {
@@ -2271,7 +2270,7 @@ ContentEventHandler::OnQueryTextRect(WidgetQueryContentEvent* aEvent)
   // Therefore, if the first frame isn't a <br> frame and there is a text
   // node before the first node in the queried range, we should compute the
   // first rect with the previous character's rect.
-  else if (firstFrame->GetType() != nsGkAtoms::brFrame && lastTextContent) {
+  else if (!firstFrame->IsBrFrame() && lastTextContent) {
     FrameRelativeRect brRectAfterLastChar =
       GuessLineBreakerRectAfter(lastTextContent);
     if (NS_WARN_IF(!brRectAfterLastChar.IsValid())) {
@@ -2337,8 +2336,7 @@ ContentEventHandler::OnQueryTextRect(WidgetQueryContentEvent* aEvent)
         // can return exactly correct rect only for <br> frame for now.  On the
         // other hand, GetLineBreakRectBefore() returns guessed caret rect for
         // the other frames.  We shouldn't include such odd rect to the result.
-        if (primaryFrame->GetType() == nsGkAtoms::textFrame ||
-            primaryFrame->GetType() == nsGkAtoms::brFrame) {
+        if (primaryFrame->IsTextFrame() || primaryFrame->IsBrFrame()) {
           frame = primaryFrame;
         }
       } while (!frame && !iter->IsDone());
@@ -2346,10 +2344,10 @@ ContentEventHandler::OnQueryTextRect(WidgetQueryContentEvent* aEvent)
         break;
       }
     }
-    if (frame->GetType() == nsGkAtoms::textFrame) {
+    if (frame->IsTextFrame()) {
       frameRect.SetRect(nsPoint(0, 0), frame->GetRect().Size());
     } else {
-      MOZ_ASSERT(frame->GetType() == nsGkAtoms::brFrame);
+      MOZ_ASSERT(frame->IsBrFrame());
       FrameRelativeRect relativeRect = GetLineBreakerRectBefore(frame);
       if (NS_WARN_IF(!relativeRect.IsValid())) {
         return NS_ERROR_FAILURE;
@@ -2381,7 +2379,7 @@ ContentEventHandler::OnQueryTextRect(WidgetQueryContentEvent* aEvent)
   }
 
   // Shrink the last frame for cutting off the text after the query range.
-  if (lastFrame->GetType() == nsGkAtoms::textFrame) {
+  if (lastFrame->IsTextFrame()) {
     lastFrame->GetPointFromOffset(lastFrame.mOffsetInNode, &ptOffset);
     if (lastFrame->GetWritingMode().IsVertical()) {
       frameRect.height -= lastFrame->GetRect().height - ptOffset.y;
@@ -2589,7 +2587,7 @@ ContentEventHandler::OnQueryCharacterAtPoint(WidgetQueryContentEvent* aEvent)
     return rv;
   }
 
-  if (targetFrame->GetType() != nsGkAtoms::textFrame) {
+  if (!targetFrame->IsTextFrame()) {
     // There is no character at the point but there is tentative caret point.
     aEvent->mSucceeded = true;
     return NS_OK;
