@@ -1238,7 +1238,7 @@ AccessibleCaretManager::DragCaretInternal(const nsPoint& aPoint)
   selection->GetPrimaryFrameForAnchorNode(&anchorFrame);
 
   nsIFrame* scrollable =
-    nsLayoutUtils::GetClosestFrameOfType(anchorFrame, FrameType::Scroll);
+    nsLayoutUtils::GetClosestFrameOfType(anchorFrame, LayoutFrameType::Scroll);
   AutoWeakFrame weakScrollable = scrollable;
   fs->HandleClick(offsets.content, offsets.StartOffset(), offsets.EndOffset(),
                   GetCaretMode() == CaretMode::Selection, false,

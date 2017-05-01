@@ -1156,8 +1156,9 @@ nsAccessibilityService::CreateAccessible(nsINode* aNode,
     // accessible for it.
     if (!newAcc && aContext->IsXULTabpanels() &&
         content->GetParent() == aContext->GetContent()) {
-      FrameType frameType = frame->Type();
-      if (frameType == FrameType::Box || frameType == FrameType::Scroll) {
+      LayoutFrameType frameType = frame->Type();
+      if (frameType == LayoutFrameType::Box ||
+          frameType == LayoutFrameType::Scroll) {
         newAcc = new XULTabpanelAccessible(content, document);
       }
     }

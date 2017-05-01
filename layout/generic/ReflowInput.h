@@ -292,12 +292,12 @@ private:
    */
   bool ComputePadding(mozilla::WritingMode aWM,
                       const mozilla::LogicalSize& aPercentBasis,
-                      mozilla::FrameType aFrameType);
+                      mozilla::LayoutFrameType aFrameType);
 
 protected:
   void InitOffsets(mozilla::WritingMode aWM,
                    const mozilla::LogicalSize& aPercentBasis,
-                   mozilla::FrameType aFrameType,
+                   mozilla::LayoutFrameType aFrameType,
                    ReflowInputFlags aFlags,
                    const nsMargin* aBorder = nullptr,
                    const nsMargin* aPadding = nullptr);
@@ -961,16 +961,16 @@ public:
 #endif
 
 protected:
-  void InitFrameType(FrameType aFrameType);
+  void InitFrameType(LayoutFrameType aFrameType);
   void InitCBReflowInput();
   void InitResizeFlags(nsPresContext* aPresContext,
-                       mozilla::FrameType aFrameType);
+                       mozilla::LayoutFrameType aFrameType);
 
   void InitConstraints(nsPresContext* aPresContext,
                        const mozilla::LogicalSize& aContainingBlockSize,
                        const nsMargin* aBorder,
                        const nsMargin* aPadding,
-                       mozilla::FrameType aFrameType);
+                       mozilla::LayoutFrameType aFrameType);
 
   // Returns the nearest containing block or block frame (whether or not
   // it is a containing block) for the specified frame.  Also returns
@@ -990,12 +990,12 @@ protected:
                                      nsIFrame* aPlaceholderFrame,
                                      const ReflowInput* cbrs,
                                      nsHypotheticalPosition& aHypotheticalPos,
-                                     mozilla::FrameType aFrameType) const;
+                                     mozilla::LayoutFrameType aFrameType) const;
 
   void InitAbsoluteConstraints(nsPresContext* aPresContext,
                                const ReflowInput* cbrs,
                                const mozilla::LogicalSize& aContainingBlockSize,
-                               mozilla::FrameType aFrameType);
+                               mozilla::LayoutFrameType aFrameType);
 
   // Calculates the computed values for the 'min-Width', 'max-Width',
   // 'min-Height', and 'max-Height' properties, and stores them in the assorted
@@ -1010,7 +1010,7 @@ protected:
                                     nscoord* aInsideBoxSizing,
                                     nscoord* aOutsideBoxSizing) const;
 
-  void CalculateBlockSideMargins(FrameType aFrameType);
+  void CalculateBlockSideMargins(LayoutFrameType aFrameType);
 };
 
 } // namespace mozilla
