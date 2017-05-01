@@ -1760,12 +1760,21 @@ nsGenericHTMLFormElement::SetForm(nsIDOMHTMLFormElement* aForm)
   NS_ASSERTION(!mForm,
                "We don't support switching from one non-null form to another.");
 
+  SetForm(static_cast<HTMLFormElement*>(aForm), false);
+}
+
+void nsGenericHTMLFormElement::SetForm(HTMLFormElement* aForm, bool aBindToTree)
+{
+  if (aForm) {
+    BeforeSetForm(aBindToTree);
+  }
+
   // keep a *weak* ref to the form here
-  mForm = static_cast<HTMLFormElement*>(aForm);
+  mForm = aForm;
 }
 
 void
-nsGenericHTMLFormElement::ClearForm(bool aRemoveFromForm)
+nsGenericHTMLFormElement::ClearForm(bool aRemoveFromForm, bool aUnbindOrDelete)
 {
   NS_ASSERTION((mForm != nullptr) == HasFlag(ADDED_TO_FORM),
                "Form control should have had flag set correctly");
@@ -1794,6 +1803,8 @@ nsGenericHTMLFormElement::ClearForm(bool aRemoveFromForm)
 
   UnsetFlags(ADDED_TO_FORM);
   mForm = nullptr;
+
+  AfterClearForm(aUnbindOrDelete);
 }
 
 Element*
@@ -1881,12 +1892,12 @@ nsGenericHTMLFormElement::UnbindFromTree(bool aDeep, bool aNullParent)
     // Might need to unset mForm
     if (aNullParent) {
       // No more parent means no more form
-      ClearForm(true);
+      ClearForm(true, true);
     } else {
       // Recheck whether we should still have an mForm.
       if (HasAttr(kNameSpaceID_None, nsGkAtoms::form) ||
           !FindAncestorForm(mForm)) {
-        ClearForm(true);
+        ClearForm(true, true);
       } else {
         UnsetFlags(MAYBE_ORPHAN_FORM_ELEMENT);
       }
@@ -2277,7 +2288,7 @@ nsGenericHTMLFormElement::UpdateFormOwner(bool aBindToTree,
   bool needStateUpdate = false;
   if (!aBindToTree) {
     needStateUpdate = mForm && mForm->IsDefaultSubmitElement(this);
-    ClearForm(true);
+    ClearForm(true, false);
   }
 
   HTMLFormElement *oldForm = mForm;
@@ -2303,7 +2314,7 @@ nsGenericHTMLFormElement::UpdateFormOwner(bool aBindToTree,
                      "associated with the id in @form!");
 
         if (element && element->IsHTMLElement(nsGkAtoms::form)) {
-          mForm = static_cast<HTMLFormElement*>(element);
+          SetForm(static_cast<HTMLFormElement*>(element), aBindToTree);
         }
       }
      } else {
@@ -2313,7 +2324,7 @@ nsGenericHTMLFormElement::UpdateFormOwner(bool aBindToTree,
       // it to the right value.  Also note that even if being bound here didn't
       // change our parent, we still need to search, since our parent chain
       // probably changed _somewhere_.
-      mForm = FindAncestorForm();
+      SetForm(FindAncestorForm(), aBindToTree);
     }
   }
 
