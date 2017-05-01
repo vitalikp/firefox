@@ -354,9 +354,10 @@ HTMLTextAreaElement::SetValue(const nsAString& aValue)
   GetValueInternal(currentValue, true);
 
   nsresult rv =
-    SetValueInternal(aValue, nsTextEditorState::eSetValue_ByContent |
-                             nsTextEditorState::eSetValue_Notify |
-                             nsTextEditorState::eSetValue_MoveCursorToEnd);
+    SetValueInternal(aValue,
+      nsTextEditorState::eSetValue_ByContent |
+      nsTextEditorState::eSetValue_Notify |
+      nsTextEditorState::eSetValue_MoveCursorToEndIfValueChanged);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (mFocusedValue.Equals(currentValue)) {
@@ -370,9 +371,9 @@ NS_IMETHODIMP
 HTMLTextAreaElement::SetUserInput(const nsAString& aValue)
 {
   return SetValueInternal(aValue,
-                          nsTextEditorState::eSetValue_BySetUserInput |
-                          nsTextEditorState::eSetValue_Notify|
-                          nsTextEditorState::eSetValue_MoveCursorToEnd);
+    nsTextEditorState::eSetValue_BySetUserInput |
+    nsTextEditorState::eSetValue_Notify|
+    nsTextEditorState::eSetValue_MoveCursorToEndIfValueChanged);
 }
 
 NS_IMETHODIMP
