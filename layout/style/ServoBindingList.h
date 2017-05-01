@@ -159,7 +159,7 @@ SERVO_BINDING_FUNC(Servo_GetComputedKeyframeValues, void,
                    RawServoStyleSetBorrowed set,
                    RawGeckoComputedKeyframeValuesListBorrowedMut result)
 SERVO_BINDING_FUNC(Servo_AnimationValueMap_Push, void,
-                   RawServoAnimationValueMapBorrowed,
+                   RawServoAnimationValueMapBorrowedMut,
                    nsCSSPropertyID property,
                    RawServoAnimationValueBorrowed value)
 SERVO_BINDING_FUNC(Servo_ComputedValues_ExtractAnimationValue,
@@ -261,7 +261,7 @@ SERVO_BINDING_FUNC(Servo_DeclarationBlock_HasCSSWideKeyword, bool,
 // |base_values| is nsRefPtrHashtable<nsUint32HashKey, RawServoAnimationValue>.
 // We use void* to avoid exposing nsRefPtrHashtable in FFI.
 SERVO_BINDING_FUNC(Servo_AnimationCompose, void,
-                   RawServoAnimationValueMapBorrowed animation_values,
+                   RawServoAnimationValueMapBorrowedMut animation_values,
                    void* base_values,
                    nsCSSPropertyID property,
                    RawGeckoAnimationPropertySegmentBorrowed animation_segment,
