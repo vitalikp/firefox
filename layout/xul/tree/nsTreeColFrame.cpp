@@ -51,7 +51,8 @@ nsTreeColFrame::DestroyFrom(nsIFrame* aDestructRoot)
   nsBoxFrame::DestroyFrom(aDestructRoot);
 }
 
-class nsDisplayXULTreeColSplitterTarget : public nsDisplayItem {
+class nsDisplayXULTreeColSplitterTarget final : public nsDisplayItem
+{
 public:
   nsDisplayXULTreeColSplitterTarget(nsDisplayListBuilder* aBuilder,
                                     nsIFrame* aFrame) :
