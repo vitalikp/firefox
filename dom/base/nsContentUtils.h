@@ -38,6 +38,7 @@
 #include "nsIContentPolicy.h"
 #include "nsIDocument.h"
 #include "nsPIDOMWindow.h"
+#include "nsRFPService.h"
 
 #if defined(XP_WIN)
 // Undefine LoadImage to prevent naming conflict with Windows.
@@ -2126,7 +2127,7 @@ public:
   static bool ResistFingerprinting(mozilla::dom::CallerType aCallerType)
   {
     return aCallerType != mozilla::dom::CallerType::System &&
-           sPrivacyResistFingerprinting;
+           mozilla::nsRFPService::IsResistFingerprintingEnabled();
   }
 
   /**
@@ -2975,7 +2976,6 @@ private:
   static bool sIsExperimentalAutocompleteEnabled;
   static bool sIsWebComponentsEnabled;
   static bool sIsCustomElementsEnabled;
-  static bool sPrivacyResistFingerprinting;
   static bool sSendPerformanceTimingNotifications;
   static bool sUseActivityCursor;
   static bool sAnimationsAPICoreEnabled;
