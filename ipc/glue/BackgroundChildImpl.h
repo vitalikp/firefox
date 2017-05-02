@@ -184,6 +184,11 @@ protected:
 
   virtual bool
   DeallocPFileSystemRequestChild(PFileSystemRequestChild*) override;
+
+#ifdef EARLY_BETA_OR_EARLIER
+  virtual void
+  OnChannelReceivedMessage(const Message& aMsg) override;
+#endif
 };
 
 class BackgroundChildImpl::ThreadLocal final

@@ -8,6 +8,7 @@
 
 #include "jsfriendapi.h"
 #include "mozilla/AbstractThread.h"
+#include "mozilla/Atomics.h"
 #include "mozilla/Move.h"
 #include "nsINamed.h"
 #include "nsQueryObject.h"
@@ -37,8 +38,9 @@ public:
     return NS_OK;
   }
 
-  NS_DECL_NSIRUNNABLE
+  bool IsBackground() const { return mDispatcher->IsBackground(); }
 
+  NS_DECL_NSIRUNNABLE
 private:
   nsCOMPtr<nsIRunnable> mRunnable;
   RefPtr<SchedulerGroup> mDispatcher;
@@ -75,6 +77,8 @@ private:
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(SchedulerEventTarget, NS_DISPATCHEREVENTTARGET_IID)
+
+static Atomic<uint64_t> gEarliestUnprocessedVsync(0);
 
 } // namespace
 
@@ -124,6 +128,31 @@ SchedulerGroup::UnlabeledDispatch(const char* aName,
   } else {
     return NS_DispatchToMainThread(runnable.forget());
   }
+}
+
+/* static */ void
+SchedulerGroup::MarkVsyncReceived()
+{
+  if (gEarliestUnprocessedVsync) {
+    // If we've seen a vsync already, but haven't handled it, keep the
+    // older one.
+    return;
+  }
+
+  MOZ_ASSERT(!NS_IsMainThread());
+  bool inconsistent = false;
+  TimeStamp creation = TimeStamp::ProcessCreation(&inconsistent);
+  if (inconsistent) {
+    return;
+  }
+
+  gEarliestUnprocessedVsync = (TimeStamp::Now() - creation).ToMicroseconds();
+}
+
+/* static */ void
+SchedulerGroup::MarkVsyncRan()
+{
+  gEarliestUnprocessedVsync = 0;
 }
 
 SchedulerGroup* SchedulerGroup::sRunningDispatcher;
