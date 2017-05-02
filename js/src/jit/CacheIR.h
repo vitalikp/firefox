@@ -141,7 +141,8 @@ class TypedOperandId : public OperandId
     _(SetElem)              \
     _(BindName)             \
     _(In)                   \
-    _(HasOwn)
+    _(HasOwn)               \
+    _(TypeOf)
 
 enum class CacheKind : uint8_t
 {
@@ -245,6 +246,7 @@ extern const char* CacheKindNames[];
     _(CallProxyHasOwnResult)              \
     _(LoadUndefinedResult)                \
     _(LoadBooleanResult)                  \
+    _(LoadStringResult)                   \
                                           \
     _(TypeMonitorResult)                  \
     _(ReturnFromIC)                       \
@@ -798,6 +800,10 @@ class MOZ_RAII CacheIRWriter : public JS::CustomAutoRooter
     void loadUndefinedResult() {
         writeOp(CacheOp::LoadUndefinedResult);
     }
+    void loadStringResult(JSString* str) {
+        writeOp(CacheOp::LoadStringResult);
+        addStubField(uintptr_t(str), StubField::Type::String);
+    }
     void loadFixedSlotResult(ObjOperandId obj, size_t offset) {
         writeOpWithOperandId(CacheOp::LoadFixedSlotResult, obj);
         addStubField(offset, StubField::Type::RawWord);
@@ -1285,6 +1291,18 @@ class MOZ_RAII HasPropIRGenerator : public IRGenerator
     // NOTE: Argument order is PROPERTY, OBJECT
     HasPropIRGenerator(JSContext* cx, HandleScript script, jsbytecode* pc, CacheKind cacheKind,
                        ICState::Mode mode, HandleValue idVal, HandleValue val);
+
+    bool tryAttachStub();
+};
+
+class MOZ_RAII TypeOfIRGenerator : public IRGenerator
+{
+    HandleValue val_;
+
+    bool tryAttachPrimitive(ValOperandId valId);
+
+  public:
+    TypeOfIRGenerator(JSContext* cx, HandleScript, jsbytecode* pc, ICState::Mode mode, HandleValue value);
 
     bool tryAttachStub();
 };
