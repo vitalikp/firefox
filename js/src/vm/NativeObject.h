@@ -1511,6 +1511,9 @@ MaybeNativeObject(JSObject* obj)
 // Defined in NativeObject-inl.h.
 bool IsPackedArray(JSObject* obj);
 
+extern void
+AddPropertyTypesAfterProtoChange(JSContext* cx, NativeObject* obj, ObjectGroup* oldGroup);
+
 } // namespace js
 
 
