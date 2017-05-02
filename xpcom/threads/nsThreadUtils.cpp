@@ -443,3 +443,19 @@ nsAutoLowPriorityIO::~nsAutoLowPriorityIO()
   }
 #endif
 }
+
+namespace mozilla {
+
+PRThread*
+GetCurrentVirtualThread()
+{
+  return PR_GetCurrentThread();
+}
+
+PRThread*
+GetCurrentPhysicalThread()
+{
+  return PR_GetCurrentThread();
+}
+
+} // namespace mozilla
