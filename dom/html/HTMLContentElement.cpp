@@ -283,7 +283,6 @@ HTMLContentElement::Match(nsIContent* aContent)
 
     TreeMatchContext matchingContext(false, nsRuleWalker::eRelevantLinkUnvisited,
                                      doc, TreeMatchContext::eNeverMatchVisited);
-    doc->FlushPendingLinkUpdates();
     matchingContext.SetHasSpecifiedScope();
     matchingContext.AddScopeElement(host->AsElement());
 

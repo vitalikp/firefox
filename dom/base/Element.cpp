@@ -3318,7 +3318,6 @@ Element::Closest(const nsAString& aSelector, ErrorResult& aResult)
     // is a pseudo-element-only selector that matches nothing.
     return nullptr;
   }
-  OwnerDoc()->FlushPendingLinkUpdates();
   TreeMatchContext matchingContext(false,
                                    nsRuleWalker::eRelevantLinkUnvisited,
                                    OwnerDoc(),
@@ -3346,7 +3345,6 @@ Element::Matches(const nsAString& aSelector, ErrorResult& aError)
     return false;
   }
 
-  OwnerDoc()->FlushPendingLinkUpdates();
   TreeMatchContext matchingContext(false,
                                    nsRuleWalker::eRelevantLinkUnvisited,
                                    OwnerDoc(),
