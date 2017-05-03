@@ -926,6 +926,13 @@ JSCompartment::sweepVarNames()
     varNames_.sweep();
 }
 
+void
+JSCompartment::sweepWatchpoints()
+{
+    if (watchpointMap)
+        watchpointMap->sweep();
+}
+
 namespace {
 struct TraceRootFunctor {
     JSTracer* trc;
