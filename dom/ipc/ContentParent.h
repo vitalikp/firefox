@@ -67,6 +67,8 @@ class SandboxBrokerPolicyFactory;
 
 class PreallocatedProcessManagerImpl;
 
+using mozilla::loader::PScriptCacheParent;
+
 namespace embedding {
 class PrintingParent;
 }
@@ -834,6 +836,12 @@ private:
   virtual PTestShellParent* AllocPTestShellParent() override;
 
   virtual bool DeallocPTestShellParent(PTestShellParent* shell) override;
+
+  virtual PScriptCacheParent*
+  AllocPScriptCacheParent(const FileDescOrError& cacheFile,
+                          const bool& wantCacheData) override;
+
+  virtual bool DeallocPScriptCacheParent(PScriptCacheParent* shell) override;
 
   virtual bool DeallocPNeckoParent(PNeckoParent* necko) override;
 
