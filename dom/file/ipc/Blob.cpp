@@ -1477,9 +1477,7 @@ class InputStreamParent final
   InputStreamParams* mParams;
   OptionalFileDescriptorSet* mFDs;
 
-#ifdef DEBUG
-  PRThread* mOwningThread;
-#endif
+  NS_DECL_OWNINGTHREAD
 
 public:
   InputStreamParent()
@@ -1487,10 +1485,6 @@ public:
     , mParams(nullptr)
     , mFDs(nullptr)
   {
-#ifdef DEBUG
-    mOwningThread = PR_GetCurrentThread();
-#endif
-
     AssertIsOnOwningThread();
 
     MOZ_COUNT_CTOR(InputStreamParent);
@@ -1503,10 +1497,6 @@ public:
     , mParams(aParams)
     , mFDs(aFDs)
   {
-#ifdef DEBUG
-    mOwningThread = PR_GetCurrentThread();
-#endif
-
     AssertIsOnOwningThread();
     MOZ_ASSERT(aSyncLoopGuard);
     MOZ_ASSERT(!*aSyncLoopGuard);
@@ -1526,9 +1516,7 @@ public:
   void
   AssertIsOnOwningThread() const
   {
-#ifdef DEBUG
-    MOZ_ASSERT(PR_GetCurrentThread() == mOwningThread);
-#endif
+    NS_ASSERT_OWNINGTHREAD(InputStreamParent);
   }
 
   bool
