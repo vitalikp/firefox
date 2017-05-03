@@ -47,7 +47,7 @@ const OBJECT_PREVIEW_MAX_ITEMS = 10;
  *              The Debuggee Global Object as given by the ThreadActor
  */
 function ObjectActor(obj, {
-  createValueGrip,
+  createValueGrip: createValueGripHook,
   sources,
   createEnvironmentActor,
   getGripDepth,
@@ -59,7 +59,7 @@ function ObjectActor(obj, {
          "Should not create object actors for optimized out values!");
   this.obj = obj;
   this.hooks = {
-    createValueGrip,
+    createValueGrip: createValueGripHook,
     sources,
     createEnvironmentActor,
     getGripDepth,
