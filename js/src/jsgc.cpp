@@ -4890,9 +4890,9 @@ MAKE_GC_SWEEP_TASK(SweepCCWrappersTask,       gcstats::PHASE_SWEEP_CC_WRAPPER);
 MAKE_GC_SWEEP_TASK(SweepObjectGroupsTask,     gcstats::PHASE_SWEEP_TYPE_OBJECT);
 MAKE_GC_SWEEP_TASK(SweepRegExpsTask,          gcstats::PHASE_SWEEP_REGEXP);
 MAKE_GC_SWEEP_TASK(SweepMiscTask,             gcstats::PHASE_SWEEP_MISC);
-MAKE_GC_SWEEP_TASK(SweepCompressionTasksTask, gcstats::PHASE_SWEEP_MISC);
-MAKE_GC_SWEEP_TASK(SweepWeakMapsTask,         gcstats::PHASE_SWEEP_MISC);
-MAKE_GC_SWEEP_TASK(SweepUniqueIdsTask,        gcstats::PHASE_SWEEP_BREAKPOINT);
+MAKE_GC_SWEEP_TASK(SweepCompressionTasksTask, gcstats::PHASE_SWEEP_COMPRESSION);
+MAKE_GC_SWEEP_TASK(SweepWeakMapsTask,         gcstats::PHASE_SWEEP_WEAKMAPS);
+MAKE_GC_SWEEP_TASK(SweepUniqueIdsTask,        gcstats::PHASE_SWEEP_UNIQUEIDS);
 #undef MAKE_GC_SWEEP_TASK
 
 /* virtual */ void
@@ -5050,7 +5050,7 @@ void
 GCRuntime::sweepJitDataOnMainThread(FreeOp* fop)
 {
     {
-        gcstats::AutoPhase ap(stats(), gcstats::PHASE_SWEEP_MISC);
+        gcstats::AutoPhase ap(stats(), gcstats::PHASE_SWEEP_JIT_DATA);
 
         // Cancel any active or pending off thread compilations.
         js::CancelOffThreadIonCompile(rt, JS::Zone::Sweep);
@@ -5211,7 +5211,7 @@ GCRuntime::beginSweepingSweepGroup(AutoLockForExclusiveAccess& lock)
         AutoRunGCSweepTask<SweepWeakMapsTask> sweepWeakMaps(this, helperLock);
         AutoRunGCSweepTask<SweepUniqueIdsTask> sweepUniqueIds(this, helperLock);
         for (auto& task : sweepCacheTasks)
-            startTask(task, gcstats::PHASE_SWEEP_MISC, helperLock);
+            startTask(task, gcstats::PHASE_SWEEP_WEAK_CACHES, helperLock);
 
         {
             AutoUnlockHelperThreadState unlock(helperLock);
@@ -5219,7 +5219,7 @@ GCRuntime::beginSweepingSweepGroup(AutoLockForExclusiveAccess& lock)
         }
 
         for (auto& task : sweepCacheTasks)
-            joinTask(task, gcstats::PHASE_SWEEP_MISC, helperLock);
+            joinTask(task, gcstats::PHASE_SWEEP_WEAK_CACHES, helperLock);
     }
 
     // Queue all GC things in all zones for sweeping, either on the foreground
