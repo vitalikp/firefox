@@ -112,10 +112,6 @@ function processFlagFilter(type, value) {
   }
 }
 
-function getSizeOrder(size) {
-  return Math.round(Math.log10(size));
-}
-
 function isFlagFilterMatch(item, { type, value, negative }) {
   let match = true;
   let { responseCookies = { cookies: [] } } = item;
@@ -139,11 +135,11 @@ function isFlagFilterMatch(item, { type, value, negative }) {
       if (item.fromCache) {
         match = false;
       } else {
-        match = getSizeOrder(value) === getSizeOrder(item.transferredSize);
+        match = isSizeMatch(value, item.transferredSize);
       }
       break;
     case "size":
-      match = getSizeOrder(value) === getSizeOrder(item.contentSize);
+      match = isSizeMatch(value, item.contentSize);
       break;
     case "larger-than":
       match = item.contentSize > value;
@@ -186,6 +182,10 @@ function isFlagFilterMatch(item, { type, value, negative }) {
     return !match;
   }
   return match;
+}
+
+function isSizeMatch(value, size) {
+  return value >= (size - size / 10) && value < (size + size / 10);
 }
 
 function isTextFilterMatch({ url }, text) {
