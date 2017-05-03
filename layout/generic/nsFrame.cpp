@@ -456,7 +456,6 @@ nsFrame::nsFrame(nsStyleContext* aContext)
 {
   MOZ_COUNT_CTOR(nsFrame);
 
-  mState = NS_FRAME_FIRST_REFLOW | NS_FRAME_IS_DIRTY;
   mStyleContext = aContext;
   mWritingMode = WritingMode(mStyleContext);
   mStyleContext->AddRef();
