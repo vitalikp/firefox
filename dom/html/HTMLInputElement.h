@@ -1080,11 +1080,6 @@ protected:
   bool DoesRequiredApply() const;
 
   /**
-   * Returns if the pattern attribute applies for the current type.
-   */
-  bool DoesPatternApply() const;
-
-  /**
    * Returns if the min and max attributes apply for the current type.
    */
   bool DoesMinMaxApply() const;

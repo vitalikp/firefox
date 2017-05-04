@@ -7377,17 +7377,6 @@ HTMLInputElement::PlaceholderApplies() const
 }
 
 bool
-HTMLInputElement::DoesPatternApply() const
-{
-  // TODO: temporary until bug 773205 is fixed.
-  if (IsExperimentalMobileType(mType) || IsDateTimeInputType(mType)) {
-    return false;
-  }
-
-  return IsSingleLineTextControl(false);
-}
-
-bool
 HTMLInputElement::DoesMinMaxApply() const
 {
   switch (mType)
@@ -7550,24 +7539,7 @@ HTMLInputElement::HasTypeMismatch() const
 bool
 HTMLInputElement::HasPatternMismatch() const
 {
-  if (!DoesPatternApply() ||
-      !HasAttr(kNameSpaceID_None, nsGkAtoms::pattern)) {
-    return false;
-  }
-
-  nsAutoString pattern;
-  GetAttr(kNameSpaceID_None, nsGkAtoms::pattern, pattern);
-
-  nsAutoString value;
-  GetNonFileValueInternal(value);
-
-  if (value.IsEmpty()) {
-    return false;
-  }
-
-  nsIDocument* doc = OwnerDoc();
-
-  return !nsContentUtils::IsPatternMatching(value, pattern, doc);
+  return mInputType->HasPatternMismatch();
 }
 
 bool
