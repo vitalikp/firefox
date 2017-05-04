@@ -130,7 +130,7 @@ static MessageChannel* gParentProcessBlocker;
 namespace mozilla {
 namespace ipc {
 
-static const uint32_t kMinTelemetryMessageSize = 8192;
+static const uint32_t kMinTelemetryMessageSize = 4096;
 
 const int32_t MessageChannel::kNoTimeout = INT32_MIN;
 
@@ -839,8 +839,7 @@ bool
 MessageChannel::Send(Message* aMsg)
 {
     if (aMsg->size() >= kMinTelemetryMessageSize) {
-        Telemetry::Accumulate(Telemetry::IPC_MESSAGE_SIZE,
-                              nsDependentCString(aMsg->name()), aMsg->size());
+        Telemetry::Accumulate(Telemetry::IPC_MESSAGE_SIZE2, aMsg->size());
     }
 
     MOZ_RELEASE_ASSERT(!aMsg->is_sync());
@@ -1216,8 +1215,7 @@ MessageChannel::Send(Message* aMsg, Message* aReply)
 {
     mozilla::TimeStamp start = TimeStamp::Now();
     if (aMsg->size() >= kMinTelemetryMessageSize) {
-        Telemetry::Accumulate(Telemetry::IPC_MESSAGE_SIZE,
-                              nsDependentCString(aMsg->name()), aMsg->size());
+        Telemetry::Accumulate(Telemetry::IPC_MESSAGE_SIZE2, aMsg->size());
     }
 
     nsAutoPtr<Message> msg(aMsg);
