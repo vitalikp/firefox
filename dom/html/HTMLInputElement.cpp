@@ -22,6 +22,7 @@
 #include "nsIDOMNSEditableElement.h"
 #include "nsIRadioVisitor.h"
 #include "nsIPhonetic.h"
+#include "InputType.h"
 
 #include "HTMLFormSubmissionConstants.h"
 #include "mozilla/Telemetry.h"
@@ -1179,6 +1180,9 @@ HTMLInputElement::HTMLInputElement(already_AddRefed<mozilla::dom::NodeInfo>& aNo
   mInputData.mState =
     nsTextEditorState::Construct(this, &sCachedTextEditorState);
 
+  void* memory = mInputTypeMem;
+  mInputType = InputType::Create(this, mType, memory);
+
   if (!gUploadLastDir)
     HTMLInputElement::InitUploadLastDir();
 
@@ -1212,6 +1216,11 @@ HTMLInputElement::FreeData()
     UnbindFromFrame(nullptr);
     ReleaseTextEditorState(mInputData.mState);
     mInputData.mState = nullptr;
+  }
+
+  if (mInputType) {
+    mInputType->DropReference();
+    mInputType = nullptr;
   }
 }
 
@@ -5250,6 +5259,8 @@ HTMLInputElement::HandleTypeChange(uint8_t aNewType, bool aNotify)
   // We already have a copy of the value, lets free it and changes the type.
   FreeData();
   mType = aNewType;
+  void* memory = mInputTypeMem;
+  mInputType = InputType::Create(this, mType, memory);
 
   if (IsSingleLineTextControl()) {
 
