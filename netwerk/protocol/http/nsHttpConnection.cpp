@@ -89,6 +89,7 @@ nsHttpConnection::nsHttpConnection()
     , mResponseThrottled(false)
     , mResumeRecvOnUnthrottle(false)
     , mFastOpen(nullptr)
+    , mFastOpenStatus(TFO_NOT_TRIED)
 {
     LOG(("Creating nsHttpConnection @%p\n", this));
 
@@ -2306,6 +2307,7 @@ nsHttpConnection::CloseConnectionFastOpenTakesTooLongOrError(bool aCloseSocketTr
 {
     MOZ_ASSERT(!mCurrentBytesRead);
 
+    mFastOpenStatus = TFO_FAILED;
     RefPtr<nsAHttpTransaction> trans;
     if (mUsingSpdyVersion) {
         // If we have a http2 connection just restart it as if 0rtt failed.
