@@ -795,7 +795,8 @@ struct JSCompartment
         DebuggerObservesAllExecution = 1 << 1,
         DebuggerObservesAsmJS = 1 << 2,
         DebuggerObservesCoverage = 1 << 3,
-        DebuggerNeedsDelazification = 1 << 4
+        DebuggerObservesBinarySource = 1 << 4,
+        DebuggerNeedsDelazification = 1 << 5
     };
 
     unsigned debugModeBits;
@@ -804,7 +805,8 @@ struct JSCompartment
     static const unsigned DebuggerObservesMask = IsDebuggee |
                                                  DebuggerObservesAllExecution |
                                                  DebuggerObservesCoverage |
-                                                 DebuggerObservesAsmJS;
+                                                 DebuggerObservesAsmJS |
+                                                 DebuggerObservesBinarySource;
 
     void updateDebuggerObservesFlag(unsigned flag);
 
@@ -1047,6 +1049,15 @@ struct JSCompartment
     }
     void updateDebuggerObservesAsmJS() {
         updateDebuggerObservesFlag(DebuggerObservesAsmJS);
+    }
+
+    bool debuggerObservesBinarySource() const {
+        static const unsigned Mask = IsDebuggee | DebuggerObservesBinarySource;
+        return (debugModeBits & Mask) == Mask;
+    }
+
+    void updateDebuggerObservesBinarySource() {
+        updateDebuggerObservesFlag(DebuggerObservesBinarySource);
     }
 
     // True if this compartment's global is a debuggee of some Debugger object

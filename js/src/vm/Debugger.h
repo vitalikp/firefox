@@ -382,6 +382,7 @@ class Debugger : private mozilla::LinkedListElement<Debugger>
     js::GCPtrObject uncaughtExceptionHook; /* Strong reference. */
     bool enabled;
     bool allowUnobservedAsmJS;
+    bool allowWasmBinarySource;
 
     // Whether to enable code coverage on the Debuggee.
     bool collectCoverageInfo;
@@ -621,6 +622,8 @@ class Debugger : private mozilla::LinkedListElement<Debugger>
     static bool setUncaughtExceptionHook(JSContext* cx, unsigned argc, Value* vp);
     static bool getAllowUnobservedAsmJS(JSContext* cx, unsigned argc, Value* vp);
     static bool setAllowUnobservedAsmJS(JSContext* cx, unsigned argc, Value* vp);
+    static bool getAllowWasmBinarySource(JSContext* cx, unsigned argc, Value* vp);
+    static bool setAllowWasmBinarySource(JSContext* cx, unsigned argc, Value* vp);
     static bool getCollectCoverageInfo(JSContext* cx, unsigned argc, Value* vp);
     static bool setCollectCoverageInfo(JSContext* cx, unsigned argc, Value* vp);
     static bool getMemory(JSContext* cx, unsigned argc, Value* vp);
@@ -690,6 +693,8 @@ class Debugger : private mozilla::LinkedListElement<Debugger>
     // execution.
     IsObserving observesCoverage() const;
 
+    IsObserving observesBinarySource() const;
+
   private:
     static MOZ_MUST_USE bool ensureExecutionObservabilityOfFrame(JSContext* cx,
                                                                  AbstractFramePtr frame);
@@ -701,6 +706,7 @@ class Debugger : private mozilla::LinkedListElement<Debugger>
     MOZ_MUST_USE bool updateObservesAllExecutionOnDebuggees(JSContext* cx, IsObserving observing);
     MOZ_MUST_USE bool updateObservesCoverageOnDebuggees(JSContext* cx, IsObserving observing);
     void updateObservesAsmJSOnDebuggees(IsObserving observing);
+    void updateObservesBinarySourceDebuggees(IsObserving observing);
 
     JSObject* getHook(Hook hook) const;
     bool hasAnyLiveHooks(JSRuntime* rt) const;
