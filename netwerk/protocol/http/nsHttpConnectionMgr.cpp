@@ -3537,13 +3537,14 @@ nsHalfOpenSocket::StartFastOpen(PRFileDesc *fd)
 
 void
 nsHttpConnectionMgr::
-nsHalfOpenSocket::FastOpenConnected(nsresult aError)
+nsHalfOpenSocket::SetFastOpenConnected(nsresult aError, bool aWillRetry)
 {
     RefPtr<nsHalfOpenSocket> deleteProtector(this);
 
     // Check if we want to restart connection!
-    if ((aError == NS_ERROR_CONNECTION_REFUSED) ||
-        (aError == NS_ERROR_NET_TIMEOUT)) {
+    if (aWillRetry &&
+        ((aError == NS_ERROR_CONNECTION_REFUSED) ||
+         (aError == NS_ERROR_NET_TIMEOUT))) {
         if (mEnt->mUseFastOpen) {
             gHttpHandler->IncrementFastOpenConsecutiveFailureCounter();
             mEnt->mUseFastOpen = false;
@@ -3592,6 +3593,13 @@ nsHalfOpenSocket::FastOpenConnected(nsresult aError)
     }
 
     mConnectionNegotiatingFastOpen = nullptr;
+}
+
+void
+nsHttpConnectionMgr::
+nsHalfOpenSocket::SetFastOpenStatus(uint8_t tfoStatus)
+{
+    mConnectionNegotiatingFastOpen->Transaction()->SetFastOpenStatus(tfoStatus);
 }
 
 void
