@@ -1130,11 +1130,6 @@ protected:
    */
   bool DoesAutocompleteApply() const;
 
-  /**
-   * Returns if the minlength or maxlength attributes apply for the current type.
-   */
-  bool MinOrMaxLengthApplies() const { return IsSingleLineTextControl(false, mType); }
-
   void FreeData();
   nsTextEditorState *GetEditorState() const;
 
