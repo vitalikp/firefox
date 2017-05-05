@@ -36,6 +36,7 @@
 #include "mozilla/ipc/PParentToChildStreamParent.h"
 #include "mozilla/layout/VsyncParent.h"
 #include "mozilla/dom/network/UDPSocketParent.h"
+#include "mozilla/dom/WebAuthnTransactionParent.h"
 #include "mozilla/Preferences.h"
 #include "nsNetUtil.h"
 #include "nsIScriptSecurityManager.h"
@@ -62,6 +63,7 @@ using mozilla::dom::FileSystemRequestParent;
 using mozilla::dom::MessagePortParent;
 using mozilla::dom::PMessagePortParent;
 using mozilla::dom::UDPSocketParent;
+using mozilla::dom::WebAuthnTransactionParent;
 
 namespace {
 
@@ -844,6 +846,20 @@ BackgroundParentImpl::DeallocPFileSystemRequestParent(
 
   RefPtr<FileSystemRequestParent> parent =
     dont_AddRef(static_cast<FileSystemRequestParent*>(aDoomed));
+  return true;
+}
+
+dom::PWebAuthnTransactionParent*
+BackgroundParentImpl::AllocPWebAuthnTransactionParent()
+{
+  return new dom::WebAuthnTransactionParent();
+}
+
+bool
+BackgroundParentImpl::DeallocPWebAuthnTransactionParent(dom::PWebAuthnTransactionParent *aActor)
+{
+  MOZ_ASSERT(aActor);
+  delete aActor;
   return true;
 }
 

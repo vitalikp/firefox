@@ -133,6 +133,7 @@ using namespace mozilla::system;
 #include "mozilla/StaticPresData.h"
 #include "mozilla/dom/WebIDLGlobalNameHash.h"
 #include "mozilla/dom/ipc/IPCBlobInputStreamStorage.h"
+#include "mozilla/dom/U2FTokenManager.h"
 
 using namespace mozilla;
 using namespace mozilla::net;
@@ -324,6 +325,7 @@ nsLayoutStatics::Initialize()
   // This must be initialized on the main-thread.
   mozilla::dom::IPCBlobInputStreamStorage::Initialize();
 
+  mozilla::dom::U2FTokenManager::Initialize();
   return NS_OK;
 }
 

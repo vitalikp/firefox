@@ -212,6 +212,12 @@ protected:
 
   virtual bool
   DeallocPFileSystemRequestParent(PFileSystemRequestParent*) override;
+
+  virtual PWebAuthnTransactionParent*
+  AllocPWebAuthnTransactionParent() override;
+
+  virtual bool
+  DeallocPWebAuthnTransactionParent(PWebAuthnTransactionParent* aActor) override;
 };
 
 } // namespace ipc
