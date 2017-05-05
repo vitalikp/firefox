@@ -1644,8 +1644,7 @@ jit::JitActivation::traceIonRecovery(JSTracer* trc)
 
 WasmActivation::WasmActivation(JSContext* cx)
   : Activation(cx, Wasm),
-    exitFP_(nullptr),
-    exitReason_(wasm::ExitReason::Fixed::None)
+    exitFP_(nullptr)
 {
     // Now that the WasmActivation is fully initialized, make it visible to
     // asynchronous profiling.
@@ -1659,14 +1658,12 @@ WasmActivation::~WasmActivation()
 
     MOZ_ASSERT(!interrupted());
     MOZ_ASSERT(exitFP_ == nullptr);
-    MOZ_ASSERT(exitReason_.isNone());
 }
 
 void
 WasmActivation::unwindExitFP(wasm::Frame* exitFP)
 {
     exitFP_ = exitFP;
-    exitReason_ = wasm::ExitReason::Fixed::None;
 }
 
 void

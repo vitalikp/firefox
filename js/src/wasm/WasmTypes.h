@@ -1585,6 +1585,10 @@ struct Frame
     // the first field of wasm::Frame (in a downward-growing stack).
     Frame* callerFP;
 
+    // The raw payload of an ExitReason describing why we've left wasm. It is
+    // non null if and only if a call exited wasm code.
+    uint32_t encodedExitReason;
+
     // The saved value of WasmTlsReg on entry to the function. This is
     // effectively the callee's instance.
     TlsData* tls;
@@ -1637,11 +1641,6 @@ class DebugFrame
         };
         void* flagsWord_;
     };
-
-    // Padding so that DebugFrame has Alignment.
-#if JS_BITS_PER_WORD == 32
-    void* padding_;
-#endif
 
     // The Frame goes at the end since the stack grows down.
     Frame frame_;
