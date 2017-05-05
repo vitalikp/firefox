@@ -1405,8 +1405,6 @@ var SessionStoreInternal = {
 
       if (isFullyLoaded) {
         winData.title = tabbrowser.selectedBrowser.contentTitle || tabbrowser.selectedTab.label;
-        winData.title = this._replaceLoadingTitle(winData.title, tabbrowser,
-                                                  tabbrowser.selectedTab);
       }
 
       if (AppConstants.platform != "macosx") {
@@ -1950,7 +1948,7 @@ var SessionStoreInternal = {
 
     // Store closed-tab data for undo.
     let tabbrowser = aWindow.gBrowser;
-    let tabTitle = this._replaceLoadingTitle(aTab.label, tabbrowser, aTab);
+    let tabTitle = aTab.label;
     let {permanentKey} = aTab.linkedBrowser;
 
     let tabData = {
@@ -2335,9 +2333,8 @@ var SessionStoreInternal = {
       aWindow.gBrowser.addTab(null, {relatedToCurrent: true, ownerTab: aTab, userContextId}) :
       aWindow.gBrowser.addTab(null, {userContextId});
 
-    // Set tab title to "Connecting..." and start the throbber to pretend we're
-    // doing something while actually waiting for data from the frame script.
-    aWindow.gBrowser.setTabTitleLoading(newTab);
+    // Start the throbber to pretend we're doing something while actually
+    // waiting for data from the frame script.
     newTab.setAttribute("busy", "true");
 
     // Collect state before flushing.
@@ -2818,9 +2815,8 @@ var SessionStoreInternal = {
       return;
     }
 
-    // Set tab title to "Connecting..." and start the throbber to pretend we're
-    // doing something while actually waiting for data from the frame script.
-    window.gBrowser.setTabTitleLoading(tab);
+    // Start the throbber to pretend we're doing something while actually
+    // waiting for data from the frame script.
     tab.setAttribute("busy", "true");
 
     // Flush to get the latest tab state.
@@ -4485,22 +4481,6 @@ var SessionStoreInternal = {
    */
   _isWindowLoaded: function ssi_isWindowLoaded(aWindow) {
     return !aWindow.__SS_restoreID;
-  },
-
-  /**
-   * Replace "Loading..." with the tab label (with minimal side-effects)
-   * @param aString is the string the title is stored in
-   * @param aTabbrowser is a tabbrowser object, containing aTab
-   * @param aTab is the tab whose title we're updating & using
-   *
-   * @returns aString that has been updated with the new title
-   */
-  _replaceLoadingTitle : function ssi_replaceLoadingTitle(aString, aTabbrowser, aTab) {
-    if (aString == aTabbrowser.mStringBundle.getString("tabs.connecting")) {
-      aTabbrowser.setTabTitle(aTab);
-      [aString, aTab.label] = [aTab.label, aString];
-    }
-    return aString;
   },
 
   /**
