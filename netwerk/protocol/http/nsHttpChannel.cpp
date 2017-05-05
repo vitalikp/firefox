@@ -138,8 +138,6 @@ static uint32_t sRCWNSmallResourceSizeKB = 256;
          ((mFirstResponseSource == RESPONSE_FROM_NETWORK) && (req != mTransactionPump))))
 
 static NS_DEFINE_CID(kStreamListenerTeeCID, NS_STREAMLISTENERTEE_CID);
-static NS_DEFINE_CID(kStreamTransportServiceCID,
-                     NS_STREAMTRANSPORTSERVICE_CID);
 
 enum CacheDisposition {
     kCacheHit = 1,
@@ -3518,9 +3516,10 @@ nsHttpChannel::OpenCacheEntry(bool isHttps)
         }
     }
 
-    nsCOMPtr<nsICacheStorageService> cacheStorageService =
-        do_GetService("@mozilla.org/netwerk/cache-storage-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsICacheStorageService> cacheStorageService(services::GetCacheStorageService());
+    if (!cacheStorageService) {
+        return NS_ERROR_NOT_AVAILABLE;
+    }
 
     nsCOMPtr<nsICacheStorage> cacheStorage;
     nsCOMPtr<nsIURI> openURI;
@@ -4730,8 +4729,8 @@ nsHttpChannel::OpenCacheInputStream(nsICacheEntry* cacheEntry, bool startBufferi
     nsCOMPtr<nsITransport> transport;
     nsCOMPtr<nsIInputStream> wrapper;
 
-    nsCOMPtr<nsIStreamTransportService> sts =
-        do_GetService(kStreamTransportServiceCID, &rv);
+    nsCOMPtr<nsIStreamTransportService> sts(services::GetStreamTransportService());
+    rv = sts ? NS_OK : NS_ERROR_NOT_AVAILABLE;
     if (NS_SUCCEEDED(rv)) {
         rv = sts->CreateInputTransport(stream, int64_t(-1), int64_t(-1),
                                         true, getter_AddRefs(transport));
@@ -5269,9 +5268,10 @@ nsHttpChannel::InstallCacheListener(int64_t offset)
 
     nsCOMPtr<nsIEventTarget> cacheIOTarget;
     if (!CacheObserver::UseNewCache()) {
-        nsCOMPtr<nsICacheStorageService> serv =
-            do_GetService("@mozilla.org/netwerk/cache-storage-service;1", &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
+        nsCOMPtr<nsICacheStorageService> serv(services::GetCacheStorageService());
+        if (!serv) {
+            return NS_ERROR_NOT_AVAILABLE;
+        }
 
         serv->GetIoTarget(getter_AddRefs(cacheIOTarget));
     }
@@ -8145,8 +8145,8 @@ nsHttpChannel::DoInvalidateCacheEntry(nsIURI* aURI)
 
     LOG(("DoInvalidateCacheEntry [channel=%p key=%s]", this, key.get()));
 
-    nsCOMPtr<nsICacheStorageService> cacheStorageService =
-        do_GetService("@mozilla.org/netwerk/cache-storage-service;1", &rv);
+    nsCOMPtr<nsICacheStorageService> cacheStorageService(services::GetCacheStorageService());
+    rv = cacheStorageService ? NS_OK : NS_ERROR_FAILURE;
 
     nsCOMPtr<nsICacheStorage> cacheStorage;
     if (NS_SUCCEEDED(rv)) {
