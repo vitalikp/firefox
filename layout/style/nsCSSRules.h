@@ -508,12 +508,13 @@ class nsCSSCounterStyleRule final : public mozilla::css::Rule,
                                     public nsIDOMCSSCounterStyleRule
 {
 public:
-  explicit nsCSSCounterStyleRule(const nsAString& aName,
+  explicit nsCSSCounterStyleRule(nsIAtom* aName,
                                  uint32_t aLineNumber, uint32_t aColumnNumber)
     : mozilla::css::Rule(aLineNumber, aColumnNumber)
     , mName(aName)
     , mGeneration(0)
   {
+    MOZ_ASSERT(aName, "Must have non-null name");
   }
 
 private:
@@ -566,7 +567,7 @@ public:
                              nsCSSCounterDesc aDescID,
                              const nsCSSValue& aValue);
 
-  const nsString& GetName() const { return mName; }
+  nsIAtom* Name() const { return mName; }
 
   uint32_t GetGeneration() const { return mGeneration; }
 
@@ -595,7 +596,7 @@ private:
   nsresult GetDescriptor(nsCSSCounterDesc aDescID, nsAString& aValue);
   nsresult SetDescriptor(nsCSSCounterDesc aDescID, const nsAString& aValue);
 
-  nsString   mName;
+  nsCOMPtr<nsIAtom> mName;
   nsCSSValue mValues[eCSSCounterDesc_COUNT];
   uint32_t   mGeneration;
 };
