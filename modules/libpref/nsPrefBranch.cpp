@@ -716,7 +716,9 @@ NS_IMETHODIMP nsPrefBranch::AddObserver(const char *aDomain, nsIObserver *aObser
     return NS_OK;
   }
 
-  mObservers.Insert(p, pCallback);
+  p.OrInsert([&pCallback]() {
+    return pCallback;
+  });
 
   // We must pass a fully qualified preference name to the callback
   // aDomain == nullptr is the only possible failure, and we trapped it with
