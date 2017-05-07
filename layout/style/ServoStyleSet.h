@@ -32,6 +32,7 @@ class ServoRestyleManager;
 class ServoStyleSheet;
 struct Keyframe;
 struct ServoComputedValuesWithParent;
+class ServoElementSnapshotTable;
 } // namespace mozilla
 class nsIContent;
 class nsIDocument;
@@ -49,6 +50,8 @@ namespace mozilla {
 class ServoStyleSet
 {
   friend class ServoRestyleManager;
+  typedef ServoElementSnapshotTable SnapshotTable;
+
 public:
   class AutoAllowStaleStyles
   {
@@ -230,9 +233,12 @@ public:
 
   /**
    * Performs a Servo traversal to compute style for all dirty nodes in the
-   * document.  This will traverse all of the document's style roots (that
-   * is, its document element, and the roots of the document-level native
-   * anonymous content).  Returns true if a post-traversal is required.
+   * document.
+   *
+   * This will traverse all of the document's style roots (that is, its document
+   * element, and the roots of the document-level native anonymous content).
+   *
+   * Returns true if a post-traversal is required.
    */
   bool StyleDocument();
 
@@ -366,24 +372,34 @@ private:
                                               LazyComputeBehavior aMayCompute);
 
   /**
+   * Gets the pending snapshots to handle from the restyle manager.
+   */
+  const SnapshotTable& Snapshots();
+
+  /**
    * Resolve all ServoDeclarationBlocks attached to mapped
    * presentation attributes cached on the document.
+   *
    * Call this before jumping into Servo's style system.
    */
   void ResolveMappedAttrDeclarationBlocks();
 
   /**
    * Perform all lazy operations required before traversing
-   * a subtree.  Returns whether a post-traversal is required.
+   * a subtree.
+   *
+   * Returns whether a post-traversal is required.
    */
   bool PrepareAndTraverseSubtree(RawGeckoElementBorrowed aRoot,
                                  TraversalRootBehavior aRootBehavior,
                                  TraversalRestyleBehavior aRestyleBehavior);
 
   /**
-   * Clear our cached mNonInheritingStyleContexts.  We do this when we want to
-   * make sure those style contexts won't live too long (e.g. when rebuilding
-   * all style data or when shutting down the style set).
+   * Clear our cached mNonInheritingStyleContexts.
+   *
+   * We do this when we want to make sure those style contexts won't live too
+   * long (e.g. when rebuilding all style data or when shutting down the style
+   * set).
    */
   void ClearNonInheritingStyleContexts();
 
