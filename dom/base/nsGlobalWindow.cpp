@@ -1968,7 +1968,6 @@ nsGlobalWindow::CleanUp()
   mPersonalbar = nullptr;
   mStatusbar = nullptr;
   mScrollbars = nullptr;
-  mLocation = nullptr;
   mHistory = nullptr;
   mCustomElements = nullptr;
   mFrames = nullptr;
@@ -2107,7 +2106,6 @@ nsGlobalWindow::FreeInnerObjects()
     mListenerManager = nullptr;
   }
 
-  mLocation = nullptr;
   mHistory = nullptr;
   mCustomElements = nullptr;
 
@@ -10464,10 +10462,10 @@ nsGlobalWindow::GetLocation(ErrorResult& aError)
 {
   MOZ_RELEASE_ASSERT(IsInnerWindow());
 
-  nsIDocShell *docShell = GetDocShell();
-  if (!mLocation && docShell) {
-    mLocation = new Location(AsInner(), docShell);
+  if (!mLocation) {
+    mLocation = new Location(AsInner(), GetDocShell());
   }
+
   return mLocation;
 }
 

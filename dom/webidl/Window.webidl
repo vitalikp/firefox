@@ -37,7 +37,7 @@ interface XULControllers;
   [Unforgeable, StoreInSlot, Pure] readonly attribute Document? document;
   [Throws] attribute DOMString name;
   [PutForwards=href, Unforgeable, Throws,
-   CrossOriginReadable, CrossOriginWritable] readonly attribute Location? location;
+   CrossOriginReadable, CrossOriginWritable] readonly attribute Location location;
   [Throws] readonly attribute History history;
   [Func="CustomElementRegistry::IsCustomElementEnabled"]
   readonly attribute CustomElementRegistry customElements;
