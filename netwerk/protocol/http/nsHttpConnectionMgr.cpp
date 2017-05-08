@@ -3605,7 +3605,9 @@ nsHttpConnectionMgr::
 nsHalfOpenSocket::SetFastOpenStatus(uint8_t tfoStatus)
 {
     mConnectionNegotiatingFastOpen->SetFastOpenStatus(tfoStatus);
-    mConnectionNegotiatingFastOpen->Transaction()->SetFastOpenStatus(tfoStatus);
+    if (mConnectionNegotiatingFastOpen->Transaction()->QueryHttpTransaction()) {
+        mConnectionNegotiatingFastOpen->Transaction()->SetFastOpenStatus(tfoStatus);
+    }
 }
 
 void
