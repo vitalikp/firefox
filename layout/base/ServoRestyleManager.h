@@ -119,8 +119,6 @@ private:
 
   struct TextPostTraversalState;
   void ProcessPostTraversalForText(nsIContent* aTextNode,
-                                   nsStyleContext* aParentContext,
-                                   ServoStyleSet* aStyleSet,
                                    nsStyleChangeList& aChangeList,
                                    TextPostTraversalState& aState);
 
