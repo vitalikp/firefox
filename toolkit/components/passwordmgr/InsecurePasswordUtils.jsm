@@ -16,6 +16,12 @@ XPCOMUtils.defineLazyServiceGetter(this, "gContentSecurityManager",
 XPCOMUtils.defineLazyServiceGetter(this, "gScriptSecurityManager",
                                    "@mozilla.org/scriptsecuritymanager;1",
                                    "nsIScriptSecurityManager");
+XPCOMUtils.defineLazyModuleGetter(this, "LoginHelper",
+                                  "resource://gre/modules/LoginHelper.jsm");
+
+XPCOMUtils.defineLazyGetter(this, "log", () => {
+  return LoginHelper.createLogger("InsecurePasswordUtils");
+});
 
 /*
  * A module that provides utility functions for form security.
@@ -90,6 +96,19 @@ this.InsecurePasswordUtils = {
     return { isFormSubmitHTTP, isFormSubmitSecure };
   },
 
+  _isPrincipalForLocalIPAddress(aPrincipal) {
+    try {
+      let uri = aPrincipal.URI;
+      if (Services.io.hostnameIsLocalIPAddress(uri)) {
+        log.debug("hasInsecureLoginForms: detected local IP address:", uri);
+        return true;
+      }
+    } catch (e) {
+      log.debug("hasInsecureLoginForms: unable to check for local IP address:", e);
+    }
+    return false;
+  },
+
   /**
    * Checks if there are insecure password fields present on the form's document
    * i.e. passwords inside forms with http action, inside iframes with http src,
@@ -101,6 +120,23 @@ this.InsecurePasswordUtils = {
   isFormSecure(aForm) {
     // Ignores window.opener, see top level documentation.
     let isSafePage = aForm.ownerDocument.defaultView.isSecureContextIfOpenerIgnored;
+
+    // Ignore insecure documents with URLs that are local IP addresses.
+    // This is done because the vast majority of routers and other devices
+    // on the network do not use HTTPS, making this warning show up almost
+    // constantly on local connections, which annoys users and hurts our cause.
+    if (!isSafePage && this._ignoreLocalIPAddress) {
+      let isLocalIP = this._isPrincipalForLocalIPAddress(aForm.rootElement.nodePrincipal);
+      let topWindow = aForm.ownerDocument.defaultView.top;
+      let topIsLocalIP = this._isPrincipalForLocalIPAddress(topWindow.document.nodePrincipal);
+
+      // Only consider the page safe if the top window has a local IP address
+      // and, if this is an iframe, the iframe also has a local IP address.
+      if (isLocalIP && topIsLocalIP) {
+        isSafePage = true;
+      }
+    }
+
     let { isFormSubmitSecure, isFormSubmitHTTP } = this._checkFormSecurity(aForm);
 
     return isSafePage && (isFormSubmitSecure || !isFormSubmitHTTP);
@@ -156,3 +192,6 @@ this.InsecurePasswordUtils = {
     Services.telemetry.getHistogramById("PWMGR_LOGIN_PAGE_SAFETY").add(passwordSafety);
   },
 };
+
+XPCOMUtils.defineLazyPreferenceGetter(this.InsecurePasswordUtils, "_ignoreLocalIPAddress",
+                                      "security.insecure_field_warning.ignore_local_ip_address", true);
