@@ -379,6 +379,13 @@ private:
         void SetFastOpenConnected(nsresult, bool aWillRetry) override;
         void FastOpenNotSupported() override;
         void SetFastOpenStatus(uint8_t tfoStatus) override;
+
+        bool IsFastOpenBackupHalfOpen()
+        {
+            return mConnectionNegotiatingFastOpen;
+        }
+
+        void CancelFastOpenConnection();
     private:
         nsresult SetupConn(nsIAsyncOutputStream *out,
                            bool aFastOpen);

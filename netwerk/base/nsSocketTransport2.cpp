@@ -1723,8 +1723,12 @@ nsSocketTransport::RecoverFromError()
         // TCP Fast Open can be blocked by middle boxes so we will retry
         // without it.
         tryAgain = true;
-        MOZ_ASSERT(mFastOpenCallback);
-        mFastOpenCallback->SetFastOpenConnected(mCondition, true);
+        // If we cancel the connection because backup socket was successfully
+        // connected, mFDFastOpenInProgress will be true but mFastOpenCallback
+        // will be nullptr.
+        if (mFastOpenCallback) {
+            mFastOpenCallback->SetFastOpenConnected(mCondition, true);
+        }
         mFastOpenCallback = nullptr;
     } else {
 
@@ -2473,6 +2477,10 @@ nsSocketTransport::Close(nsresult reason)
 
     mDoNotRetryToConnect = true;
 
+    if (mFastOpenCallback) {
+        mFastOpenCallback->SetFastOpenConnected(reason, false);
+        mFastOpenCallback = nullptr;
+    }
     mInput.CloseWithStatus(reason);
     mOutput.CloseWithStatus(reason);
     return NS_OK;
