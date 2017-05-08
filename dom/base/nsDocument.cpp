@@ -6809,9 +6809,7 @@ nsIDocument::GetLocation() const
   }
 
   nsGlobalWindow* window = nsGlobalWindow::Cast(w);
-  ErrorResult dummy;
-  RefPtr<Location> loc = window->GetLocation(dummy);
-  dummy.SuppressException();
+  RefPtr<Location> loc = window->Location();
   return loc.forget();
 }
 
