@@ -18,7 +18,7 @@
 #include "nsJSUtils.h"
 #include "nsJSPrincipals.h"
 #include "nsNetUtil.h"
-#include "nsScriptLoader.h"
+#include "mozilla/dom/ScriptLoader.h"
 #include "nsFrameLoader.h"
 #include "nsIInputStream.h"
 #include "nsIXULRuntime.h"
@@ -1597,9 +1597,9 @@ nsMessageManagerScriptExecutor::TryCacheLoadAndCompileScript(
       if (NS_FAILED(NS_ReadInputStreamToString(input, buffer, avail))) {
         return;
       }
-      nsScriptLoader::ConvertToUTF16(channel, (uint8_t*)buffer.get(), avail,
-                                     EmptyString(), nullptr,
-                                     dataStringBuf, dataStringLength);
+      ScriptLoader::ConvertToUTF16(channel, (uint8_t*)buffer.get(), avail,
+                                   EmptyString(), nullptr,
+                                   dataStringBuf, dataStringLength);
     }
 
     JS::SourceBufferHolder srcBuf(dataStringBuf, dataStringLength,
