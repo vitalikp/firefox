@@ -15,6 +15,7 @@ EXPORTS += [
     'nsCSSAnonBoxes.h',
     'nsCSSAnonBoxList.h',
     'nsCSSCounterDescList.h',
+    'nsCSSCounterStyleRule.h',
     'nsCSSFontDescList.h',
     'nsCSSFontFaceRule.h',
     'nsCSSKeywordList.h',
