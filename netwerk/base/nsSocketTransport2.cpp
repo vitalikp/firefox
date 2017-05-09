@@ -1721,7 +1721,11 @@ nsSocketTransport::RecoverFromError()
 
     // all connection failures need to be reported to DNS so that the next
     // time we will use a different address if available.
-    if (!mFDFastOpenInProgress &&
+    // Skip conditions that can be cause by TCP Fast Open.
+    if ((!mFDFastOpenInProgress ||
+         ((mCondition != NS_ERROR_CONNECTION_REFUSED) &&
+          (mCondition != NS_ERROR_NET_TIMEOUT) &&
+          (mCondition != NS_ERROR_PROXY_CONNECTION_REFUSED))) &&
         mState == STATE_CONNECTING && mDNSRecord) {
         mDNSRecord->ReportUnusable(SocketPort());
     }
@@ -1872,15 +1876,13 @@ nsSocketTransport::OnSocketConnected()
     // because we need to make sure its value does not change due to failover
     mNetAddrIsSet = true;
 
-    // If a Fast Open is not in progress, mFastOpenCallback must be null.
-    MOZ_ASSERT(mFastOpenCallback || !mFastOpenCallback);
     if (mFDFastOpenInProgress && mFastOpenCallback) {
         // mFastOpenCallback can be null when for example h2 is negotiated on
         // another connection to the same host and all connections are
         // abandoned.
         mFastOpenCallback->SetFastOpenConnected(NS_OK, false);
-        mFastOpenCallback = nullptr;
     }
+    mFastOpenCallback = nullptr;
 
     // assign mFD (must do this within the transport lock), but take care not
     // to trample over mFDref if mFD is already set.
@@ -2322,6 +2324,18 @@ nsSocketTransport::OnSocketDetached(PRFileDesc *fd)
         mOutput.OnSocketReady(mCondition);
     }
 
+    // If FastOpen has been used (mFDFastOpenInProgress==true),
+    // mFastOpenCallback must be nullptr now. We decided to recover from
+    // error like NET_TIMEOUT, CONNECTION_REFUSED or we have called
+    // SetFastOpenConnected(mCondition) in this function a couple of lines
+    // above.
+    // If FastOpen has not been used (mFDFastOpenInProgress==false) it can be
+    // that mFastOpenCallback is no null, this is the case when we recover from
+    // errors like UKNOWN_HOST in which case socket was not been connected yet
+    // and mFastOpenCallback-StartFastOpen was not be called yet (but we can
+    // still call it in the next try).
+    MOZ_ASSERT(!(mFDFastOpenInProgress && mFastOpenCallback));
+
     // break any potential reference cycle between the security info object
     // and ourselves by resetting its notification callbacks object.  see
     // bug 285991 for details.
@@ -2496,10 +2510,11 @@ nsSocketTransport::Close(nsresult reason)
 
     mDoNotRetryToConnect = true;
 
-    if (mFastOpenCallback) {
+    if (mFDFastOpenInProgress && mFastOpenCallback) {
         mFastOpenCallback->SetFastOpenConnected(reason, false);
-        mFastOpenCallback = nullptr;
     }
+    mFastOpenCallback = nullptr;
+
     mInput.CloseWithStatus(reason);
     mOutput.CloseWithStatus(reason);
     return NS_OK;
