@@ -1196,6 +1196,7 @@ XPCJSRuntime::Shutdown(JSContext* cx)
 
 XPCJSRuntime::~XPCJSRuntime()
 {
+    MOZ_COUNT_DTOR_INHERITED(XPCJSRuntime, CycleCollectedJSRuntime);
 }
 
 // If |*anonymizeID| is non-zero and this is a user compartment, the name will
@@ -2920,6 +2921,7 @@ XPCJSRuntime::XPCJSRuntime(JSContext* aCx)
    mObjectHolderRoots(nullptr),
    mAsyncSnowWhiteFreer(new AsyncFreeSnowWhite())
 {
+    MOZ_COUNT_CTOR_INHERITED(XPCJSRuntime, CycleCollectedJSRuntime);
 }
 
 /* static */
