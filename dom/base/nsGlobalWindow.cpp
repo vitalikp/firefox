@@ -10458,8 +10458,11 @@ nsGlobalWindow::GetPrivateRoot()
 }
 
 Location*
-nsGlobalWindow::Location()
+nsGlobalWindow::GetLocation()
 {
+  // This method can be called on the outer window as well.
+  FORWARD_TO_INNER(GetLocation, (), nullptr);
+
   MOZ_RELEASE_ASSERT(IsInnerWindow());
 
   if (!mLocation) {
