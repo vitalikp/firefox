@@ -1874,9 +1874,7 @@ Element::UnbindFromTree(bool aDeep, bool aNullParent)
   if (IsStyledByServo()) {
     ClearServoData();
   } else {
-#ifdef MOZ_STYLO
     MOZ_ASSERT(!HasServoData());
-#endif
   }
 
   // Editable descendant count only counts descendants that
