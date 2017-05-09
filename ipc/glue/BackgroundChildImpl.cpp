@@ -26,6 +26,7 @@
 #include "mozilla/dom/ipc/BlobChild.h"
 #include "mozilla/dom/ipc/IPCBlobInputStreamChild.h"
 #include "mozilla/dom/ipc/MemoryStreamChild.h"
+#include "mozilla/dom/ipc/PendingIPCBlobChild.h"
 #include "mozilla/dom/quota/PQuotaChild.h"
 #include "mozilla/dom/MessagePortChild.h"
 #include "mozilla/ipc/IPCStreamAlloc.h"
@@ -227,6 +228,19 @@ BackgroundChildImpl::AllocPMemoryStreamChild(const uint64_t& aSize)
 
 bool
 BackgroundChildImpl::DeallocPMemoryStreamChild(PMemoryStreamChild* aActor)
+{
+  delete aActor;
+  return true;
+}
+
+PPendingIPCBlobChild*
+BackgroundChildImpl::AllocPPendingIPCBlobChild(const IPCBlob& aBlob)
+{
+  return new mozilla::dom::PendingIPCBlobChild(aBlob);
+}
+
+bool
+BackgroundChildImpl::DeallocPPendingIPCBlobChild(PPendingIPCBlobChild* aActor)
 {
   delete aActor;
   return true;
