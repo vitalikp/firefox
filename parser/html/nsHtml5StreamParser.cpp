@@ -120,7 +120,8 @@ class nsHtml5ExecutorFlusher : public Runnable
     RefPtr<nsHtml5TreeOpExecutor> mExecutor;
   public:
     explicit nsHtml5ExecutorFlusher(nsHtml5TreeOpExecutor* aExecutor)
-      : mExecutor(aExecutor)
+      : Runnable("nsHtml5ExecutorFlusher")
+      , mExecutor(aExecutor)
     {}
     NS_IMETHOD Run() override
     {
@@ -137,7 +138,8 @@ class nsHtml5LoadFlusher : public Runnable
     RefPtr<nsHtml5TreeOpExecutor> mExecutor;
   public:
     explicit nsHtml5LoadFlusher(nsHtml5TreeOpExecutor* aExecutor)
-      : mExecutor(aExecutor)
+      : Runnable("nsHtml5LoadFlusher")
+      , mExecutor(aExecutor)
     {}
     NS_IMETHOD Run() override
     {
@@ -1060,7 +1062,8 @@ class nsHtml5RequestStopper : public Runnable
     nsHtml5RefPtr<nsHtml5StreamParser> mStreamParser;
   public:
     explicit nsHtml5RequestStopper(nsHtml5StreamParser* aStreamParser)
-      : mStreamParser(aStreamParser)
+      : Runnable("nsHtml5RequestStopper")
+      , mStreamParser(aStreamParser)
     {}
     NS_IMETHOD Run() override
     {
@@ -1146,7 +1149,8 @@ class nsHtml5DataAvailable : public Runnable
     nsHtml5DataAvailable(nsHtml5StreamParser* aStreamParser,
                          UniquePtr<uint8_t[]> aData,
                          uint32_t             aLength)
-      : mStreamParser(aStreamParser)
+      : Runnable("nsHtml5DataAvailable")
+      , mStreamParser(aStreamParser)
       , mData(Move(aData))
       , mLength(aLength)
     {}
@@ -1469,7 +1473,8 @@ private:
   nsHtml5RefPtr<nsHtml5StreamParser> mStreamParser;
 public:
   explicit nsHtml5StreamParserContinuation(nsHtml5StreamParser* aStreamParser)
-    : mStreamParser(aStreamParser)
+    : Runnable("nsHtml5StreamParserContinuation")
+    , mStreamParser(aStreamParser)
   {}
   NS_IMETHOD Run() override
   {
@@ -1635,7 +1640,8 @@ private:
   nsHtml5RefPtr<nsHtml5StreamParser> mStreamParser;
 public:
   explicit nsHtml5TimerKungFu(nsHtml5StreamParser* aStreamParser)
-    : mStreamParser(aStreamParser)
+    : Runnable("nsHtml5TimerKungFu")
+    , mStreamParser(aStreamParser)
   {}
   NS_IMETHOD Run() override
   {

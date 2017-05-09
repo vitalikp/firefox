@@ -156,7 +156,7 @@ InActiveDocument(nsIContent *aContent)
 class nsAsyncInstantiateEvent : public Runnable {
 public:
   explicit nsAsyncInstantiateEvent(nsObjectLoadingContent* aContent)
-  : mContent(aContent) {}
+    : Runnable("nsAsyncInstantiateEvent"), mContent(aContent) {}
 
   ~nsAsyncInstantiateEvent() override = default;
 
@@ -265,7 +265,8 @@ CheckPluginStopEvent::Run()
 class nsSimplePluginEvent : public Runnable {
 public:
   nsSimplePluginEvent(nsIContent* aTarget, const nsAString &aEvent)
-    : mTarget(aTarget)
+    : Runnable("nsSimplePluginEvent")
+    , mTarget(aTarget)
     , mDocument(aTarget->GetComposedDoc())
     , mEvent(aEvent)
   {
@@ -330,7 +331,8 @@ public:
                        const nsAString& aPluginName,
                        const nsAString& aPluginFilename,
                        bool submittedCrashReport)
-    : mContent(aContent),
+    : Runnable("nsPluginCrashedEvent"),
+      mContent(aContent),
       mPluginDumpID(aPluginDumpID),
       mBrowserDumpID(aBrowserDumpID),
       mPluginName(aPluginName),

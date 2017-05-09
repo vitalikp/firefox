@@ -1150,6 +1150,7 @@ public:
     // Per bug 1235183 comment 8, we can't spin the event loop from stable
     // state. Defer NS_NewChannel() to a new regular runnable.
     return NS_DispatchToMainThread(NewRunnableMethod<HTMLMediaElement*>(
+      "ChannelLoader::LoadInternal",
       this, &ChannelLoader::LoadInternal, aElement));
   }
 
@@ -1779,7 +1780,8 @@ void HTMLMediaElement::QueueLoadFromSourceTask()
 
   ChangeDelayLoadStatus(true);
   ChangeNetworkState(nsIDOMHTMLMediaElement::NETWORK_LOADING);
-  RefPtr<Runnable> r = NewRunnableMethod(this, &HTMLMediaElement::LoadFromSourceChildren);
+  RefPtr<Runnable> r = NewRunnableMethod("HTMLMediaElement::LoadFromSourceChildren",
+                                         this, &HTMLMediaElement::LoadFromSourceChildren);
   RunInStableState(r);
 }
 
@@ -1790,7 +1792,8 @@ void HTMLMediaElement::QueueSelectResourceTask()
     return;
   mHaveQueuedSelectResource = true;
   ChangeNetworkState(nsIDOMHTMLMediaElement::NETWORK_NO_SOURCE);
-  RefPtr<Runnable> r = NewRunnableMethod(this, &HTMLMediaElement::SelectResourceWrapper);
+  RefPtr<Runnable> r = NewRunnableMethod("HTMLMediaElement::SelectResourceWrapper",
+                                         this, &HTMLMediaElement::SelectResourceWrapper);
   RunInStableState(r);
 }
 
@@ -1926,7 +1929,8 @@ void HTMLMediaElement::SelectResource()
     // set the networkState to NETWORK_EMPTY, and abort these steps; the
     // synchronous section ends.
     nsCOMPtr<nsIRunnable> event =
-        NewRunnableMethod<nsCString>(this, &HTMLMediaElement::NoSupportedMediaSourceError, nsCString());
+      NewRunnableMethod<nsCString>("HTMLMediaElement::NoSupportedMediaSourceError",
+                                   this, &HTMLMediaElement::NoSupportedMediaSourceError, nsCString());
     NS_DispatchToMainThread(event);
   } else {
     // Otherwise, the source elements will be used.
@@ -2081,7 +2085,8 @@ void HTMLMediaElement::NotifyMediaTrackDisabled(MediaTrack* aTrack)
         MOZ_ASSERT(outputTrack);
         if (outputTrack) {
           NS_DispatchToMainThread(
-            NewRunnableMethod(outputTrack, &MediaStreamTrack::OverrideEnded));
+            NewRunnableMethod("MediaStreamTrack::OverrideEnded",
+                              outputTrack, &MediaStreamTrack::OverrideEnded));
         }
 
         ms.mTrackPorts[i].second()->Destroy();
@@ -2127,7 +2132,8 @@ void HTMLMediaElement::DealWithFailedElement(nsIContent* aSourceElement)
 
   DispatchAsyncSourceError(aSourceElement);
   nsCOMPtr<nsIRunnable> event =
-    NewRunnableMethod(this, &HTMLMediaElement::QueueLoadFromSourceTask);
+    NewRunnableMethod("HTMLMediaElement::QueueLoadFromSourceTask",
+                      this, &HTMLMediaElement::QueueLoadFromSourceTask);
   NS_DispatchToMainThread(event);
 }
 
@@ -3258,6 +3264,7 @@ HTMLMediaElement::AddCaptureMediaTrackToOutputStream(MediaTrack* aTrack,
   if (aAsyncAddtrack) {
     NS_DispatchToMainThread(
       NewRunnableMethod<StoreRefPtrPassByPtr<MediaStreamTrack>>(
+        "DOMMediaStream::AddTrackInternal",
         aOutputStream.mStream, &DOMMediaStream::AddTrackInternal, track));
   } else {
     aOutputStream.mStream->AddTrackInternal(track);
