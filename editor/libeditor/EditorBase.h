@@ -17,7 +17,6 @@
 #include "nsGkAtoms.h"
 #include "nsIEditor.h"                  // for nsIEditor, etc.
 #include "nsIObserver.h"                // for NS_DECL_NSIOBSERVER, etc.
-#include "nsIPhonetic.h"                // for NS_DECL_NSIPHONETIC, etc.
 #include "nsIPlaintextEditor.h"         // for nsIPlaintextEditor, etc.
 #include "nsISelectionController.h"     // for nsISelectionController constants
 #include "nsISupportsImpl.h"            // for EditorBase::Release, etc.
@@ -144,7 +143,6 @@ struct IMEState;
  */
 class EditorBase : public nsIEditor
                  , public nsSupportsWeakReference
-                 , public nsIPhonetic
 {
 public:
   typedef dom::Element Element;
@@ -193,9 +191,6 @@ public:
 
   // nsIEditor methods
   NS_DECL_NSIEDITOR
-
-  // nsIPhonetic
-  NS_DECL_NSIPHONETIC
 
 public:
   virtual bool IsModifiableNode(nsINode* aNode);
@@ -990,7 +985,6 @@ protected:
   nsIAtom* mPlaceHolderName;
   // Saved selection state for placeholder transaction batching.
   mozilla::UniquePtr<SelectionState> mSelState;
-  nsString* mPhonetic;
   // IME composition this is not null between compositionstart and
   // compositionend.
   RefPtr<TextComposition> mComposition;
