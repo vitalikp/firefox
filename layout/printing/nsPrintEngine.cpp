@@ -3273,9 +3273,8 @@ nsPrintEngine::EnablePOsForPrinting()
 
   // NOTE: All POs have been "turned off" for printing
   // this is where we decided which POs get printed.
-  printData->mSelectedPO = nullptr;
 
-  if (printData->mPrintSettings == nullptr) {
+  if (!printData->mPrintSettings) {
     return NS_ERROR_FAILURE;
   }
 
@@ -3344,7 +3343,6 @@ nsPrintEngine::EnablePOsForPrinting()
           FindPrintObjectByDOMWin(printData->mPrintObject.get(),
                                   printData->mCurrentFocusWin);
         if (po) {
-          printData->mSelectedPO = po;
           // Makes sure all of its children are be printed "AsIs"
           SetPrintAsIs(po);
 
@@ -3396,7 +3394,6 @@ nsPrintEngine::EnablePOsForPrinting()
         FindPrintObjectByDOMWin(printData->mPrintObject.get(),
                                 printData->mCurrentFocusWin);
       if (po) {
-        printData->mSelectedPO = po;
         // Makes sure all of its children are be printed "AsIs"
         SetPrintAsIs(po);
 
@@ -3442,7 +3439,6 @@ nsPrintEngine::EnablePOsForPrinting()
         FindPrintObjectByDOMWin(printData->mPrintObject.get(),
                                 printData->mCurrentFocusWin);
       if (po) {
-        printData->mSelectedPO = po;
         // NOTE: Calling this sets the "po" and
         // we don't want to do this for documents that have no children,
         // because then the "DoEndPage" gets called and it shouldn't
