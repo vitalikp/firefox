@@ -4370,6 +4370,7 @@ WorkerPrivate::WorkerPrivate(WorkerPrivate* aParent,
   , mDebugger(nullptr)
   , mJSContext(nullptr)
   , mPRThread(nullptr)
+  , mNumHoldersPreventingShutdownStart(0)
   , mDebuggerEventLoopLevel(0)
   , mMainThreadEventTarget(do_GetMainThread())
   , mWorkerControlEventTarget(new WorkerControlEventTarget(this))
@@ -5603,8 +5604,11 @@ WorkerPrivate::AddHolder(WorkerHolder* aHolder, Status aFailStatus)
 
   MOZ_ASSERT(!mHolders.Contains(aHolder), "Already know about this one!");
 
-  if (mHolders.IsEmpty() && !ModifyBusyCountFromWorker(true)) {
-    return false;
+  if (aHolder->GetBehavior() == WorkerHolder::PreventIdleShutdownStart) {
+    if (!mNumHoldersPreventingShutdownStart && !ModifyBusyCountFromWorker(true)) {
+      return false;
+    }
+    mNumHoldersPreventingShutdownStart += 1;
   }
 
   mHolders.AppendElement(aHolder);
@@ -5619,8 +5623,11 @@ WorkerPrivate::RemoveHolder(WorkerHolder* aHolder)
   MOZ_ASSERT(mHolders.Contains(aHolder), "Didn't know about this one!");
   mHolders.RemoveElement(aHolder);
 
-  if (mHolders.IsEmpty() && !ModifyBusyCountFromWorker(false)) {
-    NS_WARNING("Failed to modify busy count!");
+  if (aHolder->GetBehavior() == WorkerHolder::PreventIdleShutdownStart) {
+    mNumHoldersPreventingShutdownStart -= 1;
+    if (!mNumHoldersPreventingShutdownStart && !ModifyBusyCountFromWorker(false)) {
+      NS_WARNING("Failed to modify busy count!");
+    }
   }
 }
 
