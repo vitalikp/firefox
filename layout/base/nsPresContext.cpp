@@ -75,6 +75,7 @@
 #include "gfxTextRun.h"
 #include "nsFontFaceUtils.h"
 #include "nsLayoutStylesheetCache.h"
+#include "mozilla/ServoBindings.h"
 #include "mozilla/StyleSheet.h"
 #include "mozilla/StyleSheetInlines.h"
 #include "mozilla/Telemetry.h"
@@ -2243,10 +2244,31 @@ bool
 nsPresContext::HasAuthorSpecifiedRules(const nsIFrame *aFrame,
                                        uint32_t ruleTypeMask) const
 {
-  return
-    nsRuleNode::HasAuthorSpecifiedRules(aFrame->StyleContext(),
-                                        ruleTypeMask,
-                                        UseDocumentColors());
+  if (mShell->StyleSet()->IsGecko()) {
+    return
+      nsRuleNode::HasAuthorSpecifiedRules(aFrame->StyleContext(),
+                                          ruleTypeMask,
+                                          UseDocumentColors());
+  } else {
+    Element *elem = aFrame->GetContent()->AsElement();
+    if (elem->IsNativeAnonymous()) {
+      elem = nsContentUtils::GetClosestNonNativeAnonymousAncestor(elem);
+    }
+    if (!elem->HasServoData()) {
+      return false;
+    }
+
+    nsIAtom *pseudoTag = aFrame->StyleContext()->GetPseudo();
+    RefPtr<RawServoRuleNode> ruleNode;
+    ruleNode = mShell->StyleSet()->AsServo()->ResolveRuleNode(elem, pseudoTag);
+    if (!ruleNode) {
+      return false;
+    }
+    return Servo_HasAuthorSpecifiedRules(ruleNode,
+                                         elem,
+                                         ruleTypeMask,
+                                         UseDocumentColors());
+  }
 }
 
 gfxUserFontSet*
