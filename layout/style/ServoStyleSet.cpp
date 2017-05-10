@@ -67,8 +67,7 @@ ServoStyleSet::Init(nsPresContext* aPresContext)
       MOZ_ASSERT(entry.sheet->RawSheet(), "We should only append non-null raw sheets.");
       Servo_StyleSet_AppendStyleSheet(mRawSet.get(),
                                       entry.sheet->RawSheet(),
-                                      entry.uniqueID,
-                                      false);
+                                      entry.uniqueID);
     }
   }
 
@@ -172,12 +171,7 @@ nsresult
 ServoStyleSet::EndUpdate()
 {
   MOZ_ASSERT(mBatching > 0);
-  if (--mBatching > 0) {
-    return NS_OK;
-  }
-
-  Servo_StyleSet_FlushStyleSheets(mRawSet.get());
-  mStylistMayNeedRebuild = false;
+  --mBatching;
   return NS_OK;
 }
 
@@ -630,8 +624,7 @@ ServoStyleSet::AppendStyleSheet(SheetType aType,
     // Maintain a mirrored list of sheets on the servo side.
     Servo_StyleSet_AppendStyleSheet(mRawSet.get(),
                                     aSheet->RawSheet(),
-                                    newUniqueID,
-                                    !mBatching);
+                                    newUniqueID);
     mStylistMayNeedRebuild = true;
   }
 
@@ -657,8 +650,7 @@ ServoStyleSet::PrependStyleSheet(SheetType aType,
     // Maintain a mirrored list of sheets on the servo side.
     Servo_StyleSet_PrependStyleSheet(mRawSet.get(),
                                      aSheet->RawSheet(),
-                                     newUniqueID,
-                                     !mBatching);
+                                     newUniqueID);
     mStylistMayNeedRebuild = true;
   }
 
@@ -675,7 +667,7 @@ ServoStyleSet::RemoveStyleSheet(SheetType aType,
   uint32_t uniqueID = RemoveSheetOfType(aType, aSheet);
   if (mRawSet && uniqueID) {
     // Maintain a mirrored list of sheets on the servo side.
-    Servo_StyleSet_RemoveStyleSheet(mRawSet.get(), uniqueID, !mBatching);
+    Servo_StyleSet_RemoveStyleSheet(mRawSet.get(), uniqueID);
     mStylistMayNeedRebuild = true;
   }
 
@@ -696,7 +688,7 @@ ServoStyleSet::ReplaceSheets(SheetType aType,
   // Remove all the existing sheets first.
   if (mRawSet) {
     for (const Entry& entry : mEntries[aType]) {
-      Servo_StyleSet_RemoveStyleSheet(mRawSet.get(), entry.uniqueID, false);
+      Servo_StyleSet_RemoveStyleSheet(mRawSet.get(), entry.uniqueID);
     }
   }
   mEntries[aType].Clear();
@@ -708,14 +700,8 @@ ServoStyleSet::ReplaceSheets(SheetType aType,
       MOZ_ASSERT(sheet->RawSheet(), "Raw sheet should be in place before replacement.");
       Servo_StyleSet_AppendStyleSheet(mRawSet.get(),
                                       sheet->RawSheet(),
-                                      uniqueID,
-                                      false);
+                                      uniqueID);
     }
-  }
-
-  if (!mBatching) {
-    Servo_StyleSet_FlushStyleSheets(mRawSet.get());
-    mStylistMayNeedRebuild = false;
   }
 
   return NS_OK;
@@ -752,8 +738,7 @@ ServoStyleSet::InsertStyleSheetBefore(SheetType aType,
     Servo_StyleSet_InsertStyleSheetBefore(mRawSet.get(),
                                           aNewSheet->RawSheet(),
                                           newUniqueID,
-                                          beforeUniqueID,
-                                          !mBatching);
+                                          beforeUniqueID);
     mStylistMayNeedRebuild = true;
   }
 
@@ -808,8 +793,7 @@ ServoStyleSet::AddDocStyleSheet(ServoStyleSheet* aSheet,
       Servo_StyleSet_InsertStyleSheetBefore(mRawSet.get(),
                                             aSheet->RawSheet(),
                                             newUniqueID,
-                                            beforeUniqueID,
-                                            !mBatching);
+                                            beforeUniqueID);
       mStylistMayNeedRebuild = true;
     }
   } else {
@@ -822,8 +806,7 @@ ServoStyleSet::AddDocStyleSheet(ServoStyleSheet* aSheet,
       // Maintain a mirrored list of sheets on the servo side.
       Servo_StyleSet_AppendStyleSheet(mRawSet.get(),
                                       aSheet->RawSheet(),
-                                      newUniqueID,
-                                      !mBatching);
+                                      newUniqueID);
       mStylistMayNeedRebuild = true;
     }
   }
@@ -963,10 +946,6 @@ ServoStyleSet::NoteStyleSheetsChanged()
 {
   mStylistMayNeedRebuild = true;
   Servo_StyleSet_NoteStyleSheetsChanged(mRawSet.get(), mAuthorStyleDisabled);
-  if (!mBatching) {
-    Servo_StyleSet_FlushStyleSheets(mRawSet.get());
-    mStylistMayNeedRebuild = false;
-  }
 }
 
 #ifdef DEBUG
