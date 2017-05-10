@@ -1588,7 +1588,7 @@ toolbar .toolbarbutton-1 > .toolbarbutton-menubutton-button {
 }
 
 .urlbar-input-box {
-  margin-inline-start: 0;
+  margin: 0;
   padding: 3px 0 2px;
 }
 
