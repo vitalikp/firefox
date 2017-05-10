@@ -176,9 +176,9 @@ nsXBLProtoImpl::InstallImplementation(nsXBLPrototypeBinding* aPrototypeBinding,
   return NS_OK;
 }
 
-nsresult 
+nsresult
 nsXBLProtoImpl::InitTargetObjects(nsXBLPrototypeBinding* aBinding,
-                                  nsIContent* aBoundElement, 
+                                  nsIContent* aBoundElement,
                                   JS::MutableHandle<JSObject*> aTargetClassObject,
                                   bool* aTargetIsNew)
 {
@@ -237,8 +237,8 @@ nsXBLProtoImpl::InitTargetObjects(nsXBLPrototypeBinding* aBinding,
 nsresult
 nsXBLProtoImpl::CompilePrototypeMembers(nsXBLPrototypeBinding* aBinding)
 {
-  // We want to pre-compile our implementation's members against a "prototype context". Then when we actually 
-  // bind the prototype to a real xbl instance, we'll clone the pre-compiled JS into the real instance's 
+  // We want to pre-compile our implementation's members against a "prototype context". Then when we actually
+  // bind the prototype to a real xbl instance, we'll clone the pre-compiled JS into the real instance's
   // context.
   AutoJSAPI jsapi;
   if (NS_WARN_IF(!jsapi.Init(xpc::CompilationScope())))
@@ -512,8 +512,8 @@ nsXBLProtoImpl::Write(nsIObjectOutputStream* aStream,
 }
 
 void
-NS_NewXBLProtoImpl(nsXBLPrototypeBinding* aBinding, 
-                   const char16_t* aClassName, 
+NS_NewXBLProtoImpl(nsXBLPrototypeBinding* aBinding,
+                   const char16_t* aClassName,
                    nsXBLProtoImpl** aResult)
 {
   nsXBLProtoImpl* impl = new nsXBLProtoImpl();
