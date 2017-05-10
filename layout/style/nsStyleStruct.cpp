@@ -3417,8 +3417,6 @@ nsStyleDisplay::CalcDifference(const nsStyleDisplay& aNewData) const
       || mDisplay != aNewData.mDisplay
       || mContain != aNewData.mContain
       || (mFloat == StyleFloat::None) != (aNewData.mFloat == StyleFloat::None)
-      || mOverflowX != aNewData.mOverflowX
-      || mOverflowY != aNewData.mOverflowY
       || mScrollBehavior != aNewData.mScrollBehavior
       || mScrollSnapTypeX != aNewData.mScrollSnapTypeX
       || mScrollSnapTypeY != aNewData.mScrollSnapTypeY
@@ -3428,6 +3426,11 @@ nsStyleDisplay::CalcDifference(const nsStyleDisplay& aNewData) const
       || mTopLayer != aNewData.mTopLayer
       || mResize != aNewData.mResize) {
     hint |= nsChangeHint_ReconstructFrame;
+  }
+
+  if (mOverflowX != aNewData.mOverflowX
+      || mOverflowY != aNewData.mOverflowY) {
+    hint |= nsChangeHint_CSSOverflowChange;
   }
 
   /* Note: When mScrollBehavior, mScrollSnapTypeX, mScrollSnapTypeY,
