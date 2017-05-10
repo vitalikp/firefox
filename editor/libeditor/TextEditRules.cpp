@@ -535,7 +535,7 @@ TextEditRules::HandleNewLines(nsString& aString,
       aString.ReplaceChar(CRLF, ' ');
       break;
     case nsIPlaintextEditor::eNewlinesStrip:
-      aString.StripChars(CRLF);
+      aString.StripCRLF();
       break;
     case nsIPlaintextEditor::eNewlinesPasteToFirst:
     default: {

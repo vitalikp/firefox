@@ -9,6 +9,7 @@
 #include "nsFrameMessageManager.h"
 
 #include "ContentChild.h"
+#include "nsASCIIMask.h"
 #include "nsContentUtils.h"
 #include "nsDOMClassInfoID.h"
 #include "nsError.h"
@@ -584,7 +585,7 @@ AllowMessage(size_t aDataLength, const nsAString& aMessageName)
   }
 
   NS_ConvertUTF16toUTF8 messageName(aMessageName);
-  messageName.StripChars("0123456789");
+  messageName.StripTaggedASCII(ASCIIMask::Mask0to9());
 
   Telemetry::Accumulate(Telemetry::REJECTED_MESSAGE_MANAGER_MESSAGE,
                         messageName);
