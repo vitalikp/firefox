@@ -1657,6 +1657,18 @@ public:
 
   virtual bool IsScriptEnabled() = 0;
 
+  bool IsTopLevelContentDocument() const { return mIsTopLevelContentDocument; }
+  void SetIsTopLevelContentDocument(bool aIsTopLevelContentDocument)
+  {
+    mIsTopLevelContentDocument = aIsTopLevelContentDocument;
+  }
+
+  bool IsContentDocument() const { return mIsContentDocument; }
+  void SetIsContentDocument(bool aIsContentDocument)
+  {
+    mIsContentDocument = aIsContentDocument;
+  }
+
   /**
    * Create an element with the specified name, prefix and namespace ID.
    * Returns null if element name parsing failed.
@@ -3190,6 +3202,10 @@ protected:
   // This should generally be updated only via
   // UpdateFrameRequestCallbackSchedulingState.
   bool mFrameRequestCallbacksScheduled : 1;
+
+  bool mIsTopLevelContentDocument : 1;
+
+  bool mIsContentDocument : 1;
 
   // Compatibility mode
   nsCompatibility mCompatMode;
