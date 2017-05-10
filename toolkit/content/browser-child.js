@@ -128,6 +128,9 @@ var WebProgressListener = {
     this._send("Content:StateChange", json, objects);
   },
 
+  // Note: Because the nsBrowserStatusFilter timeout runnable is
+  // SystemGroup-labeled, this method should not modify content DOM or
+  // run content JS.
   onProgressChange: function onProgressChange(aWebProgress, aRequest, aCurSelf, aMaxSelf, aCurTotal, aMaxTotal) {
     let json = this._setupJSON(aWebProgress, aRequest);
     let objects = this._setupObjects(aWebProgress, aRequest);
@@ -169,6 +172,9 @@ var WebProgressListener = {
     this._send("Content:LocationChange", json, objects);
   },
 
+  // Note: Because the nsBrowserStatusFilter timeout runnable is
+  // SystemGroup-labeled, this method should not modify content DOM or
+  // run content JS.
   onStatusChange: function onStatusChange(aWebProgress, aRequest, aStatus, aMessage) {
     let json = this._setupJSON(aWebProgress, aRequest);
     let objects = this._setupObjects(aWebProgress, aRequest);
