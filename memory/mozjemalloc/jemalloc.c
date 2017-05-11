@@ -433,8 +433,9 @@ void *_mmap(void *addr, size_t length, int prot, int flags,
 #endif
 #endif
 
-#ifdef MOZ_MEMORY_DARWIN
 static const bool isthreaded = true;
+#ifdef MOZ_MEMORY_DARWIN
+static pthread_key_t tlsIndex;
 #endif
 
 #if defined(MOZ_MEMORY_SOLARIS) && defined(MAP_ALIGN) && !defined(JEMALLOC_NEVER_USES_MAP_ALIGN)
@@ -471,11 +472,6 @@ static const bool isthreaded = true;
 #  define SIZEOF_PTR_2POW       2
 #endif
 #define PIC
-#ifndef MOZ_MEMORY_DARWIN
-static const bool isthreaded = true;
-#else
-#  define NO_TLS
-#endif
 #if 0
 #ifdef __i386__
 #  define QUANTUM_2POW_MIN	4
@@ -3044,6 +3040,8 @@ jemalloc_thread_local_arena_impl(bool enabled)
 	}
 #ifdef MOZ_MEMORY_WINDOWS
 	TlsSetValue(tlsIndex, arena);
+#elif defined(MOZ_MEMORY_DARWIN)
+	pthread_setspecific(tlsIndex, arena);
 #else
 	arenas_map = arena;
 #endif
@@ -3073,6 +3071,8 @@ choose_arena(void)
 
 #  ifdef MOZ_MEMORY_WINDOWS
 	ret = (arena_t*)TlsGetValue(tlsIndex);
+#  elif defined(MOZ_MEMORY_DARWIN)
+	ret = (arena_t*)pthread_getspecific(tlsIndex);
 #  else
 	ret = arenas_map;
 #  endif
@@ -3169,6 +3169,8 @@ choose_arena_hard(void)
 
 #ifdef MOZ_MEMORY_WINDOWS
 	TlsSetValue(tlsIndex, ret);
+#elif defined(MOZ_MEMORY_DARWIN)
+	pthread_setspecific(tlsIndex, ret);
 #else
 	arenas_map = ret;
 #endif
@@ -4131,6 +4133,8 @@ arena_lock_balance_hard(arena_t *arena)
 	if (arenas[ind] != NULL) {
 #ifdef MOZ_MEMORY_WINDOWS
 		TlsSetValue(tlsIndex, arenas[ind]);
+#elif defined(MOZ_MEMORY_DARWIN)
+		pthread_setspecific(tlsIndex, arenas[ind]);
 #else
 		arenas_map = arenas[ind];
 #endif
@@ -4139,12 +4143,16 @@ arena_lock_balance_hard(arena_t *arena)
 		if (arenas[ind] != NULL) {
 #ifdef MOZ_MEMORY_WINDOWS
 			TlsSetValue(tlsIndex, arenas[ind]);
+#elif defined(MOZ_MEMORY_DARWIN)
+			pthread_setspecific(tlsIndex, arenas[ind]);
 #else
 			arenas_map = arenas[ind];
 #endif
 		} else {
 #ifdef MOZ_MEMORY_WINDOWS
 			TlsSetValue(tlsIndex, arenas_extend(ind));
+#elif defined(MOZ_MEMORY_DARWIN)
+			pthread_setspecific(tlsIndex, arenas_extend(ind));
 #else
 			arenas_map = arenas_extend(ind);
 #endif
@@ -5517,7 +5525,7 @@ malloc_init(void)
 }
 #endif
 
-#if defined(MOZ_MEMORY_DARWIN) && !defined(MOZ_REPLACE_MALLOC)
+#if defined(MOZ_MEMORY_DARWIN)
 extern void register_zone(void);
 #endif
 
@@ -5553,6 +5561,8 @@ malloc_init_hard(void)
 #ifdef MOZ_MEMORY_WINDOWS
 	/* get a thread local storage index */
 	tlsIndex = TlsAlloc();
+#elif defined(MOZ_MEMORY_DARWIN)
+	pthread_key_create(&tlsIndex, NULL);
 #endif
 
 	/* Get page size and number of CPUs */
@@ -6004,6 +6014,8 @@ MALLOC_OUT:
 	 */
 #ifdef MOZ_MEMORY_WINDOWS
 	TlsSetValue(tlsIndex, arenas[0]);
+#elif defined(MOZ_MEMORY_DARWIN)
+	pthread_setspecific(tlsIndex, arenas[0]);
 #else
 	arenas_map = arenas[0];
 #endif
@@ -6038,7 +6050,7 @@ MALLOC_OUT:
 	}
 #endif
 
-#if defined(MOZ_MEMORY_DARWIN) && !defined(MOZ_REPLACE_MALLOC)
+#if defined(MOZ_MEMORY_DARWIN)
 	register_zone();
 #endif
 
