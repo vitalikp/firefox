@@ -92,7 +92,7 @@ FINAL_LIBRARY = 'xul'
 # registering its allocator, causing memory management failures (bug 938730).
 # However, this is not an issue if both the jemalloc allocator and the default
 # allocator are the same thing.
-if CONFIG['MOZ_MEMORY'] and CONFIG['MOZ_SYSTEM_JEMALLOC']:
+if CONFIG['MOZ_MEMORY']:
     if CONFIG['OS_TARGET'] != 'Android':
         DEFINES['MOZ_STORAGE_MEMORY'] = True
 
