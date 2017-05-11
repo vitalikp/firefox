@@ -60,10 +60,6 @@
 #include "nsIXULRuntime.h"
 #include "nsJSPrincipals.h"
 
-#if defined(MOZ_JEMALLOC4)
-#include "mozmemory.h"
-#endif
-
 #ifdef XP_WIN
 #include <windows.h>
 #endif
