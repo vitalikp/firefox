@@ -30,7 +30,6 @@ media/libyuv/
 media/mtransport/
 media/openmax_dl/
 media/webrtc/trunk/
-memory/jemalloc/src/
 mfbt/decimal/
 mfbt/double-conversion/
 mfbt/lz4
