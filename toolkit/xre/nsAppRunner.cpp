@@ -108,8 +108,11 @@
 #endif
 #endif
 
-#if (defined(XP_WIN) || defined(XP_MACOSX)) && defined(MOZ_CONTENT_SANDBOX)
+#if defined(MOZ_CONTENT_SANDBOX)
+#include "mozilla/SandboxSettings.h"
+#if (defined(XP_WIN) || defined(XP_MACOSX))
 #include "nsIUUIDGenerator.h"
+#endif
 #endif
 
 #ifdef ACCESSIBILITY

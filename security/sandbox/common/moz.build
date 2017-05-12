@@ -4,9 +4,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-DIRS += ['common']
+with Files('**'):
+    BUG_COMPONENT = ('Core', 'Security: Process Sandboxing')
 
-if CONFIG['OS_ARCH'] == 'Linux':
-    DIRS += ['linux']
-elif CONFIG['OS_ARCH'] == 'Darwin':
-    DIRS += ['mac']
+UNIFIED_SOURCES += ['SandboxSettings.cpp']
+
+XPIDL_SOURCES += [
+    'mozISandboxSettings.idl',
+]
+
+XPIDL_MODULE = 'sandbox'
+
+FINAL_LIBRARY = 'xul'
+
+EXPORTS.mozilla += ['SandboxSettings.h']
