@@ -526,12 +526,9 @@ KeyframeEffectReadOnly::EnsureBaseStyles(
              "a valid nsPresContext");
 
   RefPtr<ServoComputedValues> baseComputedValues;
-  nsIAtom* pseudoAtom = mTarget->mPseudoType < CSSPseudoElementType::Count
-                      ? nsCSSPseudoElements::GetPseudoAtom(mTarget->mPseudoType)
-                      : nullptr;
   for (const AnimationProperty& property : aProperties) {
     EnsureBaseStyle(property,
-                    pseudoAtom,
+                    mTarget->mPseudoType,
                     presContext,
                     baseComputedValues);
   }
@@ -540,7 +537,7 @@ KeyframeEffectReadOnly::EnsureBaseStyles(
 void
 KeyframeEffectReadOnly::EnsureBaseStyle(
   const AnimationProperty& aProperty,
-  nsIAtom* aPseudoAtom,
+  CSSPseudoElementType aPseudoType,
   nsPresContext* aPresContext,
   RefPtr<ServoComputedValues>& aBaseComputedValues)
 {
@@ -560,7 +557,7 @@ KeyframeEffectReadOnly::EnsureBaseStyle(
   if (!aBaseComputedValues) {
     aBaseComputedValues =
       aPresContext->StyleSet()->AsServo()->
-        GetBaseComputedValuesForElement(mTarget->mElement, aPseudoAtom);
+        GetBaseComputedValuesForElement(mTarget->mElement, aPseudoType);
   }
   RefPtr<RawServoAnimationValue> baseValue =
     Servo_ComputedValues_ExtractAnimationValue(aBaseComputedValues,

@@ -198,7 +198,8 @@ ServoStyleSet::GetContext(nsIContent* aContent,
   RefPtr<ServoComputedValues> computedValues;
   if (aMayCompute == LazyComputeBehavior::Allow) {
     PreTraverseSync();
-    computedValues = ResolveStyleLazily(element, nullptr);
+    computedValues =
+      ResolveStyleLazily(element, CSSPseudoElementType::NotPseudo);
   } else {
     computedValues = ResolveServoStyle(element);
   }
@@ -487,7 +488,6 @@ ServoStyleSet::ResolvePseudoElementStyle(Element* aOriginatingElement,
   // should just inherit from aOriginatingElement's primary style, which Servo
   // already knows.
   MOZ_ASSERT(aType < CSSPseudoElementType::Count);
-  nsIAtom* pseudoTag = nsCSSPseudoElements::GetPseudoAtom(aType);
 
   RefPtr<ServoComputedValues> computedValues;
   if (aPseudoElement) {
@@ -497,7 +497,7 @@ ServoStyleSet::ResolvePseudoElementStyle(Element* aOriginatingElement,
   } else {
     computedValues =
       Servo_ResolvePseudoStyle(aOriginatingElement,
-                               pseudoTag,
+                               aType,
                                /* is_probe = */ false,
                                mRawSet.get()).Consume();
   }
@@ -506,6 +506,8 @@ ServoStyleSet::ResolvePseudoElementStyle(Element* aOriginatingElement,
 
   bool isBeforeOrAfter = aType == CSSPseudoElementType::before ||
                          aType == CSSPseudoElementType::after;
+
+  nsIAtom* pseudoTag = nsCSSPseudoElements::GetPseudoAtom(aType);
   return GetContext(computedValues.forget(), aParentContext, pseudoTag, aType,
                     isBeforeOrAfter ? aOriginatingElement : nullptr);
 }
@@ -516,7 +518,7 @@ ServoStyleSet::ResolveTransientStyle(Element* aElement,
                                      CSSPseudoElementType aPseudoType)
 {
   RefPtr<ServoComputedValues> computedValues =
-    ResolveTransientServoStyle(aElement, aPseudoTag);
+    ResolveTransientServoStyle(aElement, aPseudoType);
 
   return GetContext(computedValues.forget(),
                     nullptr,
@@ -526,10 +528,10 @@ ServoStyleSet::ResolveTransientStyle(Element* aElement,
 
 already_AddRefed<ServoComputedValues>
 ServoStyleSet::ResolveTransientServoStyle(Element* aElement,
-                                          nsIAtom* aPseudoTag)
+                                          CSSPseudoElementType aPseudoType)
 {
   PreTraverseSync();
-  return ResolveStyleLazily(aElement, aPseudoTag);
+  return ResolveStyleLazily(aElement, aPseudoType);
 }
 
 already_AddRefed<nsStyleContext>
@@ -816,10 +818,9 @@ ServoStyleSet::ProbePseudoElementStyle(Element* aOriginatingElement,
   // should just inherit from aOriginatingElement's primary style, which Servo
   // already knows.
   MOZ_ASSERT(aType < CSSPseudoElementType::Count);
-  nsIAtom* pseudoTag = nsCSSPseudoElements::GetPseudoAtom(aType);
 
   RefPtr<ServoComputedValues> computedValues =
-    Servo_ResolvePseudoStyle(aOriginatingElement, pseudoTag,
+    Servo_ResolvePseudoStyle(aOriginatingElement, aType,
                              /* is_probe = */ true, mRawSet.get()).Consume();
   if (!computedValues) {
     return nullptr;
@@ -828,11 +829,11 @@ ServoStyleSet::ProbePseudoElementStyle(Element* aOriginatingElement,
   // For :before and :after pseudo-elements, having display: none or no
   // 'content' property is equivalent to not having the pseudo-element
   // at all.
-  bool isBeforeOrAfter = pseudoTag == nsCSSPseudoElements::before ||
-                         pseudoTag == nsCSSPseudoElements::after;
+  bool isBeforeOrAfter = aType == CSSPseudoElementType::before ||
+                         aType == CSSPseudoElementType::after;
   if (isBeforeOrAfter) {
-    const nsStyleDisplay *display = Servo_GetStyleDisplay(computedValues);
-    const nsStyleContent *content = Servo_GetStyleContent(computedValues);
+    const nsStyleDisplay* display = Servo_GetStyleDisplay(computedValues);
+    const nsStyleContent* content = Servo_GetStyleContent(computedValues);
     // XXXldb What is contentCount for |content: ""|?
     if (display->mDisplay == StyleDisplay::None ||
         content->ContentCount() == 0) {
@@ -840,6 +841,7 @@ ServoStyleSet::ProbePseudoElementStyle(Element* aOriginatingElement,
     }
   }
 
+  nsIAtom* pseudoTag = nsCSSPseudoElements::GetPseudoAtom(aType);
   return GetContext(computedValues.forget(), aParentContext, pseudoTag, aType,
                     isBeforeOrAfter ? aOriginatingElement : nullptr);
 }
@@ -986,12 +988,12 @@ ServoStyleSet::GetComputedKeyframeValuesFor(
 
 already_AddRefed<ServoComputedValues>
 ServoStyleSet::GetBaseComputedValuesForElement(Element* aElement,
-                                               nsIAtom* aPseudoTag)
+                                               CSSPseudoElementType aPseudoType)
 {
   return Servo_StyleSet_GetBaseComputedValuesForElement(mRawSet.get(),
                                                         aElement,
                                                         &Snapshots(),
-                                                        aPseudoTag).Consume();
+                                                        aPseudoType).Consume();
 }
 
 already_AddRefed<RawServoAnimationValue>
@@ -1029,9 +1031,10 @@ ServoStyleSet::ClearNonInheritingStyleContexts()
 }
 
 already_AddRefed<ServoComputedValues>
-ServoStyleSet::ResolveStyleLazily(Element* aElement, nsIAtom* aPseudoTag)
+ServoStyleSet::ResolveStyleLazily(Element* aElement,
+                                  CSSPseudoElementType aPseudoType)
 {
-  mPresContext->EffectCompositor()->PreTraverse(aElement, aPseudoTag);
+  mPresContext->EffectCompositor()->PreTraverse(aElement, aPseudoType);
   MOZ_ASSERT(!mStylistMayNeedRebuild);
 
   AutoSetInServoTraversal guard(this);
@@ -1048,29 +1051,29 @@ ServoStyleSet::ResolveStyleLazily(Element* aElement, nsIAtom* aPseudoTag)
    * style of the pseudo-element if it exists instead.
    */
   Element* elementForStyleResolution = aElement;
-  nsIAtom* pseudoTagForStyleResolution = aPseudoTag;
-  if (aPseudoTag == nsCSSPseudoElements::before) {
+  CSSPseudoElementType pseudoTypeForStyleResolution = aPseudoType;
+  if (aPseudoType == CSSPseudoElementType::before) {
     if (Element* pseudo = nsLayoutUtils::GetBeforePseudo(aElement)) {
       elementForStyleResolution = pseudo;
-      pseudoTagForStyleResolution = nullptr;
+      pseudoTypeForStyleResolution = CSSPseudoElementType::NotPseudo;
     }
-  } else if (aPseudoTag == nsCSSPseudoElements::after) {
+  } else if (aPseudoType == CSSPseudoElementType::after) {
     if (Element* pseudo = nsLayoutUtils::GetAfterPseudo(aElement)) {
       elementForStyleResolution = pseudo;
-      pseudoTagForStyleResolution = nullptr;
+      pseudoTypeForStyleResolution = CSSPseudoElementType::NotPseudo;
     }
   }
 
   RefPtr<ServoComputedValues> computedValues =
     Servo_ResolveStyleLazily(elementForStyleResolution,
-                             pseudoTagForStyleResolution,
+                             pseudoTypeForStyleResolution,
                              &Snapshots(),
                              mRawSet.get()).Consume();
 
-  if (mPresContext->EffectCompositor()->PreTraverse(aElement, aPseudoTag)) {
+  if (mPresContext->EffectCompositor()->PreTraverse(aElement, aPseudoType)) {
     computedValues =
       Servo_ResolveStyleLazily(elementForStyleResolution,
-                               pseudoTagForStyleResolution,
+                               pseudoTypeForStyleResolution,
                                &Snapshots(),
                                mRawSet.get()).Consume();
   }
