@@ -1763,7 +1763,8 @@ Loader::ParseSheet(const nsAString& aInput,
       aLoadData->mSheet->AsServo()->ParseSheet(this,
                                                aInput, sheetURI, baseURI,
                                                aLoadData->mSheet->Principal(),
-                                               aLoadData->mLineNumber);
+                                               aLoadData->mLineNumber,
+                                               GetCompatibilityMode());
   }
 
   mParsingDatas.RemoveElementAt(mParsingDatas.Length() - 1);
