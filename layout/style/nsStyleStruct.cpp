@@ -600,9 +600,7 @@ nsStyleList::nsStyleList(const nsPresContext* aContext)
 {
   MOZ_COUNT_CTOR(nsStyleList);
   if (aContext->StyleSet()->IsServo()) {
-    // FIXME: bug 1328319.
-    mCounterStyle =
-      CounterStyleManager::GetBuiltinStyle(NS_STYLE_LIST_STYLE_DISC);
+    mListStyleType = nsGkAtoms::disc;
   } else {
     mCounterStyle = aContext->
       CounterStyleManager()->BuildCounterStyle(nsGkAtoms::disc);
@@ -618,6 +616,7 @@ nsStyleList::~nsStyleList()
 nsStyleList::nsStyleList(const nsStyleList& aSource)
   : mListStylePosition(aSource.mListStylePosition)
   , mListStyleImage(aSource.mListStyleImage)
+  , mListStyleType(aSource.mListStyleType)
   , mCounterStyle(aSource.mCounterStyle)
   , mQuotes(aSource.mQuotes)
   , mImageRegion(aSource.mImageRegion)
@@ -633,6 +632,12 @@ nsStyleList::FinishStyle(nsPresContext* aPresContext)
 
   if (mListStyleImage && !mListStyleImage->IsResolved()) {
     mListStyleImage->Resolve(aPresContext);
+  }
+  if (mListStyleType) {
+    MOZ_ASSERT(!mCounterStyle);
+    mCounterStyle = aPresContext->
+      CounterStyleManager()->BuildCounterStyle(mListStyleType);
+    mListStyleType = nullptr;
   }
 }
 
@@ -701,7 +706,8 @@ nsStyleList::CalcDifference(const nsStyleList& aNewData) const
     return nsChangeHint_ReconstructFrame;
   }
   if (DefinitelyEqualImages(mListStyleImage, aNewData.mListStyleImage) &&
-      mCounterStyle == aNewData.mCounterStyle) {
+      (mCounterStyle == aNewData.mCounterStyle ||
+       mListStyleType != aNewData.mListStyleType)) {
     if (mImageRegion.IsEqualInterior(aNewData.mImageRegion)) {
       return nsChangeHint(0);
     }
