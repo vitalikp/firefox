@@ -1198,12 +1198,7 @@ ParentImpl::ShutdownBackgroundThread()
                                             kShutdownTimerDelayMS,
                                             nsITimer::TYPE_ONE_SHOT));
 
-      nsIThread* currentThread = NS_GetCurrentThread();
-      MOZ_ASSERT(currentThread);
-
-      while (sLiveActorCount) {
-        NS_ProcessNextEvent(currentThread);
-      }
+      SpinEventLoopUntil([&]() { return !sLiveActorCount; });
 
       MOZ_ASSERT(liveActors->IsEmpty());
 
@@ -1677,13 +1672,8 @@ ChildImpl::SynchronouslyCreateForCurrentThread()
     return nullptr;
   }
 
-  nsIThread* currentThread = NS_GetCurrentThread();
-  MOZ_ASSERT(currentThread);
-
-  while (!done) {
-    if (NS_WARN_IF(!NS_ProcessNextEvent(currentThread, true /* aMayWait */))) {
-      return nullptr;
-    }
+  if (NS_WARN_IF(!SpinEventLoopUntil([&]() { return done; }))) {
+    return nullptr;
   }
 
   return GetForCurrentThread();
