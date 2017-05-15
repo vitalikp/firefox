@@ -189,6 +189,12 @@ protected:
 
   virtual bool
   DeallocPWebAuthnTransactionChild(PWebAuthnTransactionChild* aActor) override;
+
+  virtual PHttpBackgroundChannelChild*
+  AllocPHttpBackgroundChannelChild(const uint64_t& aChannelId) override;
+
+  virtual bool
+  DeallocPHttpBackgroundChannelChild(PHttpBackgroundChannelChild* aActor) override;
 };
 
 class BackgroundChildImpl::ThreadLocal final

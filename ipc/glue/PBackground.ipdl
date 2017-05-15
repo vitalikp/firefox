@@ -12,6 +12,7 @@ include protocol PCacheStorage;
 include protocol PCacheStreamControl;
 include protocol PFileDescriptorSet;
 include protocol PFileSystemRequest;
+include protocol PHttpBackgroundChannel;
 include protocol PIPCBlobInputStream;
 include protocol PPendingIPCBlob;
 include protocol PMessagePort;
@@ -57,6 +58,7 @@ sync protocol PBackground
   manages PCacheStreamControl;
   manages PFileDescriptorSet;
   manages PFileSystemRequest;
+  manages PHttpBackgroundChannel;
   manages PIPCBlobInputStream;
   manages PPendingIPCBlob;
   manages PMessagePort;
@@ -106,6 +108,8 @@ parent:
   async PQuota();
 
   async PFileSystemRequest(FileSystemParams params);
+
+  async PHttpBackgroundChannel(uint64_t channelId);
 
   async PWebAuthnTransaction();
 
