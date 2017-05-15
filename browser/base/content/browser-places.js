@@ -1619,7 +1619,7 @@ var BookmarkingUI = {
   },
 
   _hasBookmarksObserver: false,
-  _itemGuids: [],
+  _itemGuids: new Set(),
   uninit: function BUI_uninit() {
     this._updateBookmarkPageMenuItem(true);
     CustomizableUI.removeListener(this);
@@ -1644,14 +1644,14 @@ var BookmarkingUI = {
 
   updateStarState: function BUI_updateStarState() {
     this._uri = gBrowser.currentURI;
-    this._itemGuids = [];
-    let aItemGuids = [];
+    this._itemGuids.clear();
+    let guids = new Set();
 
     // those objects are use to check if we are in the current iteration before
     // returning any result.
     let pendingUpdate = this._pendingUpdate = {};
 
-    PlacesUtils.bookmarks.fetch({url: this._uri}, b => aItemGuids.push(b.guid))
+    PlacesUtils.bookmarks.fetch({url: this._uri}, b => guids.add(b.guid))
       .catch(Components.utils.reportError)
       .then(() => {
          if (pendingUpdate != this._pendingUpdate) {
@@ -1661,9 +1661,11 @@ var BookmarkingUI = {
          // It's possible that onItemAdded gets called before the async statement
          // calls back.  For such an edge case, retain all unique entries from the
          // array.
-         this._itemGuids = this._itemGuids.filter(
-           guid => !aItemGuids.includes(guid)
-         ).concat(aItemGuids);
+         if (this._itemGuids.size > 0) {
+           this._itemGuids = new Set(...this._itemGuids, ...guids);
+         } else {
+           this._itemGuids = guids;
+         }
 
          this._updateStar();
 
@@ -1690,7 +1692,7 @@ var BookmarkingUI = {
       return;
     }
 
-    if (this._itemGuids.length > 0) {
+    if (this._itemGuids.size > 0) {
       this.broadcaster.setAttribute("starred", "true");
       this.broadcaster.setAttribute("buttontooltiptext", this._starredTooltip);
       if (this.button.getAttribute("overflowedItem") == "true") {
@@ -1710,7 +1712,7 @@ var BookmarkingUI = {
    * to the default (Bookmark This Page) for OS X.
    */
   _updateBookmarkPageMenuItem: function BUI__updateBookmarkPageMenuItem(forceReset) {
-    let isStarred = !forceReset && this._itemGuids.length > 0;
+    let isStarred = !forceReset && this._itemGuids.size > 0;
     let label = isStarred ? "editlabel" : "bookmarklabel";
     if (this.broadcaster) {
       this.broadcaster.setAttribute("label", this.broadcaster.getAttribute(label));
@@ -1806,7 +1808,7 @@ var BookmarkingUI = {
     }
 
     // Handle special case when the button is in the panel.
-    let isBookmarked = this._itemGuids.length > 0;
+    let isBookmarked = this._itemGuids.size > 0;
 
     if (this._currentAreaType == CustomizableUI.TYPE_MENU_PANEL) {
       this._showSubview();
@@ -1888,10 +1890,10 @@ var BookmarkingUI = {
   onItemAdded(aItemId, aParentId, aIndex, aItemType, aURI, aTitle, aDateAdded, aGuid) {
     if (aURI && aURI.equals(this._uri)) {
       // If a new bookmark has been added to the tracked uri, register it.
-      if (!this._itemGuids.includes(aGuid)) {
-        this._itemGuids.push(aGuid);
+      if (!this._itemGuids.has(aGuid)) {
+        this._itemGuids.add(aGuid);
         // Only need to update the UI if it wasn't marked as starred before:
-        if (this._itemGuids.length == 1) {
+        if (this._itemGuids.size == 1) {
           this._updateStar();
         }
       }
@@ -1899,12 +1901,11 @@ var BookmarkingUI = {
   },
 
   onItemRemoved(aItemId, aParentId, aIndex, aItemType, aURI, aGuid) {
-    let index = this._itemGuids.indexOf(aGuid);
     // If one of the tracked bookmarks has been removed, unregister it.
-    if (index != -1) {
-      this._itemGuids.splice(index, 1);
+    if (this._itemGuids.has(aGuid)) {
+      this._itemGuids.delete(aGuid);
       // Only need to update the UI if the page is no longer starred
-      if (this._itemGuids.length == 0) {
+      if (this._itemGuids.size == 0) {
         this._updateStar();
       }
     }
@@ -1913,20 +1914,19 @@ var BookmarkingUI = {
   onItemChanged(aItemId, aProperty, aIsAnnotationProperty, aNewValue, aLastModified,
                 aItemType, aParentId, aGuid) {
     if (aProperty == "uri") {
-      let index = this._itemGuids.indexOf(aGuid);
       // If the changed bookmark was tracked, check if it is now pointing to
       // a different uri and unregister it.
-      if (index != -1 && aNewValue != this._uri.spec) {
-        this._itemGuids.splice(index, 1);
+      if (this._itemGuids.has(aGuid) && aNewValue != this._uri.spec) {
+        this._itemGuids.delete(aGuid);
         // Only need to update the UI if the page is no longer starred
-        if (this._itemGuids.length == 0) {
+        if (this._itemGuids.size == 0) {
           this._updateStar();
         }
-      } else if (index == -1 && aNewValue == this._uri.spec) {
+      } else if (!this._itemGuids.has(aGuid) && aNewValue == this._uri.spec) {
         // If another bookmark is now pointing to the tracked uri, register it.
-        this._itemGuids.push(aGuid);
+        this._itemGuids.add(aGuid);
         // Only need to update the UI if it wasn't marked as starred before:
-        if (this._itemGuids.length == 1) {
+        if (this._itemGuids.size == 1) {
           this._updateStar();
         }
       }
@@ -1961,8 +1961,8 @@ var BookmarkingUI = {
       this._starButtonLabel = currentLabel;
 
     if (currentLabel == this._starButtonLabel) {
-      let desiredLabel = this._itemGuids.length > 0 ? this._starButtonOverflowedStarredLabel
-                                                    : this._starButtonOverflowedLabel;
+      let desiredLabel = this._itemGuids.size > 0 ? this._starButtonOverflowedStarredLabel
+                                                  : this._starButtonOverflowedLabel;
       aNode.setAttribute("label", desiredLabel);
     }
   },
