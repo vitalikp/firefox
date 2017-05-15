@@ -6,6 +6,7 @@
 
 #include "IPCMessageUtils.h"
 
+#include "nsASCIIMask.h"
 #include "nsStandardURL.h"
 #include "nsCRT.h"
 #include "nsEscape.h"
@@ -27,6 +28,18 @@
 #include "prprf.h"
 #include "nsReadableUtils.h"
 
+
+//
+// setenv MOZ_LOG nsStandardURL:5
+//
+static LazyLogModule gStandardURLLog("nsStandardURL");
+
+// The Chromium code defines its own LOG macro which we don't want
+#undef LOG
+#define LOG(args)     MOZ_LOG(gStandardURLLog, LogLevel::Debug, args)
+#undef LOG_ENABLED
+#define LOG_ENABLED() MOZ_LOG_TEST(gStandardURLLog, LogLevel::Debug)
+
 using mozilla::dom::EncodingUtils;
 using namespace mozilla::ipc;
 
@@ -40,16 +53,24 @@ nsIIDNService *nsStandardURL::gIDN = nullptr;
 bool nsStandardURL::gInitialized = false;
 char nsStandardURL::gHostLimitDigits[] = { '/', '\\', '?', '#', 0 };
 
+// Invalid host characters
+// We still allow % because it is in the ID of addons.
+// Any percent encoded ASCII characters that are not allowed in the
+// hostname are not percent decoded, and will be parsed just fine.
 //
-// setenv MOZ_LOG nsStandardURL:5
+// Note that the array below will be initialized at compile time,
+// so we do not need to "optimize" TestForInvalidHostCharacters.
 //
-static LazyLogModule gStandardURLLog("nsStandardURL");
-
-// The Chromium code defines its own LOG macro which we don't want
-#undef LOG
-#define LOG(args)     MOZ_LOG(gStandardURLLog, LogLevel::Debug, args)
-#undef LOG_ENABLED
-#define LOG_ENABLED() MOZ_LOG_TEST(gStandardURLLog, LogLevel::Debug)
+constexpr bool TestForInvalidHostCharacters(char c)
+{
+    // Testing for these:
+    // CONTROL_CHARACTERS " #/:?@[\\]*<>|\"";
+    return (c > 0 && c < 32) || // The control characters are [1, 31]
+           c == ' ' || c == '#' || c == '/' || c == ':' || c == '?' ||
+           c == '@' || c == '[' || c == '\\' || c == ']' || c == '*' ||
+           c == '<' || c == '>' || c == '|' || c == '"';
+}
+constexpr ASCIIMaskArray sInvalidHostChars = CreateASCIIMask(TestForInvalidHostCharacters);
 
 //----------------------------------------------------------------------------
 
@@ -590,14 +611,13 @@ nsStandardURL::ValidIPv6orHostname(const char *host, uint32_t length)
         return false;
     }
 
-    const char *end = host + length;
-    if (end != net_FindCharInSet(host, end, CONTROL_CHARACTERS " #/:?@[\\]*<>|\"")) {
-        // We still allow % because it is in the ID of addons.
-        // Any percent encoded ASCII characters that are not allowed in the
-        // hostname are not percent decoded, and will be parsed just fine.
-        return false;
+    const char* end = host + length;
+    const char* iter = host;
+    for (; iter != end && *iter; ++iter) {
+        if (ASCIIMask::IsMasked(sInvalidHostChars, *iter)) {
+            return false;
+        }
     }
-
     return true;
 }
 
