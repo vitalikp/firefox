@@ -363,7 +363,7 @@ public:
   static void Shutdown();
   JSObject* GetGlobal()
   {
-    return mGlobal->GetJSObject();
+    return mGlobal;
   }
 
   void MarkScopesForCC();
@@ -383,7 +383,7 @@ protected:
   bool InitChildGlobalInternal(nsISupports* aScope, const nsACString& aID);
   void Trace(const TraceCallbacks& aCallbacks, void* aClosure);
   void Unlink();
-  nsCOMPtr<nsIXPConnectJSObjectHolder> mGlobal;
+  JS::TenuredHeap<JSObject*> mGlobal;
   nsCOMPtr<nsIPrincipal> mPrincipal;
   AutoTArray<JS::Heap<JSObject*>, 2> mAnonymousGlobalScopes;
 
