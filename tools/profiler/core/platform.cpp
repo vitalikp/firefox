@@ -1668,10 +1668,6 @@ PrintUsageThenExit(int aExitCode)
 ////////////////////////////////////////////////////////////////////////
 // BEGIN SamplerThread
 
-// This suspends the calling thread for the given number of microseconds.
-// Best effort timing.
-static void SleepMicro(int aMicroseconds);
-
 #if defined(GP_OS_linux) || defined(GP_OS_android)
 struct SigHandlerCoordinator;
 #endif
@@ -1699,6 +1695,10 @@ public:
   void Stop(PSLockRef aLock);
 
 private:
+  // This suspends the calling thread for the given number of microseconds.
+  // Best effort timing.
+  void SleepMicro(int aMicroseconds);
+
   // The activity generation, for detecting when the sampler thread must stop.
   const uint32_t mActivityGeneration;
 
