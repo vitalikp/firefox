@@ -1092,26 +1092,33 @@ public:
 };
 
 template <class Derived>
-FetchBody<Derived>::FetchBody()
+FetchBody<Derived>::FetchBody(nsIGlobalObject* aOwner)
   : mWorkerHolder(nullptr)
+  , mOwner(aOwner)
   , mBodyUsed(false)
 #ifdef DEBUG
   , mReadDone(false)
 #endif
 {
+  MOZ_ASSERT(aOwner);
+
   if (!NS_IsMainThread()) {
     mWorkerPrivate = GetCurrentThreadWorkerPrivate();
     MOZ_ASSERT(mWorkerPrivate);
+    mMainThreadEventTarget = mWorkerPrivate->MainThreadEventTarget();
   } else {
     mWorkerPrivate = nullptr;
+    mMainThreadEventTarget = aOwner->EventTargetFor(TaskCategory::Other);
   }
+
+  MOZ_ASSERT(mMainThreadEventTarget);
 }
 
 template
-FetchBody<Request>::FetchBody();
+FetchBody<Request>::FetchBody(nsIGlobalObject* aOwner);
 
 template
-FetchBody<Response>::FetchBody();
+FetchBody<Response>::FetchBody(nsIGlobalObject* aOwner);
 
 template <class Derived>
 FetchBody<Derived>::~FetchBody()
@@ -1208,11 +1215,7 @@ FetchBody<Derived>::BeginConsumeBody()
 
   nsCOMPtr<nsIRunnable> r = new BeginConsumeBodyRunnable<Derived>(this);
   nsresult rv = NS_OK;
-  if (mWorkerPrivate) {
-    rv = mWorkerPrivate->DispatchToMainThread(r.forget());
-  } else {
-    rv = NS_DispatchToMainThread(r.forget());
-  }
+  mMainThreadEventTarget->Dispatch(r.forget(), NS_DISPATCH_NORMAL);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     ReleaseObject();
     return rv;
@@ -1243,7 +1246,8 @@ FetchBody<Derived>::BeginConsumeBodyMainThread()
 
   nsCOMPtr<nsIInputStreamPump> pump;
   rv = NS_NewInputStreamPump(getter_AddRefs(pump),
-                             stream);
+                             stream, -1, -1, 0, 0, false,
+                             mMainThreadEventTarget);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return;
   }
@@ -1266,7 +1270,8 @@ FetchBody<Derived>::BeginConsumeBodyMainThread()
       type = MutableBlobStorage::eCouldBeInTemporaryFile;
     }
 
-    listener = new MutableBlobStreamListener(type, nullptr, mMimeType, p);
+    listener = new MutableBlobStreamListener(type, nullptr, mMimeType, p,
+                                             mMainThreadEventTarget);
   } else {
     nsCOMPtr<nsIStreamLoader> loader;
     rv = NS_NewStreamLoader(getter_AddRefs(loader), p);
@@ -1284,7 +1289,8 @@ FetchBody<Derived>::BeginConsumeBodyMainThread()
 
   // Now that everything succeeded, we can assign the pump to a pointer that
   // stays alive for the lifetime of the FetchBody.
-  mConsumeBodyPump = new nsMainThreadPtrHolder<nsIInputStreamPump>(pump);
+  mConsumeBodyPump =
+    new nsMainThreadPtrHolder<nsIInputStreamPump>(pump, mMainThreadEventTarget);
   // It is ok for retargeting to fail and reads to happen on the main thread.
   autoReject.DontFail();
 
