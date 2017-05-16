@@ -475,6 +475,19 @@ BackgroundClipTextEnabledPrefChangeCallback(const char* aPrefName,
 
 template<typename TestType>
 static bool
+HasMatchingAnimations(EffectSet* aEffects, TestType&& aTest)
+{
+  for (KeyframeEffectReadOnly* effect : *aEffects) {
+    if (aTest(*effect)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+template<typename TestType>
+static bool
 HasMatchingAnimations(const nsIFrame* aFrame, TestType&& aTest)
 {
   EffectSet* effects = EffectSet::GetEffectSet(aFrame);
@@ -482,13 +495,7 @@ HasMatchingAnimations(const nsIFrame* aFrame, TestType&& aTest)
     return false;
   }
 
-  for (KeyframeEffectReadOnly* effect : *effects) {
-    if (aTest(*effect)) {
-      return true;
-    }
-  }
-
-  return false;
+  return HasMatchingAnimations(effects, aTest);
 }
 
 bool
@@ -504,11 +511,33 @@ nsLayoutUtils::HasCurrentTransitions(const nsIFrame* aFrame)
   );
 }
 
+static bool
+MayHaveAnimationOfProperty(EffectSet* effects, nsCSSPropertyID aProperty)
+{
+  MOZ_ASSERT(effects);
+
+  if (aProperty == eCSSProperty_transform &&
+      !effects->MayHaveTransformAnimation()) {
+    return false;
+  }
+  if (aProperty == eCSSProperty_opacity &&
+      !effects->MayHaveOpacityAnimation()) {
+    return false;
+  }
+
+  return true;
+}
+
 bool
 nsLayoutUtils::HasAnimationOfProperty(const nsIFrame* aFrame,
                                       nsCSSPropertyID aProperty)
 {
-  return HasMatchingAnimations(aFrame,
+  EffectSet* effects = EffectSet::GetEffectSet(aFrame);
+  if (!effects || !MayHaveAnimationOfProperty(effects, aProperty)) {
+    return false;
+  }
+
+  return HasMatchingAnimations(effects,
     [&aProperty](KeyframeEffectReadOnly& aEffect)
     {
       return (aEffect.IsInEffect() || aEffect.IsCurrent()) &&
@@ -521,7 +550,13 @@ bool
 nsLayoutUtils::HasEffectiveAnimation(const nsIFrame* aFrame,
                                      nsCSSPropertyID aProperty)
 {
-  return HasMatchingAnimations(aFrame,
+  EffectSet* effects = EffectSet::GetEffectSet(aFrame);
+  if (!effects || !MayHaveAnimationOfProperty(effects, aProperty)) {
+    return false;
+  }
+
+
+  return HasMatchingAnimations(effects,
     [&aProperty](KeyframeEffectReadOnly& aEffect)
     {
       return (aEffect.IsInEffect() || aEffect.IsCurrent()) &&
