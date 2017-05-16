@@ -281,11 +281,14 @@ public:
         return NS_OK;
       }
 
-      nsCOMPtr<nsIPrincipal> principal = proxy->GetWorkerPrivate()->GetPrincipal();
+      WorkerPrivate* workerPrivate = proxy->GetWorkerPrivate();
+      MOZ_ASSERT(workerPrivate);
+      nsCOMPtr<nsIPrincipal> principal = workerPrivate->GetPrincipal();
       MOZ_ASSERT(principal);
-      nsCOMPtr<nsILoadGroup> loadGroup = proxy->GetWorkerPrivate()->GetLoadGroup();
+      nsCOMPtr<nsILoadGroup> loadGroup = workerPrivate->GetLoadGroup();
       MOZ_ASSERT(loadGroup);
-      fetch = new FetchDriver(mRequest, principal, loadGroup);
+      fetch = new FetchDriver(mRequest, principal, loadGroup,
+                              workerPrivate->MainThreadEventTarget());
       nsAutoCString spec;
       if (proxy->GetWorkerPrivate()->GetBaseURI()) {
         proxy->GetWorkerPrivate()->GetBaseURI()->GetAsciiSpec(spec);
@@ -309,6 +312,8 @@ FetchRequest(nsIGlobalObject* aGlobal, const RequestOrUSVString& aInput,
   if (NS_WARN_IF(aRv.Failed())) {
     return nullptr;
   }
+
+  MOZ_ASSERT(aGlobal);
 
   // Double check that we have chrome privileges if the Request's content
   // policy type has been overridden.
@@ -375,7 +380,8 @@ FetchRequest(nsIGlobalObject* aGlobal, const RequestOrUSVString& aInput,
 
     RefPtr<MainThreadFetchResolver> resolver =
       new MainThreadFetchResolver(p, observer);
-    RefPtr<FetchDriver> fetch = new FetchDriver(r, principal, loadGroup);
+      new FetchDriver(r, principal, loadGroup,
+                      aGlobal->EventTargetFor(TaskCategory::Other));
     fetch->SetDocument(doc);
     resolver->SetLoadGroup(loadGroup);
     aRv = fetch->Fetch(signal, resolver);
