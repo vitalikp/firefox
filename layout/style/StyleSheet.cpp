@@ -454,6 +454,14 @@ StyleSheet::EnsureUniqueInner()
   }
 }
 
+void
+StyleSheet::AppendAllChildSheets(nsTArray<StyleSheet*>& aArray)
+{
+  for (StyleSheet* child = GetFirstChild(); child; child = child->mNext) {
+    aArray.AppendElement(child);
+  }
+}
+
 // WebIDL CSSStyleSheet API
 
 #define FORWARD_INTERNAL(method_, args_) \
