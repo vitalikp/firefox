@@ -5,11 +5,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 EXPORTS.mozilla.dom += [
+    'SessionStorage.h',
     'Storage.h',
     'StorageIPC.h',
 ]
 
 UNIFIED_SOURCES += [
+    'SessionStorage.cpp',
     'Storage.cpp',
     'StorageCache.cpp',
     'StorageDBThread.cpp',
