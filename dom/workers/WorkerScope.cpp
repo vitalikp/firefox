@@ -483,7 +483,7 @@ WorkerGlobalScope::CreateImageBitmap(JSContext* aCx,
 }
 
 DedicatedWorkerGlobalScope::DedicatedWorkerGlobalScope(WorkerPrivate* aWorkerPrivate,
-                                                       const nsCString& aName)
+                                                       const nsString& aName)
   : WorkerGlobalScope(aWorkerPrivate)
   , mName(aName)
 {
@@ -542,7 +542,7 @@ DedicatedWorkerGlobalScope::Close(JSContext* aCx)
 }
 
 SharedWorkerGlobalScope::SharedWorkerGlobalScope(WorkerPrivate* aWorkerPrivate,
-                                                 const nsCString& aName)
+                                                 const nsString& aName)
 : WorkerGlobalScope(aWorkerPrivate), mName(aName)
 {
 }

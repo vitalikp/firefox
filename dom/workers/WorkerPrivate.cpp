@@ -2725,16 +2725,17 @@ WorkerPrivateParent<Derived>::WorkerPrivateParent(
                                            const nsAString& aScriptURL,
                                            bool aIsChromeWorker,
                                            WorkerType aWorkerType,
-                                           const nsACString& aWorkerName,
+                                           const nsAString& aWorkerName,
+                                           const nsACString& aServiceWorkerScope,
                                            WorkerLoadInfo& aLoadInfo)
 : mMutex("WorkerPrivateParent Mutex"),
   mCondVar(mMutex, "WorkerPrivateParent CondVar"),
   mParent(aParent), mScriptURL(aScriptURL),
-  mWorkerName(aWorkerName), mLoadingWorkerScript(false),
-  mBusyCount(0), mParentWindowPausedDepth(0), mParentStatus(Pending),
-  mParentFrozen(false), mIsChromeWorker(aIsChromeWorker),
-  mMainThreadObjectsForgotten(false), mIsSecureContext(false),
-  mWorkerType(aWorkerType),
+  mWorkerName(aWorkerName), mServiceWorkerScope(aServiceWorkerScope),
+  mLoadingWorkerScript(false), mBusyCount(0), mParentWindowPausedDepth(0),
+  mParentStatus(Pending), mParentFrozen(false),
+  mIsChromeWorker(aIsChromeWorker), mMainThreadObjectsForgotten(false),
+  mIsSecureContext(false), mWorkerType(aWorkerType),
   mCreationTimeStamp(TimeStamp::Now()),
   mCreationTimeHighRes((double)PR_Now() / PR_USEC_PER_MSEC)
 {
@@ -4421,11 +4422,13 @@ WorkerDebugger::ReportErrorToDebuggerOnMainThread(const nsAString& aFilename,
 WorkerPrivate::WorkerPrivate(WorkerPrivate* aParent,
                              const nsAString& aScriptURL,
                              bool aIsChromeWorker, WorkerType aWorkerType,
-                             const nsACString& aWorkerName,
+                             const nsAString& aWorkerName,
+                             const nsACString& aServiceWorkerScope,
                              WorkerLoadInfo& aLoadInfo)
   : WorkerPrivateParent<WorkerPrivate>(aParent, aScriptURL,
                                        aIsChromeWorker, aWorkerType,
-                                       aWorkerName, aLoadInfo)
+                                       aWorkerName, aServiceWorkerScope,
+                                       aLoadInfo)
   , mDebuggerRegistered(false)
   , mDebugger(nullptr)
   , mJSContext(nullptr)
@@ -4507,8 +4510,7 @@ WorkerPrivate::Constructor(const GlobalObject& aGlobal,
 {
   return WorkerPrivate::Constructor(aGlobal, aScriptURL, false,
                                     WorkerTypeDedicated,
-                                    NS_ConvertUTF16toUTF8(aOptions.mName),
-                                    nullptr, aRv);
+                                    aOptions.mName, nullptr, aRv);
 }
 
 // static
@@ -4536,7 +4538,7 @@ ChromeWorkerPrivate::Constructor(const GlobalObject& aGlobal,
                                  ErrorResult& aRv)
 {
   return WorkerPrivate::Constructor(aGlobal, aScriptURL, true,
-                                    WorkerTypeDedicated, EmptyCString(),
+                                    WorkerTypeDedicated, EmptyString(),
                                     nullptr, aRv)
                                     .downcast<ChromeWorkerPrivate>();
 }
@@ -4561,12 +4563,12 @@ already_AddRefed<WorkerPrivate>
 WorkerPrivate::Constructor(const GlobalObject& aGlobal,
                            const nsAString& aScriptURL,
                            bool aIsChromeWorker, WorkerType aWorkerType,
-                           const nsACString& aWorkerName,
+                           const nsAString& aWorkerName,
                            WorkerLoadInfo* aLoadInfo, ErrorResult& aRv)
 {
   JSContext* cx = aGlobal.Context();
   return Constructor(cx, aScriptURL, aIsChromeWorker, aWorkerType,
-                     aWorkerName, aLoadInfo, aRv);
+                     aWorkerName, NullCString(), aLoadInfo, aRv);
 }
 
 // static
@@ -4574,7 +4576,8 @@ already_AddRefed<WorkerPrivate>
 WorkerPrivate::Constructor(JSContext* aCx,
                            const nsAString& aScriptURL,
                            bool aIsChromeWorker, WorkerType aWorkerType,
-                           const nsACString& aWorkerName,
+                           const nsAString& aWorkerName,
+                           const nsACString& aServiceWorkerScope,
                            WorkerLoadInfo* aLoadInfo, ErrorResult& aRv)
 {
   // If this is a sub-worker, we need to keep the parent worker alive until this
@@ -4632,7 +4635,8 @@ WorkerPrivate::Constructor(JSContext* aCx,
 
   RefPtr<WorkerPrivate> worker =
     new WorkerPrivate(parent, aScriptURL, aIsChromeWorker,
-                      aWorkerType, aWorkerName, *aLoadInfo);
+                      aWorkerType, aWorkerName, aServiceWorkerScope,
+                      *aLoadInfo);
 
   // Gecko contexts always have an explicitly-set default locale (set by
   // XPJSRuntime::Initialize for the main thread, set by
