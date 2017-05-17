@@ -161,7 +161,7 @@ function bindToolboxHandlers() {
 }
 
 function setupThreadListeners(panel) {
-  updateBadgeText(panel._selectors().getPause(panel._getState()));
+  updateBadgeText(panel._selectors.getPause(panel._getState()));
 
   let onPaused = updateBadgeText.bind(null, true);
   let onResumed = updateBadgeText.bind(null, false);
