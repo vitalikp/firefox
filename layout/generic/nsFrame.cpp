@@ -1392,7 +1392,7 @@ nsIFrame::HasPerspective(const nsStyleDisplay* aStyleDisplay) const
   if (!IsTransformed(disp)) {
     return false;
   }
-  nsIFrame* containingBlock = GetContainingBlock(SKIP_SCROLLED_FRAME);
+  nsIFrame* containingBlock = GetContainingBlock(SKIP_SCROLLED_FRAME, disp);
   if (!containingBlock) {
     return false;
   }
@@ -2784,7 +2784,8 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
       resultList.AppendNewToTop(
         new (aBuilder) nsDisplayPerspective(
           aBuilder, this,
-          GetContainingBlock()->GetContent()->GetPrimaryFrame(), &resultList));
+          GetContainingBlock(0, disp)->GetContent()->GetPrimaryFrame(),
+          &resultList));
     }
   }
 
@@ -6890,7 +6891,8 @@ GetNearestBlockContainer(nsIFrame* frame)
 }
 
 nsIFrame*
-nsIFrame::GetContainingBlock(uint32_t aFlags) const
+nsIFrame::GetContainingBlock(uint32_t aFlags,
+                             const nsStyleDisplay* aStyleDisplay) const
 {
   if (!GetParent()) {
     return nullptr;
@@ -6899,7 +6901,7 @@ nsIFrame::GetContainingBlock(uint32_t aFlags) const
   // still be in-flow.  So we have to check to make sure that the frame
   // is really out-of-flow too.
   nsIFrame* f;
-  if (IsAbsolutelyPositioned() &&
+  if (IsAbsolutelyPositioned(aStyleDisplay) &&
       (GetStateBits() & NS_FRAME_OUT_OF_FLOW)) {
     f = GetParent(); // the parent is always the containing block
   } else {

@@ -490,7 +490,7 @@ void ReflowInput::InitCBReflowInput()
     return;
   }
 
-  if (mParentReflowInput->mFrame == mFrame->GetContainingBlock()) {
+  if (mParentReflowInput->mFrame == mFrame->GetContainingBlock(0, mStyleDisplay)) {
     // Inner table frames need to use the containing block of the outer
     // table frame.
     if (mFrame->IsTableFrame()) {
@@ -522,7 +522,7 @@ IsQuirkContainingBlockHeight(const ReflowInput* rs, LayoutFrameType aFrameType)
     // Note: This next condition could change due to a style change,
     // but that would cause a style reflow anyway, which means we're ok.
     if (NS_AUTOHEIGHT == rs->ComputedHeight()) {
-      if (!rs->mFrame->IsAbsolutelyPositioned()) {
+      if (!rs->mFrame->IsAbsolutelyPositioned(rs->mStyleDisplay)) {
         return false;
       }
     }
@@ -1971,7 +1971,7 @@ CalcQuirkContainingBlockHeight(const ReflowInput* aCBReflowInput)
       // not auto-height, use this as the percentage base.  2) If auto-height,
       // keep looking, unless the frame is positioned.
       if (NS_AUTOHEIGHT == rs->ComputedHeight()) {
-        if (rs->mFrame->IsAbsolutelyPositioned()) {
+        if (rs->mFrame->IsAbsolutelyPositioned(rs->mStyleDisplay)) {
           break;
         } else {
           continue;
@@ -2052,7 +2052,7 @@ ReflowInput::ComputeContainingBlockRectangle(
   // mFrameType for abs-pos tables is NS_CSS_FRAME_TYPE_BLOCK, so we need to
   // special case them here.
   if (NS_FRAME_GET_TYPE(mFrameType) == NS_CSS_FRAME_TYPE_ABSOLUTE ||
-      (mFrame->IsTableFrame() && mFrame->IsAbsolutelyPositioned() &&
+      (mFrame->IsTableFrame() && mFrame->IsAbsolutelyPositioned(mStyleDisplay) &&
        (mFrame->GetParent()->GetStateBits() & NS_FRAME_OUT_OF_FLOW))) {
     // See if the ancestor is block-level or inline-level
     if (NS_FRAME_GET_TYPE(aContainingBlockRI->mFrameType) == NS_CSS_FRAME_TYPE_INLINE) {
