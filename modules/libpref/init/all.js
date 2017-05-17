@@ -5381,3 +5381,6 @@ pref("dom.moduleScripts.enabled", false);
 #ifdef FUZZING
 pref("fuzzing.enabled", false);
 #endif
+
+// Enable lowercased response header name
+pref("dom.xhr.lowercase_header.enabled", true);
