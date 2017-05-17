@@ -1343,9 +1343,9 @@ nsIFrame::IsSVGTransformed(gfx::Matrix *aOwnTransforms,
 }
 
 bool
-nsIFrame::Extend3DContext() const
+nsIFrame::Extend3DContext(const nsStyleDisplay* aStyleDisplay) const
 {
-  const nsStyleDisplay* disp = StyleDisplay();
+  const nsStyleDisplay* disp = StyleDisplayWithOptionalParam(aStyleDisplay);
   if (disp->mTransformStyle != NS_STYLE_TRANSFORM_STYLE_PRESERVE_3D ||
       !IsFrameOfType(nsIFrame::eSupportsCSSTransforms)) {
     return false;
@@ -1372,7 +1372,8 @@ nsIFrame::Combines3DTransformWithAncestors(const nsStyleDisplay* aStyleDisplay) 
   if (!GetParent() || !GetParent()->Extend3DContext()) {
     return false;
   }
-  return IsTransformed(aStyleDisplay) || BackfaceIsHidden(aStyleDisplay);
+  const nsStyleDisplay* disp = StyleDisplayWithOptionalParam(aStyleDisplay);
+  return IsTransformed(disp) || BackfaceIsHidden(disp);
 }
 
 bool
@@ -1385,9 +1386,10 @@ nsIFrame::In3DContextAndBackfaceIsHidden() const
 }
 
 bool
-nsIFrame::HasPerspective() const
+nsIFrame::HasPerspective(const nsStyleDisplay* aStyleDisplay) const
 {
-  if (!IsTransformed()) {
+  const nsStyleDisplay* disp = StyleDisplayWithOptionalParam(aStyleDisplay);
+  if (!IsTransformed(disp)) {
     return false;
   }
   nsIFrame* containingBlock = GetContainingBlock(SKIP_SCROLLED_FRAME);
@@ -1398,9 +1400,10 @@ nsIFrame::HasPerspective() const
 }
 
 bool
-nsIFrame::ChildrenHavePerspective() const
+nsIFrame::ChildrenHavePerspective(const nsStyleDisplay* aStyleDisplay) const
 {
-  return StyleDisplay()->HasPerspectiveStyle();
+  const nsStyleDisplay* disp = StyleDisplayWithOptionalParam(aStyleDisplay);
+  return disp->HasPerspectiveStyle();
 }
 
 nsRect
@@ -2383,9 +2386,9 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
     aBuilder->AddToWillChangeBudget(this, GetSize());
   }
 
-  bool extend3DContext = Extend3DContext();
-  if (extend3DContext && !Combines3DTransformWithAncestors()) {
-    Maybe<nsDisplayListBuilder::AutoPreserves3DContext> autoPreserves3DContext;
+  bool extend3DContext = Extend3DContext(disp);
+  Maybe<nsDisplayListBuilder::AutoPreserves3DContext> autoPreserves3DContext;
+  if (extend3DContext && !Combines3DTransformWithAncestors(disp)) {
     // Start a new preserves3d context to keep informations on
     // nsDisplayListBuilder.
     autoPreserves3DContext.emplace(aBuilder);
@@ -2421,7 +2424,7 @@ nsIFrame::BuildDisplayListForStackingContext(nsDisplayListBuilder* aBuilder,
 
       // If we're in preserve-3d then grab the dirty rect that was given to the root
       // and transform using the combined transform.
-      if (Combines3DTransformWithAncestors()) {
+      if (Combines3DTransformWithAncestors(disp)) {
         dirtyRect = aBuilder->GetPreserves3DDirtyRect(this);
       }
 
@@ -5764,7 +5767,7 @@ nsFrame::FinishReflowWithAbsoluteFrames(nsPresContext*           aPresContext,
 {
   ReflowAbsoluteFrames(aPresContext, aDesiredSize, aReflowInput, aStatus, aConstrainBSize);
 
-  FinishAndStoreOverflow(&aDesiredSize);
+  FinishAndStoreOverflow(&aDesiredSize, aReflowInput.mStyleDisplay);
 }
 
 void
@@ -8825,12 +8828,13 @@ ComputeAndIncludeOutlineArea(nsIFrame* aFrame, nsOverflowAreas& aOverflowAreas,
 
 bool
 nsIFrame::FinishAndStoreOverflow(nsOverflowAreas& aOverflowAreas,
-                                 nsSize aNewSize, nsSize* aOldSize)
+                                 nsSize aNewSize, nsSize* aOldSize,
+                                 const nsStyleDisplay* aStyleDisplay)
 {
   MOZ_ASSERT(FrameMaintainsOverflow(),
              "Don't call - overflow rects not maintained on these SVG frames");
 
-  const nsStyleDisplay* disp = StyleDisplay();
+  const nsStyleDisplay* disp = StyleDisplayWithOptionalParam(aStyleDisplay);
   bool hasTransform = IsTransformed(disp);
 
   nsRect bounds(nsPoint(0, 0), aNewSize);
@@ -8942,7 +8946,7 @@ nsIFrame::FinishAndStoreOverflow(nsOverflowAreas& aOverflowAreas,
    */
   SetSize(aNewSize);
 
-  if (ChildrenHavePerspective() && sizeChanged) {
+  if (ChildrenHavePerspective(disp) && sizeChanged) {
     nsRect newBounds(nsPoint(0, 0), aNewSize);
     RecomputePerspectiveChildrenOverflow(this);
   }
@@ -8951,7 +8955,7 @@ nsIFrame::FinishAndStoreOverflow(nsOverflowAreas& aOverflowAreas,
     Properties().Set(nsIFrame::PreTransformOverflowAreasProperty(),
                      new nsOverflowAreas(aOverflowAreas));
 
-    if (Combines3DTransformWithAncestors()) {
+    if (Combines3DTransformWithAncestors(disp)) {
       /* If we're a preserve-3d leaf frame, then our pre-transform overflow should be correct. Our
        * post-transform overflow is empty though, because we only contribute to the overflow area
        * of the preserve-3d root frame.
@@ -8969,7 +8973,7 @@ nsIFrame::FinishAndStoreOverflow(nsOverflowAreas& aOverflowAreas,
        * the participants. This won't have happened yet as the code above set their overflow
        * area to empty. Manually collect these overflow areas now.
        */
-      if (Extend3DContext()) {
+      if (Extend3DContext(disp)) {
         ComputePreserve3DChildrenOverflow(aOverflowAreas);
       }
     }
@@ -9047,7 +9051,8 @@ nsIFrame::ComputePreserve3DChildrenOverflow(nsOverflowAreas& aOverflowAreas)
       // If this child participates in the 3d context, then take the pre-transform
       // region (which contains all descendants that aren't participating in the 3d context)
       // and transform it into the 3d context root coordinate space.
-      if (child->Combines3DTransformWithAncestors()) {
+      const nsStyleDisplay* childDisp = child->StyleDisplay();
+      if (child->Combines3DTransformWithAncestors(childDisp)) {
         nsOverflowAreas childOverflow = child->GetOverflowAreasRelativeToSelf();
 
         NS_FOR_FRAME_OVERFLOW_TYPES(otype) {
@@ -9059,7 +9064,7 @@ nsIFrame::ComputePreserve3DChildrenOverflow(nsOverflowAreas& aOverflowAreas)
 
         // If this child also extends the 3d context, then recurse into it
         // looking for more participants.
-        if (child->Extend3DContext()) {
+        if (child->Extend3DContext(childDisp)) {
           child->ComputePreserve3DChildrenOverflow(aOverflowAreas);
         }
       }

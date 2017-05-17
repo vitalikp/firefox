@@ -1445,7 +1445,7 @@ nsBlockFrame::Reflow(nsPresContext*           aPresContext,
     }
   }
 
-  FinishAndStoreOverflow(&aMetrics);
+  FinishAndStoreOverflow(&aMetrics, reflowInput->mStyleDisplay);
 
   aStatus = state.mReflowStatus;
 

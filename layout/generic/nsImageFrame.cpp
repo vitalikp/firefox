@@ -1040,7 +1040,7 @@ nsImageFrame::Reflow(nsPresContext*          aPresContext,
     // to request a decode.
     MaybeDecodeForPredictedSize();
   }
-  FinishAndStoreOverflow(&aMetrics);
+  FinishAndStoreOverflow(&aMetrics, aReflowInput.mStyleDisplay);
 
   if ((GetStateBits() & NS_FRAME_FIRST_REFLOW) && !mReflowCallbackPosted) {
     nsIPresShell* shell = PresContext()->PresShell();
