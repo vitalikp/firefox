@@ -42,6 +42,7 @@ DIRS += [
     'cache',
     'canvas',
     'commandhandler',
+    'credentialmanagement',
     'crypto',
     'encoding',
     'events',
