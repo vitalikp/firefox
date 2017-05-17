@@ -352,12 +352,6 @@ public:
 #endif
 
   /**
-   * Rebuild the style data. This will force a stylesheet flush, and also
-   * recompute the default computed styles.
-   */
-  void RebuildData();
-
-  /**
    * Clears the style data, both style sheet data and cached non-inheriting
    * style contexts, and marks the stylist as needing an unconditional full
    * rebuild, including a device reset.
@@ -488,6 +482,12 @@ private:
                                               nsIAtom* aPseudoTag,
                                               CSSPseudoElementType aPseudoType,
                                               LazyComputeBehavior aMayCompute);
+
+  /**
+   * Rebuild the style data. This will force a stylesheet flush, and also
+   * recompute the default computed styles.
+   */
+  void RebuildData();
 
   /**
    * Gets the pending snapshots to handle from the restyle manager.
