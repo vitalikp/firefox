@@ -5,6 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 EXPORTS.mozilla.dom += [
+    'LocalStorageManager.h',
     'SessionStorageManager.h',
     'Storage.h',
     'StorageIPC.h',
@@ -12,6 +13,7 @@ EXPORTS.mozilla.dom += [
 
 UNIFIED_SOURCES += [
     'LocalStorage.cpp',
+    'LocalStorageManager.cpp',
     'SessionStorage.cpp',
     'SessionStorageManager.cpp',
     'Storage.cpp',
@@ -19,7 +21,6 @@ UNIFIED_SOURCES += [
     'StorageDBThread.cpp',
     'StorageDBUpdater.cpp',
     'StorageIPC.cpp',
-    'StorageManager.cpp',
     'StorageObserver.cpp',
     'StorageUtils.cpp',
 ]
