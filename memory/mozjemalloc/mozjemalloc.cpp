@@ -135,9 +135,6 @@
 #ifdef MOZ_DEBUG
    /* Support optional abort() on OOM. */
 #  define MALLOC_XMALLOC
-
-   /* Support SYSV semantics. */
-#  define MALLOC_SYSV
 #endif
 
 #include <sys/types.h>
@@ -1066,9 +1063,6 @@ static bool	opt_print_stats = false;
 static size_t	opt_quantum_2pow = QUANTUM_2POW_MIN;
 static size_t	opt_small_max_2pow = SMALL_MAX_2POW_DEFAULT;
 static size_t	opt_chunk_2pow = CHUNK_2POW_DEFAULT;
-#endif
-#ifdef MALLOC_SYSV
-static bool	opt_sysv = false;
 #endif
 #ifdef MALLOC_XMALLOC
 static bool	opt_xmalloc = false;
@@ -4518,9 +4512,6 @@ malloc_print_stats(void)
 		    opt_abort ? "A" : "a", "", "");
 		_malloc_message(opt_junk ? "J" : "j", "", "", "");
 		_malloc_message("P", "", "", "");
-#ifdef MALLOC_SYSV
-		_malloc_message(opt_sysv ? "V" : "v", "", "", "");
-#endif
 #ifdef MALLOC_XMALLOC
 		_malloc_message(opt_xmalloc ? "X" : "x", "", "", "");
 #endif
@@ -4789,14 +4780,6 @@ MALLOC_OUT:
 						opt_small_max_2pow++;
 					break;
 #endif
-#ifdef MALLOC_SYSV
-				case 'v':
-					opt_sysv = false;
-					break;
-				case 'V':
-					opt_sysv = true;
-					break;
-#endif
 #ifdef MALLOC_XMALLOC
 				case 'x':
 					opt_xmalloc = false;
@@ -4983,16 +4966,7 @@ malloc_impl(size_t size)
 	}
 
 	if (size == 0) {
-#ifdef MALLOC_SYSV
-		if (opt_sysv == false)
-#endif
-			size = 1;
-#ifdef MALLOC_SYSV
-		else {
-			ret = NULL;
-			goto RETURN;
-		}
-#endif
+		size = 1;
 	}
 
 	ret = imalloc(size);
@@ -5050,16 +5024,7 @@ MEMALIGN(size_t alignment, size_t size)
 	}
 
 	if (size == 0) {
-#ifdef MALLOC_SYSV
-		if (opt_sysv == false)
-#endif
-			size = 1;
-#ifdef MALLOC_SYSV
-		else {
-			ret = NULL;
-			goto RETURN;
-		}
-#endif
+		size = 1;
 	}
 
 	alignment = alignment < sizeof(void*) ? sizeof(void*) : alignment;
@@ -5147,16 +5112,7 @@ calloc_impl(size_t num, size_t size)
 
 	num_size = num * size;
 	if (num_size == 0) {
-#ifdef MALLOC_SYSV
-		if ((opt_sysv == false) && ((num == 0) || (size == 0)))
-#endif
-			num_size = 1;
-#ifdef MALLOC_SYSV
-		else {
-			ret = NULL;
-			goto RETURN;
-		}
-#endif
+		num_size = 1;
 	/*
 	 * Try to avoid division here.  We know that it isn't possible to
 	 * overflow during multiplication if neither operand uses any of the
@@ -5193,18 +5149,7 @@ realloc_impl(void *ptr, size_t size)
 	void *ret;
 
 	if (size == 0) {
-#ifdef MALLOC_SYSV
-		if (opt_sysv == false)
-#endif
-			size = 1;
-#ifdef MALLOC_SYSV
-		else {
-			if (ptr != NULL)
-				idalloc(ptr);
-			ret = NULL;
-			goto RETURN;
-		}
-#endif
+		size = 1;
 	}
 
 	if (ptr != NULL) {
@@ -5242,9 +5187,6 @@ realloc_impl(void *ptr, size_t size)
 		}
 	}
 
-#ifdef MALLOC_SYSV
-RETURN:
-#endif
 	return (ret);
 }
 
@@ -5331,11 +5273,6 @@ jemalloc_stats_impl(jemalloc_stats_t *stats)
 	 */
 	stats->opt_abort = opt_abort;
 	stats->opt_junk = opt_junk;
-	stats->opt_sysv =
-#ifdef MALLOC_SYSV
-	    opt_sysv ? true :
-#endif
-	    false;
 	stats->opt_xmalloc =
 #ifdef MALLOC_XMALLOC
 	    opt_xmalloc ? true :
