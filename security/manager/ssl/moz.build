@@ -61,7 +61,6 @@ EXTRA_JS_MODULES.psm += [
 EXPORTS += [
     'CryptoTask.h',
     'nsClientAuthRemember.h',
-    'nsCrypto.h',
     'nsNSSCallbacks.h',
     'nsNSSCertificate.h',
     'nsNSSComponent.h',
@@ -97,7 +96,6 @@ UNIFIED_SOURCES += [
     'LocalCertService.cpp',
     'nsCertOverrideService.cpp',
     'nsClientAuthRemember.cpp',
-    'nsCrypto.cpp',
     'nsCryptoHash.cpp',
     'nsDataSignatureVerifier.cpp',
     'nsKeygenHandler.cpp',
@@ -131,6 +129,7 @@ UNIFIED_SOURCES += [
     'nsSSLSocketProvider.cpp',
     'nsSSLStatus.cpp',
     'nsTLSSocketProvider.cpp',
+    'PKCS11.cpp',
     'PSMContentListener.cpp',
     'PSMRunnable.cpp',
     'PublicKeyPinningService.cpp',
