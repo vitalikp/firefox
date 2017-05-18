@@ -384,6 +384,9 @@ MOZ_CrashPrintf(const char* aFilename, int aLine, const char* aFormat, ...);
  * This can cause user pain, so use it sparingly. If a MOZ_DIAGNOSTIC_ASSERT
  * is firing, it should promptly be converted to a MOZ_ASSERT while the failure
  * is being investigated, rather than letting users suffer.
+ *
+ * MOZ_DIAGNOSTIC_ASSERT_ENABLED is defined when MOZ_DIAGNOSTIC_ASSERT is like
+ * MOZ_RELEASE_ASSERT rather than MOZ_ASSERT.
  */
 
 /*
@@ -460,8 +463,12 @@ struct AssertionConditionType
 
 #ifdef RELEASE_OR_BETA
 #  define MOZ_DIAGNOSTIC_ASSERT MOZ_ASSERT
+#  ifdef DEBUG
+#    define MOZ_DIAGNOSTIC_ASSERT_ENABLED 1
+#  endif
 #else
 #  define MOZ_DIAGNOSTIC_ASSERT MOZ_RELEASE_ASSERT
+#  define MOZ_DIAGNOSTIC_ASSERT_ENABLED 1
 #endif
 
 /*
