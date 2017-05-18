@@ -123,6 +123,15 @@ StyleSheet::TraverseInner(nsCycleCollectionTraversalCallback &cb)
   }
 }
 
+void
+StyleSheet::ClearRuleCascades()
+{
+  ClearRuleCascadesInternal();
+  if (mParent) {
+    mParent->ClearRuleCascades();
+  }
+}
+
 // QueryInterface implementation for StyleSheet
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(StyleSheet)
   NS_WRAPPERCACHE_INTERFACE_MAP_ENTRY
@@ -433,6 +442,9 @@ StyleSheet::EnsureUniqueInner()
   MOZ_ASSERT(clone);
   mInner->RemoveSheet(this);
   mInner = clone;
+
+  // Ensure we're using the new rules.
+  ClearRuleCascades();
 }
 
 // WebIDL CSSStyleSheet API
