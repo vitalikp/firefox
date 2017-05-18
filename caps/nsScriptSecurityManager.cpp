@@ -63,6 +63,8 @@
 #include "nsContentUtils.h"
 #include "nsJSUtils.h"
 #include "nsILoadInfo.h"
+#include "nsIDOMXULCommandDispatcher.h"
+#include "nsITreeSelection.h"
 
 // This should be probably defined on some other place... but I couldn't find it
 #define WEBAPPS_PERM_NAME "webapps-manage"
@@ -1232,6 +1234,20 @@ nsScriptSecurityManager::CanCreateWrapper(JSContext *cx,
     if (nsContentUtils::IsCallerChrome())
     {
         return NS_OK;
+    }
+
+    // We want to expose nsIDOMXULCommandDispatcher and nsITreeSelection implementations
+    // in XBL scopes.
+    if (xpc::IsContentXBLScope(contextRealm)) {
+      nsCOMPtr<nsIDOMXULCommandDispatcher> dispatcher = do_QueryInterface(aObj);
+      if (dispatcher) {
+        return NS_OK;
+      }
+
+      nsCOMPtr<nsITreeSelection> treeSelection = do_QueryInterface(aObj);
+      if (treeSelection) {
+        return NS_OK;
+      }
     }
 
     //-- Access denied, report an error
