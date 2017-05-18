@@ -1202,12 +1202,6 @@ _malloc_message(const char *p1, const char *p2, const char *p3, const char *p4)
 // Note: MozTaggedAnonymousMmap() could call an LD_PRELOADed mmap
 // instead of the one defined here; use only MozTagAnonymousMemory().
 
-#ifdef MOZ_DEBUG
-#  define assert(e) MOZ_ASSERT(e)
-#else
-#  define assert(e)
-#endif
-
 #ifdef MOZ_MEMORY_ANDROID
 // Android's pthread.h does not declare pthread_atfork() until SDK 21.
 extern "C" MOZ_EXPORT
@@ -1221,7 +1215,7 @@ int pthread_atfork(void (*)(void), void (*)(void), void(*)(void));
 	}					\
 } while (0)
 #else
-#  define RELEASE_ASSERT(assertion) assert(assertion)
+#  define RELEASE_ASSERT(assertion) MOZ_ASSERT(assertion)
 #endif
 
 /******************************************************************************/
@@ -1487,7 +1481,7 @@ base_pages_alloc(size_t minsize)
 	size_t csize;
 	size_t pminsize;
 
-	assert(minsize != 0);
+	MOZ_ASSERT(minsize != 0);
 	csize = CHUNK_CEILING(minsize);
 	base_pages = chunk_alloc(csize, chunksize, true, false);
 	if (base_pages == NULL)
@@ -1785,7 +1779,7 @@ pages_map_align(size_t size, size_t alignment)
 	 */
 	ret = mmap((void *)alignment, size, PROT_READ | PROT_WRITE,
 		MAP_PRIVATE | MAP_NOSYNC | MAP_ALIGN | MAP_ANON, -1, 0);
-	assert(ret != NULL);
+	MOZ_ASSERT(ret != NULL);
 
 	if (ret == MAP_FAILED)
 		ret = NULL;
@@ -1826,7 +1820,7 @@ pages_map(void *addr, size_t size)
 	 */
 	ret = mmap(addr, size, PROT_READ | PROT_WRITE,
 		MAP_PRIVATE | MAP_ANON, -1, 0);
-	assert(ret != NULL);
+	MOZ_ASSERT(ret != NULL);
 
 	if (ret == MAP_FAILED) {
 		ret = NULL;
@@ -1865,10 +1859,10 @@ pages_map(void *addr, size_t size)
 	}
 
 #if defined(__ia64__)
-	assert(ret == NULL || (!check_placement && ret != NULL)
+	MOZ_ASSERT(ret == NULL || (!check_placement && ret != NULL)
 	    || (check_placement && ret == addr));
 #else
-	assert(ret == NULL || (addr == NULL && ret != addr)
+	MOZ_ASSERT(ret == NULL || (addr == NULL && ret != addr)
 	    || (addr != NULL && ret == addr));
 #endif
 	return (ret);
@@ -1897,9 +1891,9 @@ static inline void
 pages_copy(void *dest, const void *src, size_t n)
 {
 
-	assert((void *)((uintptr_t)dest & ~pagesize_mask) == dest);
-	assert(n >= VM_COPY_MIN);
-	assert((void *)((uintptr_t)src & ~pagesize_mask) == src);
+	MOZ_ASSERT((void *)((uintptr_t)dest & ~pagesize_mask) == dest);
+	MOZ_ASSERT(n >= VM_COPY_MIN);
+	MOZ_ASSERT((void *)((uintptr_t)src & ~pagesize_mask) == src);
 
 	vm_copy(mach_task_self(), (vm_address_t)src, (vm_size_t)n,
 	    (vm_address_t)dest);
@@ -2004,7 +1998,7 @@ MALLOC_RTREE_GET_GENERATE(malloc_rtree_get_locked)
     * check.
     */
 #  define MALLOC_RTREE_GET_VALIDATE					\
-	assert(malloc_rtree_get_locked(rtree, key) == ret);
+	MOZ_ASSERT(malloc_rtree_get_locked(rtree, key) == ret);
 #else
 #  define MALLOC_RTREE_GET_VALIDATE
 #endif
@@ -2063,7 +2057,7 @@ pages_trim(void *addr, size_t alloc_size, size_t leadsize, size_t size)
 {
         void *ret = (void *)((uintptr_t)addr + leadsize);
 
-        assert(alloc_size >= leadsize + size);
+        MOZ_ASSERT(alloc_size >= leadsize + size);
 #ifdef MOZ_MEMORY_WINDOWS
         {
                 void *new_addr;
@@ -2108,7 +2102,7 @@ chunk_alloc_mmap_slow(size_t size, size_t alignment)
                 ret = pages_trim(pages, alloc_size, leadsize, size);
         } while (ret == NULL);
 
-        assert(ret != NULL);
+        MOZ_ASSERT(ret != NULL);
         return (ret);
 }
 
@@ -2143,7 +2137,7 @@ chunk_alloc_mmap(size_t size, size_t alignment)
                 return (chunk_alloc_mmap_slow(size, alignment));
         }
 
-        assert(ret != NULL);
+        MOZ_ASSERT(ret != NULL);
         return (ret);
 #endif
 }
@@ -2224,7 +2218,7 @@ chunk_recycle(extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, size_t size,
 	}
 	leadsize = ALIGNMENT_CEILING((uintptr_t)node->addr, alignment) -
 	    (uintptr_t)node->addr;
-	assert(node->size >= leadsize + size);
+	MOZ_ASSERT(node->size >= leadsize + size);
 	trailsize = node->size - leadsize - size;
 	ret = (void *)((uintptr_t)node->addr + leadsize);
 	zeroed = node->zeroed;
@@ -2284,7 +2278,7 @@ chunk_recycle(extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, size_t size,
 			size_t *p = (size_t *)(uintptr_t)ret;
 
 			for (i = 0; i < size / sizeof(size_t); i++)
-				assert(p[i] == 0);
+				MOZ_ASSERT(p[i] == 0);
 		}
 #endif
 	}
@@ -2308,10 +2302,10 @@ chunk_alloc(size_t size, size_t alignment, bool base, bool zero)
 {
 	void *ret;
 
-	assert(size != 0);
-	assert((size & chunksize_mask) == 0);
-	assert(alignment != 0);
-	assert((alignment & chunksize_mask) == 0);
+	MOZ_ASSERT(size != 0);
+	MOZ_ASSERT((size & chunksize_mask) == 0);
+	MOZ_ASSERT(alignment != 0);
+	MOZ_ASSERT((alignment & chunksize_mask) == 0);
 
 	if (CAN_RECYCLE(size)) {
 		ret = chunk_recycle(&chunks_szad_mmap, &chunks_ad_mmap,
@@ -2335,7 +2329,7 @@ RETURN:
 		}
 	}
 
-	assert(CHUNK_ADDR2BASE(ret) == ret);
+	MOZ_ASSERT(CHUNK_ADDR2BASE(ret) == ret);
 	return (ret);
 }
 
@@ -2444,10 +2438,10 @@ static void
 chunk_dealloc(void *chunk, size_t size)
 {
 
-	assert(chunk != NULL);
-	assert(CHUNK_ADDR2BASE(chunk) == chunk);
-	assert(size != 0);
-	assert((size & chunksize_mask) == 0);
+	MOZ_ASSERT(chunk != NULL);
+	MOZ_ASSERT(CHUNK_ADDR2BASE(chunk) == chunk);
+	MOZ_ASSERT(size != 0);
+	MOZ_ASSERT((size & chunksize_mask) == 0);
 
 	malloc_rtree_set(chunk_rtree, (uintptr_t)chunk, NULL);
 
@@ -2539,8 +2533,8 @@ arena_chunk_comp(arena_chunk_t *a, arena_chunk_t *b)
 	uintptr_t a_chunk = (uintptr_t)a;
 	uintptr_t b_chunk = (uintptr_t)b;
 
-	assert(a != NULL);
-	assert(b != NULL);
+	MOZ_ASSERT(a != NULL);
+	MOZ_ASSERT(b != NULL);
 
 	return ((a_chunk > b_chunk) - (a_chunk < b_chunk));
 }
@@ -2555,8 +2549,8 @@ arena_run_comp(arena_chunk_map_t *a, arena_chunk_map_t *b)
 	uintptr_t a_mapelm = (uintptr_t)a;
 	uintptr_t b_mapelm = (uintptr_t)b;
 
-	assert(a != NULL);
-	assert(b != NULL);
+	MOZ_ASSERT(a != NULL);
+	MOZ_ASSERT(b != NULL);
 
 	return ((a_mapelm > b_mapelm) - (a_mapelm < b_mapelm));
 }
@@ -2603,8 +2597,8 @@ arena_run_reg_alloc(arena_run_t *run, arena_bin_t *bin)
 	void *ret;
 	unsigned i, mask, bit, regind;
 
-	assert(run->magic == ARENA_RUN_MAGIC);
-	assert(run->regs_minelm < bin->regs_mask_nelms);
+	MOZ_ASSERT(run->magic == ARENA_RUN_MAGIC);
+	MOZ_ASSERT(run->regs_minelm < bin->regs_mask_nelms);
 
 	/*
 	 * Move the first check outside the loop, so that run->regs_minelm can
@@ -2618,7 +2612,7 @@ arena_run_reg_alloc(arena_run_t *run, arena_bin_t *bin)
 		bit = ffs((int)mask) - 1;
 
 		regind = ((i << (SIZEOF_INT_2POW + 3)) + bit);
-		assert(regind < bin->nregs);
+		MOZ_ASSERT(regind < bin->nregs);
 		ret = (void *)(((uintptr_t)run) + bin->reg0_offset
 		    + (bin->reg_size * regind));
 
@@ -2636,7 +2630,7 @@ arena_run_reg_alloc(arena_run_t *run, arena_bin_t *bin)
 			bit = ffs((int)mask) - 1;
 
 			regind = ((i << (SIZEOF_INT_2POW + 3)) + bit);
-			assert(regind < bin->nregs);
+			MOZ_ASSERT(regind < bin->nregs);
 			ret = (void *)(((uintptr_t)run) + bin->reg0_offset
 			    + (bin->reg_size * regind));
 
@@ -2696,8 +2690,8 @@ arena_run_reg_dalloc(arena_run_t *run, arena_bin_t *bin, void *ptr, size_t size)
 	};
 	unsigned diff, regind, elm, bit;
 
-	assert(run->magic == ARENA_RUN_MAGIC);
-	assert(((sizeof(size_invs)) / sizeof(unsigned)) + 3
+	MOZ_ASSERT(run->magic == ARENA_RUN_MAGIC);
+	MOZ_ASSERT(((sizeof(size_invs)) / sizeof(unsigned)) + 3
 	    >= (SMALL_MAX_DEFAULT >> QUANTUM_2POW_MIN));
 
 	/*
@@ -2774,8 +2768,8 @@ arena_run_split(arena_t *arena, arena_run_t *run, size_t size, bool large,
 	total_pages = (chunk->map[run_ind].bits & ~pagesize_mask) >>
 	    pagesize_2pow;
 	need_pages = (size >> pagesize_2pow);
-	assert(need_pages > 0);
-	assert(need_pages <= total_pages);
+	MOZ_ASSERT(need_pages > 0);
+	MOZ_ASSERT(need_pages <= total_pages);
 	rem_pages = total_pages - need_pages;
 
 	arena_avail_tree_remove(&arena->runs_avail, &chunk->map[run_ind]);
@@ -2810,8 +2804,8 @@ arena_run_split(arena_t *arena, arena_run_t *run, size_t size, bool large,
 			for (j = 0; i + j < need_pages && (chunk->map[run_ind +
 			    i + j].bits & CHUNK_MAP_MADVISED_OR_DECOMMITTED); j++) {
 				/* DECOMMITTED and MADVISED are mutually exclusive. */
-				assert(!(chunk->map[run_ind + i + j].bits & CHUNK_MAP_DECOMMITTED &&
-					 chunk->map[run_ind + i + j].bits & CHUNK_MAP_MADVISED));
+				MOZ_ASSERT(!(chunk->map[run_ind + i + j].bits & CHUNK_MAP_DECOMMITTED &&
+					     chunk->map[run_ind + i + j].bits & CHUNK_MAP_MADVISED));
 
 				chunk->map[run_ind + i + j].bits &=
 				    ~CHUNK_MAP_MADVISED_OR_DECOMMITTED;
@@ -2957,8 +2951,8 @@ arena_run_alloc(arena_t *arena, arena_bin_t *bin, size_t size, bool large,
 	arena_run_t *run;
 	arena_chunk_map_t *mapelm, key;
 
-	assert(size <= arena_maxclass);
-	assert((size & pagesize_mask) == 0);
+	MOZ_ASSERT(size <= arena_maxclass);
+	MOZ_ASSERT((size & pagesize_mask) == 0);
 
 	/* Search the arena's chunks for the lowest best fit. */
 	key.bits = size | CHUNK_MAP_KEY;
@@ -3021,7 +3015,7 @@ arena_purge(arena_t *arena, bool all)
 	    chunk) {
 		ndirty += chunk->ndirty;
 	} rb_foreach_end(arena_chunk_t, link_dirty, &arena->chunks_dirty, chunk)
-	assert(ndirty == arena->ndirty);
+	MOZ_ASSERT(ndirty == arena->ndirty);
 #endif
 	RELEASE_ASSERT(all || (arena->ndirty > opt_dirty_max));
 
@@ -3049,8 +3043,8 @@ arena_purge(arena_t *arena, bool all)
 #else
 				const size_t free_operation = CHUNK_MAP_MADVISED;
 #endif
-				assert((chunk->map[i].bits &
-				        CHUNK_MAP_MADVISED_OR_DECOMMITTED) == 0);
+				MOZ_ASSERT((chunk->map[i].bits &
+				            CHUNK_MAP_MADVISED_OR_DECOMMITTED) == 0);
 				chunk->map[i].bits ^= free_operation | CHUNK_MAP_DIRTY;
 				/* Find adjacent dirty run(s). */
 				for (npages = 1;
@@ -3058,8 +3052,8 @@ arena_purge(arena_t *arena, bool all)
 				       (chunk->map[i - 1].bits & CHUNK_MAP_DIRTY);
 				     npages++) {
 					i--;
-					assert((chunk->map[i].bits &
-					        CHUNK_MAP_MADVISED_OR_DECOMMITTED) == 0);
+					MOZ_ASSERT((chunk->map[i].bits &
+					            CHUNK_MAP_MADVISED_OR_DECOMMITTED) == 0);
 					chunk->map[i].bits ^= free_operation | CHUNK_MAP_DIRTY;
 				}
 				chunk->ndirty -= npages;
@@ -3219,7 +3213,7 @@ arena_run_trim_head(arena_t *arena, arena_chunk_t *chunk, arena_run_t *run,
 	size_t pageind = ((uintptr_t)run - (uintptr_t)chunk) >> pagesize_2pow;
 	size_t head_npages = (oldsize - newsize) >> pagesize_2pow;
 
-	assert(oldsize > newsize);
+	MOZ_ASSERT(oldsize > newsize);
 
 	/*
 	 * Update the chunk map so that arena_run_dalloc() can treat the
@@ -3240,7 +3234,7 @@ arena_run_trim_tail(arena_t *arena, arena_chunk_t *chunk, arena_run_t *run,
 	size_t pageind = ((uintptr_t)run - (uintptr_t)chunk) >> pagesize_2pow;
 	size_t npages = newsize >> pagesize_2pow;
 
-	assert(oldsize > newsize);
+	MOZ_ASSERT(oldsize > newsize);
 
 	/*
 	 * Update the chunk map so that arena_run_dalloc() can treat the
@@ -3360,8 +3354,8 @@ arena_bin_run_size_calc(arena_bin_t *bin, size_t min_run_size)
 	unsigned good_nregs, good_mask_nelms, good_reg0_offset;
 	unsigned try_nregs, try_mask_nelms, try_reg0_offset;
 
-	assert(min_run_size >= pagesize);
-	assert(min_run_size <= arena_maxclass);
+	MOZ_ASSERT(min_run_size >= pagesize);
+	MOZ_ASSERT(min_run_size <= arena_maxclass);
 
 	/*
 	 * Calculate known-valid settings before entering the run_size
@@ -3411,9 +3405,9 @@ arena_bin_run_size_calc(arena_bin_t *bin, size_t min_run_size)
 	    && RUN_MAX_OVRHD * (bin->reg_size << 3) > RUN_MAX_OVRHD_RELAX
 	    && (try_reg0_offset << RUN_BFP) > RUN_MAX_OVRHD * try_run_size);
 
-	assert(sizeof(arena_run_t) + (sizeof(unsigned) * (good_mask_nelms - 1))
+	MOZ_ASSERT(sizeof(arena_run_t) + (sizeof(unsigned) * (good_mask_nelms - 1))
 	    <= good_reg0_offset);
-	assert((good_mask_nelms << (SIZEOF_INT_2POW + 3)) >= good_nregs);
+	MOZ_ASSERT((good_mask_nelms << (SIZEOF_INT_2POW + 3)) >= good_nregs);
 
 	/* Copy final settings. */
 	bin->run_size = good_run_size;
@@ -3514,10 +3508,10 @@ static inline void *
 arena_malloc(arena_t *arena, size_t size, bool zero)
 {
 
-	assert(arena != NULL);
+	MOZ_ASSERT(arena != NULL);
 	RELEASE_ASSERT(arena->magic == ARENA_MAGIC);
-	assert(size != 0);
-	assert(QUANTUM_CEILING(size) <= arena_maxclass);
+	MOZ_ASSERT(size != 0);
+	MOZ_ASSERT(QUANTUM_CEILING(size) <= arena_maxclass);
 
 	if (size <= bin_maxclass) {
 		return (arena_malloc_small(arena, size, zero));
@@ -3529,7 +3523,7 @@ static inline void *
 imalloc(size_t size)
 {
 
-	assert(size != 0);
+	MOZ_ASSERT(size != 0);
 
 	if (size <= arena_maxclass)
 		return (arena_malloc(choose_arena(), size, false));
@@ -3555,8 +3549,8 @@ arena_palloc(arena_t *arena, size_t alignment, size_t size, size_t alloc_size)
 	size_t offset;
 	arena_chunk_t *chunk;
 
-	assert((size & pagesize_mask) == 0);
-	assert((alignment & pagesize_mask) == 0);
+	MOZ_ASSERT((size & pagesize_mask) == 0);
+	MOZ_ASSERT((alignment & pagesize_mask) == 0);
 
 	malloc_spin_lock(&arena->lock);
 	ret = (void *)arena_run_alloc(arena, NULL, alloc_size, true, false);
@@ -3568,8 +3562,8 @@ arena_palloc(arena_t *arena, size_t alignment, size_t size, size_t alloc_size)
 	chunk = (arena_chunk_t *)CHUNK_ADDR2BASE(ret);
 
 	offset = (uintptr_t)ret & (alignment - 1);
-	assert((offset & pagesize_mask) == 0);
-	assert(offset < alloc_size);
+	MOZ_ASSERT((offset & pagesize_mask) == 0);
+	MOZ_ASSERT(offset < alloc_size);
 	if (offset == 0)
 		arena_run_trim_tail(arena, chunk, (arena_run_t*)ret, alloc_size, size, false);
 	else {
@@ -3585,7 +3579,7 @@ arena_palloc(arena_t *arena, size_t alignment, size_t size, size_t alloc_size)
 		trailsize = alloc_size - leadsize - size;
 		if (trailsize != 0) {
 			/* Trim trailing space. */
-			assert(trailsize < alloc_size);
+			MOZ_ASSERT(trailsize < alloc_size);
 			arena_run_trim_tail(arena, chunk, (arena_run_t*)ret, size + trailsize,
 			    size, false);
 		}
@@ -3693,7 +3687,7 @@ ipalloc(size_t alignment, size_t size)
 			ret = huge_palloc(ceil_size, alignment, false);
 	}
 
-	assert(((uintptr_t)ret & (alignment - 1)) == 0);
+	MOZ_ASSERT(((uintptr_t)ret & (alignment - 1)) == 0);
 	return (ret);
 }
 
@@ -3705,8 +3699,8 @@ arena_salloc(const void *ptr)
 	arena_chunk_t *chunk;
 	size_t pageind, mapbits;
 
-	assert(ptr != NULL);
-	assert(CHUNK_ADDR2BASE(ptr) != ptr);
+	MOZ_ASSERT(ptr != NULL);
+	MOZ_ASSERT(CHUNK_ADDR2BASE(ptr) != ptr);
 
 	chunk = (arena_chunk_t *)CHUNK_ADDR2BASE(ptr);
 	pageind = (((uintptr_t)ptr - (uintptr_t)chunk) >> pagesize_2pow);
@@ -3771,12 +3765,12 @@ isalloc(const void *ptr)
 	size_t ret;
 	arena_chunk_t *chunk;
 
-	assert(ptr != NULL);
+	MOZ_ASSERT(ptr != NULL);
 
 	chunk = (arena_chunk_t *)CHUNK_ADDR2BASE(ptr);
 	if (chunk != ptr) {
 		/* Region. */
-		assert(chunk->arena->magic == ARENA_MAGIC);
+		MOZ_ASSERT(chunk->arena->magic == ARENA_MAGIC);
 
 		ret = arena_salloc(ptr);
 	} else {
@@ -3902,13 +3896,13 @@ arena_dalloc(void *ptr, size_t offset)
 	size_t pageind;
 	arena_chunk_map_t *mapelm;
 
-	assert(ptr != NULL);
-	assert(offset != 0);
-	assert(CHUNK_ADDR2OFFSET(ptr) == offset);
+	MOZ_ASSERT(ptr != NULL);
+	MOZ_ASSERT(offset != 0);
+	MOZ_ASSERT(CHUNK_ADDR2OFFSET(ptr) == offset);
 
 	chunk = (arena_chunk_t *) ((uintptr_t)ptr - offset);
 	arena = chunk->arena;
-	assert(arena != NULL);
+	MOZ_ASSERT(arena != NULL);
 	RELEASE_ASSERT(arena->magic == ARENA_MAGIC);
 
 	malloc_spin_lock(&arena->lock);
@@ -3930,7 +3924,7 @@ idalloc(void *ptr)
 {
 	size_t offset;
 
-	assert(ptr != NULL);
+	MOZ_ASSERT(ptr != NULL);
 
 	offset = CHUNK_ADDR2OFFSET(ptr);
 	if (offset != 0)
@@ -3944,7 +3938,7 @@ arena_ralloc_large_shrink(arena_t *arena, arena_chunk_t *chunk, void *ptr,
     size_t size, size_t oldsize)
 {
 
-	assert(size < oldsize);
+	MOZ_ASSERT(size < oldsize);
 
 	/*
 	 * Shrink the run, and make trailing pages available for other
@@ -3968,7 +3962,7 @@ arena_ralloc_large_grow(arena_t *arena, arena_chunk_t *chunk, void *ptr,
 	RELEASE_ASSERT(oldsize == (chunk->map[pageind].bits & ~pagesize_mask));
 
 	/* Try to extend the run. */
-	assert(size > oldsize);
+	MOZ_ASSERT(size > oldsize);
 	if (pageind + npages < chunk_npages && (chunk->map[pageind+npages].bits
 	    & CHUNK_MAP_ALLOCATED) == 0 && (chunk->map[pageind+npages].bits &
 	    ~pagesize_mask) >= size - oldsize) {
@@ -4061,7 +4055,7 @@ arena_ralloc(void *ptr, size_t size, size_t oldsize)
 		    pow2_ceil(size) == pow2_ceil(oldsize))
 			goto IN_PLACE; /* Same size class. */
 	} else if (oldsize > bin_maxclass && oldsize <= arena_maxclass) {
-		assert(size > bin_maxclass);
+		MOZ_ASSERT(size > bin_maxclass);
 		if (arena_ralloc_large(ptr, size, oldsize) == false)
 			return (ptr);
 	}
@@ -4098,8 +4092,8 @@ iralloc(void *ptr, size_t size)
 {
 	size_t oldsize;
 
-	assert(ptr != NULL);
-	assert(size != 0);
+	MOZ_ASSERT(ptr != NULL);
+	MOZ_ASSERT(size != 0);
 
 	oldsize = isalloc(ptr);
 
@@ -4371,8 +4365,8 @@ huge_ralloc(void *ptr, size_t size, size_t oldsize)
 			malloc_mutex_lock(&huge_mtx);
 			key.addr = const_cast<void*>(ptr);
 			node = extent_tree_ad_search(&huge, &key);
-			assert(node != NULL);
-			assert(node->size == oldsize);
+			MOZ_ASSERT(node != NULL);
+			MOZ_ASSERT(node->size == oldsize);
 			huge_allocated -= oldsize - psize;
 			/* No need to change huge_mapped, because we didn't
 			 * (un)map anything. */
@@ -4396,8 +4390,8 @@ huge_ralloc(void *ptr, size_t size, size_t oldsize)
                         malloc_mutex_lock(&huge_mtx);
                         key.addr = const_cast<void*>(ptr);
                         node = extent_tree_ad_search(&huge, &key);
-                        assert(node != NULL);
-                        assert(node->size == oldsize);
+                        MOZ_ASSERT(node != NULL);
+                        MOZ_ASSERT(node->size == oldsize);
                         huge_allocated += psize - oldsize;
 			/* No need to change huge_mapped, because we didn't
 			 * (un)map anything. */
@@ -4442,8 +4436,8 @@ huge_dalloc(void *ptr)
 	/* Extract from tree of huge allocations. */
 	key.addr = ptr;
 	node = extent_tree_ad_search(&huge, &key);
-	assert(node != NULL);
-	assert(node->addr == ptr);
+	MOZ_ASSERT(node != NULL);
+	MOZ_ASSERT(node->addr == ptr);
 	extent_tree_ad_remove(&huge, node);
 
 	huge_ndalloc++;
@@ -4636,11 +4630,11 @@ malloc_init_hard(void)
 	}
 #else
 	result = sysconf(_SC_PAGESIZE);
-	assert(result != -1);
+	MOZ_ASSERT(result != -1);
 #endif
 
 	/* We assume that the page size is a power of 2. */
-	assert(((result - 1) & result) == 0);
+	MOZ_ASSERT(((result - 1) & result) == 0);
 #ifdef MALLOC_STATIC_SIZES
 	if (pagesize % (size_t) result) {
 		_malloc_message(_getprogname(),
@@ -4792,9 +4786,9 @@ MALLOC_OUT:
 
 	/* Set bin-related variables. */
 	bin_maxclass = (pagesize >> 1);
-	assert(opt_quantum_2pow >= TINY_MIN_2POW);
+	MOZ_ASSERT(opt_quantum_2pow >= TINY_MIN_2POW);
 	ntbins = opt_quantum_2pow - TINY_MIN_2POW;
-	assert(ntbins <= opt_quantum_2pow);
+	MOZ_ASSERT(ntbins <= opt_quantum_2pow);
 	nqbins = (small_max >> opt_quantum_2pow);
 	nsbins = pagesize_2pow - opt_small_max_2pow - 1;
 
@@ -4805,7 +4799,7 @@ MALLOC_OUT:
 		small_min = (quantum >> 1) + 1;
 	else
 		small_min = 1;
-	assert(small_min <= quantum);
+	MOZ_ASSERT(small_min <= quantum);
 
 	/* Set variables according to the value of opt_chunk_2pow. */
 	chunksize = (1LU << opt_chunk_2pow);
@@ -4825,15 +4819,15 @@ MALLOC_OUT:
 	 * When using MAP_ALIGN, the alignment parameter must be a power of two
 	 * multiple of the system pagesize, or mmap will fail.
 	 */
-	assert((chunksize % pagesize) == 0);
-	assert((1 << (ffs(chunksize / pagesize) - 1)) == (chunksize/pagesize));
+	MOZ_ASSERT((chunksize % pagesize) == 0);
+	MOZ_ASSERT((1 << (ffs(chunksize / pagesize) - 1)) == (chunksize/pagesize));
 #endif
 
 	/* Various sanity checks that regard configuration. */
-	assert(quantum >= sizeof(void *));
-	assert(quantum <= pagesize);
-	assert(chunksize >= pagesize);
-	assert(quantum * 4 <= chunksize);
+	MOZ_ASSERT(quantum >= sizeof(void *));
+	MOZ_ASSERT(quantum <= pagesize);
+	MOZ_ASSERT(chunksize >= pagesize);
+	MOZ_ASSERT(quantum * 4 <= chunksize);
 
 	/* Initialize chunks data. */
 	malloc_mutex_init(&chunks_mtx);
@@ -4981,7 +4975,7 @@ MEMALIGN(size_t alignment, size_t size)
 {
 	void *ret;
 
-	assert(((alignment - 1) & alignment) == 0);
+	MOZ_ASSERT(((alignment - 1) & alignment) == 0);
 
 	if (malloc_init()) {
 		ret = NULL;
@@ -5118,7 +5112,7 @@ realloc_impl(void *ptr, size_t size)
 	}
 
 	if (ptr != NULL) {
-		assert(malloc_initialized);
+		MOZ_ASSERT(malloc_initialized);
 
 		ret = iralloc(ptr, size);
 
@@ -5164,7 +5158,7 @@ free_impl(void *ptr)
 	 * A version of idalloc that checks for NULL pointer but only for
 	 * huge allocations assuming that CHUNK_ADDR2OFFSET(NULL) == 0.
 	 */
-	assert(CHUNK_ADDR2OFFSET(NULL) == 0);
+	MOZ_ASSERT(CHUNK_ADDR2OFFSET(NULL) == 0);
 	offset = CHUNK_ADDR2OFFSET(ptr);
 	if (offset != 0)
 		arena_dalloc(ptr, offset);
@@ -5231,7 +5225,7 @@ jemalloc_stats_impl(jemalloc_stats_t *stats)
 {
 	size_t i, non_arena_mapped, chunk_header_size;
 
-	assert(stats != NULL);
+	MOZ_ASSERT(stats != NULL);
 
 	/*
 	 * Gather runtime settings.
@@ -5267,14 +5261,14 @@ jemalloc_stats_impl(jemalloc_stats_t *stats)
 	malloc_mutex_lock(&huge_mtx);
 	non_arena_mapped += huge_mapped;
 	stats->allocated += huge_allocated;
-	assert(huge_mapped >= huge_allocated);
+	MOZ_ASSERT(huge_mapped >= huge_allocated);
 	malloc_mutex_unlock(&huge_mtx);
 
 	/* Get base mapped/allocated. */
 	malloc_mutex_lock(&base_mtx);
 	non_arena_mapped += base_mapped;
 	stats->bookkeeping += base_committed;
-	assert(base_mapped >= base_committed);
+	MOZ_ASSERT(base_mapped >= base_committed);
 	malloc_mutex_unlock(&base_mtx);
 
 	malloc_spin_lock(&arenas_lock);
@@ -5324,8 +5318,8 @@ jemalloc_stats_impl(jemalloc_stats_t *stats)
 
 		malloc_spin_unlock(&arena->lock);
 
-		assert(arena_mapped >= arena_committed);
-		assert(arena_committed >= arena_allocated + arena_dirty);
+		MOZ_ASSERT(arena_mapped >= arena_committed);
+		MOZ_ASSERT(arena_committed >= arena_allocated + arena_dirty);
 
 		/* "waste" is committed memory that is neither dirty nor
 		 * allocated. */
@@ -5348,7 +5342,7 @@ jemalloc_stats_impl(jemalloc_stats_t *stats)
 	stats->bookkeeping += chunk_header_size;
 	stats->waste -= chunk_header_size;
 
-	assert(stats->mapped >= stats->allocated + stats->waste +
+	MOZ_ASSERT(stats->mapped >= stats->allocated + stats->waste +
 				stats->page_cache + stats->bookkeeping);
 }
 
