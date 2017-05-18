@@ -1585,6 +1585,7 @@ public:
   typedef mozilla::layers::Layer Layer;
   typedef mozilla::layers::LayerManager LayerManager;
   typedef mozilla::LayerState LayerState;
+  typedef mozilla::image::imgDrawingParams imgDrawingParams;
 
   // This is never instantiated directly (it has pure virtual methods), so no
   // need to count constructors and destructors.
