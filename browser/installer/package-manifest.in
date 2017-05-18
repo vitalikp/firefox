@@ -573,6 +573,10 @@
 #endif
 @RESPATH@/browser/features/*
 
+; [DevTools Shim Files]
+@RESPATH@/browser/chrome/devtools-shim@JAREXT@
+@RESPATH@/browser/chrome/devtools-shim.manifest
+
 ; DevTools
 @RESPATH@/browser/chrome/devtools@JAREXT@
 @RESPATH@/browser/chrome/devtools.manifest
