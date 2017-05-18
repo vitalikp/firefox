@@ -172,6 +172,35 @@ private:
   MOZ_DECL_USE_GUARD_OBJECT_NOTIFIER
 };
 
+class MOZ_RAII AutoDisableUndo final
+{
+public:
+  explicit AutoDisableUndo(nsIEditor* aEditor
+                           MOZ_GUARD_OBJECT_NOTIFIER_PARAM)
+    : mEditor(aEditor)
+    , mPreviousEnabled(true)
+  {
+    MOZ_GUARD_OBJECT_NOTIFIER_INIT;
+    MOZ_ASSERT(mEditor);
+
+    bool canUndo;
+    DebugOnly<nsresult> rv = mEditor->CanUndo(&mPreviousEnabled, &canUndo);
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
+
+    mEditor->EnableUndo(false);
+  }
+
+  ~AutoDisableUndo()
+  {
+    mEditor->EnableUndo(mPreviousEnabled);
+  }
+
+private:
+  nsIEditor* mEditor;
+  bool mPreviousEnabled;
+  MOZ_DECL_USE_GUARD_OBJECT_NOTIFIER
+};
+
 /*static*/
 bool
 nsITextControlElement::GetWrapPropertyEnum(nsIContent* aContent,
@@ -1543,15 +1572,10 @@ nsTextEditorState::PrepareEditor(const nsAString *aValue)
     // the default value.  Make sure to turn off undo before setting the default
     // value, and turn it back on afterwards. This will make sure we can't undo
     // past the default value.
-
-    rv = newEditor->EnableUndo(false);
-    NS_ENSURE_SUCCESS(rv, rv);
+    // So, we use eSetValue_Internal flag only that it will turn off undo.
 
     bool success = SetValue(defaultValue, eSetValue_Internal);
     NS_ENSURE_TRUE(success, NS_ERROR_OUT_OF_MEMORY);
-
-    rv = newEditor->EnableUndo(true);
-    NS_ASSERTION(NS_SUCCEEDED(rv),"Transaction Manager must have failed");
 
     // Now restore the original editor flags.
     rv = newEditor->SetFlags(editorFlags);
@@ -2645,6 +2669,8 @@ nsTextEditorState::SetValue(const nsAString& aValue, uint32_t aFlags)
               plaintextEditor->InsertText(insertValue);
             }
           } else {
+            AutoDisableUndo disableUndo(mEditor);
+
             plaintextEditor->SetText(newValue);
           }
 
