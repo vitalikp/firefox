@@ -117,12 +117,6 @@ parent:
 
   async PAltDataOutputStream(nsCString type, PHttpChannel channel);
 
-  /**
-   * Throttling of channels
-   */
-  async IncreaseThrottlePressure();
-  async DecreaseThrottlePressure();
-
   prio(high) async NotifyCurrentTopLevelOuterContentWindowId(uint64_t windowId);
 
 child:

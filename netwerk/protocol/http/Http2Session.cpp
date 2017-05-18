@@ -4208,11 +4208,5 @@ Http2Session::RealJoinConnection(const nsACString &hostname, int32_t port,
   return joinedReturn;
 }
 
-void
-Http2Session::ThrottleResponse(bool aThrottle)
-{
-  // Response throttling on an h2 connection will be implemented later.
-}
-
 } // namespace net
 } // namespace mozilla
