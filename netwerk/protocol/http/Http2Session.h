@@ -170,11 +170,12 @@ public:
     kFrameTypeBytes + kFrameStreamIDBytes;
 
   enum {
-    kLeaderGroupID =     0x3,
+    kLeaderGroupID =      0x3,
     kOtherGroupID =       0x5,
     kBackgroundGroupID =  0x7,
     kSpeculativeGroupID = 0x9,
-    kFollowerGroupID =    0xB
+    kFollowerGroupID =    0xB,
+    kUrgentStartGroupID = 0xD
   };
 
   static nsresult RecvHeaders(Http2Session *);
