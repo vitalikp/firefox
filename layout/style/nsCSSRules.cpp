@@ -39,8 +39,6 @@
 #include "mozilla/dom/CSSImportRuleBinding.h"
 #include "mozilla/dom/CSSFontFaceRuleBinding.h"
 #include "mozilla/dom/CSSFontFeatureValuesRuleBinding.h"
-#include "mozilla/dom/CSSKeyframeRuleBinding.h"
-#include "mozilla/dom/CSSKeyframesRuleBinding.h"
 #include "mozilla/dom/CSSCounterStyleRuleBinding.h"
 #include "StyleRule.h"
 #include "nsFont.h"
@@ -1605,7 +1603,7 @@ nsCSSKeyframeStyleDeclaration::GetParentObject()
 
 nsCSSKeyframeRule::nsCSSKeyframeRule(const nsCSSKeyframeRule& aCopy)
   // copy everything except our reference count and mDOMDeclaration
-  : Rule(aCopy)
+  : dom::CSSKeyframeRule(aCopy)
   , mKeys(aCopy.mKeys)
   , mDeclaration(new css::Declaration(*aCopy.mDeclaration))
 {
@@ -1627,20 +1625,20 @@ nsCSSKeyframeRule::Clone() const
   return clone.forget();
 }
 
-NS_IMPL_ADDREF_INHERITED(nsCSSKeyframeRule, mozilla::css::Rule)
-NS_IMPL_RELEASE_INHERITED(nsCSSKeyframeRule, mozilla::css::Rule)
+NS_IMPL_ADDREF_INHERITED(nsCSSKeyframeRule, dom::CSSKeyframeRule)
+NS_IMPL_RELEASE_INHERITED(nsCSSKeyframeRule, dom::CSSKeyframeRule)
 
 NS_IMPL_CYCLE_COLLECTION_CLASS(nsCSSKeyframeRule)
 
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(nsCSSKeyframeRule,
-                                                mozilla::css::Rule)
+                                                dom::CSSKeyframeRule)
   if (tmp->mDOMDeclaration) {
     tmp->mDOMDeclaration->DropReference();
     tmp->mDOMDeclaration = nullptr;
   }
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsCSSKeyframeRule,
-                                                  mozilla::css::Rule)
+                                                  dom::CSSKeyframeRule)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mDOMDeclaration)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
@@ -1653,8 +1651,7 @@ nsCSSKeyframeRule::IsCCLeaf() const
 
 // QueryInterface implementation for nsCSSKeyframeRule
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsCSSKeyframeRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSKeyframeRule)
-NS_INTERFACE_MAP_END_INHERITING(mozilla::css::Rule)
+NS_INTERFACE_MAP_END_INHERITING(dom::CSSKeyframeRule)
 
 #ifdef DEBUG
 void
@@ -1675,18 +1672,6 @@ nsCSSKeyframeRule::List(FILE* out, int32_t aIndent) const
   fprintf_stderr(out, "%s", str.get());
 }
 #endif
-
-/* virtual */ int32_t
-nsCSSKeyframeRule::GetType() const
-{
-  return Rule::KEYFRAME_RULE;
-}
-
-uint16_t
-nsCSSKeyframeRule::Type() const
-{
-  return nsIDOMCSSRule::KEYFRAME_RULE;
-}
 
 void
 nsCSSKeyframeRule::GetCssTextImpl(nsAString& aCssText) const
@@ -1749,13 +1734,6 @@ nsCSSKeyframeRule::SetKeyText(const nsAString& aKeyText)
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsCSSKeyframeRule::GetStyle(nsIDOMCSSStyleDeclaration** aStyle)
-{
-  NS_ADDREF(*aStyle = Style());
-  return NS_OK;
-}
-
 nsICSSDeclaration*
 nsCSSKeyframeRule::Style()
 {
@@ -1800,13 +1778,6 @@ nsCSSKeyframeRule::SizeOfIncludingThis(MallocSizeOf aMallocSizeOf) const
   // - mDOMDeclaration
 }
 
-/* virtual */ JSObject*
-nsCSSKeyframeRule::WrapObject(JSContext* aCx,
-                              JS::Handle<JSObject*> aGivenProto)
-{
-  return CSSKeyframeRuleBinding::Wrap(aCx, this, aGivenProto);
-}
-
 // -------------------------------------------
 // nsCSSKeyframesRule
 //
@@ -1815,7 +1786,7 @@ nsCSSKeyframesRule::nsCSSKeyframesRule(const nsCSSKeyframesRule& aCopy)
   // copy everything except our reference count.  GroupRule's copy
   // constructor also doesn't copy the lazily-constructed
   // mRuleCollection.
-  : GroupRule(aCopy),
+  : dom::CSSKeyframesRule(aCopy),
     mName(aCopy.mName)
 {
 }
@@ -1831,13 +1802,12 @@ nsCSSKeyframesRule::Clone() const
   return clone.forget();
 }
 
-NS_IMPL_ADDREF_INHERITED(nsCSSKeyframesRule, css::GroupRule)
-NS_IMPL_RELEASE_INHERITED(nsCSSKeyframesRule, css::GroupRule)
+NS_IMPL_ADDREF_INHERITED(nsCSSKeyframesRule, dom::CSSKeyframesRule)
+NS_IMPL_RELEASE_INHERITED(nsCSSKeyframesRule, dom::CSSKeyframesRule)
 
 // QueryInterface implementation for nsCSSKeyframesRule
 NS_INTERFACE_MAP_BEGIN(nsCSSKeyframesRule)
-  NS_INTERFACE_MAP_ENTRY(nsIDOMCSSKeyframesRule)
-NS_INTERFACE_MAP_END_INHERITING(GroupRule)
+NS_INTERFACE_MAP_END_INHERITING(dom::CSSKeyframesRule)
 
 #ifdef DEBUG
 void
@@ -1856,18 +1826,6 @@ nsCSSKeyframesRule::List(FILE* out, int32_t aIndent) const
   fprintf_stderr(out, "%s}\n", indentStr.get());
 }
 #endif
-
-/* virtual */ int32_t
-nsCSSKeyframesRule::GetType() const
-{
-  return Rule::KEYFRAMES_RULE;
-}
-
-uint16_t
-nsCSSKeyframesRule::Type() const
-{
-  return nsIDOMCSSRule::KEYFRAMES_RULE;
-}
 
 void
 nsCSSKeyframesRule::GetCssTextImpl(nsAString& aCssText) const
@@ -1911,12 +1869,6 @@ nsCSSKeyframesRule::SetName(const nsAString& aName)
   }
 
   return NS_OK;
-}
-
-NS_IMETHODIMP
-nsCSSKeyframesRule::GetCssRules(nsIDOMCSSRuleList* *aRuleList)
-{
-  return GroupRule::GetCssRules(aRuleList);
 }
 
 NS_IMETHODIMP
@@ -1994,14 +1946,6 @@ nsCSSKeyframesRule::DeleteRule(const nsAString& aKey)
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsCSSKeyframesRule::FindRule(const nsAString& aKey,
-                             nsIDOMCSSKeyframeRule** aResult)
-{
-  NS_IF_ADDREF(*aResult = FindRule(aKey));
-  return NS_OK;
-}
-
 nsCSSKeyframeRule*
 nsCSSKeyframesRule::FindRule(const nsAString& aKey)
 {
@@ -2010,15 +1954,6 @@ nsCSSKeyframesRule::FindRule(const nsAString& aKey)
     return nullptr;
   }
   return static_cast<nsCSSKeyframeRule*>(GeckoRules()[index]);
-}
-
-// GroupRule interface
-/* virtual */ bool
-nsCSSKeyframesRule::UseForPresentation(nsPresContext* aPresContext,
-                                       nsMediaQueryResultCacheKey& aKey)
-{
-  MOZ_ASSERT(false, "should not be called");
-  return false;
 }
 
 /* virtual */ size_t
@@ -2032,13 +1967,6 @@ nsCSSKeyframesRule::SizeOfIncludingThis(MallocSizeOf aMallocSizeOf) const
   // - mName
 
   return n;
-}
-
-/* virtual */ JSObject*
-nsCSSKeyframesRule::WrapObject(JSContext* aCx,
-                               JS::Handle<JSObject*> aGivenProto)
-{
-  return CSSKeyframesRuleBinding::Wrap(aCx, this, aGivenProto);
 }
 
 // -------------------------------------------
