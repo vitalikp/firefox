@@ -1168,8 +1168,8 @@ WasmInstanceObject::getExportedFunctionCodeRange(HandleFunction fun)
 {
     uint32_t funcIndex = ExportedFunctionToFuncIndex(fun);
     MOZ_ASSERT(exports().lookup(funcIndex)->value() == fun);
-    const Metadata& metadata = instance().metadata();
-    return metadata.codeRanges[metadata.lookupFuncExport(funcIndex).codeRangeIndex()];
+    const FuncExport& funcExport = instance().metadata().lookupFuncExport(funcIndex);
+    return instance().metadataTier().codeRanges[funcExport.codeRangeIndex()];
 }
 
 /* static */ WasmFunctionScope*
@@ -1720,7 +1720,7 @@ WasmTableObject::setImpl(JSContext* cx, const CallArgs& args)
 
         Instance& instance = instanceObj->instance();
         const FuncExport& funcExport = instance.metadata().lookupFuncExport(funcIndex);
-        const CodeRange& codeRange = instance.metadata().codeRanges[funcExport.codeRangeIndex()];
+        const CodeRange& codeRange = instance.metadataTier().codeRanges[funcExport.codeRangeIndex()];
         void* code = instance.codeSegment().base() + codeRange.funcTableEntry();
         table.set(index, code, instance);
     } else {
