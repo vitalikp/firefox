@@ -2084,6 +2084,13 @@ Gecko_CSSFontFaceRule_GetCssText(const nsCSSFontFaceRule* aRule,
   aRule->GetCssText(*aResult);
 }
 
+void
+Gecko_AddPropertyToSet(nsCSSPropertyIDSetBorrowedMut aPropertySet,
+                       nsCSSPropertyID aProperty)
+{
+  aPropertySet->AddProperty(aProperty);
+}
+
 NS_IMPL_FFI_REFCOUNTING(nsCSSFontFaceRule, CSSFontFaceRule);
 
 nsCSSCounterStyleRule*
