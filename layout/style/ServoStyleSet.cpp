@@ -236,6 +236,8 @@ ServoStyleSet::PreTraverseSync()
 
   // Ensure that the @font-face data is not stale
   mPresContext->Document()->GetUserFontSet();
+
+  mPresContext->CacheAllLangs();
 }
 
 void
