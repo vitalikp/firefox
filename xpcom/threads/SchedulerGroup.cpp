@@ -68,7 +68,7 @@ public:
   {}
 
   NS_DECL_THREADSAFE_ISUPPORTS
-  NS_DECL_NSIEVENTTARGET
+  NS_DECL_NSIEVENTTARGET_FULL
 
   SchedulerGroup* Dispatcher() const { return mDispatcher; }
 
