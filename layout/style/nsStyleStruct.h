@@ -3181,7 +3181,10 @@ public:
     nsString mIdent;
     // This is only used when it is a counters() function.
     nsString mSeparator;
+    // One and only one of mCounterStyle and mCounterStyleName must be
+    // non-null at any time.
     mozilla::CounterStylePtr mCounterStyle;
+    nsCOMPtr<nsIAtom> mCounterStyleName;
 
     NS_INLINE_DECL_THREADSAFE_REFCOUNTING(CounterFunction)
 
@@ -3197,6 +3200,8 @@ public:
   {
     MOZ_ASSERT(mType == eStyleContentType_Counter ||
                mType == eStyleContentType_Counters);
+    MOZ_ASSERT(mContent.mCounters->mCounterStyle,
+               "Counter style should have been resolved");
     return mContent.mCounters;
   }
 
@@ -3255,11 +3260,7 @@ public:
     MOZ_ASSERT(mContent.mImage);
   }
 
-  void Resolve(nsPresContext* aPresContext) {
-    if (mType == eStyleContentType_Image && !mContent.mImage->IsResolved()) {
-      mContent.mImage->Resolve(aPresContext);
-    }
-  }
+  void Resolve(nsPresContext* aPresContext);
 
 private:
   nsStyleContentType mType;

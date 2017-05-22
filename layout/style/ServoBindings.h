@@ -262,7 +262,8 @@ void Gecko_CopyCursorArrayFrom(nsStyleUserInterface* dest,
                                const nsStyleUserInterface* src);
 
 void Gecko_SetContentDataImage(nsStyleContentData* content_data, ServoBundledURI uri);
-void Gecko_SetContentDataArray(nsStyleContentData* content_data, nsStyleContentType type, uint32_t len);
+nsStyleContentData::CounterFunction* Gecko_SetCounterFunction(
+    nsStyleContentData* content_data, nsStyleContentType type);
 
 // Dirtiness tracking.
 uint32_t Gecko_GetNodeFlags(RawGeckoNodeBorrowed node);
