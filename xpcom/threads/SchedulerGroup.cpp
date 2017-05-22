@@ -54,7 +54,7 @@ namespace {
 { 0xbf4e36c8, 0x7d04, 0x4ef4, \
   { 0xbb, 0xd8, 0x11, 0x09, 0x0a, 0xdb, 0x4d, 0xf7 } }
 
-class SchedulerEventTarget final : public nsIEventTarget
+class SchedulerEventTarget final : public nsISerialEventTarget
 {
   RefPtr<SchedulerGroup> mDispatcher;
   TaskCategory mCategory;
@@ -82,7 +82,10 @@ static Atomic<uint64_t> gEarliestUnprocessedVsync(0);
 
 } // namespace
 
-NS_IMPL_ISUPPORTS(SchedulerEventTarget, SchedulerEventTarget, nsIEventTarget)
+NS_IMPL_ISUPPORTS(SchedulerEventTarget,
+                  SchedulerEventTarget,
+                  nsIEventTarget,
+                  nsISerialEventTarget)
 
 NS_IMETHODIMP
 SchedulerEventTarget::DispatchFromScript(nsIRunnable* aRunnable, uint32_t aFlags)

@@ -2030,7 +2030,7 @@ WorkerLoadInfo::ProxyReleaseMainThreadObjects(WorkerPrivate* aWorkerPrivate,
 
 template <class Derived>
 class WorkerPrivateParent<Derived>::EventTarget final
-  : public nsIEventTarget
+  : public nsISerialEventTarget
 {
   // This mutex protects mWorkerPrivate and must be acquired *before* the
   // WorkerPrivate's mutex whenever they must both be held.
@@ -2947,12 +2947,12 @@ WorkerPrivateParent<Derived>::MaybeWrapAsWorkerRunnable(already_AddRefed<nsIRunn
 }
 
 template <class Derived>
-already_AddRefed<nsIEventTarget>
+already_AddRefed<nsISerialEventTarget>
 WorkerPrivateParent<Derived>::GetEventTarget()
 {
   WorkerPrivate* self = ParentAsWorkerPrivate();
 
-  nsCOMPtr<nsIEventTarget> target;
+  nsCOMPtr<nsISerialEventTarget> target;
 
   {
     MutexAutoLock lock(mMutex);
@@ -6960,6 +6960,7 @@ NS_IMPL_RELEASE(WorkerPrivateParent<Derived>::EventTarget)
 
 template <class Derived>
 NS_INTERFACE_MAP_BEGIN(WorkerPrivateParent<Derived>::EventTarget)
+  NS_INTERFACE_MAP_ENTRY(nsISerialEventTarget)
   NS_INTERFACE_MAP_ENTRY(nsIEventTarget)
   NS_INTERFACE_MAP_ENTRY(nsISupports)
 #ifdef DEBUG
