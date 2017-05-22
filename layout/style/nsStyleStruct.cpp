@@ -3768,6 +3768,15 @@ nsStyleContentData::nsStyleContentData(const nsStyleContentData& aOther)
   }
 }
 
+bool
+nsStyleContentData::
+CounterFunction::operator==(const CounterFunction& aOther) const
+{
+  return mIdent == aOther.mIdent &&
+    mSeparator == aOther.mSeparator &&
+    mCounterStyle == aOther.mCounterStyle;
+}
+
 nsStyleContentData&
 nsStyleContentData::operator=(const nsStyleContentData& aOther)
 {
