@@ -1461,6 +1461,26 @@ nsThread::DoMainThreadSpecificProcessing(bool aReallyWait)
   }
 }
 
+NS_IMETHODIMP
+nsThread::GetEventTarget(nsIEventTarget** aEventTarget)
+{
+  nsCOMPtr<nsIEventTarget> target = this;
+  target.forget(aEventTarget);
+  return NS_OK;
+}
+
+nsIEventTarget*
+nsThread::EventTarget()
+{
+  return this;
+}
+
+nsISerialEventTarget*
+nsThread::SerialEventTarget()
+{
+  return this;
+}
+
 //-----------------------------------------------------------------------------
 
 NS_IMPL_ISUPPORTS(nsThread::nsNestedEventTarget, nsIEventTarget)
