@@ -2311,6 +2311,9 @@
                           Services.prefs.getBoolPref("browser.tabs.animate");
             if (!animate) {
               t.setAttribute("fadein", "true");
+
+              // Call _handleNewTab asynchronously as it needs to know if the
+              // new tab is selected.
               setTimeout(function(tabContainer) {
                 tabContainer._handleNewTab(t);
               }, 0, this.tabContainer);
@@ -5929,6 +5932,7 @@
           // If we're overflowing, tab widths don't change anymore, so we can
           // return early to avoid flushing layout.
           if (this.getAttribute("overflow") == "true") {
+            this.setAttribute("closebuttons", "activetab");
             return;
           }
 
