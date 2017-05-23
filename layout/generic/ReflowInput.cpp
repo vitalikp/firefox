@@ -1251,7 +1251,7 @@ static bool AreAllEarlierInFlowFramesEmpty(nsIFrame* aFrame,
 void
 ReflowInput::CalculateHypotheticalPosition(
   nsPresContext* aPresContext,
-  nsIFrame* aPlaceholderFrame,
+  nsPlaceholderFrame* aPlaceholderFrame,
   const ReflowInput* cbrs,
   nsHypotheticalPosition& aHypotheticalPos,
   LayoutFrameType aFrameType) const
@@ -1576,9 +1576,9 @@ ReflowInput::InitAbsoluteConstraints(nsPresContext* aPresContext,
   // have been if it had been in the flow
   nsHypotheticalPosition hypotheticalPos;
   if ((iStartIsAuto && iEndIsAuto) || (bStartIsAuto && bEndIsAuto)) {
-    nsIFrame* placeholderFrame =
+    nsPlaceholderFrame* placeholderFrame =
       aPresContext->PresShell()->GetPlaceholderFrameFor(mFrame);
-    NS_ASSERTION(placeholderFrame, "no placeholder frame");
+    MOZ_ASSERT(placeholderFrame, "no placeholder frame");
 
     if (placeholderFrame->HasAnyStateBits(
           PLACEHOLDER_STATICPOS_NEEDS_CSSALIGN)) {

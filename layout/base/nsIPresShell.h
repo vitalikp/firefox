@@ -81,6 +81,7 @@ template<class E> class nsCOMArray;
 class AutoWeakFrame;
 class WeakFrame;
 class nsIScrollableFrame;
+class nsPlaceholderFrame;
 class gfxContext;
 class nsIDOMEvent;
 class nsDisplayList;
@@ -482,7 +483,7 @@ public:
    * Gets the placeholder frame associated with the specified frame. This is
    * a helper frame that forwards the request to the frame manager.
    */
-  virtual nsIFrame* GetPlaceholderFrameFor(nsIFrame* aFrame) const = 0;
+  virtual nsPlaceholderFrame* GetPlaceholderFrameFor(nsIFrame* aFrame) const = 0;
 
   /**
    * Tell the pres shell that a frame needs to be marked dirty and needs
