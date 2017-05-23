@@ -82,8 +82,7 @@ static bool
 intrinsic_ToObject(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
-    RootedValue val(cx, args[0]);
-    RootedObject obj(cx, ToObject(cx, val));
+    JSObject* obj = ToObject(cx, args[0]);
     if (!obj)
         return false;
     args.rval().setObject(*obj);
@@ -144,8 +143,7 @@ static bool
 intrinsic_ToString(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
-    RootedString str(cx);
-    str = ToString<CanGC>(cx, args[0]);
+    JSString* str = ToString<CanGC>(cx, args[0]);
     if (!str)
         return false;
     args.rval().setString(str);
@@ -556,7 +554,7 @@ intrinsic_DecompileArg(JSContext* cx, unsigned argc, Value* vp)
     ScopedJSFreePtr<char> str(DecompileArgument(cx, args[0].toInt32(), value));
     if (!str)
         return false;
-    RootedAtom atom(cx, Atomize(cx, str, strlen(str)));
+    JSAtom* atom = Atomize(cx, str, strlen(str));
     if (!atom)
         return false;
     args.rval().setString(atom);
@@ -743,7 +741,7 @@ intrinsic_CreateMapIterationResultPair(JSContext* cx, unsigned argc, Value* vp)
     CallArgs args = CallArgsFromVp(argc, vp);
     MOZ_ASSERT(args.length() == 0);
 
-    RootedObject result(cx, MapIteratorObject::createResultPair(cx));
+    JSObject* result = MapIteratorObject::createResultPair(cx);
     if (!result)
         return false;
 
@@ -772,7 +770,7 @@ intrinsic_CreateSetIterationResult(JSContext* cx, unsigned argc, Value* vp)
     CallArgs args = CallArgsFromVp(argc, vp);
     MOZ_ASSERT(args.length() == 0);
 
-    RootedObject result(cx, SetIteratorObject::createResult(cx));
+    JSObject* result = SetIteratorObject::createResult(cx);
     if (!result)
         return false;
 
@@ -806,7 +804,7 @@ intrinsic_SetCanonicalName(JSContext* cx, unsigned argc, Value* vp)
 
     RootedFunction fun(cx, &args[0].toObject().as<JSFunction>());
     MOZ_ASSERT(fun->isSelfHostedBuiltin());
-    RootedAtom atom(cx, AtomizeString(cx, args[1].toString()));
+    JSAtom* atom = AtomizeString(cx, args[1].toString());
     if (!atom)
         return false;
 
@@ -1144,7 +1142,7 @@ intrinsic_TypedArrayLength(JSContext* cx, unsigned argc, Value* vp)
     CallArgs args = CallArgsFromVp(argc, vp);
     MOZ_ASSERT(args.length() == 1);
 
-    RootedObject obj(cx, &args[0].toObject());
+    JSObject* obj = &args[0].toObject();
     MOZ_ASSERT(obj->is<TypedArrayObject>());
     args.rval().setInt32(obj->as<TypedArrayObject>().length());
     return true;
@@ -1673,8 +1671,7 @@ js::intrinsic_StringSplitString(JSContext* cx, unsigned argc, Value* vp)
     if (!group)
         return false;
 
-    RootedObject aobj(cx);
-    aobj = str_split_string(cx, group, string, sep, INT32_MAX);
+    JSObject* aobj = str_split_string(cx, group, string, sep, INT32_MAX);
     if (!aobj)
         return false;
 
@@ -1699,8 +1696,7 @@ intrinsic_StringSplitStringLimit(JSContext* cx, unsigned argc, Value* vp)
     if (!group)
         return false;
 
-    RootedObject aobj(cx);
-    aobj = str_split_string(cx, group, string, sep, limit);
+    JSObject* aobj = str_split_string(cx, group, string, sep, limit);
     if (!aobj)
         return false;
 
@@ -1830,7 +1826,7 @@ intrinsic_RuntimeDefaultLocale(JSContext* cx, unsigned argc, Value* vp)
         return false;
     }
 
-    RootedString jslocale(cx, JS_NewStringCopyZ(cx, locale));
+    JSString* jslocale = JS_NewStringCopyZ(cx, locale);
     if (!jslocale)
         return false;
 
@@ -2102,7 +2098,7 @@ intrinsic_NewModuleNamespace(JSContext* cx, unsigned argc, Value* vp)
     MOZ_ASSERT(args.length() == 2);
     RootedModuleObject module(cx, &args[0].toObject().as<ModuleObject>());
     RootedObject exports(cx, &args[1].toObject());
-    RootedObject namespace_(cx, ModuleObject::createNamespace(cx, module, exports));
+    JSObject* namespace_ = ModuleObject::createNamespace(cx, module, exports);
     if (!namespace_)
         return false;
 
@@ -2141,7 +2137,7 @@ intrinsic_CreatePendingPromise(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
     MOZ_ASSERT(args.length() == 0);
-    RootedObject promise(cx, PromiseObject::createSkippingExecutor(cx));
+    JSObject* promise = PromiseObject::createSkippingExecutor(cx);
     if (!promise)
         return false;
     args.rval().setObject(*promise);
@@ -2153,7 +2149,7 @@ intrinsic_CreatePromiseResolvedWith(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
     MOZ_ASSERT(args.length() == 1);
-    RootedObject promise(cx, PromiseObject::unforgeableResolve(cx, args[0]));
+    JSObject* promise = PromiseObject::unforgeableResolve(cx, args[0]);
     if (!promise)
         return false;
     args.rval().setObject(*promise);
@@ -2165,7 +2161,7 @@ intrinsic_CreatePromiseRejectedWith(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
     MOZ_ASSERT(args.length() == 1);
-    RootedObject promise(cx, PromiseObject::unforgeableReject(cx, args[0]));
+    JSObject* promise = PromiseObject::unforgeableReject(cx, args[0]);
     if (!promise)
         return false;
     args.rval().setObject(*promise);
@@ -2208,8 +2204,8 @@ intrinsic_CallOriginalPromiseThen(JSContext* cx, unsigned argc, Value* vp)
     val = args.get(2);
     RootedObject onRejectedObj(cx, val.isUndefined() ? nullptr : val.toObjectOrNull());
 
-    RootedObject resultPromise(cx, JS::CallOriginalPromiseThen(cx, promise, onResolvedObj,
-                                                               onRejectedObj));
+    JSObject* resultPromise = JS::CallOriginalPromiseThen(cx, promise, onResolvedObj,
+                                                          onRejectedObj);
     if (!resultPromise)
         return false;
     args.rval().setObject(*resultPromise);
@@ -2228,8 +2224,7 @@ intrinsic_AddPromiseReactions(JSContext* cx, unsigned argc, Value* vp)
     val = args.get(2);
     RootedObject onRejectedObj(cx, val.isUndefined() ? nullptr : val.toObjectOrNull());
 
-    bool result = JS::AddPromiseReactions(cx, promise, onResolvedObj, onRejectedObj);
-    if (!result)
+    if (!JS::AddPromiseReactions(cx, promise, onResolvedObj, onRejectedObj))
         return false;
     args.rval().setUndefined();
     return true;
