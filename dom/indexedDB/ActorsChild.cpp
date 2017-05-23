@@ -26,7 +26,7 @@
 #include "mozilla/dom/TabChild.h"
 #include "mozilla/dom/indexedDB/PBackgroundIDBDatabaseFileChild.h"
 #include "mozilla/dom/indexedDB/PIndexedDBPermissionRequestChild.h"
-#include "mozilla/dom/ipc/BlobChild.h"
+#include "mozilla/dom/IPCBlobUtils.h"
 #include "mozilla/ipc/BackgroundUtils.h"
 #include "nsCOMPtr.h"
 #include "nsContentUtils.h"
@@ -614,17 +614,14 @@ DeserializeStructuredCloneFiles(
 
       switch (serializedFile.type()) {
         case StructuredCloneFile::eBlob: {
-          MOZ_ASSERT(blobOrMutableFile.type() == BlobOrMutableFile::TPBlobChild);
+          MOZ_ASSERT(blobOrMutableFile.type() == BlobOrMutableFile::TIPCBlob);
 
-          auto* actor =
-            static_cast<BlobChild*>(blobOrMutableFile.get_PBlobChild());
+          const IPCBlob& ipcBlob = blobOrMutableFile.get_IPCBlob();
 
-          RefPtr<BlobImpl> blobImpl = actor->GetBlobImpl();
+          RefPtr<BlobImpl> blobImpl = IPCBlobUtils::Deserialize(ipcBlob);
           MOZ_ASSERT(blobImpl);
 
           RefPtr<Blob> blob = Blob::Create(aDatabase->GetOwner(), blobImpl);
-
-          aDatabase->NoteReceivedBlob(blob);
 
           StructuredCloneFile* file = aFiles.AppendElement();
           MOZ_ASSERT(file);
@@ -709,18 +706,14 @@ DeserializeStructuredCloneFiles(
             break;
           }
 
-          MOZ_ASSERT(blobOrMutableFile.type() ==
-                       BlobOrMutableFile::TPBlobChild);
+          MOZ_ASSERT(blobOrMutableFile.type() == BlobOrMutableFile::TIPCBlob);
 
-          auto* actor =
-            static_cast<BlobChild*>(blobOrMutableFile.get_PBlobChild());
+          const IPCBlob& ipcBlob = blobOrMutableFile.get_IPCBlob();
 
-          RefPtr<BlobImpl> blobImpl = actor->GetBlobImpl();
+          RefPtr<BlobImpl> blobImpl = IPCBlobUtils::Deserialize(ipcBlob);
           MOZ_ASSERT(blobImpl);
 
           RefPtr<Blob> blob = Blob::Create(aDatabase->GetOwner(), blobImpl);
-
-          aDatabase->NoteReceivedBlob(blob);
 
           StructuredCloneFile* file = aFiles.AppendElement();
           MOZ_ASSERT(file);
@@ -1795,7 +1788,7 @@ BackgroundDatabaseChild::ActorDestroy(ActorDestroyReason aWhy)
 
 PBackgroundIDBDatabaseFileChild*
 BackgroundDatabaseChild::AllocPBackgroundIDBDatabaseFileChild(
-                                                         PBlobChild* aBlobChild)
+                                                        const IPCBlob& aIPCBlob)
 {
   MOZ_CRASH("PBackgroundIDBFileChild actors should be manually constructed!");
 }
