@@ -344,3 +344,8 @@ partial interface Navigator {
   [Pref="security.webauth.webauthn", SameObject]
   readonly attribute WebAuthentication authentication;
 };
+
+partial interface Navigator {
+  [Pref="security.webauth.webauthn", SameObject]
+  readonly attribute CredentialsContainer credentials;
+};

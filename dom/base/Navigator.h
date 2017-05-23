@@ -43,6 +43,7 @@ class DOMRequest;
 struct FlyWebPublishOptions;
 struct FlyWebFilter;
 class WebAuthentication;
+class CredentialsContainer;
 } // namespace dom
 } // namespace mozilla
 
@@ -214,6 +215,7 @@ public:
   already_AddRefed<ServiceWorkerContainer> ServiceWorker();
 
   mozilla::dom::WebAuthentication* Authentication();
+  mozilla::dom::CredentialsContainer* Credentials();
 
   void GetLanguages(nsTArray<nsString>& aLanguages);
 
@@ -279,6 +281,7 @@ private:
   RefPtr<PowerManager> mPowerManager;
   RefPtr<network::Connection> mConnection;
   RefPtr<WebAuthentication> mAuthentication;
+  RefPtr<CredentialsContainer> mCredentials;
   RefPtr<MediaDevices> mMediaDevices;
   RefPtr<time::TimeManager> mTimeManager;
   RefPtr<ServiceWorkerContainer> mServiceWorkerContainer;
