@@ -15,7 +15,6 @@ include protocol PFileDescriptorSet;
 include protocol PFileSystemRequest;
 include protocol PIPCBlobInputStream;
 include protocol PPendingIPCBlob;
-include protocol PMemoryStream;
 include protocol PMessagePort;
 include protocol PCameras;
 include protocol PQuota;
@@ -61,7 +60,6 @@ sync protocol PBackground
   manages PFileDescriptorSet;
   manages PFileSystemRequest;
   manages PIPCBlobInputStream;
-  manages PMemoryStream;
   manages PPendingIPCBlob;
   manages PMessagePort;
   manages PCameras;
@@ -110,8 +108,6 @@ parent:
   async PQuota();
 
   async PFileSystemRequest(FileSystemParams params);
-
-  async PMemoryStream(uint64_t aSize);
 
   async PWebAuthnTransaction();
 
