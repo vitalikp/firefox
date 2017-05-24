@@ -393,7 +393,7 @@ struct Zone;
     D(REFRESH_FRAME)                            \
     D(FULL_GC_TIMER)                            \
     D(SHUTDOWN_CC)                              \
-    D(FINISH_LARGE_EVALUATE)                    \
+    D(UNUSED2)                                  \
     D(USER_INACTIVE)                            \
     D(XPCONNECT_SHUTDOWN)
 
