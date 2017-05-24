@@ -11629,6 +11629,9 @@ class MNewLexicalEnvironmentObject
     bool appendRoots(MRootList& roots) const override {
         return roots.append(scope_);
     }
+    AliasSet getAliasSet() const override {
+        return AliasSet::None();
+    }
 };
 
 // Allocate a new LexicalEnvironmentObject from existing one
@@ -11655,6 +11658,11 @@ class MCopyLexicalEnvironmentObject
     }
     bool possiblyCalls() const override {
         return true;
+    }
+    AliasSet getAliasSet() const override {
+        return AliasSet::Load(AliasSet::ObjectFields |
+                              AliasSet::FixedSlot |
+                              AliasSet::DynamicSlot);
     }
 };
 
