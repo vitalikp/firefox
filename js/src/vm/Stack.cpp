@@ -1681,9 +1681,7 @@ WasmActivation::startInterrupt(void* pc, uint8_t* fp)
     cx_->runtime()->setWasmResumePC(pc);
     exitFP_ = reinterpret_cast<wasm::Frame*>(fp);
 
-    MOZ_ASSERT(cx() == exitFP_->tls->cx);
     MOZ_ASSERT(compartment() == exitFP_->tls->instance->compartment());
-
     MOZ_ASSERT(interrupted());
 }
 
