@@ -3488,7 +3488,7 @@ nsGlobalWindow::SetDocShell(nsIDocShell* aDocShell)
 
   bool docShellActive;
   mDocShell->GetIsActive(&docShellActive);
-  mIsBackground = !docShellActive;
+  SetIsBackgroundInternal(!docShellActive);
 }
 
 void
@@ -10394,7 +10394,7 @@ void nsGlobalWindow::SetIsBackground(bool aIsBackground)
   MOZ_ASSERT(IsOuterWindow());
 
   bool resetTimers = (!aIsBackground && AsOuter()->IsBackground());
-  nsPIDOMWindow::SetIsBackground(aIsBackground);
+  SetIsBackgroundInternal(aIsBackground);
 
   if (aIsBackground) {
     MOZ_ASSERT(!resetTimers);
@@ -10409,6 +10409,15 @@ void nsGlobalWindow::SetIsBackground(bool aIsBackground)
   if (resetTimers) {
     inner->mTimeoutManager->ResetTimersForThrottleReduction();
   }
+}
+
+void
+nsGlobalWindow::SetIsBackgroundInternal(bool aIsBackground)
+{
+  if (mIsBackground != aIsBackground) {
+    TabGroup()->WindowChangedBackgroundStatus(aIsBackground);
+  }
+  mIsBackground = aIsBackground;
 }
 
 void nsGlobalWindow::MaybeUpdateTouchState()
