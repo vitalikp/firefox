@@ -182,8 +182,8 @@ XPCOMUtils.defineLazyModuleGetter(this, "PrivacyFilter",
   "resource:///modules/sessionstore/PrivacyFilter.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "RunState",
   "resource:///modules/sessionstore/RunState.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "ScratchpadManager",
-  "resource://devtools/client/scratchpad/scratchpad-manager.jsm");
+XPCOMUtils.defineLazyModuleGetter(this, "DevToolsShim",
+  "chrome://devtools-shim/content/DevToolsShim.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "SessionSaver",
   "resource:///modules/sessionstore/SessionSaver.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "SessionCookies",
@@ -2743,7 +2743,7 @@ var SessionStoreInternal = {
     }
 
     if (lastSessionState.scratchpads) {
-      ScratchpadManager.restoreSession(lastSessionState.scratchpads);
+      DevToolsShim.restoreScratchpadSession(lastSessionState.scratchpads);
     }
 
     // Set data that persists between sessions
@@ -3110,12 +3110,9 @@ var SessionStoreInternal = {
     // Collect and store session cookies.
     state.cookies = SessionCookies.collect();
 
-    if (Cu.isModuleLoaded("resource://devtools/client/scratchpad/scratchpad-manager.jsm")) {
-      // get open Scratchpad window states too
-      let scratchpads = ScratchpadManager.getSessionState();
-      if (scratchpads && scratchpads.length) {
-        state.scratchpads = scratchpads;
-      }
+    let scratchpads = DevToolsShim.getOpenedScratchpads();
+    if (scratchpads && scratchpads.length) {
+      state.scratchpads = scratchpads;
     }
 
     // Persist the last session if we deferred restoring it
@@ -3508,7 +3505,7 @@ var SessionStoreInternal = {
     this.restoreWindow(aWindow, root.windows[0], aOptions);
 
     if (aState.scratchpads) {
-      ScratchpadManager.restoreSession(aState.scratchpads);
+      DevToolsShim.restoreScratchpadSession(aState.scratchpads);
     }
   },
 
