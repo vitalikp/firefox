@@ -14,6 +14,7 @@
 #include "nsIProtocolProxyFilter.h"
 #include "nsIProxyInfo.h"
 #include "nsIObserver.h"
+#include "nsIThread.h"
 #include "nsDataHashtable.h"
 #include "nsHashKeys.h"
 #include "prio.h"
@@ -304,6 +305,12 @@ private:
     nsresult ResetPACThread();
     nsresult ReloadNetworkPAC();
 
+    nsresult AsyncConfigureFromPAC(bool aForceReload, bool aResetPACThread);
+    nsresult OnAsyncGetPACURI(bool aForceReload,
+                              bool aResetPACThread,
+                              nsresult aResult,
+                              const nsACString& aUri);
+
 public:
     // The Sun Forte compiler and others implement older versions of the
     // C++ standard's rules on access and nested classes.  These structs
@@ -404,6 +411,7 @@ private:
                                   nsICancelable **result,
                                   bool isSyncOK);
     bool                          mIsShutdown;
+    nsCOMPtr<nsIThread>           mProxySettingThread;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsProtocolProxyService, NS_PROTOCOL_PROXY_SERVICE_IMPL_CID)
