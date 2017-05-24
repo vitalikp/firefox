@@ -19881,8 +19881,7 @@ DatabaseOperationBase::GetStructuredCloneReadInfoFromSource(
   } else {
     const uint8_t* blobData;
     uint32_t blobDataLength;
-    nsresult rv =
-      aSource->GetSharedBlob(aDataIndex, &blobDataLength, &blobData);
+    rv = aSource->GetSharedBlob(aDataIndex, &blobDataLength, &blobData);
     if (NS_WARN_IF(NS_FAILED(rv))) {
       return rv;
     }
