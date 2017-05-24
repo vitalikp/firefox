@@ -526,7 +526,8 @@ protected:
   void ShowEventTargetDebug();
 #endif
 
-  void RecordStyleSheetChange(mozilla::StyleSheet* aStyleSheet);
+  void RecordStyleSheetChange(mozilla::StyleSheet* aStyleSheet,
+                              StyleSheet::ChangeType);
 
   void RemovePreferenceStyles();
 

@@ -216,10 +216,11 @@ StyleSetHandle::Ptr::AddDocStyleSheet(StyleSheet* aSheet,
 }
 
 void
-StyleSetHandle::Ptr::RecordStyleSheetChange(StyleSheet* aSheet)
+StyleSetHandle::Ptr::RecordStyleSheetChange(StyleSheet* aSheet,
+                                            StyleSheet::ChangeType aChangeType)
 {
-  FORWARD_CONCRETE(RecordStyleSheetChange, (aSheet->AsGecko()),
-                                           (aSheet->AsServo()));
+  FORWARD_CONCRETE(RecordStyleSheetChange, (aSheet->AsGecko(), aChangeType),
+                                           (aSheet->AsServo(), aChangeType));
 }
 
 void
