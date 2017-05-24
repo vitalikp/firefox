@@ -535,10 +535,11 @@ ServoStyleSet::ResolvePseudoElementStyle(Element* aOriginatingElement,
 already_AddRefed<nsStyleContext>
 ServoStyleSet::ResolveTransientStyle(Element* aElement,
                                      nsIAtom* aPseudoTag,
-                                     CSSPseudoElementType aPseudoType)
+                                     CSSPseudoElementType aPseudoType,
+                                     StyleRuleInclusion aRuleInclusion)
 {
   RefPtr<ServoComputedValues> computedValues =
-    ResolveTransientServoStyle(aElement, aPseudoType);
+    ResolveTransientServoStyle(aElement, aPseudoType, aRuleInclusion);
 
   return GetContext(computedValues.forget(),
                     nullptr,
@@ -547,11 +548,13 @@ ServoStyleSet::ResolveTransientStyle(Element* aElement,
 }
 
 already_AddRefed<ServoComputedValues>
-ServoStyleSet::ResolveTransientServoStyle(Element* aElement,
-                                          CSSPseudoElementType aPseudoType)
+ServoStyleSet::ResolveTransientServoStyle(
+    Element* aElement,
+    CSSPseudoElementType aPseudoType,
+    StyleRuleInclusion aRuleInclusion)
 {
   PreTraverseSync();
-  return ResolveStyleLazily(aElement, aPseudoType);
+  return ResolveStyleLazily(aElement, aPseudoType, aRuleInclusion);
 }
 
 already_AddRefed<nsStyleContext>
@@ -1136,7 +1139,8 @@ ServoStyleSet::ClearNonInheritingStyleContexts()
 
 already_AddRefed<ServoComputedValues>
 ServoStyleSet::ResolveStyleLazily(Element* aElement,
-                                  CSSPseudoElementType aPseudoType)
+                                  CSSPseudoElementType aPseudoType,
+                                  StyleRuleInclusion aRuleInclusion)
 {
   mPresContext->EffectCompositor()->PreTraverse(aElement, aPseudoType);
   MOZ_ASSERT(!StylistNeedsUpdate());
@@ -1171,6 +1175,7 @@ ServoStyleSet::ResolveStyleLazily(Element* aElement,
   RefPtr<ServoComputedValues> computedValues =
     Servo_ResolveStyleLazily(elementForStyleResolution,
                              pseudoTypeForStyleResolution,
+                             aRuleInclusion,
                              &Snapshots(),
                              mRawSet.get()).Consume();
 
@@ -1178,6 +1183,7 @@ ServoStyleSet::ResolveStyleLazily(Element* aElement,
     computedValues =
       Servo_ResolveStyleLazily(elementForStyleResolution,
                                pseudoTypeForStyleResolution,
+                               aRuleInclusion,
                                &Snapshots(),
                                mRawSet.get()).Consume();
   }
