@@ -47,7 +47,7 @@ public:
 
   nsresult AddTimer(nsTimerImpl* aTimer);
   nsresult RemoveTimer(nsTimerImpl* aTimer);
-  TimeStamp FindNextFireTimeForCurrentThread(TimeStamp );
+  TimeStamp FindNextFireTimeForCurrentThread(TimeStamp aDefault, uint32_t aSearchBound);
 
   void DoBeforeSleep();
   void DoAfterSleep();
