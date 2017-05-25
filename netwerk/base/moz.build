@@ -86,6 +86,7 @@ XPIDL_SOURCES += [
     'nsIProxyInfo.idl',
     'nsIRandomGenerator.idl',
     'nsIRedirectChannelRegistrar.idl',
+    'nsIRedirectHistoryEntry.idl',
     'nsIRedirectResultListener.idl',
     'nsIRequest.idl',
     'nsIRequestContext.idl',
@@ -163,6 +164,7 @@ EXPORTS.mozilla += [
     'LoadContextInfo.h',
     'LoadInfo.h',
     'LoadTainting.h',
+    'nsRedirectHistoryEntry.h',
 ]
 
 EXPORTS.mozilla.net += [
@@ -214,6 +216,7 @@ UNIFIED_SOURCES += [
     'nsPreloadedStream.cpp',
     'nsProtocolProxyService.cpp',
     'nsProxyInfo.cpp',
+    'nsRedirectHistoryEntry.cpp',
     'nsRequestObserverProxy.cpp',
     'nsSecCheckWrapChannel.cpp',
     'nsSerializationHelper.cpp',
