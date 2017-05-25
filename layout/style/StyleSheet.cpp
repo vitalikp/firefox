@@ -406,7 +406,7 @@ StyleSheet::WillDirty()
 }
 
 void
-StyleSheet::AddStyleSet(StyleSetHandle aStyleSet)
+StyleSheet::AddStyleSet(const StyleSetHandle& aStyleSet)
 {
   NS_ASSERTION(!mStyleSets.Contains(aStyleSet),
                "style set already registered");
@@ -414,7 +414,7 @@ StyleSheet::AddStyleSet(StyleSetHandle aStyleSet)
 }
 
 void
-StyleSheet::DropStyleSet(StyleSetHandle aStyleSet)
+StyleSheet::DropStyleSet(const StyleSetHandle& aStyleSet)
 {
   DebugOnly<bool> found = mStyleSets.RemoveElement(aStyleSet);
   NS_ASSERTION(found, "didn't find style set");
