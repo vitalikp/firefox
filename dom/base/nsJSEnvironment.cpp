@@ -1566,7 +1566,7 @@ nsJSContext::BeginCycleCollectionCallback()
     sICCTimer->SetTarget(SystemGroup::EventTargetFor(TaskCategory::GarbageCollection));
     sICCTimer->InitWithNamedFuncCallback(ICCTimerFired, nullptr,
                                          kICCIntersliceDelay,
-                                         nsITimer::TYPE_REPEATING_SLACK,
+                                         nsITimer::TYPE_REPEATING_SLACK_LOW_PRIORITY,
                                          "ICCTimerFired");
   }
 }
@@ -1981,7 +1981,7 @@ nsJSContext::PokeGC(JS::gcreason::Reason aReason,
                                       : (first
                                          ? NS_FIRST_GC_DELAY
                                          : NS_GC_DELAY),
-                                      nsITimer::TYPE_ONE_SHOT,
+                                      nsITimer::TYPE_ONE_SHOT_LOW_PRIORITY,
                                       "GCTimerFired");
   first = false;
 }
@@ -2004,7 +2004,7 @@ nsJSContext::PokeShrinkingGC()
   sShrinkingGCTimer->SetTarget(SystemGroup::EventTargetFor(TaskCategory::GarbageCollection));
   sShrinkingGCTimer->InitWithNamedFuncCallback(ShrinkingGCTimerFired, nullptr,
                                                sCompactOnUserInactiveDelay,
-                                               nsITimer::TYPE_ONE_SHOT,
+                                               nsITimer::TYPE_ONE_SHOT_LOW_PRIORITY,
                                                "ShrinkingGCTimerFired");
 }
 
@@ -2028,7 +2028,7 @@ nsJSContext::MaybePokeCC()
     sCCTimer->SetTarget(SystemGroup::EventTargetFor(TaskCategory::GarbageCollection));
     sCCTimer->InitWithNamedFuncCallback(CCTimerFired, nullptr,
                                         NS_CC_SKIPPABLE_DELAY,
-                                        nsITimer::TYPE_REPEATING_SLACK,
+                                        nsITimer::TYPE_REPEATING_SLACK_LOW_PRIORITY,
                                         "CCTimerFired");
   }
 }
@@ -2180,7 +2180,7 @@ DOMGCSliceCallback(JSContext* aCx, JS::GCProgress aProgress, const JS::GCDescrip
           sFullGCTimer->InitWithNamedFuncCallback(FullGCTimerFired,
                                                   nullptr,
                                                   NS_FULL_GC_DELAY,
-                                                  nsITimer::TYPE_ONE_SHOT,
+                                                  nsITimer::TYPE_ONE_SHOT_LOW_PRIORITY,
                                                   "FullGCTimerFired");
         }
       } else {
@@ -2211,7 +2211,7 @@ DOMGCSliceCallback(JSContext* aCx, JS::GCProgress aProgress, const JS::GCDescrip
         sInterSliceGCTimer->InitWithNamedFuncCallback(InterSliceGCTimerFired,
                                                       nullptr,
                                                       NS_INTERSLICE_GC_DELAY,
-                                                      nsITimer::TYPE_ONE_SHOT,
+                                                      nsITimer::TYPE_ONE_SHOT_LOW_PRIORITY,
                                                       "InterSliceGCTimerFired");
       }
 
@@ -2622,7 +2622,7 @@ nsJSContext::NotifyDidPaint()
       sICCTimer->SetTarget(SystemGroup::EventTargetFor(TaskCategory::GarbageCollection));
       sICCTimer->InitWithNamedFuncCallback(ICCTimerFired, nullptr,
                                            kICCIntersliceDelay,
-                                           nsITimer::TYPE_REPEATING_SLACK,
+                                           nsITimer::TYPE_REPEATING_SLACK_LOW_PRIORITY,
                                            "ICCTimerFired");
     }
   } else if (sCCTimer) {
@@ -2641,7 +2641,7 @@ nsJSContext::NotifyDidPaint()
       sCCTimer->SetTarget(SystemGroup::EventTargetFor(TaskCategory::GarbageCollection));
       sCCTimer->InitWithNamedFuncCallback(CCTimerFired, nullptr,
                                           NS_CC_SKIPPABLE_DELAY,
-                                          nsITimer::TYPE_REPEATING_SLACK,
+                                          nsITimer::TYPE_REPEATING_SLACK_LOW_PRIORITY,
                                           "CCTimerFired");
     }
   }
