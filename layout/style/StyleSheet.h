@@ -291,9 +291,6 @@ protected:
   // Traverse our inner, if needed, for cycle collection
   virtual void TraverseInner(nsCycleCollectionTraversalCallback &);
 
-  void ClearRuleCascades();
-  virtual void ClearRuleCascadesInternal() {}
-
   StyleSheet*           mParent;    // weak ref
 
   nsString              mTitle;

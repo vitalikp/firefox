@@ -620,8 +620,8 @@ CSSStyleSheet::List(FILE* out, int32_t aIndent) const
 }
 #endif
 
-void 
-CSSStyleSheet::ClearRuleCascadesInternal()
+void
+CSSStyleSheet::ClearRuleCascades()
 {
   // We might be in ClearRuleCascadesInternal because we had a modification
   // to the sheet that resulted in an nsCSSSelector being destroyed.
@@ -646,6 +646,10 @@ CSSStyleSheet::ClearRuleCascadesInternal()
       }
       (*iter)->ClearRuleCascades();
     }
+  }
+
+  if (mParent) {
+    static_cast<CSSStyleSheet*>(mParent)->ClearRuleCascades();
   }
 }
 
