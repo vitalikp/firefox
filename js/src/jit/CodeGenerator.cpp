@@ -5645,6 +5645,10 @@ typedef ArrayIteratorObject* (*NewArrayIteratorObjectFn)(JSContext*, NewObjectKi
 static const VMFunction NewArrayIteratorObjectInfo =
     FunctionInfo<NewArrayIteratorObjectFn>(NewArrayIteratorObject, "NewArrayIteratorObject");
 
+typedef StringIteratorObject* (*NewStringIteratorObjectFn)(JSContext*, NewObjectKind);
+static const VMFunction NewStringIteratorObjectInfo =
+    FunctionInfo<NewStringIteratorObjectFn>(NewStringIteratorObject, "NewStringIteratorObject");
+
 void
 CodeGenerator::visitNewIterator(LNewIterator* lir)
 {
@@ -5656,6 +5660,11 @@ CodeGenerator::visitNewIterator(LNewIterator* lir)
     switch (lir->mir()->type()) {
       case MNewIterator::ArrayIterator:
         ool = oolCallVM(NewArrayIteratorObjectInfo, lir,
+                        ArgList(Imm32(GenericObject)),
+                        StoreRegisterTo(objReg));
+        break;
+      case MNewIterator::StringIterator:
+        ool = oolCallVM(NewStringIteratorObjectInfo, lir,
                         ArgList(Imm32(GenericObject)),
                         StoreRegisterTo(objReg));
         break;

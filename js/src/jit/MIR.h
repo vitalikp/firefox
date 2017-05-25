@@ -3545,7 +3545,8 @@ class MNewIterator
 {
   public:
     enum Type {
-        ArrayIterator
+        ArrayIterator,
+        StringIterator,
     };
 
 private:
