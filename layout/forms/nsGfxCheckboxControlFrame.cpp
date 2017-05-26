@@ -32,7 +32,7 @@ NS_IMPL_FRAMEARENA_HELPERS(nsGfxCheckboxControlFrame)
 //------------------------------------------------------------
 // Initialize GFX-rendered state
 nsGfxCheckboxControlFrame::nsGfxCheckboxControlFrame(nsStyleContext* aContext)
-: nsFormControlFrame(aContext)
+: nsFormControlFrame(aContext, kClassID)
 {
 }
 

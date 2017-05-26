@@ -4354,7 +4354,7 @@ public:
 
 protected:
   explicit nsContinuingTextFrame(nsStyleContext* aContext)
-    : nsTextFrame(aContext)
+    : nsTextFrame(aContext, kClassID)
   {}
 
   nsTextFrame* mPrevContinuation;

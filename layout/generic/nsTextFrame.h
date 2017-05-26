@@ -49,8 +49,8 @@ class nsTextFrame : public nsFrame
   typedef gfxTextRun::Range Range;
 
 public:
-  explicit nsTextFrame(nsStyleContext* aContext)
-    : nsTextFrame(aContext, mozilla::LayoutFrameType::Text)
+  explicit nsTextFrame(nsStyleContext* aContext, ClassID aID = kClassID)
+    : nsTextFrame(aContext, aID, mozilla::LayoutFrameType::Text)
   {}
 
   NS_DECL_FRAMEARENA_HELPERS(nsTextFrame)
@@ -647,8 +647,8 @@ public:
   uint32_t CountGraphemeClusters() const;
 
 protected:
-  nsTextFrame(nsStyleContext* aContext, mozilla::LayoutFrameType aType)
-    : nsFrame(aContext, aType)
+  nsTextFrame(nsStyleContext* aContext, ClassID aID, mozilla::LayoutFrameType aType)
+    : nsFrame(aContext, aID, aType)
     , mNextContinuation(nullptr)
     , mContentOffset(0)
     , mContentLengthHint(0)

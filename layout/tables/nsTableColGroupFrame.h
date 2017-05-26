@@ -224,7 +224,7 @@ protected:
 };
 
 inline nsTableColGroupFrame::nsTableColGroupFrame(nsStyleContext* aContext)
-  : nsContainerFrame(aContext, mozilla::LayoutFrameType::TableColGroup)
+  : nsContainerFrame(aContext, kClassID, mozilla::LayoutFrameType::TableColGroup)
   , mColCount(0)
   , mStartColIndex(0)
 {
