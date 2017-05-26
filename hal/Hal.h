@@ -443,9 +443,7 @@ MOZ_MUST_USE bool SetAlarm(int32_t aSeconds, int32_t aNanoseconds);
  * background processes higher nice values.  On other platforms, we might
  * ignore this call entirely.
  */
-void SetProcessPriority(int aPid,
-                        hal::ProcessPriority aPriority,
-                        uint32_t aLRU = 0);
+void SetProcessPriority(int aPid, hal::ProcessPriority aPriority);
 
 
 /**
