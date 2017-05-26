@@ -115,7 +115,6 @@ PluginInstanceParent::PluginInstanceParent(PluginModuleParent* parent,
                                            const NPNetscapeFuncs* npniface)
     : mParent(parent)
     , mSurrogate(PluginAsyncSurrogate::Cast(npp))
-    , mUseSurrogate(true)
     , mNPP(npp)
     , mNPNIface(npniface)
     , mWindowType(NPWindowTypeWindow)
