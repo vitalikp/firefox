@@ -406,7 +406,7 @@ nsMenuPopupFrame::SetInitialChildList(ChildListID  aListID,
 }
 
 bool
-nsMenuPopupFrame::IsLeaf() const
+nsMenuPopupFrame::IsLeafDynamic() const
 {
   if (mGeneratedChildren)
     return false;
