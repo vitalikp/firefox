@@ -110,9 +110,8 @@ NS_IMPL_FRAMEARENA_HELPERS(nsHTMLScrollFrame)
 
 nsHTMLScrollFrame::nsHTMLScrollFrame(nsStyleContext* aContext,
                                      nsIFrame::ClassID aID,
-                                     LayoutFrameType aType,
                                      bool aIsRoot)
-  : nsContainerFrame(aContext, aID, aType)
+  : nsContainerFrame(aContext, aID)
   , mHelper(ALLOW_THIS_IN_INITIALIZER_LIST(this), aIsRoot)
 {
 }
@@ -1159,7 +1158,7 @@ NS_IMPL_FRAMEARENA_HELPERS(nsXULScrollFrame)
 nsXULScrollFrame::nsXULScrollFrame(nsStyleContext* aContext,
                                    bool aIsRoot,
                                    bool aClipAllDescendants)
-  : nsBoxFrame(aContext, kClassID, LayoutFrameType::Scroll, aIsRoot)
+  : nsBoxFrame(aContext, kClassID, aIsRoot)
   , mHelper(ALLOW_THIS_IN_INITIALIZER_LIST(this), aIsRoot)
 {
   SetXULLayoutManager(nullptr);

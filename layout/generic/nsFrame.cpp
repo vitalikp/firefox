@@ -466,8 +466,8 @@ NS_NewEmptyFrame(nsIPresShell* aPresShell, nsStyleContext* aContext)
   return new (aPresShell) nsFrame(aContext);
 }
 
-nsFrame::nsFrame(nsStyleContext* aContext, ClassID aID, LayoutFrameType aType)
-  : nsBox(aID, aType)
+nsFrame::nsFrame(nsStyleContext* aContext, ClassID aID)
+  : nsBox(aID)
 {
   MOZ_COUNT_CTOR(nsFrame);
 
