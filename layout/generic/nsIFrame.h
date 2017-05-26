@@ -603,6 +603,7 @@ public:
     , mNextSibling(nullptr)
     , mPrevSibling(nullptr)
     , mState(NS_FRAME_FIRST_REFLOW | NS_FRAME_IS_DIRTY)
+    , mMayHaveRoundedCorners(false)
   {
     mozilla::PodZero(&mOverflow);
   }
@@ -3720,6 +3721,9 @@ protected:
 
   /** @see GetWritingMode() */
   mozilla::WritingMode mWritingMode;
+
+  bool mMayHaveRoundedCorners : 1;
+  // There should be a 15-bit gap left here.
 
   // Helpers
   /**
