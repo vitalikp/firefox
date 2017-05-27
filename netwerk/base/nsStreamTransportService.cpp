@@ -581,6 +581,8 @@ class AvailableEvent final : public Runnable
         : mStream(stream)
         , mCallback(callback)
         , mDoingCallback(false)
+        , mSize(0)
+        , mResultForCallback(NS_OK)
     {
         mCallbackTarget = NS_GetCurrentThread();
     }
