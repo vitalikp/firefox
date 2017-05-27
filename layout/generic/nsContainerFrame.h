@@ -24,9 +24,6 @@
 #define NS_FRAME_NO_DELETE_NEXT_IN_FLOW_CHILD 0x0010
 
 class nsOverflowContinuationTracker;
-namespace mozilla {
-class FramePropertyTable;
-} // namespace mozilla
 
 // Some macros for container classes to do sanity checking on
 // width/height/x/y values computed during reflow.
@@ -529,7 +526,7 @@ public:
   // Use this to suppress the CRAZY_SIZE assertions.
   NS_DECLARE_FRAME_PROPERTY_SMALL_VALUE(DebugReflowingWithInfiniteISize, bool)
   bool IsCrazySizeAssertSuppressed() const {
-    return Properties().Get(DebugReflowingWithInfiniteISize());
+    return GetProperty(DebugReflowingWithInfiniteISize());
   }
 #endif
 
@@ -700,7 +697,6 @@ protected:
    */
   void SafelyDestroyFrameListProp(nsIFrame* aDestructRoot,
                                   nsIPresShell* aPresShell,
-                                  mozilla::FramePropertyTable* aPropTable,
                                   FrameListPropertyDescriptor aProp);
 
   // ==========================================================================
@@ -884,7 +880,7 @@ inline
 nsFrameList*
 nsContainerFrame::GetOverflowFrames() const
 {
-  nsFrameList* list = Properties().Get(OverflowProperty());
+  nsFrameList* list = GetProperty(OverflowProperty());
   NS_ASSERTION(!list || !list->IsEmpty(), "Unexpected empty overflow list");
   return list;
 }
@@ -893,7 +889,7 @@ inline
 nsFrameList*
 nsContainerFrame::StealOverflowFrames()
 {
-  nsFrameList* list = Properties().Remove(OverflowProperty());
+  nsFrameList* list = RemoveProperty(OverflowProperty());
   NS_ASSERTION(!list || !list->IsEmpty(), "Unexpected empty overflow list");
   return list;
 }

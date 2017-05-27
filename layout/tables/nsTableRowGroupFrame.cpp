@@ -1908,7 +1908,7 @@ nsTableRowGroupFrame::ClearRowCursor()
   }
 
   RemoveStateBits(NS_ROWGROUP_HAS_ROW_CURSOR);
-  Properties().Delete(RowCursorProperty());
+  DeleteProperty(RowCursorProperty());
 }
 
 nsTableRowGroupFrame::FrameCursorData*
@@ -1932,7 +1932,7 @@ nsTableRowGroupFrame::SetupRowCursor()
   FrameCursorData* data = new FrameCursorData();
   if (!data)
     return nullptr;
-  Properties().Set(RowCursorProperty(), data);
+  SetProperty(RowCursorProperty(), data);
   AddStateBits(NS_ROWGROUP_HAS_ROW_CURSOR);
   return data;
 }
@@ -1944,7 +1944,7 @@ nsTableRowGroupFrame::GetFirstRowContaining(nscoord aY, nscoord* aOverflowAbove)
     return nullptr;
   }
 
-  FrameCursorData* property = Properties().Get(RowCursorProperty());
+  FrameCursorData* property = GetProperty(RowCursorProperty());
   uint32_t cursorIndex = property->mCursorIndex;
   uint32_t frameCount = property->mFrames.Length();
   if (cursorIndex >= frameCount)

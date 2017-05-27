@@ -327,10 +327,8 @@ nsBlockFrame::DestroyFrom(nsIFrame* aDestructRoot)
   nsLineBox::DeleteLineList(presContext, mLines, aDestructRoot,
                             &mFrames);
 
-  FramePropertyTable* props = presContext->PropertyTable();
-
   if (HasPushedFloats()) {
-    SafelyDestroyFrameListProp(aDestructRoot, shell, props,
+    SafelyDestroyFrameListProp(aDestructRoot, shell,
                                PushedFloatProperty());
     RemoveStateBits(NS_BLOCK_HAS_PUSHED_FLOATS);
   }
@@ -344,13 +342,13 @@ nsBlockFrame::DestroyFrom(nsIFrame* aDestructRoot)
   }
 
   if (GetStateBits() & NS_BLOCK_HAS_OVERFLOW_OUT_OF_FLOWS) {
-    SafelyDestroyFrameListProp(aDestructRoot, shell, props,
+    SafelyDestroyFrameListProp(aDestructRoot, shell,
                                OverflowOutOfFlowsProperty());
     RemoveStateBits(NS_BLOCK_HAS_OVERFLOW_OUT_OF_FLOWS);
   }
 
   if (HasOutsideBullet()) {
-    SafelyDestroyFrameListProp(aDestructRoot, shell, props,
+    SafelyDestroyFrameListProp(aDestructRoot, shell,
                                OutsideBulletProperty());
     RemoveStateBits(NS_BLOCK_FRAME_HAS_OUTSIDE_BULLET);
   }
@@ -1665,7 +1663,7 @@ nsBlockFrame::ComputeFinalSize(const ReflowInput& aReflowInput,
     // our computed size due to overflowing their containing block.  (E.g. this
     // ensures we fill the last row when a multi-row grid item is fragmented).
     bool found;
-    nscoord bSize = Properties().Get(FragStretchBSizeProperty(), &found);
+    nscoord bSize = GetProperty(FragStretchBSizeProperty(), &found);
     if (found) {
       finalSize.BSize(wm) = std::max(bSize, finalSize.BSize(wm));
     }
@@ -1675,7 +1673,7 @@ nsBlockFrame::ComputeFinalSize(const ReflowInput& aReflowInput,
   if (MOZ_UNLIKELY(aReflowInput.mFlags.mBClampMarginBoxMinSize) &&
       aState.mReflowStatus.IsComplete()) {
     bool found;
-    nscoord cbSize = Properties().Get(BClampMarginBoxMinSizeProperty(), &found);
+    nscoord cbSize = GetProperty(BClampMarginBoxMinSizeProperty(), &found);
     if (found) {
       auto marginBoxBSize = finalSize.BSize(wm) +
                             aReflowInput.ComputedLogicalMargin().BStartEnd(wm);
@@ -1693,11 +1691,10 @@ nsBlockFrame::ComputeFinalSize(const ReflowInput& aReflowInput,
   finalSize.BSize(wm) = std::max(0, finalSize.BSize(wm));
   *aBEndEdgeOfChildren = blockEndEdgeOfChildren;
 
-  FrameProperties properties = Properties();
   if (blockEndEdgeOfChildren != finalSize.BSize(wm) - borderPadding.BEnd(wm)) {
-    properties.Set(BlockEndEdgeOfChildrenProperty(), blockEndEdgeOfChildren);
+    SetProperty(BlockEndEdgeOfChildrenProperty(), blockEndEdgeOfChildren);
   } else {
-    properties.Delete(BlockEndEdgeOfChildrenProperty());
+    DeleteProperty(BlockEndEdgeOfChildrenProperty());
   }
 
   aMetrics.SetSize(wm, finalSize);
@@ -1830,7 +1827,7 @@ nsBlockFrame::ComputeCustomOverflow(nsOverflowAreas& aOverflowAreas)
 {
   bool found;
   nscoord blockEndEdgeOfChildren =
-    Properties().Get(BlockEndEdgeOfChildrenProperty(), &found);
+    GetProperty(BlockEndEdgeOfChildrenProperty(), &found);
   if (found) {
     ConsiderBlockEndEdgeOfChildren(GetWritingMode(),
                                    blockEndEdgeOfChildren, aOverflowAreas);
@@ -4987,7 +4984,7 @@ nsBlockFrame::GetOverflowLines() const
   if (!HasOverflowLines()) {
     return nullptr;
   }
-  FrameLines* prop = Properties().Get(OverflowLinesProperty());
+  FrameLines* prop = GetProperty(OverflowLinesProperty());
   NS_ASSERTION(prop && !prop->mLines.empty() &&
                prop->mLines.front()->GetChildCount() == 0 ? prop->mFrames.IsEmpty() :
                  prop->mLines.front()->mFirstChild == prop->mFrames.FirstChild(),
@@ -5001,7 +4998,7 @@ nsBlockFrame::RemoveOverflowLines()
   if (!HasOverflowLines()) {
     return nullptr;
   }
-  FrameLines* prop = Properties().Remove(OverflowLinesProperty());
+  FrameLines* prop = RemoveProperty(OverflowLinesProperty());
   NS_ASSERTION(prop && !prop->mLines.empty() &&
                prop->mLines.front()->GetChildCount() == 0 ? prop->mFrames.IsEmpty() :
                  prop->mLines.front()->mFirstChild == prop->mFrames.FirstChild(),
@@ -5014,7 +5011,7 @@ void
 nsBlockFrame::DestroyOverflowLines()
 {
   NS_ASSERTION(HasOverflowLines(), "huh?");
-  FrameLines* prop = Properties().Remove(OverflowLinesProperty());
+  FrameLines* prop = RemoveProperty(OverflowLinesProperty());
   NS_ASSERTION(prop && prop->mLines.empty(),
                "value should always be stored but empty when destroying");
   RemoveStateBits(NS_BLOCK_HAS_OVERFLOW_LINES);
@@ -5034,10 +5031,9 @@ nsBlockFrame::SetOverflowLines(FrameLines* aOverflowLines)
   NS_ASSERTION(!(GetStateBits() & NS_BLOCK_HAS_OVERFLOW_LINES),
                "Overwriting existing overflow lines");
 
-  FrameProperties props = Properties();
   // Verify that we won't overwrite an existing overflow list
-  NS_ASSERTION(!props.Get(OverflowLinesProperty()), "existing overflow list");
-  props.Set(OverflowLinesProperty(), aOverflowLines);
+  NS_ASSERTION(!GetProperty(OverflowLinesProperty()), "existing overflow list");
+  SetProperty(OverflowLinesProperty(), aOverflowLines);
   AddStateBits(NS_BLOCK_HAS_OVERFLOW_LINES);
 }
 
@@ -5090,7 +5086,7 @@ nsBlockFrame::GetInsideBullet() const
     return nullptr;
   }
   NS_ASSERTION(!HasOutsideBullet(), "invalid bullet state");
-  nsBulletFrame* frame = Properties().Get(InsideBulletProperty());
+  nsBulletFrame* frame = GetProperty(InsideBulletProperty());
   NS_ASSERTION(frame && frame->IsBulletFrame(), "bogus inside bullet frame");
   return frame;
 }
@@ -5110,8 +5106,7 @@ nsBlockFrame::GetOutsideBulletList() const
     return nullptr;
   }
   NS_ASSERTION(!HasInsideBullet(), "invalid bullet state");
-  nsFrameList* list =
-    Properties().Get(OutsideBulletProperty());
+  nsFrameList* list = GetProperty(OutsideBulletProperty());
   NS_ASSERTION(list && list->GetLength() == 1 &&
                list->FirstChild()->IsBulletFrame(),
                "bogus outside bullet list");
@@ -5124,8 +5119,7 @@ nsBlockFrame::GetPushedFloats() const
   if (!HasPushedFloats()) {
     return nullptr;
   }
-  nsFrameList* result =
-    Properties().Get(PushedFloatProperty());
+  nsFrameList* result = GetProperty(PushedFloatProperty());
   NS_ASSERTION(result, "value should always be non-empty when state set");
   return result;
 }
@@ -5138,7 +5132,7 @@ nsBlockFrame::EnsurePushedFloats()
     return result;
 
   result = new (PresContext()->PresShell()) nsFrameList;
-  Properties().Set(PushedFloatProperty(), result);
+  SetProperty(PushedFloatProperty(), result);
   AddStateBits(NS_BLOCK_HAS_PUSHED_FLOATS);
 
   return result;
@@ -5150,7 +5144,7 @@ nsBlockFrame::RemovePushedFloats()
   if (!HasPushedFloats()) {
     return nullptr;
   }
-  nsFrameList *result = Properties().Remove(PushedFloatProperty());
+  nsFrameList *result = RemoveProperty(PushedFloatProperty());
   RemoveStateBits(NS_BLOCK_HAS_PUSHED_FLOATS);
   NS_ASSERTION(result, "value should always be non-empty when state set");
   return result;
@@ -5628,7 +5622,7 @@ nsBlockInFlowLineIterator::nsBlockInFlowLineIterator(nsBlockFrame* aFrame,
     if (mLine != line_end) {
       *aFoundValidLine = true;
       if (mLine != cursor) {
-        aFrame->Properties().Set(nsBlockFrame::LineCursorProperty(), mLine);
+        aFrame->SetProperty(nsBlockFrame::LineCursorProperty(), mLine);
       }
       return;
     }
@@ -6778,7 +6772,7 @@ void nsBlockFrame::ClearLineCursor()
     return;
   }
 
-  Properties().Delete(LineCursorProperty());
+  DeleteProperty(LineCursorProperty());
   RemoveStateBits(NS_BLOCK_HAS_LINE_CURSOR);
 }
 
@@ -6789,7 +6783,7 @@ void nsBlockFrame::SetupLineCursor()
     return;
   }
 
-  Properties().Set(LineCursorProperty(), mLines.front());
+  SetProperty(LineCursorProperty(), mLines.front());
   AddStateBits(NS_BLOCK_HAS_LINE_CURSOR);
 }
 
@@ -6799,9 +6793,7 @@ nsLineBox* nsBlockFrame::GetFirstLineContaining(nscoord y)
     return nullptr;
   }
 
-  FrameProperties props = Properties();
-
-  nsLineBox* property = props.Get(LineCursorProperty());
+  nsLineBox* property = GetProperty(LineCursorProperty());
   LineIterator cursor = mLines.begin(property);
   nsRect cursorArea = cursor->GetVisualOverflowArea();
 
@@ -6817,7 +6809,7 @@ nsLineBox* nsBlockFrame::GetFirstLineContaining(nscoord y)
   }
 
   if (cursor.get() != property) {
-    props.Set(LineCursorProperty(), cursor.get());
+    SetProperty(LineCursorProperty(), cursor.get());
   }
 
   return cursor.get();
@@ -7032,11 +7024,11 @@ nsBlockFrame::CreateBulletFrameForListItem(bool aCreateBulletList,
   if (aListStylePositionInside) {
     nsFrameList bulletList(bullet, bullet);
     AddFrames(bulletList, nullptr);
-    Properties().Set(InsideBulletProperty(), bullet);
+    SetProperty(InsideBulletProperty(), bullet);
     AddStateBits(NS_BLOCK_FRAME_HAS_INSIDE_BULLET);
   } else {
     nsFrameList* bulletList = new (shell) nsFrameList(bullet, bullet);
-    Properties().Set(OutsideBulletProperty(), bulletList);
+    SetProperty(OutsideBulletProperty(), bulletList);
     AddStateBits(NS_BLOCK_FRAME_HAS_OUTSIDE_BULLET);
   }
 }

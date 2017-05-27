@@ -323,7 +323,7 @@ private:
   nsresult GetRootNodeAndInitializeEditor(nsIDOMElement **aRootElement);
 
   void FinishedInitializer() {
-    Properties().Delete(TextControlInitializer());
+    DeleteProperty(TextControlInitializer());
   }
 
 private:
