@@ -1171,6 +1171,12 @@ Gecko_SetCounterStyleToSymbols(CounterStylePtr* aPtr, uint8_t aSymbolsType,
 }
 
 void
+Gecko_SetCounterStyleToString(CounterStylePtr* aPtr, const nsACString* aSymbol)
+{
+  *aPtr = new AnonymousCounterStyle(NS_ConvertUTF8toUTF16(*aSymbol));
+}
+
+void
 Gecko_CopyCounterStyle(CounterStylePtr* aDst, const CounterStylePtr* aSrc)
 {
   *aDst = *aSrc;
