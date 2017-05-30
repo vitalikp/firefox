@@ -32,10 +32,8 @@
 #include "prsystem.h"
 #include "prclist.h"
 #include "PluginQuirks.h"
-#ifdef MOZ_GECKO_PROFILER
-#include "CrossProcessProfilerController.h"
-#endif
 #include "GeckoProfiler.h"
+#include "ProfilerParent.h"
 #include "nsPluginTags.h"
 #include "nsUnicharUtils.h"
 #include "mozilla/layers/TextureClientRecycleAllocator.h"
@@ -57,9 +55,6 @@
 using base::KillProcess;
 
 using mozilla::PluginLibrary;
-#ifdef MOZ_GECKO_PROFILER
-using mozilla::CrossProcessProfilerController;
-#endif
 using mozilla::ipc::MessageChannel;
 using mozilla::ipc::GeckoChildProcessHost;
 
@@ -560,7 +555,7 @@ PluginModuleChromeParent::OnProcessLaunched(const bool aSucceeded)
     }
 
 #ifdef MOZ_GECKO_PROFILER
-    mProfilerController = MakeUnique<CrossProcessProfilerController>(this);
+    Unused << SendInitProfiler(ProfilerParent::CreateForProcess(OtherPid()));
 #endif
 }
 
@@ -655,10 +650,6 @@ PluginModuleChromeParent::~PluginModuleChromeParent()
     if (!OkToCleanup()) {
         MOZ_CRASH("unsafe destruction");
     }
-
-#ifdef MOZ_GECKO_PROFILER
-    mProfilerController = nullptr;
-#endif
 
 #ifdef XP_WIN
     // If we registered for audio notifications, stop.
@@ -2696,18 +2687,6 @@ PluginModuleParent::AnswerNPN_SetValue_NPPVpluginRequiresAudioDeviceChanges(
     NS_RUNTIMEABORT("SetValue_NPPVpluginRequiresAudioDeviceChanges is only valid "
       "with PluginModuleChromeParent");
     *result = NPERR_GENERIC_ERROR;
-    return IPC_OK();
-}
-
-mozilla::ipc::IPCResult
-PluginModuleChromeParent::RecvProfile(const nsCString& aProfile,
-                                      const bool& aIsExitProfile)
-{
-#ifdef MOZ_GECKO_PROFILER
-    if (mProfilerController) {
-        mProfilerController->RecvProfile(aProfile, aIsExitProfile);
-    }
-#endif
     return IPC_OK();
 }
 

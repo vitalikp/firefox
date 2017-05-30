@@ -428,18 +428,6 @@ nsProfiler::GetBufferInfo(uint32_t* aCurrentPosition, uint32_t* aTotalSize,
 }
 
 void
-nsProfiler::WillGatherOOPProfile()
-{
-  MOZ_RELEASE_ASSERT(NS_IsMainThread());
-
-  if (!mGatherer) {
-    return;
-  }
-
-  mGatherer->WillGatherOOPProfile();
-}
-
-void
 nsProfiler::GatheredOOPProfile(const nsACString& aProfile)
 {
   MOZ_RELEASE_ASSERT(NS_IsMainThread());
@@ -452,7 +440,7 @@ nsProfiler::GatheredOOPProfile(const nsACString& aProfile)
 }
 
 void
-nsProfiler::OOPExitProfile(const nsACString& aProfile)
+nsProfiler::ReceiveShutdownProfile(const nsCString& aProfile)
 {
   MOZ_RELEASE_ASSERT(NS_IsMainThread());
 
@@ -462,4 +450,3 @@ nsProfiler::OOPExitProfile(const nsACString& aProfile)
 
   mGatherer->OOPExitProfile(aProfile);
 }
-
