@@ -1296,9 +1296,6 @@ struct TlsData
     uint32_t boundsCheckLimit;
 #endif
 
-    // Pointer to the global data for this Instance.
-    uint8_t* globalData;
-
     // Pointer to the Instance that contains this TLS data.
     Instance* instance;
 
