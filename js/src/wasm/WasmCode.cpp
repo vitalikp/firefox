@@ -864,8 +864,6 @@ const MemoryAccess*
 Code::lookupMemoryAccess(void* pc, const CodeSegment** segmentp) const
 {
     for (auto t : tiers()) {
-        MOZ_ASSERT(segment(t).containsFunctionPC(pc));
-
         const MemoryAccessVector& memoryAccesses = metadata(t).memoryAccesses;
 
         uint32_t target = ((uint8_t*)pc) - segment(t).base();
@@ -876,6 +874,7 @@ Code::lookupMemoryAccess(void* pc, const CodeSegment** segmentp) const
         if (BinarySearch(MemoryAccessOffset(memoryAccesses), lowerBound, upperBound, target,
                          &match))
         {
+            MOZ_ASSERT(segment(t).containsFunctionPC(pc));
             if (segmentp)
                 *segmentp = &segment(t);
             return &memoryAccesses[match];
