@@ -301,17 +301,6 @@ TabParent::RemoveWindowListeners()
   }
 }
 
-bool
-TabParent::IsVisible() const
-{
-  RefPtr<nsFrameLoader> frameLoader = GetFrameLoader();
-  if (!frameLoader) {
-    return false;
-  }
-
-  return frameLoader->GetVisible();
-}
-
 void
 TabParent::DestroyInternal()
 {
