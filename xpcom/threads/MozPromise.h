@@ -492,12 +492,16 @@ protected:
            typename ThisType,
            typename MethodType,
            typename ValueType>
-  static typename EnableIf<SupportChaining, already_AddRefed<MozPromise>>::Type
-  InvokeCallbackMethod(ThisType* aThisVal,
-                       MethodType aMethod,
-                       ValueType&& aValue)
+  static typename EnableIf<SupportChaining, void>::Type InvokeCallbackMethod(
+    ThisType* aThisVal,
+    MethodType aMethod,
+    ValueType&& aValue,
+    RefPtr<Private>&& aCompletionPromise)
   {
-    return InvokeMethod(aThisVal, aMethod, Forward<ValueType>(aValue)).forget();
+    auto p = InvokeMethod(aThisVal, aMethod, Forward<ValueType>(aValue));
+    if (aCompletionPromise) {
+      p->ChainTo(aCompletionPromise.forget(), "<chained completion promise>");
+    }
   }
 
   // Called when promise chaining is not supported.
@@ -505,13 +509,16 @@ protected:
            typename ThisType,
            typename MethodType,
            typename ValueType>
-  static typename EnableIf<!SupportChaining, already_AddRefed<MozPromise>>::Type
-  InvokeCallbackMethod(ThisType* aThisVal,
-                       MethodType aMethod,
-                       ValueType&& aValue)
+  static typename EnableIf<!SupportChaining, void>::Type InvokeCallbackMethod(
+    ThisType* aThisVal,
+    MethodType aMethod,
+    ValueType&& aValue,
+    RefPtr<Private>&& aCompletionPromise)
   {
+    MOZ_DIAGNOSTIC_ASSERT(
+      !aCompletionPromise,
+      "Can't do promise chaining for a non-promise-returning method.");
     InvokeMethod(aThisVal, aMethod, Forward<ValueType>(aValue));
-    return nullptr;
   }
 
   template<typename>
@@ -563,13 +570,18 @@ protected:
 
     void DoResolveOrRejectInternal(ResolveOrRejectValue& aValue) override
     {
-      RefPtr<MozPromise> result;
       if (aValue.IsResolve()) {
-        result = InvokeCallbackMethod<SupportChaining::value>(
-          mThisVal.get(), mResolveMethod, MaybeMove(aValue.ResolveValue()));
+        InvokeCallbackMethod<SupportChaining::value>(
+          mThisVal.get(),
+          mResolveMethod,
+          MaybeMove(aValue.ResolveValue()),
+          Move(mCompletionPromise));
       } else {
-        result = InvokeCallbackMethod<SupportChaining::value>(
-          mThisVal.get(), mRejectMethod, MaybeMove(aValue.RejectValue()));
+        InvokeCallbackMethod<SupportChaining::value>(
+          mThisVal.get(),
+          mRejectMethod,
+          MaybeMove(aValue.RejectValue()),
+          Move(mCompletionPromise));
       }
 
       // Null out mThisVal after invoking the callback so that any references are
@@ -577,15 +589,6 @@ protected:
       // released on whatever thread last drops its reference to the ThenValue,
       // which may or may not be ok.
       mThisVal = nullptr;
-
-      MOZ_DIAGNOSTIC_ASSERT(
-        !mCompletionPromise || result,
-        "Can't do promise chaining for a non-promise-returning method.");
-
-      if (mCompletionPromise && result) {
-        result->ChainTo(mCompletionPromise.forget(),
-                        "<chained completion promise>");
-      }
     }
 
   private:
@@ -630,23 +633,16 @@ protected:
 
     void DoResolveOrRejectInternal(ResolveOrRejectValue& aValue) override
     {
-      RefPtr<MozPromise> result = InvokeCallbackMethod<SupportChaining::value>(
-        mThisVal.get(), mResolveRejectMethod, MaybeMove(aValue));
+      InvokeCallbackMethod<SupportChaining::value>(mThisVal.get(),
+                                                   mResolveRejectMethod,
+                                                   MaybeMove(aValue),
+                                                   Move(mCompletionPromise));
 
       // Null out mThisVal after invoking the callback so that any references are
       // released predictably on the dispatch thread. Otherwise, it would be
       // released on whatever thread last drops its reference to the ThenValue,
       // which may or may not be ok.
       mThisVal = nullptr;
-
-      MOZ_DIAGNOSTIC_ASSERT(
-        !mCompletionPromise || result,
-        "Can't do promise chaining for a non-promise-returning method.");
-
-      if (mCompletionPromise && result) {
-        result->ChainTo(mCompletionPromise.forget(),
-                        "<chained completion promise>");
-      }
     }
 
   private:
@@ -701,17 +697,18 @@ protected:
       // classes with ::operator()), since it allows us to share code more easily.
       // We could fix this if need be, though it's quite easy to work around by
       // just capturing something.
-      RefPtr<MozPromise> result;
       if (aValue.IsResolve()) {
-        result = InvokeCallbackMethod<SupportChaining::value>(
+        InvokeCallbackMethod<SupportChaining::value>(
           mResolveFunction.ptr(),
           &ResolveFunction::operator(),
-          MaybeMove(aValue.ResolveValue()));
+          MaybeMove(aValue.ResolveValue()),
+          Move(mCompletionPromise));
       } else {
-        result = InvokeCallbackMethod<SupportChaining::value>(
+        InvokeCallbackMethod<SupportChaining::value>(
           mRejectFunction.ptr(),
           &RejectFunction::operator(),
-          MaybeMove(aValue.RejectValue()));
+          MaybeMove(aValue.RejectValue()),
+          Move(mCompletionPromise));
       }
 
       // Destroy callbacks after invocation so that any references in closures are
@@ -720,15 +717,6 @@ protected:
       // which may or may not be ok.
       mResolveFunction.reset();
       mRejectFunction.reset();
-
-      MOZ_DIAGNOSTIC_ASSERT(
-        !mCompletionPromise || result,
-        "Can't do promise chaining for a non-promise-returning method.");
-
-      if (mCompletionPromise && result) {
-        result->ChainTo(mCompletionPromise.forget(),
-                        "<chained completion promise>");
-      }
     }
 
   private:
@@ -777,25 +765,17 @@ protected:
       // classes with ::operator()), since it allows us to share code more easily.
       // We could fix this if need be, though it's quite easy to work around by
       // just capturing something.
-      RefPtr<MozPromise> result = InvokeCallbackMethod<SupportChaining::value>(
+      InvokeCallbackMethod<SupportChaining::value>(
         mResolveRejectFunction.ptr(),
         &ResolveRejectFunction::operator(),
-        MaybeMove(aValue));
+        MaybeMove(aValue),
+        Move(mCompletionPromise));
 
       // Destroy callbacks after invocation so that any references in closures are
       // released predictably on the dispatch thread. Otherwise, they would be
       // released on whatever thread last drops its reference to the ThenValue,
       // which may or may not be ok.
       mResolveRejectFunction.reset();
-
-      MOZ_DIAGNOSTIC_ASSERT(
-        !mCompletionPromise || result,
-        "Can't do promise chaining for a non-promise-returning method.");
-
-      if (mCompletionPromise && result) {
-        result->ChainTo(mCompletionPromise.forget(),
-                        "<chained completion promise>");
-      }
     }
 
   private:
