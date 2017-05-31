@@ -727,8 +727,7 @@ nsFrame::DestroyFrom(nsIFrame* aDestructRoot)
   nsPresContext* presContext = PresContext();
   nsIPresShell* shell = presContext->GetPresShell();
   if (mState & NS_FRAME_OUT_OF_FLOW) {
-    nsPlaceholderFrame* placeholder =
-      shell->FrameManager()->GetPlaceholderFrameFor(this);
+    nsPlaceholderFrame* placeholder = GetPlaceholderFrame();
     NS_ASSERTION(!placeholder || (aDestructRoot != this),
                  "Don't call Destroy() on OOFs, call Destroy() on the placeholder.");
     NS_ASSERTION(!placeholder ||
@@ -8435,9 +8434,8 @@ int32_t
 nsFrame::GetLineNumber(nsIFrame *aFrame, bool aLockScroll, nsIFrame** aContainingBlock)
 {
   NS_ASSERTION(aFrame, "null aFrame");
-  nsFrameManager* frameManager = aFrame->PresContext()->FrameManager();
-  nsIFrame *blockFrame = aFrame;
-  nsIFrame *thisBlock;
+  nsIFrame* blockFrame = aFrame;
+  nsIFrame* thisBlock;
   nsAutoLineIterator it;
   nsresult result = NS_ERROR_FAILURE;
   while (NS_FAILED(result) && blockFrame)
@@ -8450,7 +8448,7 @@ nsFrame::GetLineNumber(nsIFrame *aFrame, bool aLockScroll, nsIFrame** aContainin
         // abspos continuations don't have placeholders, get the fif
         thisBlock = thisBlock->FirstInFlow();
       }
-      thisBlock = frameManager->GetPlaceholderFrameFor(thisBlock);
+      thisBlock = thisBlock->GetPlaceholderFrame();
       if (!thisBlock)
         return -1;
     }  
@@ -9395,7 +9393,6 @@ nsStyleContext*
 nsFrame::DoGetParentStyleContext(nsIFrame** aProviderFrame) const
 {
   *aProviderFrame = nullptr;
-  nsFrameManager* fm = PresContext()->FrameManager();
 
   // Handle display:contents and the root frame, when there's no parent frame
   // to inherit from.
@@ -9412,6 +9409,7 @@ nsFrame::DoGetParentStyleContext(nsIFrame** aProviderFrame) const
           /* if next is true then it's really a request for the table frame's
              parent context, see nsTable[Outer]Frame::GetParentStyleContext. */
           pseudo == nsCSSAnonBoxes::tableWrapper) {
+        nsFrameManager* fm = PresContext()->FrameManager();
         nsStyleContext* sc = fm->GetDisplayContentsStyleFor(parentContent);
         if (MOZ_UNLIKELY(sc)) {
           return sc;
@@ -9448,7 +9446,7 @@ nsFrame::DoGetParentStyleContext(nsIFrame** aProviderFrame) const
   // We're an out-of-flow frame.  For out-of-flow frames, we must
   // resolve underneath the placeholder's parent.  The placeholder is
   // reached from the first-in-flow.
-  nsPlaceholderFrame* placeholder = fm->GetPlaceholderFrameFor(FirstInFlow());
+  nsPlaceholderFrame* placeholder = FirstInFlow()->GetPlaceholderFrame();
   if (!placeholder) {
     NS_NOTREACHED("no placeholder frame for out-of-flow frame");
     *aProviderFrame = GetCorrectedParent(this);
