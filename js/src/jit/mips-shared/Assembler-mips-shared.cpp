@@ -1626,6 +1626,8 @@ void
 AssemblerMIPSShared::as_sync(uint32_t stype)
 {
     MOZ_ASSERT(stype <= 31);
+    if (isLoongson())
+        stype = 0;
     writeInst(InstReg(op_special, zero, zero, zero, stype, ff_sync).encode());
 }
 
