@@ -1991,7 +1991,7 @@ FindLiveThreadInfo(PSLockRef aLock, int* aIndexOut = nullptr)
 }
 
 static void
-locked_register_thread(PSLockRef aLock, const char* aName, void* stackTop)
+locked_register_thread(PSLockRef aLock, const char* aName, void* aStackTop)
 {
   MOZ_RELEASE_ASSERT(CorePS::Exists());
 
@@ -2002,7 +2002,7 @@ locked_register_thread(PSLockRef aLock, const char* aName, void* stackTop)
   }
 
   ThreadInfo* info = new ThreadInfo(aName, Thread::GetCurrentId(),
-                                    NS_IsMainThread(), stackTop);
+                                    NS_IsMainThread(), aStackTop);
   TLSInfo::SetInfo(aLock, info);
 
   if (ActivePS::Exists(aLock) && ActivePS::ShouldProfileThread(aLock, info)) {
