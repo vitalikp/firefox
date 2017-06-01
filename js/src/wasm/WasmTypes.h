@@ -895,7 +895,8 @@ struct FuncOffsets : CallableOffsets
 {
     MOZ_IMPLICIT FuncOffsets()
       : CallableOffsets(),
-        normalEntry(0)
+        normalEntry(0),
+        tierEntry(0)
     {}
 
     // Function CodeRanges have a table entry which takes an extra signature
@@ -905,9 +906,16 @@ struct FuncOffsets : CallableOffsets
     // entry.
     uint32_t normalEntry;
 
+    // The tierEntry is the point within a function to which the patching code
+    // within a Tier-1 function jumps.  It could be the instruction following
+    // the jump in the Tier-1 function, or the point following the standard
+    // prologue within a Tier-2 function.
+    uint32_t tierEntry;
+
     void offsetBy(uint32_t offset) {
         CallableOffsets::offsetBy(offset);
         normalEntry += offset;
+        tierEntry += offset;
     }
 };
 
@@ -940,6 +948,7 @@ class CodeRange
     uint32_t funcIndex_;
     uint32_t funcLineOrBytecode_;
     uint8_t funcBeginToNormalEntry_;
+    uint8_t funcBeginToTierEntry_;
     Kind kind_ : 8;
 
   public:
@@ -999,6 +1008,10 @@ class CodeRange
     uint32_t funcNormalEntry() const {
         MOZ_ASSERT(isFunction());
         return begin_ + funcBeginToNormalEntry_;
+    }
+    uint32_t funcTierEntry() const {
+        MOZ_ASSERT(isFunction());
+        return begin_ + funcBeginToTierEntry_;
     }
     uint32_t funcIndex() const {
         MOZ_ASSERT(isFunction());
@@ -1342,6 +1355,10 @@ struct TlsData
 
     // Pointer that should be freed (due to padding before the TlsData).
     void* allocatedBase;
+
+    // When compiling with tiering, the jumpTable has one entry for each
+    // baseline-compiled function.
+    uintptr_t* jumpTable;
 
     // The globalArea must be the last field.  Globals for the module start here
     // and are inline in this structure.  16-byte alignment is required for SIMD
