@@ -2807,7 +2807,7 @@ profiler_get_backtrace_noalloc(char *output, size_t outputSize)
 }
 
 static void
-locked_profiler_add_marker(PSLockRef aLock, const char* aMarker,
+locked_profiler_add_marker(PSLockRef aLock, const char* aMarkerName,
                            ProfilerMarkerPayload* aPayload)
 {
   MOZ_RELEASE_ASSERT(CorePS::Exists());
@@ -2826,12 +2826,12 @@ locked_profiler_add_marker(PSLockRef aLock, const char* aMarker,
                             ? payload->GetStartTime()
                             : mozilla::TimeStamp::Now();
   mozilla::TimeDuration delta = origin - CorePS::ProcessStartTime(aLock);
-  racyInfo->AddPendingMarker(aMarker, payload.release(),
+  racyInfo->AddPendingMarker(aMarkerName, payload.release(),
                              delta.ToMilliseconds());
 }
 
 void
-profiler_add_marker(const char* aMarker, ProfilerMarkerPayload* aPayload)
+profiler_add_marker(const char* aMarkerName, ProfilerMarkerPayload* aPayload)
 {
   MOZ_RELEASE_ASSERT(CorePS::Exists());
 
@@ -2844,11 +2844,12 @@ profiler_add_marker(const char* aMarker, ProfilerMarkerPayload* aPayload)
     return;
   }
 
-  locked_profiler_add_marker(lock, aMarker, payload.release());
+  locked_profiler_add_marker(lock, aMarkerName, payload.release());
 }
 
 void
-profiler_tracing(const char* aCategory, const char* aInfo, TracingKind aKind)
+profiler_tracing(const char* aCategory, const char* aMarkerName,
+                 TracingKind aKind)
 {
   MOZ_RELEASE_ASSERT(CorePS::Exists());
 
@@ -2858,12 +2859,12 @@ profiler_tracing(const char* aCategory, const char* aInfo, TracingKind aKind)
     return;
   }
 
-  auto marker = new ProfilerMarkerTracing(aCategory, aKind);
-  locked_profiler_add_marker(lock, aInfo, marker);
+  auto payload = new ProfilerMarkerTracing(aCategory, aKind);
+  locked_profiler_add_marker(lock, aMarkerName, payload);
 }
 
 void
-profiler_tracing(const char* aCategory, const char* aInfo,
+profiler_tracing(const char* aCategory, const char* aMarkerName,
                  UniqueProfilerBacktrace aCause, TracingKind aKind)
 {
   MOZ_RELEASE_ASSERT(CorePS::Exists());
@@ -2874,9 +2875,9 @@ profiler_tracing(const char* aCategory, const char* aInfo,
     return;
   }
 
-  auto marker =
+  auto payload =
     new ProfilerMarkerTracing(aCategory, aKind, mozilla::Move(aCause));
-  locked_profiler_add_marker(lock, aInfo, marker);
+  locked_profiler_add_marker(lock, aMarkerName, payload);
 }
 
 void
