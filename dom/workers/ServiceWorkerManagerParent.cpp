@@ -124,14 +124,14 @@ public:
     : mContentParent(aParent)
     , mPrincipalInfo(aPrincipalInfo)
     , mCallback(aCallback)
-    , mBackgroundThread(NS_GetCurrentThread())
+    , mBackgroundEventTarget(GetCurrentThreadEventTarget())
   {
     AssertIsInMainProcess();
     AssertIsOnBackgroundThread();
 
     MOZ_ASSERT(mContentParent);
     MOZ_ASSERT(mCallback);
-    MOZ_ASSERT(mBackgroundThread);
+    MOZ_ASSERT(mBackgroundEventTarget);
   }
 
   NS_IMETHOD Run() override
@@ -139,7 +139,7 @@ public:
     if (NS_IsMainThread()) {
       mContentParent = nullptr;
 
-      mBackgroundThread->Dispatch(this, NS_DISPATCH_NORMAL);
+      mBackgroundEventTarget->Dispatch(this, NS_DISPATCH_NORMAL);
       return NS_OK;
     }
 
@@ -154,7 +154,7 @@ private:
   RefPtr<ContentParent> mContentParent;
   PrincipalInfo mPrincipalInfo;
   RefPtr<Runnable> mCallback;
-  nsCOMPtr<nsIThread> mBackgroundThread;
+  nsCOMPtr<nsIEventTarget> mBackgroundEventTarget;
 };
 
 } // namespace

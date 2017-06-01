@@ -624,7 +624,7 @@ class ServiceWorkerRegistrarSaveDataRunnable final : public Runnable
 {
 public:
   ServiceWorkerRegistrarSaveDataRunnable()
-    : mThread(do_GetCurrentThread())
+    : mEventTarget(GetCurrentThreadEventTarget())
   {
     AssertIsOnBackgroundThread();
   }
@@ -639,7 +639,7 @@ public:
 
     RefPtr<Runnable> runnable =
       NewRunnableMethod(service, &ServiceWorkerRegistrar::DataSaved);
-    nsresult rv = mThread->Dispatch(runnable, NS_DISPATCH_NORMAL);
+    nsresult rv = mEventTarget->Dispatch(runnable, NS_DISPATCH_NORMAL);
     if (NS_WARN_IF(NS_FAILED(rv))) {
       return rv;
     }
@@ -648,7 +648,7 @@ public:
   }
 
 private:
-  nsCOMPtr<nsIThread> mThread;
+  nsCOMPtr<nsIEventTarget> mEventTarget;
 };
 
 void

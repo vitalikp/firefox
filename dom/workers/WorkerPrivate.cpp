@@ -4377,7 +4377,7 @@ WorkerPrivate::WorkerPrivate(WorkerPrivate* aParent,
   , mPRThread(nullptr)
   , mNumHoldersPreventingShutdownStart(0)
   , mDebuggerEventLoopLevel(0)
-  , mMainThreadEventTarget(do_GetMainThread())
+  , mMainThreadEventTarget(GetMainThreadEventTarget())
   , mWorkerControlEventTarget(new WorkerControlEventTarget(this))
   , mErrorHandlerRecursionCount(0)
   , mNextTimeoutId(1)
@@ -4423,10 +4423,8 @@ WorkerPrivate::WorkerPrivate(WorkerPrivate* aParent,
   target = GetWindow() ? GetWindow()->EventTargetFor(TaskCategory::Worker) : nullptr;
 
   if (!target) {
-    nsCOMPtr<nsIThread> mainThread;
-    NS_GetMainThread(getter_AddRefs(mainThread));
-    MOZ_DIAGNOSTIC_ASSERT(mainThread);
-    target = mainThread;
+    target = GetMainThreadEventTarget();
+    MOZ_DIAGNOSTIC_ASSERT(target);
   }
 
   // Throttle events to the main thread using a ThrottledEventQueue specific to
