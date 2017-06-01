@@ -1479,7 +1479,6 @@ Predictor::RunPredictions(nsIURI *referrer,
   }
 
   len = preresolves.Length();
-  nsCOMPtr<nsIThread> mainThread = do_GetMainThread();
   for (i = 0; i < len; ++i) {
     nsCOMPtr<nsIURI> uri = preresolves[i];
     ++totalPredictions;

@@ -425,7 +425,7 @@ class ServerSocketListenerProxy final : public nsIServerSocketListener
 public:
   explicit ServerSocketListenerProxy(nsIServerSocketListener* aListener)
     : mListener(new nsMainThreadPtrHolder<nsIServerSocketListener>(aListener))
-    , mTargetThread(do_GetCurrentThread())
+    , mTarget(GetCurrentThreadEventTarget())
   { }
 
   NS_DECL_THREADSAFE_ISUPPORTS
@@ -471,7 +471,7 @@ public:
 
 private:
   nsMainThreadPtrHandle<nsIServerSocketListener> mListener;
-  nsCOMPtr<nsIEventTarget> mTargetThread;
+  nsCOMPtr<nsIEventTarget> mTarget;
 };
 
 NS_IMPL_ISUPPORTS(ServerSocketListenerProxy,
@@ -483,7 +483,7 @@ ServerSocketListenerProxy::OnSocketAccepted(nsIServerSocket* aServ,
 {
   RefPtr<OnSocketAcceptedRunnable> r =
     new OnSocketAcceptedRunnable(mListener, aServ, aTransport);
-  return mTargetThread->Dispatch(r, NS_DISPATCH_NORMAL);
+  return mTarget->Dispatch(r, NS_DISPATCH_NORMAL);
 }
 
 NS_IMETHODIMP
@@ -492,7 +492,7 @@ ServerSocketListenerProxy::OnStopListening(nsIServerSocket* aServ,
 {
   RefPtr<OnStopListeningRunnable> r =
     new OnStopListeningRunnable(mListener, aServ, aStatus);
-  return mTargetThread->Dispatch(r, NS_DISPATCH_NORMAL);
+  return mTarget->Dispatch(r, NS_DISPATCH_NORMAL);
 }
 
 NS_IMETHODIMP
@@ -520,7 +520,7 @@ nsServerSocket::AsyncListen(nsIServerSocketListener *aListener)
   {
     MutexAutoLock lock(mLock);
     mListener = new ServerSocketListenerProxy(aListener);
-    mListenerTarget = NS_GetCurrentThread();
+    mListenerTarget = GetCurrentThreadEventTarget();
   }
 
   // Child classes may need to do additional setup just before listening begins

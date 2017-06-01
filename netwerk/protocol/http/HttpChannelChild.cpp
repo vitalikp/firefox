@@ -2218,7 +2218,7 @@ HttpChannelChild::GetNeckoTarget()
   }
 
   if (!target) {
-    target = do_GetMainThread();
+    target = GetMainThreadEventTarget();
   }
   return target.forget();
 }
@@ -2233,7 +2233,7 @@ HttpChannelChild::GetODATarget()
   }
 
   if (!target) {
-    target = do_GetMainThread();
+    target = GetMainThreadEventTarget();
   }
   return target.forget();
 }
@@ -3057,7 +3057,7 @@ HttpChannelChild::RetargetDeliveryTo(nsIEventTarget* aNewTarget)
   MOZ_ASSERT(aNewTarget);
 
   NS_ENSURE_ARG(aNewTarget);
-  if (aNewTarget == NS_GetCurrentThread()) {
+  if (aNewTarget->IsOnCurrentThread()) {
     NS_WARNING("Retargeting delivery to same thread");
     return NS_OK;
   }
