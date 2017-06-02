@@ -585,7 +585,7 @@ MOZ_THREAD_LOCAL(ThreadInfo*) TLSInfo::sThreadInfo;
 // also have a second TLS pointer directly to the PseudoStack. Here's why.
 //
 // - We need to be able to push to and pop from the PseudoStack in
-//   profiler_call_{enter,exit}.
+//   ProfilerStackFrameRAII.
 //
 // - Those two functions are hot and must be defined in GeckoProfiler.h so they
 //   can be inlined.
@@ -594,7 +594,7 @@ MOZ_THREAD_LOCAL(ThreadInfo*) TLSInfo::sThreadInfo;
 //
 // This second pointer isn't ideal, but does provide a way to satisfy those
 // constraints. TLSInfo manages it, except for the uses in
-// profiler_call_{enter,exit}.
+// ProfilerStackFrameRAII.
 MOZ_THREAD_LOCAL(PseudoStack*) sPseudoStack;
 
 // The name of the main thread.
