@@ -533,8 +533,6 @@ Metadata::metadata(Tier t) const
         if (hasTier2())
             return *metadata2_;
         MOZ_CRASH("No metadata at this tier");
-      case Tier::TBD:
-        return *metadata1_;
       default:
         MOZ_CRASH();
     }
@@ -554,8 +552,6 @@ Metadata::metadata(Tier t)
         if (hasTier2())
             return *metadata2_;
         MOZ_CRASH("No metadata at this tier");
-      case Tier::TBD:
-        return *metadata1_;
       default:
         MOZ_CRASH();
     }
@@ -717,6 +713,14 @@ Code::stableTier() const
     return segment1_->tier();
 }
 
+Tier
+Code::bestTier() const
+{
+    if (hasTier2())
+        return segment2_->tier();
+    return segment1_->tier();
+}
+
 const CodeSegment&
 Code::segment(Tier tier) const
 {
@@ -731,8 +735,6 @@ Code::segment(Tier tier) const
         if (hasTier2())
             return *segment2_;
         MOZ_CRASH("No code segment at this tier");
-      case Tier::TBD:
-        return *segment1_;
       default:
         MOZ_CRASH();
     }
