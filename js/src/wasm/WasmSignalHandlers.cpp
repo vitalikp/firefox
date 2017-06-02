@@ -997,7 +997,7 @@ HandleFault(PEXCEPTION_POINTERS exception)
         return false;
     }
 
-    const Instance* instance = LookupFaultingInstance(activation, pc, ContextToFP(context));
+    const Instance* instance = LookupFaultingInstance(*code, pc, ContextToFP(context));
     if (!instance)
         return false;
 
@@ -1116,7 +1116,11 @@ HandleMachException(JSContext* cx, const ExceptionRequest& request)
     if (!activation)
         return false;
 
-    const Instance* instance = LookupFaultingInstance(activation, pc, ContextToFP(&context));
+    const Code* code = activation->compartment()->wasm.lookupCode(pc);
+    if (!code)
+        return false;
+
+    const Instance* instance = LookupFaultingInstance(*code, pc, ContextToFP(&context));
     if (!instance || !instance->code().containsFunctionPC(pc))
         return false;
 
@@ -1324,7 +1328,11 @@ HandleFault(int signum, siginfo_t* info, void* ctx)
         return false;
 
     const CodeSegment* segment;
-    const Instance* instance = LookupFaultingInstance(activation, pc, ContextToFP(context));
+    const Code* code = activation->compartment()->wasm.lookupCode(pc, &segment);
+    if (!code)
+        return false;
+
+    const Instance* instance = LookupFaultingInstance(*code, pc, ContextToFP(context));
     if (!instance || !instance->code().containsFunctionPC(pc, &segment))
         return false;
 
