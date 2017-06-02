@@ -4906,7 +4906,7 @@ class SweepWeakCacheTask : public GCParallelTask
 };
 
 static void
-SweepAtoms(JSRuntime* runtime)
+UpdateAtomsBitmap(JSRuntime* runtime)
 {
     DenseBitmap marked;
     if (runtime->gc.atomMarking.computeBitmapFromChunkMarkBits(runtime, marked)) {
@@ -4919,7 +4919,9 @@ SweepAtoms(JSRuntime* runtime)
     }
 
     runtime->gc.atomMarking.updateChunkMarkBits(runtime);
-    runtime->sweepAtoms();
+
+    // For convenience sweep these tables non-incrementally as part of bitmap
+    // sweeping; they are likely to be much smaller than the main atoms table.
     runtime->unsafeSymbolRegistry().sweep();
     for (CompartmentsIter comp(runtime, SkipAtoms); !comp.done(); comp.next())
         comp->sweepVarNames();
@@ -5221,9 +5223,9 @@ GCRuntime::beginSweepingSweepGroup()
     {
         AutoLockHelperThreadState lock;
 
-        Maybe<AutoRunParallelTask> sweepAtoms;
+        Maybe<AutoRunParallelTask> updateAtomsBitmap;
         if (sweepingAtoms)
-            sweepAtoms.emplace(rt, SweepAtoms, PhaseKind::SWEEP_ATOMS, lock);
+            updateAtomsBitmap.emplace(rt, UpdateAtomsBitmap, PhaseKind::UPDATE_ATOMS_BITMAP, lock);
 
         AutoPhase ap(stats(), PhaseKind::SWEEP_COMPARTMENTS);
         AutoSCC scc(stats(), sweepGroupIndex);
@@ -5468,6 +5470,64 @@ GCRuntime::mergeSweptObjectArenas(GCRuntime* gc, FreeOp* fop, Zone* zone, SliceB
 }
 
 /* static */ IncrementalProgress
+GCRuntime::sweepAtomsTable(GCRuntime* gc, FreeOp* fop, Zone* zone, SliceBudget& budget,
+                           AllocKind kind)
+{
+    if (!zone->isAtomsZone())
+        return Finished;
+
+    return gc->sweepAtomsTable(budget);
+}
+
+IncrementalProgress
+GCRuntime::sweepAtomsTable(SliceBudget& budget)
+{
+    gcstats::AutoPhase ap(stats(), gcstats::PhaseKind::SWEEP_ATOMS_TABLE);
+
+    auto& maybeAtoms = maybeAtomsToSweep.ref();
+    MOZ_ASSERT_IF(maybeAtoms.isSome(), !maybeAtoms.ref().empty());
+
+    AtomSet* atomsTable = rt->atomsForSweeping();
+    if (!atomsTable)
+        return Finished;
+
+    if (maybeAtoms.isNothing()) {
+        // Create a secondary table to hold new atoms added while we're sweeping
+        // the main table incrementally.
+        if (!rt->createAtomsAddedWhileSweepingTable()) {
+            atomsTable->sweep();
+            return Finished;
+        }
+
+        // Initialize remaining atoms to sweep.
+        maybeAtoms.emplace(*atomsTable);
+    }
+
+    // Sweep the table incrementally until we run out of work or budget.
+    auto& atomsToSweep = *maybeAtoms;
+    while (!atomsToSweep.empty()) {
+        if (budget.isOverBudget())
+            return NotFinished;
+
+        JSAtom* atom = atomsToSweep.front().asPtrUnbarriered();
+        if (IsAboutToBeFinalizedUnbarriered(&atom))
+            atomsToSweep.removeFront();
+        atomsToSweep.popFront();
+    }
+
+    // Add any new atoms from the secondary table.
+    AutoEnterOOMUnsafeRegion oomUnsafe;
+    for (auto r = rt->atomsAddedWhileSweeping()->all(); !r.empty(); r.popFront()) {
+        if (!atomsTable->putNew(AtomHasher::Lookup(r.front().asPtrUnbarriered()), r.front()))
+            oomUnsafe.crash("Adding atom from secondary table after sweep");
+    }
+    rt->destroyAtomsAddedWhileSweepingTable();
+
+    maybeAtoms.reset();
+    return Finished;
+}
+
+/* static */ IncrementalProgress
 GCRuntime::finalizeAllocKind(GCRuntime* gc, FreeOp* fop, Zone* zone, SliceBudget& budget,
                              AllocKind kind)
 {
@@ -5526,6 +5586,7 @@ GCRuntime::initializeSweepActions()
     bool ok = true;
 
     AddSweepPhase(&ok);
+    AddSweepAction(&ok, GCRuntime::sweepAtomsTable);
     for (auto kind : ForegroundObjectFinalizePhase.kinds)
         AddSweepAction(&ok, GCRuntime::finalizeAllocKind, kind);
 

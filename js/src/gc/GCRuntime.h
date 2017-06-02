@@ -9,6 +9,7 @@
 
 #include "mozilla/Atomics.h"
 #include "mozilla/EnumSet.h"
+#include "mozilla/Maybe.h"
 
 #include "jsfriendapi.h"
 #include "jsgc.h"
@@ -1013,6 +1014,9 @@ class GCRuntime
                                                     SliceBudget& budget, AllocKind kind);
     static IncrementalProgress mergeSweptObjectArenas(GCRuntime* gc, FreeOp* fop, Zone* zone,
                                                       SliceBudget& budget, AllocKind kind);
+    static IncrementalProgress sweepAtomsTable(GCRuntime* gc, FreeOp* fop, Zone* zone,
+                                               SliceBudget& budget, AllocKind kind);
+    IncrementalProgress sweepAtomsTable(SliceBudget& budget);
     static IncrementalProgress finalizeAllocKind(GCRuntime* gc, FreeOp* fop, Zone* zone,
                                                  SliceBudget& budget, AllocKind kind);
     static IncrementalProgress sweepShapeTree(GCRuntime* gc, FreeOp* fop, Zone* zone,
@@ -1241,6 +1245,7 @@ class GCRuntime
     ActiveThreadData<size_t> sweepPhaseIndex;
     ActiveThreadData<JS::Zone*> sweepZone;
     ActiveThreadData<size_t> sweepActionIndex;
+    ActiveThreadData<mozilla::Maybe<AtomSet::Enum>> maybeAtomsToSweep;
     ActiveThreadData<bool> abortSweepAfterCurrentGroup;
 
     /*
