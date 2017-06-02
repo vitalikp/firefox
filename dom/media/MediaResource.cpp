@@ -74,7 +74,6 @@ ChannelMediaResource::ChannelMediaResource(
   , mIgnoreClose(false)
   , mCacheStream(this, aIsPrivateBrowsing)
   , mLock("ChannelMediaResource.mLock")
-  , mChannelStatistics(new MediaChannelStatistics())
   , mIgnoreResume(false)
   , mSuspendAgent(mChannel)
 {
@@ -85,14 +84,14 @@ ChannelMediaResource::ChannelMediaResource(
   nsIChannel* aChannel,
   nsIURI* aURI,
   const MediaContainerType& aContainerType,
-  MediaChannelStatistics* aStatistics)
+  const MediaChannelStatistics& aStatistics)
   : BaseMediaResource(aCallback, aChannel, aURI, aContainerType)
   , mOffset(0)
   , mReopenOnError(false)
   , mIgnoreClose(false)
   , mCacheStream(this, /* aIsPrivateBrowsing = */ false)
   , mLock("ChannelMediaResource.mLock")
-  , mChannelStatistics(new MediaChannelStatistics(aStatistics))
+  , mChannelStatistics(aStatistics)
   , mIgnoreResume(false)
   , mSuspendAgent(mChannel)
 {
@@ -318,7 +317,7 @@ ChannelMediaResource::OnStartRequest(nsIRequest* aRequest)
 
   {
     MutexAutoLock lock(mLock);
-    mChannelStatistics->Start();
+    mChannelStatistics.Start();
   }
 
   mReopenOnError = false;
@@ -394,7 +393,7 @@ ChannelMediaResource::OnStopRequest(nsIRequest* aRequest, nsresult aStatus)
 
   {
     MutexAutoLock lock(mLock);
-    mChannelStatistics->Stop();
+    mChannelStatistics.Stop();
   }
 
   // Note that aStatus might have succeeded --- this might be a normal close
@@ -482,7 +481,7 @@ ChannelMediaResource::OnDataAvailable(nsIRequest* aRequest,
 
   {
     MutexAutoLock lock(mLock);
-    mChannelStatistics->AddBytes(aCount);
+    mChannelStatistics.AddBytes(aCount);
   }
 
   CopySegmentClosure closure;
@@ -639,7 +638,7 @@ already_AddRefed<MediaResource> ChannelMediaResource::CloneData(MediaResourceCal
     // and perform a useless HTTP transaction.
     resource->mSuspendAgent.Suspend();
     resource->mCacheStream.InitAsClone(&mCacheStream);
-    resource->mChannelStatistics->Stop();
+    resource->mChannelStatistics.Stop();
   }
   return resource.forget();
 }
@@ -650,7 +649,7 @@ void ChannelMediaResource::CloseChannel()
 
   {
     MutexAutoLock lock(mLock);
-    mChannelStatistics->Stop();
+    mChannelStatistics.Stop();
   }
 
   if (mListener) {
@@ -754,7 +753,7 @@ void ChannelMediaResource::Suspend(bool aCloseImmediately)
     if (mChannel) {
       {
         MutexAutoLock lock(mLock);
-        mChannelStatistics->Stop();
+        mChannelStatistics.Stop();
       }
       element->DownloadSuspended();
     }
@@ -781,7 +780,7 @@ void ChannelMediaResource::Resume()
       // Just wake up our existing channel
       {
         MutexAutoLock lock(mLock);
-        mChannelStatistics->Start();
+        mChannelStatistics.Start();
       }
       // if an error occurs after Resume, assume it's because the server
       // timed out the connection and we should reopen it.
@@ -1034,7 +1033,7 @@ double
 ChannelMediaResource::GetDownloadRate(bool* aIsReliable)
 {
   MutexAutoLock lock(mLock);
-  return mChannelStatistics->GetRate(aIsReliable);
+  return mChannelStatistics.GetRate(aIsReliable);
 }
 
 int64_t

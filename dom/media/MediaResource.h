@@ -63,23 +63,9 @@ class MediaChannelStatistics;
  */
 class MediaChannelStatistics {
 public:
-  MediaChannelStatistics()
-    : mAccumulatedBytes(0)
-    , mIsStarted(false)
-  {
-    Reset();
-  }
+  MediaChannelStatistics() = default;
 
-  explicit MediaChannelStatistics(MediaChannelStatistics * aCopyFrom)
-  {
-    MOZ_ASSERT(aCopyFrom);
-    mAccumulatedBytes = aCopyFrom->mAccumulatedBytes;
-    mAccumulatedTime = aCopyFrom->mAccumulatedTime;
-    mLastStartTime = aCopyFrom->mLastStartTime;
-    mIsStarted = aCopyFrom->mIsStarted;
-  }
-
-  NS_INLINE_DECL_THREADSAFE_REFCOUNTING(MediaChannelStatistics)
+  MediaChannelStatistics(const MediaChannelStatistics&) = default;
 
   void Reset() {
     mLastStartTime = TimeStamp();
@@ -128,11 +114,10 @@ public:
     return static_cast<double>(mAccumulatedBytes)/seconds;
   }
 private:
-  ~MediaChannelStatistics() {}
-  int64_t      mAccumulatedBytes;
+  int64_t mAccumulatedBytes = 0;
   TimeDuration mAccumulatedTime;
-  TimeStamp    mLastStartTime;
-  bool         mIsStarted;
+  TimeStamp mLastStartTime;
+  bool mIsStarted = false;
 };
 
 // Represents a section of contiguous media, with a start and end offset.
@@ -517,7 +502,7 @@ public:
                        nsIChannel* aChannel,
                        nsIURI* aURI,
                        const MediaContainerType& aContainerType,
-                       MediaChannelStatistics* aStatistics);
+                       const MediaChannelStatistics& aStatistics);
   ~ChannelMediaResource();
 
   // These are called on the main thread by MediaCache. These must
@@ -679,7 +664,7 @@ protected:
 
   // This lock protects mChannelStatistics
   Mutex               mLock;
-  RefPtr<MediaChannelStatistics> mChannelStatistics;
+  MediaChannelStatistics mChannelStatistics;
 
   // True if we couldn't suspend the stream and we therefore don't want
   // to resume later. This is usually due to the channel not being in the
