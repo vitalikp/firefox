@@ -512,7 +512,12 @@ public:
                        nsIChannel* aChannel,
                        nsIURI* aURI,
                        const MediaContainerType& aContainerType,
-                       bool aIsPrivateBrowsing = false);
+                       bool aIsPrivateBrowsing);
+  ChannelMediaResource(MediaResourceCallback* aDecoder,
+                       nsIChannel* aChannel,
+                       nsIURI* aURI,
+                       const MediaContainerType& aContainerType,
+                       MediaChannelStatistics* aStatistics);
   ~ChannelMediaResource();
 
   // These are called on the main thread by MediaCache. These must

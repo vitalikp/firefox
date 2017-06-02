@@ -62,19 +62,39 @@ NS_IMPL_ADDREF(MediaResource)
 NS_IMPL_RELEASE_WITH_DESTROY(MediaResource, Destroy())
 NS_IMPL_QUERY_INTERFACE0(MediaResource)
 
-ChannelMediaResource::ChannelMediaResource(MediaResourceCallback* aCallback,
-                                           nsIChannel* aChannel,
-                                           nsIURI* aURI,
-                                           const MediaContainerType& aContainerType,
-                                           bool aIsPrivateBrowsing)
-  : BaseMediaResource(aCallback, aChannel, aURI, aContainerType),
-    mOffset(0),
-    mReopenOnError(false),
-    mIgnoreClose(false),
-    mCacheStream(this, aIsPrivateBrowsing),
-    mLock("ChannelMediaResource.mLock"),
-    mIgnoreResume(false),
-    mSuspendAgent(mChannel)
+ChannelMediaResource::ChannelMediaResource(
+  MediaResourceCallback* aCallback,
+  nsIChannel* aChannel,
+  nsIURI* aURI,
+  const MediaContainerType& aContainerType,
+  bool aIsPrivateBrowsing)
+  : BaseMediaResource(aCallback, aChannel, aURI, aContainerType)
+  , mOffset(0)
+  , mReopenOnError(false)
+  , mIgnoreClose(false)
+  , mCacheStream(this, aIsPrivateBrowsing)
+  , mLock("ChannelMediaResource.mLock")
+  , mChannelStatistics(new MediaChannelStatistics())
+  , mIgnoreResume(false)
+  , mSuspendAgent(mChannel)
+{
+}
+
+ChannelMediaResource::ChannelMediaResource(
+  MediaResourceCallback* aCallback,
+  nsIChannel* aChannel,
+  nsIURI* aURI,
+  const MediaContainerType& aContainerType,
+  MediaChannelStatistics* aStatistics)
+  : BaseMediaResource(aCallback, aChannel, aURI, aContainerType)
+  , mOffset(0)
+  , mReopenOnError(false)
+  , mIgnoreClose(false)
+  , mCacheStream(this, /* aIsPrivateBrowsing = */ false)
+  , mLock("ChannelMediaResource.mLock")
+  , mChannelStatistics(new MediaChannelStatistics(aStatistics))
+  , mIgnoreResume(false)
+  , mSuspendAgent(mChannel)
 {
 }
 
@@ -490,10 +510,6 @@ nsresult ChannelMediaResource::Open(nsIStreamListener **aStreamListener)
 {
   NS_ASSERTION(NS_IsMainThread(), "Only call on main thread");
 
-  if (!mChannelStatistics) {
-    mChannelStatistics = new MediaChannelStatistics();
-  }
-
   nsresult rv = mCacheStream.Init();
   if (NS_FAILED(rv))
     return rv;
@@ -612,11 +628,8 @@ already_AddRefed<MediaResource> ChannelMediaResource::CloneData(MediaResourceCal
   NS_ASSERTION(NS_IsMainThread(), "Only call on main thread");
   NS_ASSERTION(mCacheStream.IsAvailableForSharing(), "Stream can't be cloned");
 
-  RefPtr<ChannelMediaResource> resource =
-    new ChannelMediaResource(aCallback,
-                             nullptr,
-                             mURI,
-                             GetContentType());
+  RefPtr<ChannelMediaResource> resource = new ChannelMediaResource(
+    aCallback, nullptr, mURI, GetContentType(), mChannelStatistics);
   if (resource) {
     // Initially the clone is treated as suspended by the cache, because
     // we don't have a channel. If the cache needs to read data from the clone
@@ -626,7 +639,6 @@ already_AddRefed<MediaResource> ChannelMediaResource::CloneData(MediaResourceCal
     // and perform a useless HTTP transaction.
     resource->mSuspendAgent.Suspend();
     resource->mCacheStream.InitAsClone(&mCacheStream);
-    resource->mChannelStatistics = new MediaChannelStatistics(mChannelStatistics);
     resource->mChannelStatistics->Stop();
   }
   return resource.forget();
