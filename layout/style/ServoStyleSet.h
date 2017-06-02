@@ -138,6 +138,8 @@ public:
     return StylistNeedsUpdate();
   }
 
+  bool MediumFeaturesChanged() const;
+
   void InvalidateStyleForCSSRuleChanges();
 
   size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const;

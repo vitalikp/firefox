@@ -132,6 +132,12 @@ ServoStyleSet::InvalidateStyleForCSSRuleChanges()
   mPresContext->RestyleManager()->AsServo()->PostRestyleEventForCSSRuleChanges();
 }
 
+bool
+ServoStyleSet::MediumFeaturesChanged() const
+{
+  return Servo_StyleSet_MediumFeaturesChanged(mRawSet.get());
+}
+
 size_t
 ServoStyleSet::SizeOfIncludingThis(MallocSizeOf aMallocSizeOf) const
 {
