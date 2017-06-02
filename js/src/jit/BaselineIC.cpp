@@ -3442,7 +3442,7 @@ ICCall_Native::Compiler::generateStubCode(MacroAssembler& masm)
     masm.push(scratch);
     masm.push(ICTailCallReg);
     masm.loadJSContext(scratch);
-    masm.enterFakeExitFrameForNative(scratch, isConstructing_);
+    masm.enterFakeExitFrameForNative(scratch, scratch, isConstructing_);
 
     // Execute call.
     masm.setupUnalignedABICall(scratch);
@@ -3540,7 +3540,7 @@ ICCall_ClassHook::Compiler::generateStubCode(MacroAssembler& masm)
     masm.push(scratch);
     masm.push(ICTailCallReg);
     masm.loadJSContext(scratch);
-    masm.enterFakeExitFrameForNative(scratch, isConstructing_);
+    masm.enterFakeExitFrameForNative(scratch, scratch, isConstructing_);
 
     // Execute call.
     masm.setupUnalignedABICall(scratch);

@@ -1197,7 +1197,6 @@ JSContext::JSContext(JSRuntime* runtime, const JS::ContextOptions& options)
     handlingJitInterrupt_(false),
     osrTempData_(nullptr),
     ionReturnOverride_(MagicValue(JS_ARG_POISON)),
-    jitTop(nullptr),
     jitStackLimit(UINTPTR_MAX),
     jitStackLimitNoInterrupt(UINTPTR_MAX)
 {
