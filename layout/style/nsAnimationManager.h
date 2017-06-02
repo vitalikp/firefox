@@ -21,7 +21,6 @@ struct nsStyleDisplay;
 struct ServoComputedValues;
 
 namespace mozilla {
-struct ServoComputedValuesWithParent;
 namespace css {
 class Declaration;
 } /* namespace css */
@@ -334,7 +333,7 @@ public:
   void UpdateAnimations(
     mozilla::dom::Element* aElement,
     mozilla::CSSPseudoElementType aPseudoType,
-    const mozilla::ServoComputedValuesWithParent& aServoValues);
+    const ServoComputedValues* aComputedValues);
 
   /**
    * Add a pending event.

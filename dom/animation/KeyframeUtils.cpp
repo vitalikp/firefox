@@ -11,7 +11,6 @@
 #include "mozilla/RangedArray.h"
 #include "mozilla/ServoBindings.h"
 #include "mozilla/ServoBindingTypes.h"
-#include "mozilla/ServoComputedValuesWithParent.h"
 #include "mozilla/StyleAnimationValue.h"
 #include "mozilla/TimingParams.h"
 #include "mozilla/dom/BaseKeyframeTypesBinding.h" // For FastBaseKeyframe etc.
@@ -595,7 +594,7 @@ KeyframeUtils::ApplyDistributeSpacing(nsTArray<Keyframe>& aKeyframes)
 KeyframeUtils::GetComputedKeyframeValues(
   const nsTArray<Keyframe>& aKeyframes,
   dom::Element* aElement,
-  const ServoComputedValuesWithParent& aServoValues)
+  const ServoComputedValues* aComputedValues)
 {
   MOZ_ASSERT(aElement);
   MOZ_ASSERT(aElement->IsStyledByServo());
@@ -604,7 +603,7 @@ KeyframeUtils::GetComputedKeyframeValues(
   MOZ_ASSERT(presContext);
 
   return presContext->StyleSet()->AsServo()
-    ->GetComputedKeyframeValuesFor(aKeyframes, aElement, aServoValues);
+    ->GetComputedKeyframeValuesFor(aKeyframes, aElement, aComputedValues);
 }
 
 /* static */ nsTArray<ComputedKeyframeValues>
