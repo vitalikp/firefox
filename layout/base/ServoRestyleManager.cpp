@@ -756,6 +756,17 @@ ServoRestyleManager::ContentStateChanged(nsIContent* aContent,
   PostRestyleEvent(aElement, restyleHint, changeHint);
 }
 
+static inline bool
+AttributeInfluencesOtherPseudoClassState(Element* aElement, nsIAtom* aAttribute)
+{
+  // We must record some state for :-moz-browser-frame and
+  // :-moz-table-border-nonzero.
+  return (aAttribute == nsGkAtoms::mozbrowser &&
+          aElement->IsAnyOfHTMLElements(nsGkAtoms::iframe, nsGkAtoms::frame)) ||
+         (aAttribute == nsGkAtoms::border &&
+          aElement->IsHTMLElement(nsGkAtoms::table));
+}
+
 void
 ServoRestyleManager::AttributeWillChange(Element* aElement,
                                          int32_t aNameSpaceID,
@@ -770,6 +781,10 @@ ServoRestyleManager::AttributeWillChange(Element* aElement,
 
   ServoElementSnapshot& snapshot = SnapshotFor(aElement);
   snapshot.AddAttrs(aElement);
+
+  if (AttributeInfluencesOtherPseudoClassState(aElement, aAttribute)) {
+    snapshot.AddOtherPseudoClassState(aElement);
+  }
 
   if (Element* parent = aElement->GetFlattenedTreeParentElementForStyle()) {
     parent->NoteDirtyDescendantsForServo();
