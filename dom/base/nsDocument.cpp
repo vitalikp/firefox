@@ -10115,17 +10115,12 @@ nsIDocument::CreateStaticClone(nsIDocShell* aCloneContainer)
         RefPtr<StyleSheet> sheet = GetStyleSheetAt(i);
         if (sheet) {
           if (sheet->IsApplicable()) {
-            // XXXheycam Need to make ServoStyleSheet cloning work.
-            if (sheet->IsGecko()) {
-              RefPtr<StyleSheet> clonedSheet =
-                sheet->Clone(nullptr, nullptr, clonedDoc, nullptr);
-              NS_WARNING_ASSERTION(clonedSheet,
-                                   "Cloning a stylesheet didn't work!");
-              if (clonedSheet) {
-                clonedDoc->AddStyleSheet(clonedSheet);
-              }
-            } else {
-              NS_ERROR("stylo: ServoStyleSheet doesn't support cloning");
+            RefPtr<StyleSheet> clonedSheet =
+              sheet->Clone(nullptr, nullptr, clonedDoc, nullptr);
+            NS_WARNING_ASSERTION(clonedSheet,
+                                 "Cloning a stylesheet didn't work!");
+            if (clonedSheet) {
+              clonedDoc->AddStyleSheet(clonedSheet);
             }
           }
         }
@@ -10135,17 +10130,12 @@ nsIDocument::CreateStaticClone(nsIDocShell* aCloneContainer)
       for (StyleSheet* sheet : Reversed(thisAsDoc->mOnDemandBuiltInUASheets)) {
         if (sheet) {
           if (sheet->IsApplicable()) {
-            // XXXheycam Need to make ServoStyleSheet cloning work.
-            if (sheet->IsGecko()) {
-              RefPtr<StyleSheet> clonedSheet =
-                sheet->Clone(nullptr, nullptr, clonedDoc, nullptr);
-              NS_WARNING_ASSERTION(clonedSheet,
-                                   "Cloning a stylesheet didn't work!");
-              if (clonedSheet) {
-                clonedDoc->AddOnDemandBuiltInUASheet(clonedSheet);
-              }
-            } else {
-              NS_ERROR("stylo: ServoStyleSheet doesn't support cloning");
+            RefPtr<StyleSheet> clonedSheet =
+              sheet->Clone(nullptr, nullptr, clonedDoc, nullptr);
+            NS_WARNING_ASSERTION(clonedSheet,
+                                 "Cloning a stylesheet didn't work!");
+            if (clonedSheet) {
+              clonedDoc->AddOnDemandBuiltInUASheet(clonedSheet);
             }
           }
         }
