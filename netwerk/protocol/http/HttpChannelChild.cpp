@@ -165,6 +165,9 @@ HttpChannelChild::HttpChannelChild()
   , mSynthesizedStreamLength(0)
   , mIsFromCache(false)
   , mCacheEntryAvailable(false)
+  , mAltDataCacheEntryAvailable(false)
+  , mCacheFetchCount(0)
+  , mCacheLastFetched(0)
   , mCacheExpirationTime(nsICacheEntry::NO_EXPIRATION_TIME)
   , mSendResumeAt(false)
   , mDeletingChannelSent(false)
@@ -343,6 +346,8 @@ class StartRequestEvent : public ChannelEvent
                     const nsHttpHeaderArray& aRequestHeaders,
                     const bool& aIsFromCache,
                     const bool& aCacheEntryAvailable,
+                    const int32_t& aCacheFetchCount,
+                    const uint32_t& aCacheLastFetched,
                     const uint32_t& aCacheExpirationTime,
                     const nsCString& aCachedCharset,
                     const nsCString& aSecurityInfoSerialization,
@@ -358,6 +363,8 @@ class StartRequestEvent : public ChannelEvent
   , mUseResponseHead(aUseResponseHead)
   , mIsFromCache(aIsFromCache)
   , mCacheEntryAvailable(aCacheEntryAvailable)
+  , mCacheFetchCount(aCacheFetchCount)
+  , mCacheLastFetched(aCacheLastFetched)
   , mCacheExpirationTime(aCacheExpirationTime)
   , mCachedCharset(aCachedCharset)
   , mSecurityInfoSerialization(aSecurityInfoSerialization)
@@ -373,6 +380,7 @@ class StartRequestEvent : public ChannelEvent
     LOG(("StartRequestEvent [this=%p]\n", mChild));
     mChild->OnStartRequest(mChannelStatus, mResponseHead, mUseResponseHead,
                            mRequestHeaders, mIsFromCache, mCacheEntryAvailable,
+                           mCacheFetchCount, mCacheLastFetched,
                            mCacheExpirationTime, mCachedCharset,
                            mSecurityInfoSerialization, mSelfAddr, mPeerAddr,
                            mCacheKey, mAltDataType, mAltDataLen);
@@ -392,6 +400,8 @@ class StartRequestEvent : public ChannelEvent
   bool mUseResponseHead;
   bool mIsFromCache;
   bool mCacheEntryAvailable;
+  int32_t mCacheFetchCount;
+  uint32_t mCacheLastFetched;
   uint32_t mCacheExpirationTime;
   nsCString mCachedCharset;
   nsCString mSecurityInfoSerialization;
@@ -409,6 +419,8 @@ HttpChannelChild::RecvOnStartRequest(const nsresult& channelStatus,
                                      const nsHttpHeaderArray& requestHeaders,
                                      const bool& isFromCache,
                                      const bool& cacheEntryAvailable,
+                                     const int32_t& cacheFetchCount,
+                                     const uint32_t& cacheLastFetched,
                                      const uint32_t& cacheExpirationTime,
                                      const nsCString& cachedCharset,
                                      const nsCString& securityInfoSerialization,
@@ -433,8 +445,8 @@ HttpChannelChild::RecvOnStartRequest(const nsresult& channelStatus,
   mEventQ->RunOrEnqueue(new StartRequestEvent(this, channelStatus, responseHead,
                                               useResponseHead, requestHeaders,
                                               isFromCache, cacheEntryAvailable,
-                                              cacheExpirationTime,
-                                              cachedCharset,
+                                              cacheFetchCount, cacheLastFetched,
+                                              cacheExpirationTime, cachedCharset,
                                               securityInfoSerialization,
                                               selfAddr, peerAddr, cacheKey,
                                               altDataType, altDataLen));
@@ -448,6 +460,8 @@ HttpChannelChild::OnStartRequest(const nsresult& channelStatus,
                                  const nsHttpHeaderArray& requestHeaders,
                                  const bool& isFromCache,
                                  const bool& cacheEntryAvailable,
+                                 const int32_t& cacheFetchCount,
+                                 const uint32_t& cacheLastFetched,
                                  const uint32_t& cacheExpirationTime,
                                  const nsCString& cachedCharset,
                                  const nsCString& securityInfoSerialization,
@@ -480,6 +494,8 @@ HttpChannelChild::OnStartRequest(const nsresult& channelStatus,
 
   mIsFromCache = isFromCache;
   mCacheEntryAvailable = cacheEntryAvailable;
+  mCacheFetchCount = cacheFetchCount;
+  mCacheLastFetched = cacheLastFetched;
   mCacheExpirationTime = cacheExpirationTime;
   mCachedCharset = cachedCharset;
   mSelfAddr = selfAddr;
@@ -1080,7 +1096,15 @@ HttpChannelChild::DoOnStopRequest(nsIRequest* aRequest, nsresult aChannelStatus,
   mOnStopRequestCalled = true;
 
   ReleaseListeners();
+
+  // If a preferred alt-data type was set, the parent would hold a reference to
+  // the cache entry in case the child calls openAlternativeOutputStream().
+  // (see nsHttpChannel::OnStopRequest)
+  if (!mPreferredCachedAltDataType.IsEmpty()) {
+    mAltDataCacheEntryAvailable = mCacheEntryAvailable;
+  }
   mCacheEntryAvailable = false;
+
   if (mLoadGroup)
     mLoadGroup->RemoveRequest(this, nullptr, mStatus);
 }
@@ -2512,6 +2536,30 @@ HttpChannelChild::SetupFallbackChannel(const char *aFallbackKey)
 //-----------------------------------------------------------------------------
 // HttpChannelChild::nsICacheInfoChannel
 //-----------------------------------------------------------------------------
+
+NS_IMETHODIMP
+HttpChannelChild::GetCacheTokenFetchCount(int32_t *_retval)
+{
+  NS_ENSURE_ARG_POINTER(_retval);
+  if (!mCacheEntryAvailable || !mAltDataCacheEntryAvailable) {
+    return NS_ERROR_NOT_AVAILABLE;
+  }
+
+  *_retval = mCacheFetchCount;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+HttpChannelChild::GetCacheTokenLastFetched(uint32_t *_retval)
+{
+  NS_ENSURE_ARG_POINTER(_retval);
+  if (!mCacheEntryAvailable || !mAltDataCacheEntryAvailable) {
+    return NS_ERROR_NOT_AVAILABLE;
+  }
+
+  *_retval = mCacheLastFetched;
+  return NS_OK;
+}
 
 NS_IMETHODIMP
 HttpChannelChild::GetCacheTokenExpirationTime(uint32_t *_retval)
