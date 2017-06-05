@@ -239,9 +239,7 @@ bool
 nsXBLPrototypeBinding::LoadResources()
 {
   if (mResources) {
-    bool result;
-    mResources->LoadResources(&result);
-    return result;
+    return mResources->LoadResources();
   }
 
   return true;
