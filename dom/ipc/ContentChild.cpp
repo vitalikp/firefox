@@ -697,6 +697,7 @@ ContentChild::ProvideWindowCommon(TabChild* aTabOpener,
   nsAutoPtr<IPCTabContext> ipcContext;
   TabId openerTabId = TabId(0);
   nsAutoCString features(aFeatures);
+  nsAutoString name(aName);
 
   nsresult rv;
   if (aTabOpener) {
@@ -725,7 +726,8 @@ ContentChild::ProvideWindowCommon(TabChild* aTabOpener,
                                                      aSizeSpecified,
                                                      uriToLoad, features,
                                                      baseURIString,
-                                                     originAttributes, fullZoom);
+                                                     originAttributes,
+                                                     fullZoom, name);
 
         // We return NS_ERROR_ABORT, so that the caller knows that we've abandoned
         // the window open as far as it is concerned.
@@ -780,7 +782,6 @@ ContentChild::ProvideWindowCommon(TabChild* aTabOpener,
     tabId, TabId(0), *ipcContext, aChromeFlags,
     GetID(), IsForBrowser());
 
-  nsString name(aName);
   nsTArray<FrameScriptInfo> frameScripts;
   nsCString urlToLoad;
 
