@@ -7,6 +7,7 @@
 #include "Performance.h"
 
 #include "GeckoProfiler.h"
+#include "nsRFPService.h"
 #ifdef MOZ_GECKO_PROFILER
 #include "ProfilerMarkerPayload.h"
 #endif
@@ -251,7 +252,8 @@ Performance::RoundTime(double aTime) const
   // Round down to the nearest 20us, because if the timer is too accurate people
   // can do nasty timing attacks with it.
   const double maxResolutionMs = 0.020;
-  return floor(aTime / maxResolutionMs) * maxResolutionMs;
+  return nsRFPService::ReduceTimePrecisionAsMSecs(
+    floor(aTime / maxResolutionMs) * maxResolutionMs);
 }
 
 
