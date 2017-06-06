@@ -124,6 +124,7 @@
 #include "nsDirectoryServiceUtils.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsContentPermissionHelper.h"
+#include "nsPluginHost.h"
 #ifdef NS_PRINTING
 #include "nsPrintingProxy.h"
 #endif
@@ -3232,6 +3233,15 @@ already_AddRefed<nsIEventTarget>
 ContentChild::GetEventTargetFor(TabChild* aTabChild)
 {
   return IToplevelProtocol::GetActorEventTarget(aTabChild);
+}
+
+mozilla::ipc::IPCResult
+ContentChild::RecvSetPluginList(const uint32_t& aPluginEpoch,
+                                nsTArray<plugins::PluginTag>&& aPluginTags)
+{
+  RefPtr<nsPluginHost> host = nsPluginHost::GetInst();
+  host->SetPluginsInContent(aPluginEpoch, aPluginTags);
+  return IPC_OK();
 }
 
 } // namespace dom

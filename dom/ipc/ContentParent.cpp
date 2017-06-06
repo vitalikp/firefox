@@ -1034,16 +1034,6 @@ ContentParent::RecvConnectPluginBridge(const uint32_t& aPluginId,
   return IPC_OK();
 }
 
-mozilla::ipc::IPCResult
-ContentParent::RecvFindPlugins(const uint32_t& aPluginEpoch,
-                               nsresult* aRv,
-                               nsTArray<PluginTag>* aPlugins,
-                               uint32_t* aNewPluginEpoch)
-{
-  *aRv = mozilla::plugins::FindPluginsForContent(aPluginEpoch, aPlugins, aNewPluginEpoch);
-  return IPC_OK();
-}
-
 /*static*/ TabParent*
 ContentParent::CreateBrowser(const TabContext& aContext,
                              Element* aFrameElement,
@@ -2286,6 +2276,11 @@ ContentParent::InitInternal(ProcessPriority aInitialPriority,
       Unused << SendInitBlobURLs(registrations);
     }
   }
+
+  // Start up nsPluginHost and run FindPlugins to cache the plugin list.
+  // If this isn't our first content process, just send over cached list.
+  RefPtr<nsPluginHost> pluginHost = nsPluginHost::GetInst();
+  pluginHost->SendPluginsToContent();
 }
 
 bool
@@ -4990,5 +4985,13 @@ ContentParent::RecvFileCreationRequest(const nsID& aID,
     return IPC_FAIL_NO_REASON(this);
   }
 
+  return IPC_OK();
+}
+
+mozilla::ipc::IPCResult
+ContentParent::RecvMaybeReloadPlugins()
+{
+  RefPtr<nsPluginHost> pluginHost = nsPluginHost::GetInst();
+  pluginHost->ReloadPlugins();
   return IPC_OK();
 }

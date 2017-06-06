@@ -289,14 +289,11 @@ public:
                                                  uint32_t* aRunID,
                                                  Endpoint<PPluginModuleParent>* aEndpoint) override;
 
+  virtual mozilla::ipc::IPCResult RecvMaybeReloadPlugins() override;
+
   virtual mozilla::ipc::IPCResult RecvConnectPluginBridge(const uint32_t& aPluginId,
                                                           nsresult* aRv,
                                                           Endpoint<PPluginModuleParent>* aEndpoint) override;
-
-  virtual mozilla::ipc::IPCResult RecvFindPlugins(const uint32_t& aPluginEpoch,
-                                                  nsresult* aRv,
-                                                  nsTArray<PluginTag>* aPlugins,
-                                                  uint32_t* aNewPluginEpoch) override;
 
   virtual mozilla::ipc::IPCResult RecvUngrabPointer(const uint32_t& aTime) override;
 
