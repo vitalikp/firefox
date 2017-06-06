@@ -2175,7 +2175,7 @@ ScriptLoader::EvaluateScript(ScriptLoadRequest* aRequest)
           }
 
           // Queue the current script load request to later save the bytecode.
-          if (NS_SUCCEEDED(rv) && encodeBytecode) {
+          if (script && encodeBytecode) {
             aRequest->mScript = script;
             HoldJSObjects(aRequest);
             MOZ_ASSERT(aRequest->mBytecodeOffset == aRequest->mScriptBytecode.length());
