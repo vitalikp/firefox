@@ -4325,7 +4325,6 @@ ContentParent::CommonCreateWindow(PBrowserParent* aThisTab,
                                   nsIURI* aURIToLoad,
                                   const nsCString& aFeatures,
                                   const nsCString& aBaseURI,
-                                  const OriginAttributes& aOpenerOriginAttributes,
                                   const float& aFullZoom,
                                   uint64_t aNextTabParentId,
                                   const nsString& aName,
@@ -4391,22 +4390,24 @@ ContentParent::CommonCreateWindow(PBrowserParent* aThisTab,
   MOZ_ASSERT(openLocation == nsIBrowserDOMWindow::OPEN_NEWTAB ||
              openLocation == nsIBrowserDOMWindow::OPEN_NEWWINDOW);
 
+  // Read the origin attributes for the tab from the opener tabParent.
+  OriginAttributes openerOriginAttributes;
+  if (thisTabParent) {
+    nsCOMPtr<nsILoadContext> loadContext = thisTabParent->GetLoadContext();
+    loadContext->GetOriginAttributes(openerOriginAttributes);
+  } else if (Preferences::GetBool("browser.privatebrowsing.autostart")) {
+    openerOriginAttributes.mPrivateBrowsingId = 1;
+  }
+
   if (openLocation == nsIBrowserDOMWindow::OPEN_NEWTAB) {
     if (NS_WARN_IF(!browserDOMWin)) {
       aResult = NS_ERROR_ABORT;
       return IPC_OK();
     }
 
-    bool isPrivate = false;
-    if (thisTabParent) {
-      nsCOMPtr<nsILoadContext> loadContext = thisTabParent->GetLoadContext();
-      loadContext->GetUsePrivateBrowsing(&isPrivate);
-    }
-
     nsCOMPtr<nsIOpenURIInFrameParams> params =
-      new nsOpenURIInFrameParams(aOpenerOriginAttributes);
+      new nsOpenURIInFrameParams(openerOriginAttributes);
     params->SetReferrer(NS_ConvertUTF8toUTF16(aBaseURI));
-    params->SetIsPrivate(isPrivate);
 
     nsCOMPtr<nsIFrameLoaderOwner> frameLoaderOwner;
     aResult = browserDOMWin->OpenURIInFrame(aURIToLoad, params, openLocation,
@@ -4431,9 +4432,10 @@ ContentParent::CommonCreateWindow(PBrowserParent* aThisTab,
     return IPC_OK();
   }
 
-  aResult = pwwatch->OpenWindowWithTabParent(aSetOpener ? thisTabParent : nullptr,
+  aResult = pwwatch->OpenWindowWithTabParent(thisTabParent,
                                              aFeatures, aCalledFromJS, aFullZoom,
                                              aNextTabParentId,
+                                             !aSetOpener,
                                              getter_AddRefs(aNewTabParent));
   if (NS_WARN_IF(NS_FAILED(aResult))) {
     return IPC_OK();
@@ -4444,6 +4446,16 @@ ContentParent::CommonCreateWindow(PBrowserParent* aThisTab,
   // we should send it down to the new tab.
   if (nsContentUtils::IsOverridingWindowName(aName)) {
     Unused << TabParent::GetFrom(aNewTabParent)->SendSetWindowName(aName);
+  }
+
+  // Don't send down the OriginAttributes if the content process is handling
+  // setting up the window for us. We only want to send them in the async case.
+  //
+  // If we send it down in the non-async case, then we might set the
+  // OriginAttributes after the document has already navigated.
+  if (!aSetOpener) {
+    Unused << TabParent::GetFrom(aNewTabParent)
+      ->SendSetOriginAttributes(openerOriginAttributes);
   }
 
   if (aURIToLoad) {
@@ -4477,7 +4489,6 @@ ContentParent::RecvCreateWindow(PBrowserParent* aThisTab,
                                 const bool& aSizeSpecified,
                                 const nsCString& aFeatures,
                                 const nsCString& aBaseURI,
-                                const OriginAttributes& aOpenerOriginAttributes,
                                 const float& aFullZoom,
                                 nsresult* aResult,
                                 bool* aWindowIsNew,
@@ -4514,8 +4525,8 @@ ContentParent::RecvCreateWindow(PBrowserParent* aThisTab,
   mozilla::ipc::IPCResult ipcResult =
     CommonCreateWindow(aThisTab, /* aSetOpener = */ true, aChromeFlags,
                        aCalledFromJS, aPositionSpecified, aSizeSpecified,
-                       nullptr, aFeatures, aBaseURI, aOpenerOriginAttributes,
-                       aFullZoom, nextTabParentId, NullString(), *aResult,
+                       nullptr, aFeatures, aBaseURI, aFullZoom,
+                       nextTabParentId, NullString(), *aResult,
                        newRemoteTab, aWindowIsNew);
   if (!ipcResult) {
     return ipcResult;
@@ -4552,7 +4563,6 @@ ContentParent::RecvCreateWindowInDifferentProcess(
   const URIParams& aURIToLoad,
   const nsCString& aFeatures,
   const nsCString& aBaseURI,
-  const OriginAttributes& aOpenerOriginAttributes,
   const float& aFullZoom,
   const nsString& aName)
 {
@@ -4563,8 +4573,8 @@ ContentParent::RecvCreateWindowInDifferentProcess(
   mozilla::ipc::IPCResult ipcResult =
     CommonCreateWindow(aThisTab, /* aSetOpener = */ false, aChromeFlags,
                        aCalledFromJS, aPositionSpecified, aSizeSpecified,
-                       uriToLoad, aFeatures, aBaseURI, aOpenerOriginAttributes,
-                       aFullZoom, /* aNextTabParentId = */ 0, aName, rv,
+                       uriToLoad, aFeatures, aBaseURI, aFullZoom,
+                       /* aNextTabParentId = */ 0, aName, rv,
                        newRemoteTab, &windowIsNew);
   if (!ipcResult) {
     return ipcResult;

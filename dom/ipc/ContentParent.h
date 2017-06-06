@@ -531,7 +531,6 @@ public:
                    const bool& aSizeSpecified,
                    const nsCString& aFeatures,
                    const nsCString& aBaseURI,
-                   const OriginAttributes& aOpenerOriginAttributes,
                    const float& aFullZoom,
                    nsresult* aResult,
                    bool* aWindowIsNew,
@@ -550,7 +549,6 @@ public:
     const URIParams& aURIToLoad,
     const nsCString& aFeatures,
     const nsCString& aBaseURI,
-    const OriginAttributes& aOpenerOriginAttributes,
     const float& aFullZoom,
     const nsString& aName) override;
 
@@ -657,7 +655,6 @@ private:
                      nsIURI* aURIToLoad,
                      const nsCString& aFeatures,
                      const nsCString& aBaseURI,
-                     const OriginAttributes& aOpenerOriginAttributes,
                      const float& aFullZoom,
                      uint64_t aNextTabParentId,
                      const nsString& aName,
