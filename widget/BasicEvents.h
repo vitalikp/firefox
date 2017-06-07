@@ -379,6 +379,7 @@ public:
   }
 
   WidgetEvent(const WidgetEvent& aOther)
+    : WidgetEventTime()
   {
     MOZ_COUNT_CTOR(WidgetEvent);
     *this = aOther;

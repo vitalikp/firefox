@@ -526,7 +526,8 @@ public:
                    layers::TextureFactoryIdentifier* aTextureFactoryIdentifier,
                    uint64_t* aLayersId,
                    mozilla::layers::CompositorOptions* aCompositorOptions,
-                   uint32_t* aMaxTouchPoints) override;
+                   uint32_t* aMaxTouchPoints,
+                   DimensionInfo* aDimensions) override;
 
   virtual mozilla::ipc::IPCResult RecvCreateWindowInDifferentProcess(
     PBrowserParent* aThisTab,

@@ -367,6 +367,8 @@ public:
 
   void UpdateDimensions(const nsIntRect& aRect, const ScreenIntSize& aSize);
 
+  DimensionInfo GetDimensionInfo();
+
   void SizeModeChanged(const nsSizeMode& aSizeMode);
 
   void UIResolutionChanged();
