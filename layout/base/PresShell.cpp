@@ -2084,7 +2084,9 @@ PresShell::NotifyDestroyingFrame(nsIFrame* aFrame)
   aFrame->DisplayItemData().Clear();
 
   if (!mIgnoreFrameDestruction) {
-    mDocument->StyleImageLoader()->DropRequestsForFrame(aFrame);
+    if (aFrame->HasImageRequest()) {
+      mDocument->StyleImageLoader()->DropRequestsForFrame(aFrame);
+    }
 
     mFrameConstructor->NotifyDestroyingFrame(aFrame);
 
