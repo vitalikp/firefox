@@ -80,9 +80,11 @@ CreateCacheStorage(JSContext* aCx, nsIPrincipal* aPrincipal, ErrorResult& aRv,
 }
 
 class CompareManager;
+class CompareCache;
 
-// This class downloads a URL from the network and then it calls
-// NetworkFinished() in the CompareManager.
+// This class downloads a URL from the network, compare the downloaded script
+// with an existing cache if provided, and report to CompareManager via calling
+// ComparisonFinished().
 class CompareNetwork final : public nsIStreamLoaderObserver,
                              public nsIRequestObserver
 {
@@ -97,21 +99,28 @@ public:
     , mRegistration(aRegistration)
     , mInternalHeaders(new InternalHeaders())
     , mLoadFlags(nsIChannel::LOAD_BYPASS_SERVICE_WORKER)
+    , mState(WaitingForInitialization)
+    , mNetworkResult(NS_OK)
+    , mCacheResult(NS_OK)
   {
     MOZ_ASSERT(aManager);
     AssertIsOnMainThread();
   }
 
   nsresult
-  Initialize(nsIPrincipal* aPrincipal, const nsAString& aURL, nsILoadGroup* aLoadGroup);
-
-  void
-  Finish(nsresult aStatus,
-           const nsACString& aMaxScope = EmptyCString(),
-           nsLoadFlags nsLoadFlags = nsIChannel::LOAD_BYPASS_SERVICE_WORKER);
+  Initialize(nsIPrincipal* aPrincipal,
+             const nsAString& aURL,
+             nsILoadGroup* aLoadGroup,
+             Cache* const aCache);
 
   void
   Abort();
+
+  void
+  NetworkFinish(nsresult aRv);
+
+  void
+  CacheFinish(nsresult aRv);
 
   const nsString& Buffer() const
   {
@@ -142,12 +151,17 @@ private:
   ~CompareNetwork()
   {
     AssertIsOnMainThread();
+    MOZ_ASSERT(!mCC);
   }
+
+  void
+  Finish();
 
   nsresult
   SetPrincipalInfo(nsIChannel* aChannel);
 
   RefPtr<CompareManager> mManager;
+  RefPtr<CompareCache> mCC;
   RefPtr<ServiceWorkerRegistrationInfo> mRegistration;
 
   nsCOMPtr<nsIChannel> mChannel;
@@ -159,13 +173,24 @@ private:
 
   nsCString mMaxScope;
   nsLoadFlags mLoadFlags;
+
+  enum {
+    WaitingForInitialization,
+    WaitingForBothFinished,
+    WaitingForNetworkFinished,
+    WaitingForCacheFinished,
+    Finished
+  } mState;
+
+  nsresult mNetworkResult;
+  nsresult mCacheResult;
 };
 
 NS_IMPL_ISUPPORTS(CompareNetwork, nsIStreamLoaderObserver,
                   nsIRequestObserver)
 
 // This class gets a cached Response from the CacheStorage and then it calls
-// CacheFinished() in the CompareManager.
+// CacheFinish() in the CompareNetwork.
 class CompareCache final : public PromiseNativeHandler
                          , public nsIStreamLoaderObserver
 {
@@ -173,11 +198,12 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSISTREAMLOADEROBSERVER
 
-  explicit CompareCache(CompareManager* aManager)
-    : mManager(aManager)
+  explicit CompareCache(CompareNetwork* aCN)
+    : mCN(aCN)
     , mState(WaitingForInitialization)
+    , mInCache(false)
   {
-    MOZ_ASSERT(aManager);
+    MOZ_ASSERT(aCN);
     AssertIsOnMainThread();
   }
 
@@ -202,6 +228,12 @@ public:
     return mBuffer;
   }
 
+  bool
+  InCache()
+  {
+    return mInCache;
+  }
+
 private:
   ~CompareCache()
   {
@@ -211,7 +243,7 @@ private:
   void
   ManageValueResult(JSContext* aCx, JS::Handle<JS::Value> aValue);
 
-  RefPtr<CompareManager> mManager;
+  RefPtr<CompareNetwork> mCN;
   nsCOMPtr<nsIInputStreamPump> mPump;
 
   nsString mURL;
@@ -222,6 +254,8 @@ private:
     WaitingForScript,
     Finished,
   } mState;
+
+  bool mInCache;
 };
 
 NS_IMPL_ISUPPORTS(CompareCache, nsIStreamLoaderObserver)
@@ -237,9 +271,6 @@ public:
     , mCallback(aCallback)
     , mLoadFlags(nsIChannel::LOAD_BYPASS_SERVICE_WORKER)
     , mState(WaitingForInitialization)
-    , mNetworkFinished(false)
-    , mCacheFinished(false)
-    , mInCache(false)
   {
     AssertIsOnMainThread();
     MOZ_ASSERT(aRegistration);
@@ -248,66 +279,6 @@ public:
   nsresult
   Initialize(nsIPrincipal* aPrincipal, const nsAString& aURL,
              const nsAString& aCacheName, nsILoadGroup* aLoadGroup);
-
-  void
-  NetworkFinished(nsresult aStatus,
-                  const nsACString& aMaxScope,
-                  nsLoadFlags aLoadFlags)
-  {
-    AssertIsOnMainThread();
-
-    mNetworkFinished = true;
-    mMaxScope = aMaxScope;
-    mLoadFlags = aLoadFlags;
-
-    if (NS_WARN_IF(NS_FAILED(aStatus))) {
-      if (mCC) {
-        mCC->Abort();
-      }
-
-      ComparisonFinished(aStatus, false);
-      return;
-    }
-
-    MaybeCompare();
-  }
-
-  void
-  CacheFinished(nsresult aStatus, bool aInCache)
-  {
-    AssertIsOnMainThread();
-
-    mCacheFinished = true;
-    mInCache = aInCache;
-
-    if (NS_WARN_IF(NS_FAILED(aStatus))) {
-      if (mCN) {
-        mCN->Abort();
-      }
-
-      ComparisonFinished(aStatus, false);
-      return;
-    }
-
-    MaybeCompare();
-  }
-
-  void
-  MaybeCompare()
-  {
-    AssertIsOnMainThread();
-
-    if (!mNetworkFinished || (mCC && !mCacheFinished)) {
-      return;
-    }
-
-    if (!mCC || !mInCache) {
-      ComparisonFinished(NS_OK, false);
-      return;
-    }
-
-    ComparisonFinished(NS_OK, mCC->Buffer().Equals(mCN->Buffer()));
-  }
 
   void
   ResolvedCallback(JSContext* aCx, JS::Handle<JS::Value> aValue) override;
@@ -324,7 +295,7 @@ public:
   }
 
   void
-  ComparisonFinished(nsresult aStatus, bool aIsEqual)
+  ComparisonFinished(nsresult aStatus, bool aIsEqual = false)
   {
     AssertIsOnMainThread();
     if (mState == Finished) {
@@ -357,7 +328,6 @@ private:
   ~CompareManager()
   {
     AssertIsOnMainThread();
-    MOZ_ASSERT(!mCC);
     MOZ_ASSERT(!mCN);
   }
 
@@ -376,21 +346,10 @@ private:
                           mState == WaitingForScriptOrComparisonResult);
 
     mCN = new CompareNetwork(this, mRegistration);
-    nsresult rv = mCN->Initialize(mPrincipal, aURL, mLoadGroup);
+    nsresult rv = mCN->Initialize(mPrincipal, aURL, mLoadGroup, aCache);
     if (NS_WARN_IF(NS_FAILED(rv))) {
       return rv;
     }
-
-    if (aCache) {
-      mCC = new CompareCache(this);
-      rv = mCC->Initialize(aCache, aURL);
-      if (NS_WARN_IF(NS_FAILED(rv))) {
-        mCN->Abort();
-        return rv;
-      }
-    }
-
-    return rv;
   }
 
   void
@@ -601,7 +560,6 @@ private:
   RefPtr<CacheStorage> mCacheStorage;
 
   RefPtr<CompareNetwork> mCN;
-  RefPtr<CompareCache> mCC;
 
   nsString mURL;
   RefPtr<nsIPrincipal> mPrincipal;
@@ -625,16 +583,15 @@ private:
     WaitingForPut,
     Finished
   } mState;
-
-  bool mNetworkFinished;
-  bool mCacheFinished;
-  bool mInCache;
 };
 
 NS_IMPL_ISUPPORTS0(CompareManager)
 
 nsresult
-CompareNetwork::Initialize(nsIPrincipal* aPrincipal, const nsAString& aURL, nsILoadGroup* aLoadGroup)
+CompareNetwork::Initialize(nsIPrincipal* aPrincipal,
+                           const nsAString& aURL,
+                           nsILoadGroup* aLoadGroup,
+                           Cache* const aCache)
 {
   MOZ_ASSERT(aPrincipal);
   AssertIsOnMainThread();
@@ -696,15 +653,87 @@ CompareNetwork::Initialize(nsIPrincipal* aPrincipal, const nsAString& aURL, nsIL
     return rv;
   }
 
+  // If we do have an existing cache to compare with.
+  if (aCache) {
+    mCC = new CompareCache(this);
+    rv = mCC->Initialize(aCache, aURL);
+    if (NS_WARN_IF(NS_FAILED(rv))) {
+      Abort();
+      return rv;
+    }
+
+    mState = WaitingForBothFinished;
+    return NS_OK;
+  }
+
+  mState = WaitingForNetworkFinished;
   return NS_OK;
 }
 
-void
-CompareNetwork::Finish(nsresult aStatus,
-                         const nsACString& aMaxScope,
-                         nsLoadFlags aLoadFlags)
+ void
+CompareNetwork::Finish()
 {
-  mManager->NetworkFinished(aStatus, aMaxScope, aLoadFlags);
+  if (mState == Finished) {
+    return;
+  }
+
+  bool same = true;
+  nsresult rv = NS_OK;
+
+  // mNetworkResult is prior to mCacheResult, since it's needed for reporting
+  // various errors to web contenet.
+  if (NS_FAILED(mNetworkResult)) {
+    rv = mNetworkResult;
+  } else if (mCC && NS_FAILED(mCacheResult)) {
+    rv = mCacheResult;
+  } else { // Both passed.
+    same = mCC &&
+           mCC->InCache() &&
+           mCC->Buffer().Equals(mBuffer);
+  }
+
+  mManager->ComparisonFinished(rv, same);
+
+  // We have done with the CompareCache.
+  mCC = nullptr;
+}
+
+void
+CompareNetwork::NetworkFinish(nsresult aRv)
+{
+  MOZ_ASSERT(mState == WaitingForBothFinished ||
+             mState == WaitingForNetworkFinished);
+
+  mNetworkResult = aRv;
+
+  if (mState == WaitingForBothFinished) {
+    mState = WaitingForCacheFinished;
+    return;
+  }
+
+  if (mState == WaitingForNetworkFinished) {
+    Finish();
+    return;
+  }
+}
+
+void
+CompareNetwork::CacheFinish(nsresult aRv)
+{
+  MOZ_ASSERT(mState == WaitingForBothFinished ||
+             mState == WaitingForCacheFinished);
+
+  mCacheResult = aRv;
+
+  if (mState == WaitingForBothFinished) {
+    mState = WaitingForNetworkFinished;
+    return;
+  }
+
+  if (mState == WaitingForCacheFinished) {
+    Finish();
+    return;
+  }
 }
 
 void
@@ -712,9 +741,18 @@ CompareNetwork::Abort()
 {
   AssertIsOnMainThread();
 
-  MOZ_ASSERT(mChannel);
-  mChannel->Cancel(NS_BINDING_ABORTED);
-  mChannel = nullptr;
+  if (mState != Finished) {
+    mState = Finished;
+
+    MOZ_ASSERT(mChannel);
+    mChannel->Cancel(NS_BINDING_ABORTED);
+    mChannel = nullptr;
+
+    if (mCC) {
+      mCC->Abort();
+      mCC = nullptr;
+    }
+  }
 }
 
 NS_IMETHODIMP
@@ -722,8 +760,7 @@ CompareNetwork::OnStartRequest(nsIRequest* aRequest, nsISupports* aContext)
 {
   AssertIsOnMainThread();
 
-  // If no channel, Abort() has been called.
-  if (!mChannel) {
+  if (mState == Finished) {
     return NS_OK;
   }
 
@@ -784,24 +821,24 @@ CompareNetwork::OnStreamComplete(nsIStreamLoader* aLoader, nsISupports* aContext
 {
   AssertIsOnMainThread();
 
-  // If no channel, Abort() has been called.
-  if (!mChannel) {
+  if (mState == Finished) {
     return NS_OK;
   }
 
+  nsresult rv = NS_ERROR_FAILURE;
+  auto guard = MakeScopeExit([&] {
+    NetworkFinish(rv);
+  });
+
   if (NS_WARN_IF(NS_FAILED(aStatus))) {
-    if (aStatus == NS_ERROR_REDIRECT_LOOP) {
-      Finish(NS_ERROR_DOM_SECURITY_ERR);
-    } else {
-      Finish(aStatus);
-    }
+    rv = (aStatus == NS_ERROR_REDIRECT_LOOP) ? NS_ERROR_DOM_SECURITY_ERR
+                                             : aStatus;
     return NS_OK;
   }
 
   nsCOMPtr<nsIRequest> request;
-  nsresult rv = aLoader->GetRequest(getter_AddRefs(request));
+  rv = aLoader->GetRequest(getter_AddRefs(request));
   if (NS_WARN_IF(NS_FAILED(rv))) {
-    Finish(rv);
     return NS_OK;
   }
 
@@ -811,7 +848,6 @@ CompareNetwork::OnStreamComplete(nsIStreamLoader* aLoader, nsISupports* aContext
   bool requestSucceeded;
   rv = httpChannel->GetRequestSucceeded(&requestSucceeded);
   if (NS_WARN_IF(NS_FAILED(rv))) {
-    Finish(rv);
     return NS_OK;
   }
 
@@ -827,7 +863,8 @@ CompareNetwork::OnStreamComplete(nsIStreamLoader* aLoader, nsISupports* aContext
       mRegistration->mScope, "ServiceWorkerRegisterNetworkError",
       nsTArray<nsString> { NS_ConvertUTF8toUTF16(mRegistration->mScope),
         statusAsText, mURL });
-    Finish(NS_ERROR_FAILURE);
+
+    rv = NS_ERROR_FAILURE;
     return NS_OK;
   }
 
@@ -850,14 +887,14 @@ CompareNetwork::OnStreamComplete(nsIStreamLoader* aLoader, nsISupports* aContext
   }
 
   nsAutoCString mimeType;
-  rv = httpChannel->GetContentType(mimeType);
+  nsresult rv2 = httpChannel->GetContentType(mimeType);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     // We should only end up here if !mResponseHead in the channel.  If headers
     // were received but no content type was specified, we'll be given
     // UNKNOWN_CONTENT_TYPE "application/x-unknown-content-type" and so fall
     // into the next case with its better error message.
-    Finish(NS_ERROR_DOM_SECURITY_ERR);
-    return rv;
+    rv = NS_ERROR_DOM_SECURITY_ERR;
+    return rv2;
   }
 
   if (!mimeType.LowerCaseEqualsLiteral("text/javascript") &&
@@ -867,8 +904,8 @@ CompareNetwork::OnStreamComplete(nsIStreamLoader* aLoader, nsISupports* aContext
       mRegistration->mScope, "ServiceWorkerRegisterMimeTypeError",
       nsTArray<nsString> { NS_ConvertUTF8toUTF16(mRegistration->mScope),
         NS_ConvertUTF8toUTF16(mimeType), mURL });
-    Finish(NS_ERROR_DOM_SECURITY_ERR);
-    return rv;
+    rv = NS_ERROR_DOM_SECURITY_ERR;
+    return rv2;
   }
 
   char16_t* buffer = nullptr;
@@ -878,13 +915,12 @@ CompareNetwork::OnStreamComplete(nsIStreamLoader* aLoader, nsISupports* aContext
                                     NS_LITERAL_STRING("UTF-8"), nullptr,
                                     buffer, len);
   if (NS_WARN_IF(NS_FAILED(rv))) {
-    Finish(rv);
     return rv;
   }
 
   mBuffer.Adopt(buffer, len);
 
-  Finish(NS_OK);
+  rv = NS_OK;
   return NS_OK;
 }
 
@@ -914,7 +950,11 @@ CompareCache::Initialize(Cache* const aCache, const nsAString& aURL)
 void
 CompareCache::Finish(nsresult aStatus, bool aInCache)
 {
-  mManager->CacheFinished(aStatus, aInCache);
+  if (mState != Finished) {
+    mState = Finished;
+    mInCache = aInCache;
+    mCN->CacheFinish(aStatus);
+  }
 }
 
 void
@@ -922,12 +962,13 @@ CompareCache::Abort()
 {
   AssertIsOnMainThread();
 
-  MOZ_ASSERT(mState != Finished);
-  mState = Finished;
+  if (mState != Finished) {
+    mState = Finished;
 
-  if (mPump) {
-    mPump->Cancel(NS_BINDING_ABORTED);
-    mPump = nullptr;
+    if (mPump) {
+      mPump->Cancel(NS_BINDING_ABORTED);
+      mPump = nullptr;
+    }
   }
 }
 
@@ -1194,7 +1235,6 @@ CompareManager::Cleanup()
     mCallback = nullptr;
 
     mCN = nullptr;
-    mCC = nullptr;
   }
 }
 
