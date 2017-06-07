@@ -142,7 +142,7 @@ mozilla::ipc::IPCResult
 LayerTransactionParent::RecvUpdate(const TransactionInfo& aInfo,
                                    InfallibleTArray<EditReply>* reply)
 {
-  GeckoProfilerTracingRAII tracer("Paint", "LayerTransaction");
+  AutoProfilerTracing tracing("Paint", "LayerTransaction");
   PROFILER_LABEL("LayerTransactionParent", "RecvUpdate",
     js::ProfileEntry::Category::GRAPHICS);
 

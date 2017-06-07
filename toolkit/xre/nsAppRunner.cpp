@@ -3985,7 +3985,7 @@ XREMain::XRE_main(int argc, char* argv[], const BootstrapConfig& aConfig)
 #endif
 
   char aLocal;
-  GeckoProfilerInitRAII profilerGuard(&aLocal);
+  AutoProfilerInit profilerInit(&aLocal);
 
   PROFILER_LABEL("Startup", "XRE_Main",
     js::ProfileEntry::Category::OTHER);

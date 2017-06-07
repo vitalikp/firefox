@@ -1424,8 +1424,8 @@ static void
 FireForgetSkippable(uint32_t aSuspected, bool aRemoveChildless,
                     TimeStamp aDeadline)
 {
-  GeckoProfilerTracingRAII
-    tracer("CC", aDeadline.IsNull() ? "ForgetSkippable" : "IdleForgetSkippable");
+  AutoProfilerTracing
+    tracing("CC", aDeadline.IsNull() ? "ForgetSkippable" : "IdleForgetSkippable");
   PRTime startTime = PR_Now();
   FinishAnyIncrementalGC();
   bool earlyForgetSkippable =
@@ -1642,8 +1642,8 @@ nsJSContext::RunCycleCollectorSlice(TimeStamp aDeadline)
     return;
   }
 
-  GeckoProfilerTracingRAII
-    tracer("CC", aDeadline.IsNull() ? "CCSlice" : "IdleCCSlice");
+  AutoProfilerTracing
+    tracing("CC", aDeadline.IsNull() ? "CCSlice" : "IdleCCSlice");
 
   PROFILER_LABEL("nsJSContext", "RunCycleCollectorSlice",
     js::ProfileEntry::Category::CC);
