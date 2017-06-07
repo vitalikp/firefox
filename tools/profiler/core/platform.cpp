@@ -42,6 +42,7 @@
 #include "GeckoProfiler.h"
 #include "GeckoProfilerReporter.h"
 #include "ProfilerIOInterposeObserver.h"
+#include "mozilla/AutoProfilerLabel.h"
 #include "mozilla/StackWalk.h"
 #include "mozilla/StaticPtr.h"
 #include "mozilla/ThreadLocal.h"
@@ -2063,6 +2064,29 @@ locked_profiler_start(PSLockRef aLock, const int aEntries, double aInterval,
                       uint32_t aFeatures,
                       const char** aFilters, uint32_t aFilterCount);
 
+// This basically duplicates AutoProfilerLabel's constructor.
+PseudoStack*
+MozGlueLabelEnter(const char* aLabel, const char* aDynamicString, void* aSp,
+                  uint32_t aLine)
+{
+  PseudoStack* pseudoStack = sPseudoStack.get();
+  if (pseudoStack) {
+    pseudoStack->pushCppFrame(aLabel, aDynamicString, aSp, aLine,
+                              js::ProfileEntry::Kind::CPP_NORMAL,
+                              js::ProfileEntry::Category::OTHER);
+  }
+  return pseudoStack;
+}
+
+// This basically duplicates AutoProfilerLabel's destructor.
+void
+MozGlueLabelExit(PseudoStack* aPseudoStack)
+{
+  if (aPseudoStack) {
+    aPseudoStack->pop();
+  }
+}
+
 void
 profiler_init(void* aStackTop)
 {
@@ -2109,6 +2133,9 @@ profiler_init(void* aStackTop)
       GeckoJavaSampler::Init();
     }
 #endif
+
+    // Setup support for pushing/popping labels in mozglue.
+    RegisterProfilerLabelEnterExit(MozGlueLabelEnter, MozGlueLabelExit);
 
     // (Linux-only) We could create CorePS::mLul and read unwind info into it
     // at this point. That would match the lifetime implied by destruction of
