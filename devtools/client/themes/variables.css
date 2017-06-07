@@ -21,6 +21,7 @@
 
   --theme-tab-toolbar-background: #fcfcfc;
   --theme-toolbar-background: #fcfcfc;
+  --theme-toolbar-background-hover: rgba(221, 225, 228, 0.66);
   --theme-selection-background: #4c9ed9;
   --theme-selection-background-semitransparent: rgba(76, 158, 217, 0.15);
   --theme-selection-color: #f5f7fa;
@@ -43,6 +44,7 @@
   --theme-highlight-red: #ed2655;
   --theme-highlight-pink: #b82ee5;
   --theme-highlight-gray: #dde1e4;
+  --theme-highlight-yellow: #ffffb4;
 
   /* For accessibility purposes we want to enhance the focus styling. This
    * should improve keyboard navigation usability. */
@@ -81,6 +83,7 @@
 
   --theme-tab-toolbar-background: #272b35;
   --theme-toolbar-background: #272b35;
+  --theme-toolbar-background-hover: #20232B;
   --theme-selection-background: #5675B9;
   --theme-selection-background-semitransparent: rgba(86, 117, 185, 0.5);
   --theme-selection-color: #f5f7fa;
@@ -103,6 +106,7 @@
   --theme-highlight-red: #eb5368;
   --theme-highlight-pink: #df80ff;
   --theme-highlight-gray: #e9f4fe;
+  --theme-highlight-yellow: #ffffb4;
 
   /* For accessibility purposes we want to enhance the focus styling. This
    * should improve keyboard navigation usability. */
