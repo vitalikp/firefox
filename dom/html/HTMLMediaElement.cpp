@@ -2411,7 +2411,8 @@ nsresult HTMLMediaElement::LoadResource()
       mPreservesPitch,
       mPlaybackRate,
       mPreloadAction == HTMLMediaElement::PRELOAD_METADATA,
-      mHasSuspendTaint);
+      mHasSuspendTaint,
+      HasAttr(kNameSpaceID_None, nsGkAtoms::loop));
 
     RefPtr<MediaSourceDecoder> decoder = new MediaSourceDecoder(decoderInit);
     if (!mMediaSource->Attach(decoder)) {
@@ -4227,6 +4228,10 @@ HTMLMediaElement::AfterSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
       }
     } else if (aName == nsGkAtoms::preload) {
       UpdatePreloadAction();
+    } else if (aName == nsGkAtoms::loop) {
+      if (mDecoder) {
+        mDecoder->SetLooping(!!aValue);
+      }
     }
   }
 
@@ -4577,7 +4582,8 @@ nsresult HTMLMediaElement::InitializeDecoderAsClone(MediaDecoder* aOriginal)
     mPreservesPitch,
     mPlaybackRate,
     mPreloadAction == HTMLMediaElement::PRELOAD_METADATA,
-    mHasSuspendTaint);
+    mHasSuspendTaint,
+    HasAttr(kNameSpaceID_None, nsGkAtoms::loop));
 
   RefPtr<MediaDecoder> decoder = aOriginal->Clone(decoderInit);
   if (!decoder)
@@ -4616,7 +4622,8 @@ nsresult HTMLMediaElement::InitializeDecoderForChannel(nsIChannel* aChannel,
     mPreservesPitch,
     mPlaybackRate,
     mPreloadAction == HTMLMediaElement::PRELOAD_METADATA,
-    mHasSuspendTaint);
+    mHasSuspendTaint,
+    HasAttr(kNameSpaceID_None, nsGkAtoms::loop));
 
   RefPtr<MediaDecoder> decoder =
     DecoderTraits::CreateDecoder(mimeType, decoderInit, &diagnostics);
