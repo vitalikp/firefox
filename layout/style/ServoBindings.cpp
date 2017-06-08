@@ -521,7 +521,6 @@ void
 Gecko_UpdateAnimations(RawGeckoElementBorrowed aElement,
                        ServoComputedValuesBorrowedOrNull aOldComputedValues,
                        ServoComputedValuesBorrowedOrNull aComputedValues,
-                       ServoComputedValuesBorrowedOrNull aParentComputedValues,
                        UpdateAnimationsTasks aTasks)
 {
   MOZ_ASSERT(NS_IsMainThread());
