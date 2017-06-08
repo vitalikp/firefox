@@ -380,6 +380,12 @@ public:
                                dom::Element* aElement,
                                ServoComputedValuesBorrowed aComputedValues);
 
+  void
+  GetAnimationValues(RawServoDeclarationBlock* aDeclarations,
+                     dom::Element* aElement,
+                     ServoComputedValuesBorrowed aComputedValues,
+                     nsTArray<RefPtr<RawServoAnimationValue>>& aAnimationValues);
+
   bool AppendFontFaceRules(nsTArray<nsFontFaceRuleContainer>& aArray);
 
   nsCSSCounterStyleRule* CounterStyleRuleForName(nsIAtom* aName);
