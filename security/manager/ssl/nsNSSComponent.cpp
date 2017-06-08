@@ -194,7 +194,7 @@ GetRevocationBehaviorFromPrefs(/*out*/ CertVerifier::OcspDownloadConfig* odc,
 }
 
 nsNSSComponent::nsNSSComponent()
-  : mutex("nsNSSComponent.mutex")
+  : mMutex("nsNSSComponent.mMutex")
   , mNSSInitialized(false)
 #ifndef MOZ_NO_SMART_CARDS
   , mThreadList(nullptr)
@@ -229,6 +229,7 @@ nsNSSComponent::PIPBundleFormatStringFromName(const char* name,
                                               uint32_t numParams,
                                               nsAString& outString)
 {
+  MutexAutoLock lock(mMutex);
   nsresult rv = NS_ERROR_FAILURE;
 
   if (mPIPNSSBundle && name) {
@@ -246,6 +247,7 @@ nsNSSComponent::PIPBundleFormatStringFromName(const char* name,
 NS_IMETHODIMP
 nsNSSComponent::GetPIPNSSBundleString(const char* name, nsAString& outString)
 {
+  MutexAutoLock lock(mMutex);
   nsresult rv = NS_ERROR_FAILURE;
 
   outString.SetLength(0);
@@ -264,6 +266,7 @@ nsNSSComponent::GetPIPNSSBundleString(const char* name, nsAString& outString)
 NS_IMETHODIMP
 nsNSSComponent::GetNSSBundleString(const char* name, nsAString& outString)
 {
+  MutexAutoLock lock(mMutex);
   nsresult rv = NS_ERROR_FAILURE;
 
   outString.SetLength(0);
@@ -280,33 +283,35 @@ nsNSSComponent::GetNSSBundleString(const char* name, nsAString& outString)
 }
 
 #ifndef MOZ_NO_SMART_CARDS
-void
+nsresult
 nsNSSComponent::LaunchSmartCardThreads()
 {
-  nsNSSShutDownPreventionLock locker;
-  {
-    SECMODModuleList* list;
-    SECMODListLock* lock = SECMOD_GetDefaultModuleListLock();
-    if (!lock) {
-        MOZ_LOG(gPIPNSSLog, LogLevel::Error,
-               ("Couldn't get the module list lock, can't launch smart card threads\n"));
-        return;
-    }
-    SECMOD_GetReadLock(lock);
-    list = SECMOD_GetDefaultModuleList();
-
-    while (list) {
-      SECMODModule* module = list->module;
-      LaunchSmartCardThread(module);
-      list = list->next;
-    }
-    SECMOD_ReleaseReadLock(lock);
+  MOZ_ASSERT(NS_IsMainThread());
+  if (!NS_IsMainThread()) {
+    return NS_ERROR_NOT_SAME_THREAD;
   }
+
+  AutoSECMODListReadLock lock;
+  SECMODModuleList* list = SECMOD_GetDefaultModuleList();
+  nsresult rv;
+  while (list) {
+    rv = LaunchSmartCardThread(list->module);
+    if (NS_FAILED(rv)) {
+      return rv;
+    }
+    list = list->next;
+  }
+  return NS_OK;
 }
 
 NS_IMETHODIMP
 nsNSSComponent::LaunchSmartCardThread(SECMODModule* module)
 {
+  MOZ_ASSERT(NS_IsMainThread());
+  if (!NS_IsMainThread()) {
+    return NS_ERROR_NOT_SAME_THREAD;
+  }
+
   SmartCardMonitoringThread* newThread;
   if (SECMOD_HasRemovableSlots(module)) {
     if (!mThreadList) {
@@ -322,6 +327,11 @@ nsNSSComponent::LaunchSmartCardThread(SECMODModule* module)
 NS_IMETHODIMP
 nsNSSComponent::ShutdownSmartCardThread(SECMODModule* module)
 {
+  MOZ_ASSERT(NS_IsMainThread());
+  if (!NS_IsMainThread()) {
+    return NS_ERROR_NOT_SAME_THREAD;
+  }
+
   if (!mThreadList) {
     return NS_OK;
   }
@@ -332,6 +342,11 @@ nsNSSComponent::ShutdownSmartCardThread(SECMODModule* module)
 void
 nsNSSComponent::ShutdownSmartCardThreads()
 {
+  MOZ_ASSERT(NS_IsMainThread());
+  if (!NS_IsMainThread()) {
+    return;
+  }
+
   delete mThreadList;
   mThreadList = nullptr;
 }
@@ -598,6 +613,7 @@ nsresult
 nsNSSComponent::MaybeImportFamilySafetyRoot(PCCERT_CONTEXT certificate,
                                             bool& wasFamilySafetyRoot)
 {
+  MutexAutoLock lock(mMutex);
   MOZ_ASSERT(NS_IsMainThread());
   if (!NS_IsMainThread()) {
     return NS_ERROR_NOT_SAME_THREAD;
@@ -692,6 +708,7 @@ nsNSSComponent::LoadFamilySafetyRoot()
 void
 nsNSSComponent::UnloadFamilySafetyRoot()
 {
+  MutexAutoLock lock(mMutex);
   MOZ_ASSERT(NS_IsMainThread());
   if (!NS_IsMainThread()) {
     return;
@@ -826,7 +843,7 @@ CertIsTrustAnchorForTLSServerAuth(PCCERT_CONTEXT certificate)
 }
 
 void
-nsNSSComponent::UnloadEnterpriseRoots()
+nsNSSComponent::UnloadEnterpriseRoots(const MutexAutoLock& /*proof of lock*/)
 {
   MOZ_ASSERT(NS_IsMainThread());
   if (!NS_IsMainThread()) {
@@ -864,13 +881,14 @@ nsNSSComponent::UnloadEnterpriseRoots()
 NS_IMETHODIMP
 nsNSSComponent::GetEnterpriseRoots(nsIX509CertList** enterpriseRoots)
 {
+  nsNSSShutDownPreventionLock lock;
+  MutexAutoLock nsNSSComponentLock(mMutex);
   MOZ_ASSERT(NS_IsMainThread());
   if (!NS_IsMainThread()) {
     return NS_ERROR_NOT_SAME_THREAD;
   }
   NS_ENSURE_ARG_POINTER(enterpriseRoots);
 
-  nsNSSShutDownPreventionLock lock;
   // nsNSSComponent isn't a nsNSSShutDownObject, so we can't check
   // isAlreadyShutDown(). However, since mEnterpriseRoots is cleared when NSS
   // shuts down, we can use that as a proxy for checking for NSS shutdown.
@@ -901,11 +919,12 @@ void
 nsNSSComponent::MaybeImportEnterpriseRoots()
 {
 #ifdef XP_WIN
+  MutexAutoLock lock(mMutex);
   MOZ_ASSERT(NS_IsMainThread());
   if (!NS_IsMainThread()) {
     return;
   }
-  UnloadEnterpriseRoots();
+  UnloadEnterpriseRoots(lock);
   bool importEnterpriseRoots = Preferences::GetBool(kEnterpriseRootModePref,
                                                     false);
   if (!importEnterpriseRoots) {
@@ -920,9 +939,11 @@ nsNSSComponent::MaybeImportEnterpriseRoots()
     return;
   }
 
-  ImportEnterpriseRootsForLocation(CERT_SYSTEM_STORE_LOCAL_MACHINE);
-  ImportEnterpriseRootsForLocation(CERT_SYSTEM_STORE_LOCAL_MACHINE_GROUP_POLICY);
-  ImportEnterpriseRootsForLocation(CERT_SYSTEM_STORE_LOCAL_MACHINE_ENTERPRISE);
+  ImportEnterpriseRootsForLocation(CERT_SYSTEM_STORE_LOCAL_MACHINE, lock);
+  ImportEnterpriseRootsForLocation(CERT_SYSTEM_STORE_LOCAL_MACHINE_GROUP_POLICY,
+                                   lock);
+  ImportEnterpriseRootsForLocation(CERT_SYSTEM_STORE_LOCAL_MACHINE_ENTERPRISE,
+                                   lock);
 #endif // XP_WIN
 }
 
@@ -937,7 +958,8 @@ nsNSSComponent::MaybeImportEnterpriseRoots()
 //   CERT_SYSTEM_STORE_LOCAL_MACHINE_ENTERPRISE
 //     (for HKLM\SOFTWARE\Microsoft\EnterpriseCertificates\Root\Certificates)
 void
-nsNSSComponent::ImportEnterpriseRootsForLocation(DWORD locationFlag)
+nsNSSComponent::ImportEnterpriseRootsForLocation(
+  DWORD locationFlag, const MutexAutoLock& /*proof of lock*/)
 {
   MOZ_ASSERT(NS_IsMainThread());
   if (!NS_IsMainThread()) {
@@ -1025,54 +1047,6 @@ nsNSSComponent::ImportEnterpriseRootsForLocation(DWORD locationFlag)
 void
 nsNSSComponent::LoadLoadableRoots()
 {
-  nsNSSShutDownPreventionLock locker;
-  SECMODModule* RootsModule = nullptr;
-
-  // In the past we used SECMOD_AddNewModule to load our module containing
-  // root CA certificates. This caused problems, refer to bug 176501.
-  // On startup, we fix our database and clean any stored module reference,
-  // and will use SECMOD_LoadUserModule to temporarily load it
-  // for the session. (This approach requires to clean up
-  // using SECMOD_UnloadUserModule at the end of the session.)
-
-  {
-    // Find module containing root certs
-
-    SECMODModuleList* list;
-    SECMODListLock* lock = SECMOD_GetDefaultModuleListLock();
-    if (!lock) {
-        MOZ_LOG(gPIPNSSLog, LogLevel::Error,
-               ("Couldn't get the module list lock, can't install loadable roots\n"));
-        return;
-    }
-    SECMOD_GetReadLock(lock);
-    list = SECMOD_GetDefaultModuleList();
-
-    while (!RootsModule && list) {
-      SECMODModule* module = list->module;
-
-      for (int i=0; i < module->slotCount; i++) {
-        PK11SlotInfo* slot = module->slots[i];
-        if (PK11_IsPresent(slot)) {
-          if (PK11_HasRootCerts(slot)) {
-            RootsModule = SECMOD_ReferenceModule(module);
-            break;
-          }
-        }
-      }
-
-      list = list->next;
-    }
-    SECMOD_ReleaseReadLock(lock);
-  }
-
-  if (RootsModule) {
-    int32_t modType;
-    SECMOD_DeleteModule(RootsModule->commonName, &modType);
-    SECMOD_DestroyModule(RootsModule);
-    RootsModule = nullptr;
-  }
-
   // Find the best Roots module for our purposes.
   // Prefer the application's installation directory,
   // but also ensure the library is at least the version we expect.
@@ -1166,7 +1140,6 @@ nsNSSComponent::UnloadLoadableRoots()
 nsresult
 nsNSSComponent::ConfigureInternalPKCS11Token()
 {
-  nsNSSShutDownPreventionLock locker;
   nsAutoString manufacturerID;
   nsAutoString libraryDescription;
   nsAutoString tokenDescription;
@@ -1216,8 +1189,7 @@ nsNSSComponent::ConfigureInternalPKCS11Token()
 nsresult
 nsNSSComponent::InitializePIPNSSBundle()
 {
-  // Called during init only, no mutex required.
-
+  MutexAutoLock lock(mMutex);
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
   if (NS_FAILED(rv) || !bundleService)
@@ -1431,10 +1403,9 @@ CipherSuiteChangeObserver::Observe(nsISupports* /*aSubject*/,
 
 } // namespace
 
-// Caller must hold a lock on nsNSSComponent::mutex when calling this function
-void nsNSSComponent::setValidationOptions(bool isInitialSetting,
-                                          const MutexAutoLock& lock)
+void nsNSSComponent::setValidationOptions(bool isInitialSetting)
 {
+  MutexAutoLock lock(mMutex);
   // This preference controls whether we do OCSP fetching and does not affect
   // OCSP stapling.
   // 0 = disabled, 1 = enabled
@@ -1644,8 +1615,6 @@ nsNSSComponent::InitializeNSS()
                 nsINSSErrorsService::NSS_SSL_ERROR_LIMIT == SSL_ERROR_LIMIT,
                 "You must update the values in nsINSSErrorsService.idl");
 
-  MutexAutoLock lock(mutex);
-
   MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("NSS Initialization beginning\n"));
 
   // The call to ConfigureInternalPKCS11Token needs to be done before NSS is initialized,
@@ -1700,10 +1669,6 @@ nsNSSComponent::InitializeNSS()
     MOZ_LOG(gPIPNSSLog, LogLevel::Error, ("could not initialize NSS - panicking\n"));
     return NS_ERROR_NOT_AVAILABLE;
   }
-
-  // ensure we have an initial value for the content signer root
-  mContentSigningRootHash =
-    Preferences::GetString("security.content.signature.root_hash");
 
   PK11_SetPasswordFunc(PK11PasswordPrompt);
 
@@ -1779,10 +1744,15 @@ nsNSSComponent::InitializeNSS()
   }
 
   // dynamic options from prefs
-  setValidationOptions(true, lock);
+  setValidationOptions(true);
 
 #ifndef MOZ_NO_SMART_CARDS
-  LaunchSmartCardThreads();
+  rv = LaunchSmartCardThreads();
+  if (NS_FAILED(rv)) {
+    MOZ_LOG(gPIPNSSLog, LogLevel::Error,
+            ("failed to start smart card threads"));
+    return rv;
+  }
 #endif
 
   mozilla::pkix::RegisterErrorTable();
@@ -1791,7 +1761,20 @@ nsNSSComponent::InitializeNSS()
     Telemetry::Accumulate(Telemetry::FIPS_ENABLED, true);
   }
   MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("NSS Initialization done\n"));
-  mNSSInitialized = true;
+
+  {
+    MutexAutoLock lock(mMutex);
+
+    // ensure we have initial values for various root hashes
+#ifdef DEBUG
+    mTestBuiltInRootHash =
+      Preferences::GetString("security.test.built_in_root_hash");
+#endif
+    mContentSigningRootHash =
+      Preferences::GetString("security.content.signature.root_hash");
+
+    mNSSInitialized = true;
+  }
 
   return NS_OK;
 }
@@ -1802,39 +1785,54 @@ nsNSSComponent::ShutdownNSS()
   MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("nsNSSComponent::ShutdownNSS\n"));
   MOZ_RELEASE_ASSERT(NS_IsMainThread());
 
-  MutexAutoLock lock(mutex);
+  // This is idempotent and can happen as a result of observing
+  // profile-before-change and being called from nsNSSComponent's destructor.
+  // We need to do this before other cleanup because we must avoid acquiring
+  // mMutex and then preventing threads holding nsNSSShutDownPreventionLocks
+  // from continuing (which is what evaporateAllNSSResourcesAndShutDown does).
+  MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("evaporating psm resources"));
+  if (NS_FAILED(nsNSSShutDownList::evaporateAllNSSResourcesAndShutDown())) {
+    MOZ_LOG(gPIPNSSLog, LogLevel::Error, ("failed to evaporate resources"));
+    return;
+  }
 
-  if (mNSSInitialized) {
-    mNSSInitialized = false;
+  // This currently calls GetPIPNSSBundleString, which acquires mMutex, so we
+  // can't call it while already holding mMutex. This is fine as mMutex doesn't
+  // actually protect anything that UnloadLoadableRoots is modifying. Also,
+  // UnloadLoadableRoots is idempotent.
+  UnloadLoadableRoots();
 
-    PK11_SetPasswordFunc((PK11PasswordFunc)nullptr);
+  MutexAutoLock lock(mMutex);
 
-    Preferences::RemoveObserver(this, "security.");
+  // Other shutdown tasks are not guaranteed to be idempotent and we should
+  // avoid performing them more than once.
+  if (!mNSSInitialized) {
+    return;
+  }
+  mNSSInitialized = false;
 
 #ifdef XP_WIN
-    mFamilySafetyRoot = nullptr;
-    mEnterpriseRoots = nullptr;
+  mFamilySafetyRoot = nullptr;
+  mEnterpriseRoots = nullptr;
 #endif
+
+  PK11_SetPasswordFunc((PK11PasswordFunc)nullptr);
+
+  Preferences::RemoveObserver(this, "security.");
 
 #ifndef MOZ_NO_SMART_CARDS
-    ShutdownSmartCardThreads();
+  ShutdownSmartCardThreads();
 #endif
-    SSL_ClearSessionCache();
-    // TLSServerSocket may be run with the session cache enabled. This ensures
-    // those resources are cleaned up.
-    Unused << SSL_ShutdownServerSessionIDCache();
+  SSL_ClearSessionCache();
+  // TLSServerSocket may be run with the session cache enabled. This ensures
+  // those resources are cleaned up.
+  Unused << SSL_ShutdownServerSessionIDCache();
 
-    MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("evaporating psm resources"));
-    if (NS_FAILED(nsNSSShutDownList::evaporateAllNSSResourcesAndShutDown())) {
-      MOZ_LOG(gPIPNSSLog, LogLevel::Error, ("failed to evaporate resources"));
-      return;
-    }
-    UnloadLoadableRoots();
-    if (SECSuccess != ::NSS_Shutdown()) {
-      MOZ_LOG(gPIPNSSLog, LogLevel::Error, ("NSS SHUTDOWN FAILURE"));
-    } else {
-      MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("NSS shutdown =====>> OK <<====="));
-    }
+
+  if (NSS_Shutdown() != SECSuccess) {
+    MOZ_LOG(gPIPNSSLog, LogLevel::Error, ("NSS SHUTDOWN FAILURE"));
+  } else {
+    MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("NSS shutdown =====>> OK <<====="));
   }
 }
 
@@ -1858,18 +1856,6 @@ nsNSSComponent::Init()
     MOZ_LOG(gPIPNSSLog, LogLevel::Error, ("Unable to create pipnss bundle.\n"));
     return rv;
   }
-
-  // Access our string bundles now, this prevents assertions from I/O
-  // - nsStandardURL not thread-safe
-  // - wrong thread: 'NS_IsMainThread()' in nsIOService.cpp
-  // when loading error strings on the SSL threads.
-  {
-    const char16_t* dummy = u"dummy";
-    nsXPIDLString result;
-    mPIPNSSBundle->GetStringFromName(dummy, getter_Copies(result));
-    mNSSErrorsBundle->GetStringFromName(dummy, getter_Copies(result));
-  }
-
 
   rv = InitializeNSS();
   if (NS_FAILED(rv)) {
@@ -1941,17 +1927,16 @@ nsNSSComponent::Observe(nsISupports* aSubject, const char* aTopic,
                prefName.EqualsLiteral("security.pki.netscape_step_up_policy") ||
                prefName.EqualsLiteral("security.OCSP.timeoutMilliseconds.soft") ||
                prefName.EqualsLiteral("security.OCSP.timeoutMilliseconds.hard")) {
-      MutexAutoLock lock(mutex);
-      setValidationOptions(false, lock);
+      setValidationOptions(false);
 #ifdef DEBUG
     } else if (prefName.EqualsLiteral("security.test.built_in_root_hash")) {
-      MutexAutoLock lock(mutex);
+      MutexAutoLock lock(mMutex);
       mTestBuiltInRootHash = Preferences::GetString("security.test.built_in_root_hash");
 #endif // DEBUG
     } else if (prefName.Equals(kFamilySafetyModePref)) {
       MaybeEnableFamilySafetyCompatibility();
     } else if (prefName.EqualsLiteral("security.content.signature.root_hash")) {
-      MutexAutoLock lock(mutex);
+      MutexAutoLock lock(mMutex);
       mContentSigningRootHash =
         Preferences::GetString("security.content.signature.root_hash");
     } else if (prefName.Equals(kEnterpriseRootModePref)) {
@@ -2031,8 +2016,6 @@ nsresult nsNSSComponent::LogoutAuthenticatedPK11()
 nsresult
 nsNSSComponent::RegisterObservers()
 {
-  // Happens once during init only, no mutex protection.
-
   nsCOMPtr<nsIObserverService> observerService(
     do_GetService("@mozilla.org/observer-service;1"));
   if (!observerService) {
@@ -2054,15 +2037,11 @@ nsNSSComponent::RegisterObservers()
 NS_IMETHODIMP
 nsNSSComponent::IsCertTestBuiltInRoot(CERTCertificate* cert, bool& result)
 {
-  MutexAutoLock lock(mutex);
-  MOZ_ASSERT(mNSSInitialized);
-
   result = false;
 
-  if (mTestBuiltInRootHash.IsEmpty()) {
-    return NS_OK;
-  }
-
+  // Create the nsNSSCertificate and get its hash before acquiring mMutex (we
+  // must avoid acquiring mMutex and then creating an
+  // nsNSSShutDownPreventionLock).
   RefPtr<nsNSSCertificate> nsc = nsNSSCertificate::Create(cert);
   if (!nsc) {
     return NS_ERROR_FAILURE;
@@ -2073,6 +2052,12 @@ nsNSSComponent::IsCertTestBuiltInRoot(CERTCertificate* cert, bool& result)
     return rv;
   }
 
+  MutexAutoLock lock(mMutex);
+  MOZ_ASSERT(mNSSInitialized);
+  if (mTestBuiltInRootHash.IsEmpty()) {
+    return NS_OK;
+  }
+
   result = mTestBuiltInRootHash.Equals(certHash);
   return NS_OK;
 }
@@ -2081,16 +2066,11 @@ nsNSSComponent::IsCertTestBuiltInRoot(CERTCertificate* cert, bool& result)
 NS_IMETHODIMP
 nsNSSComponent::IsCertContentSigningRoot(CERTCertificate* cert, bool& result)
 {
-  MutexAutoLock lock(mutex);
-  MOZ_ASSERT(mNSSInitialized);
-
   result = false;
 
-  if (mContentSigningRootHash.IsEmpty()) {
-    MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("mContentSigningRootHash is empty"));
-    return NS_ERROR_FAILURE;
-  }
-
+  // Create the nsNSSCertificate and get its hash before acquiring mMutex (we
+  // must avoid acquiring mMutex and then creating an
+  // nsNSSShutDownPreventionLock).
   RefPtr<nsNSSCertificate> nsc = nsNSSCertificate::Create(cert);
   if (!nsc) {
     MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("creating nsNSSCertificate failed"));
@@ -2103,6 +2083,14 @@ nsNSSComponent::IsCertContentSigningRoot(CERTCertificate* cert, bool& result)
     return rv;
   }
 
+  MutexAutoLock lock(mMutex);
+  MOZ_ASSERT(mNSSInitialized);
+
+  if (mContentSigningRootHash.IsEmpty()) {
+    MOZ_LOG(gPIPNSSLog, LogLevel::Debug, ("mContentSigningRootHash is empty"));
+    return NS_ERROR_FAILURE;
+  }
+
   result = mContentSigningRootHash.Equals(certHash);
   return NS_OK;
 }
@@ -2112,7 +2100,7 @@ SharedCertVerifier::~SharedCertVerifier() { }
 already_AddRefed<SharedCertVerifier>
 nsNSSComponent::GetDefaultCertVerifier()
 {
-  MutexAutoLock lock(mutex);
+  MutexAutoLock lock(mMutex);
   MOZ_ASSERT(mNSSInitialized);
   RefPtr<SharedCertVerifier> certVerifier(mDefaultCertVerifier);
   return certVerifier.forget();
