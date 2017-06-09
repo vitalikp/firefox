@@ -896,7 +896,7 @@ ServoRestyleManager::AttributeWillChange(Element* aElement,
   }
 
   ServoElementSnapshot& snapshot = SnapshotFor(aElement);
-  snapshot.AddAttrs(aElement);
+  snapshot.AddAttrs(aElement, aNameSpaceID, aAttribute);
 
   if (AttributeInfluencesOtherPseudoClassState(aElement, aAttribute)) {
     snapshot.AddOtherPseudoClassState(aElement);
