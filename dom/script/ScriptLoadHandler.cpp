@@ -7,6 +7,8 @@
 #include "ScriptLoadHandler.h"
 #include "ScriptLoader.h"
 
+#include "nsContentUtils.h"
+
 #include "mozilla/dom/EncodingUtils.h"
 #include "mozilla/Telemetry.h"
 
@@ -275,9 +277,10 @@ ScriptLoadHandler::EnsureKnownDataType(nsIIncrementalStreamLoader* aLoader)
   if (cic) {
     nsAutoCString altDataType;
     cic->GetAlternativeDataType(altDataType);
-    if (altDataType.EqualsLiteral("javascript/moz-bytecode-" NS_STRINGIFY(MOZ_BUILDID))) {
+    if (altDataType.Equals(nsContentUtils::JSBytecodeMimeType())) {
       mRequest->mDataType = ScriptLoadRequest::DataType::Bytecode;
     } else {
+      MOZ_ASSERT(altDataType.IsEmpty());
       mRequest->mDataType = ScriptLoadRequest::DataType::Source;
     }
   } else {
