@@ -745,9 +745,6 @@ protected:
   // PlaybackRate and pitch preservation status we should start at.
   double mPlaybackRate;
 
-  // Whether the state machine is shut down.
-  Mirror<bool> mStateMachineIsShutdown;
-
   // Buffered range, mirrored from the reader.
   Mirror<media::TimeIntervals> mBuffered;
 
