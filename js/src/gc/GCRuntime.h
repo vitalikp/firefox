@@ -562,8 +562,8 @@ class GCSchedulingState
 
 template<typename F>
 struct Callback {
-    ActiveThreadData<F> op;
-    ActiveThreadData<void*> data;
+    ActiveThreadOrGCTaskData<F> op;
+    ActiveThreadOrGCTaskData<void*> data;
 
     Callback()
       : op(nullptr), data(nullptr)
@@ -914,6 +914,8 @@ class GCRuntime
     static T* tryNewTenuredThing(JSContext* cx, AllocKind kind, size_t thingSize);
     static TenuredCell* refillFreeListInGC(Zone* zone, AllocKind thingKind);
 
+    void bufferGrayRoots();
+
     // Delete an empty zone group after its contents have been merged.
     void deleteEmptyZoneGroup(ZoneGroup* group);
 
@@ -993,7 +995,6 @@ class GCRuntime
     void traceRuntimeAtoms(JSTracer* trc, AutoLockForExclusiveAccess& lock);
     void traceRuntimeCommon(JSTracer* trc, TraceOrMarkRuntime traceOrMark,
                             AutoLockForExclusiveAccess& lock);
-    void bufferGrayRoots();
     void maybeDoCycleCollection();
     void markCompartments();
     IncrementalProgress drainMarkStack(SliceBudget& sliceBudget, gcstats::PhaseKind phase);
@@ -1158,7 +1159,7 @@ class GCRuntime
         Okay,
         Failed
     };
-    ActiveThreadData<GrayBufferState> grayBufferState;
+    ActiveThreadOrGCTaskData<GrayBufferState> grayBufferState;
     bool hasBufferedGrayRoots() const { return grayBufferState == GrayBufferState::Okay; }
 
     // Clear each zone's gray buffers, but do not change the current state.

@@ -7,11 +7,19 @@
 PHASEV(MUTATOR, FIRST, "Mutator Running")
 PHASE(GC_BEGIN, "Begin Callback")
 PHASE(WAIT_BACKGROUND_THREAD, "Wait Background Thread")
-PHASE(MARK_DISCARD_CODE, "Mark Discard Code")
-PHASE(RELAZIFY_FUNCTIONS, "Relazify Functions")
-PHASE(PURGE, "Purge")
+
+#define PREPARE(name, desc) PHASE(name, desc, PREPARE)
+
+PHASE(PREPARE, "Prepare For Collection")
+PREPARE(UNMARK, "Unmark")
+PREPARE(BUFFER_GRAY_ROOTS, "Buffer Gray Roots")
+PREPARE(MARK_DISCARD_CODE, "Mark Discard Code")
+PREPARE(RELAZIFY_FUNCTIONS, "Relazify Functions")
+PREPARE(PURGE, "Purge")
+PREPARE(PURGE_SHAPE_TABLES, "Purge ShapeTables")
+#undef PREPARE
+
 PHASE(MARK, "Mark")
-PHASE(UNMARK, "Unmark", MARK)
 PHASE(MARK_DELAYED, "Mark Delayed", MARK)
 
 #define SWEEP(name, desc) PHASE(SWEEP_ ## name, desc, SWEEP)
@@ -77,7 +85,6 @@ PHASE(TRACE_HEAP, "Trace Heap")
 PHASE(BARRIER, "Barriers")
 PHASE(UNMARK_GRAY, "Unmark gray", BARRIER)
 PHASE(MARK_ROOTS, "Mark Roots", MULTI_PARENTS)
-PHASE(BUFFER_GRAY_ROOTS, "Buffer Gray Roots", MARK_ROOTS)
 #define MARK(name, desc) PHASE(MARK_ ## name, desc, MARK_ROOTS)
 MARK(CCWS, "Mark Cross Compartment Wrappers")
 MARK(STACK, "Mark C and JS stacks")
@@ -85,4 +92,3 @@ MARK(RUNTIME_DATA, "Mark Runtime-wide Data")
 MARK(EMBEDDING, "Mark Embedding")
 MARK(COMPARTMENTS, "Mark Compartments")
 #undef MARK
-PHASE(PURGE_SHAPE_TABLES, "Purge ShapeTables")
