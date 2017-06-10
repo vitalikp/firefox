@@ -56,7 +56,6 @@
 #include "mozilla/dom/EncodingUtils.h"
 #include "mozilla/ConsoleReportCollector.h"
 
-#include "mozilla/AbstractThread.h"
 #include "mozilla/AsyncEventDispatcher.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/Telemetry.h"
@@ -671,8 +670,8 @@ ScriptLoader::StartFetchingModuleDependencies(ModuleLoadRequest* aRequest)
 
   // Wait for all imports to become ready.
   RefPtr<GenericPromise::AllPromiseType> allReady =
-    GenericPromise::All(AbstractThread::MainThread(), importsReady);
-  allReady->Then(AbstractThread::MainThread(), __func__, aRequest,
+    GenericPromise::All(GetMainThreadSerialEventTarget(), importsReady);
+  allReady->Then(GetMainThreadSerialEventTarget(), __func__, aRequest,
                  &ModuleLoadRequest::DependenciesLoaded,
                  &ModuleLoadRequest::ModuleErrored);
 }
@@ -930,7 +929,7 @@ ScriptLoader::StartLoad(ScriptLoadRequest* aRequest)
     if (ModuleMapContainsModule(request)) {
       LOG(("ScriptLoadRequest (%p): Waiting for module fetch", aRequest));
       WaitForModuleFetch(request)
-        ->Then(AbstractThread::MainThread(), __func__, request,
+        ->Then(GetMainThreadSerialEventTarget(), __func__, request,
                &ModuleLoadRequest::ModuleLoaded,
                &ModuleLoadRequest::LoadFailed);
       return NS_OK;
