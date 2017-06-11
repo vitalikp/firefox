@@ -642,20 +642,21 @@ ServoRestyleManager::SnapshotFor(Element* aElement)
 }
 
 /* static */ nsIFrame*
-ServoRestyleManager::FrameForPseudoElement(const nsIContent* aContent,
+ServoRestyleManager::FrameForPseudoElement(const Element* aElement,
                                            nsIAtom* aPseudoTagOrNull)
 {
-  MOZ_ASSERT_IF(aPseudoTagOrNull, aContent->IsElement());
   if (!aPseudoTagOrNull) {
-    return aContent->GetPrimaryFrame();
+    return nsLayoutUtils::GetStyleFrame(aElement);
   }
 
   if (aPseudoTagOrNull == nsCSSPseudoElements::before) {
-    return nsLayoutUtils::GetBeforeFrame(aContent);
+    Element* pseudoElement = nsLayoutUtils::GetBeforePseudo(aElement);
+    return pseudoElement ? nsLayoutUtils::GetStyleFrame(pseudoElement) : nullptr;
   }
 
   if (aPseudoTagOrNull == nsCSSPseudoElements::after) {
-    return nsLayoutUtils::GetAfterFrame(aContent);
+    Element* pseudoElement = nsLayoutUtils::GetAfterPseudo(aElement);
+    return pseudoElement ? nsLayoutUtils::GetStyleFrame(pseudoElement) : nullptr;
   }
 
   if (aPseudoTagOrNull == nsCSSPseudoElements::firstLine ||
