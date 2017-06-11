@@ -604,12 +604,6 @@ class WasmTokenStream
             return token.name();
         return AstName();
     }
-    AstName getIfText() {
-        WasmToken token;
-        if (getIf(WasmToken::Text, &token))
-            return token.text();
-        return AstName();
-    }
     bool getIfRef(AstRef* ref) {
         WasmToken token = peek();
         if (token.kind() == WasmToken::Name || token.kind() == WasmToken::Index)
@@ -1495,10 +1489,6 @@ struct WasmParseContext
         dtoaState(NewDtoaState())
     {}
 
-    bool fail(const char* message) {
-        error->reset(js_strdup(message));
-        return false;
-    }
     ~WasmParseContext() {
         DestroyDtoaState(dtoaState);
     }
@@ -3373,14 +3363,6 @@ class Resolver
         }
         return true;
     }
-    bool resolveName(AstNameMap& map, AstName name, size_t* index) {
-        AstNameMap::Ptr p = map.lookup(name);
-        if (p) {
-            *index = p->value();
-            return true;
-        }
-        return false;
-    }
     bool resolveRef(AstNameMap& map, AstRef& ref) {
         AstNameMap::Ptr p = map.lookup(ref.name());
         if (p) {
@@ -3429,7 +3411,6 @@ class Resolver
 
     REGISTER(Sig, sigMap_)
     REGISTER(Func, funcMap_)
-    REGISTER(Import, importMap_)
     REGISTER(Var, varMap_)
     REGISTER(Global, globalMap_)
     REGISTER(Table, tableMap_)
@@ -3455,7 +3436,6 @@ class Resolver
 
     RESOLVE(sigMap_, Signature)
     RESOLVE(funcMap_, Function)
-    RESOLVE(importMap_, Import)
     RESOLVE(varMap_, Local)
     RESOLVE(globalMap_, Global)
     RESOLVE(tableMap_, Table)
