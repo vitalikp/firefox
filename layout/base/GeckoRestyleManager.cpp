@@ -12,6 +12,7 @@
 
 #include <algorithm> // For std::max
 #include "mozilla/EffectSet.h"
+#include "mozilla/GeckoStyleContext.h"
 #include "mozilla/EventStates.h"
 #include "mozilla/ViewportFrame.h"
 #include "mozilla/css/StyleRule.h" // For nsCSSSelector
@@ -22,6 +23,7 @@
 #include "nsAutoPtr.h"
 #include "nsStyleChangeList.h"
 #include "nsRuleProcessorData.h"
+#include "nsStyleContextInlines.h"
 #include "nsStyleSet.h"
 #include "nsStyleUtil.h"
 #include "nsCSSFrameConstructor.h"
@@ -3455,7 +3457,7 @@ ClearCachedInheritedStyleDataOnDescendants(
   for (size_t i = 0; i < aContextsToClear.Length(); i++) {
     auto& entry = aContextsToClear[i];
     if (!entry.mStyleContext->HasSingleReference()) {
-      entry.mStyleContext->ClearCachedInheritedStyleDataOnDescendants(
+      entry.mStyleContext->AsGecko()->ClearCachedInheritedStyleDataOnDescendants(
           entry.mStructs);
     }
     entry.mStyleContext = nullptr;
