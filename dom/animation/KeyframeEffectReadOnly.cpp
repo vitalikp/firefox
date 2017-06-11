@@ -305,7 +305,7 @@ KeyframeEffectReadOnly::UpdateProperties(nsStyleContext* aStyleContext)
   }
 
   const ServoComputedValues* currentStyle =
-    aStyleContext->StyleSource().AsServoComputedValues();
+    aStyleContext->ComputedValues();
 
   DoUpdateProperties(currentStyle);
 }

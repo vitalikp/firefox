@@ -439,7 +439,7 @@ ServoStyleSet::ResolveStyleForText(nsIContent* aTextNode,
   // enough to do on the main thread, which means that the parallel style system
   // can avoid worrying about text nodes.
   const ServoComputedValues* parentComputedValues =
-    aParentContext->StyleSource().AsServoComputedValues();
+    aParentContext->ComputedValues();
   RefPtr<ServoComputedValues> computedValues =
     Servo_ComputedValues_Inherit(mRawSet.get(),
                                  parentComputedValues,
@@ -455,7 +455,7 @@ already_AddRefed<nsStyleContext>
 ServoStyleSet::ResolveStyleForFirstLetterContinuation(nsStyleContext* aParentContext)
 {
   const ServoComputedValues* parent =
-    aParentContext->StyleSource().AsServoComputedValues();
+    aParentContext->ComputedValues();
   RefPtr<ServoComputedValues> computedValues =
     Servo_ComputedValues_Inherit(mRawSet.get(),
                                  parent,
@@ -569,7 +569,7 @@ ServoStyleSet::ResolveInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag,
     nsCSSAnonBoxes::AnonBoxSkipsParentDisplayBasedStyleFixup(aPseudoTag);
 
   const ServoComputedValues* parentStyle =
-    aParentContext ? aParentContext->StyleSource().AsServoComputedValues()
+    aParentContext ? aParentContext->ComputedValues()
                    : nullptr;
   RefPtr<ServoComputedValues> computedValues =
     Servo_ComputedValues_GetForAnonymousBox(parentStyle, aPseudoTag, skipFixup,

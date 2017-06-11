@@ -4813,7 +4813,7 @@ StyleAnimationValue::ExtractComputedValue(nsCSSPropertyID aProperty,
           eUnit_Visibility);
         return true;
       }
-      if (aStyleContext->StyleSource().IsServoComputedValues()) {
+      if (aStyleContext->IsServo()) {
         NS_ERROR("stylo: extracting discretely animated values not supported");
         return false;
       }
@@ -5382,7 +5382,7 @@ AnimationValue::FromString(nsCSSPropertyID aProperty,
   RefPtr<nsStyleContext> styleContext =
     nsComputedDOMStyle::GetStyleContext(aElement, nullptr, shell);
 
-  if (styleContext->StyleSource().IsServoComputedValues()) {
+  if (auto servoContext = styleContext->GetAsServo()) {
     nsPresContext* presContext = shell->GetPresContext();
     if (!presContext) {
       return result;
@@ -5396,7 +5396,7 @@ AnimationValue::FromString(nsCSSPropertyID aProperty,
     }
 
     const ServoComputedValues* computedValues =
-      styleContext->StyleSource().AsServoComputedValues();
+      servoContext->ComputedValues();
     result.mServo = presContext->StyleSet()
                                ->AsServo()
                                ->ComputeAnimationValue(aElement,
