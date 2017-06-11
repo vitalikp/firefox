@@ -38,7 +38,7 @@
 #include "nsCSSPseudoElements.h"
 #include "nsThemeConstants.h"
 #include "PLDHashTable.h"
-#include "nsStyleContext.h"
+#include "GeckoStyleContext.h"
 #include "nsStyleSet.h"
 #include "nsStyleStruct.h"
 #include "nsSize.h"
@@ -91,7 +91,7 @@ enum UnsetAction
 
 void*
 nsConditionalResetStyleData::GetConditionalStyleData(nsStyleStructID aSID,
-                               nsStyleContext* aStyleContext) const
+                               GeckoStyleContext* aStyleContext) const
 {
   Entry* e = static_cast<Entry*>(mEntries[aSID]);
   MOZ_ASSERT(e, "if mConditionalBits bit is set, we must have at least one "
@@ -145,14 +145,14 @@ CreateStyleImageRequest(nsPresContext* aPresContext, const nsCSSValue& aValue,
 static void
 SetStyleShapeSourceToCSSValue(StyleShapeSource* aShapeSource,
                               const nsCSSValue* aValue,
-                              nsStyleContext* aStyleContext,
+                              GeckoStyleContext* aStyleContext,
                               nsPresContext* aPresContext,
                               RuleNodeCacheConditions& aConditions);
 
 /* Helper function to convert a CSS <position> specified value into its
  * computed-style form. */
 static void
-ComputePositionValue(nsStyleContext* aStyleContext,
+ComputePositionValue(GeckoStyleContext* aStyleContext,
                      const nsCSSValue& aValue,
                      Position& aComputedValue,
                      RuleNodeCacheConditions& aConditions);
@@ -899,7 +899,7 @@ GetFloatFromBoxPosition(int32_t aEnumValue)
 // changes aCoord iff it returns true
 static bool SetCoord(const nsCSSValue& aValue, nsStyleCoord& aCoord,
                        const nsStyleCoord& aParentCoord,
-                       int32_t aMask, nsStyleContext* aStyleContext,
+                       int32_t aMask, GeckoStyleContext* aStyleContext,
                        nsPresContext* aPresContext,
                        RuleNodeCacheConditions& aConditions)
 {
@@ -1028,7 +1028,7 @@ static inline bool SetAbsCoord(const nsCSSValue& aValue,
   // The values of the following variables will never be used; so it does not
   // matter what to set.
   const nsStyleCoord dummyParentCoord;
-  nsStyleContext* dummyStyleContext = nullptr;
+  GeckoStyleContext* dummyStyleContext = nullptr;
   nsPresContext* dummyPresContext = nullptr;
   RuleNodeCacheConditions dummyCacheKey;
 
@@ -1048,7 +1048,7 @@ static bool
 SetPairCoords(const nsCSSValue& aValue,
               nsStyleCoord& aCoordX, nsStyleCoord& aCoordY,
               const nsStyleCoord& aParentX, const nsStyleCoord& aParentY,
-              int32_t aMask, nsStyleContext* aStyleContext,
+              int32_t aMask, GeckoStyleContext* aStyleContext,
               nsPresContext* aPresContext, RuleNodeCacheConditions& aConditions)
 {
   const nsCSSValue& valX =
@@ -1204,7 +1204,7 @@ static Maybe<nscoord>
 ComputeLineWidthValue(const nsCSSValue& aValue,
                       const nscoord aParentCoord,
                       const nscoord aInitialCoord,
-                      nsStyleContext* aStyleContext,
+                      GeckoStyleContext* aStyleContext,
                       nsPresContext* aPresContext,
                       RuleNodeCacheConditions& aConditions)
 {
@@ -1240,7 +1240,7 @@ ComputeLineWidthValue(const nsCSSValue& aValue,
 }
 
 static void SetGradientCoord(const nsCSSValue& aValue, nsPresContext* aPresContext,
-                             nsStyleContext* aContext, nsStyleCoord& aResult,
+                             GeckoStyleContext* aContext, nsStyleCoord& aResult,
                              RuleNodeCacheConditions& aConditions)
 {
   // OK to pass bad aParentCoord since we're not passing SETCOORD_INHERIT
@@ -1253,7 +1253,7 @@ static void SetGradientCoord(const nsCSSValue& aValue, nsPresContext* aPresConte
 }
 
 static void SetGradient(const nsCSSValue& aValue, nsPresContext* aPresContext,
-                        nsStyleContext* aContext, nsStyleGradient& aResult,
+                        GeckoStyleContext* aContext, nsStyleGradient& aResult,
                         RuleNodeCacheConditions& aConditions)
 {
   MOZ_ASSERT(aValue.GetUnit() == eCSSUnit_Gradient,
@@ -1351,7 +1351,7 @@ static void SetGradient(const nsCSSValue& aValue, nsPresContext* aPresContext,
 }
 
 // -moz-image-rect(<uri>, <top>, <right>, <bottom>, <left>)
-static void SetStyleImageToImageRect(nsStyleContext* aStyleContext,
+static void SetStyleImageToImageRect(GeckoStyleContext* aStyleContext,
                                      const nsCSSValue& aValue,
                                      nsStyleImage& aResult)
 {
@@ -1386,7 +1386,7 @@ static void SetStyleImageToImageRect(nsStyleContext* aStyleContext,
   aResult.SetCropRect(MakeUnique<nsStyleSides>(cropRect));
 }
 
-static void SetStyleImage(nsStyleContext* aStyleContext,
+static void SetStyleImage(GeckoStyleContext* aStyleContext,
                           const nsCSSValue& aValue,
                           nsStyleImage& aResult,
                           RuleNodeCacheConditions& aConditions)
@@ -1996,15 +1996,15 @@ nsRuleNode::PropagateDependentBit(nsStyleStructID aSID, nsRuleNode* aHighestNode
 }
 
 /* static */ void
-nsRuleNode::PropagateGrandancestorBit(nsStyleContext* aContext,
-                                      nsStyleContext* aContextInheritedFrom)
+nsRuleNode::PropagateGrandancestorBit(GeckoStyleContext* aContext,
+                                      GeckoStyleContext* aContextInheritedFrom)
 {
   MOZ_ASSERT(aContext);
   MOZ_ASSERT(aContextInheritedFrom &&
              aContextInheritedFrom != aContext,
              "aContextInheritedFrom must be an ancestor of aContext");
 
-  for (nsStyleContext* context = aContext->GetParent();
+  for (GeckoStyleContext* context = aContext->GetParent();
        context != aContextInheritedFrom;
        context = context->GetParent()) {
     if (!context) {
@@ -2406,7 +2406,7 @@ nsRuleNode::CheckSpecifiedProperties(const nsStyleStructID aSID,
 // return the bit to check in nsCSSProp's flags table.  Otherwise,
 // return 0.
 inline uint32_t
-GetPseudoRestriction(nsStyleContext *aContext)
+GetPseudoRestriction(GeckoStyleContext *aContext)
 {
   // This needs to match nsStyleSet::WalkRestrictionRule.
   uint32_t pseudoRestriction = 0;
@@ -2467,7 +2467,7 @@ AutoCSSValueArray::~AutoCSSValueArray()
 /* static */ bool
 nsRuleNode::ResolveVariableReferences(const nsStyleStructID aSID,
                                       nsRuleData* aRuleData,
-                                      nsStyleContext* aContext)
+                                      GeckoStyleContext* aContext)
 {
   MOZ_ASSERT(aSID != eStyleStruct_Variables);
   MOZ_ASSERT(aRuleData->mSIDs & nsCachedStyleData::GetBitForSID(aSID));
@@ -2519,7 +2519,7 @@ nsRuleNode::ResolveVariableReferences(const nsStyleStructID aSID,
 
 const void*
 nsRuleNode::WalkRuleTree(const nsStyleStructID aSID,
-                         nsStyleContext* aContext)
+                         GeckoStyleContext* aContext)
 {
   // use placement new[] on the result of alloca() to allocate a
   // variable-sized stack array, including execution of constructors,
@@ -2735,7 +2735,7 @@ nsRuleNode::WalkRuleTree(const nsStyleStructID aSID,
     // All information must necessarily be inherited from our parent style context.
     // In the absence of any computed data in the rule tree and with
     // no rules specified that didn't have values of 'inherit', we should check our parent.
-    nsStyleContext* parentContext = aContext->GetParent();
+    GeckoStyleContext* parentContext = aContext->GetParent();
     if (isReset) {
       /* Reset structs don't inherit from first-line. */
       /* See similar code in COMPUTE_START_RESET */
@@ -2767,7 +2767,7 @@ nsRuleNode::WalkRuleTree(const nsStyleStructID aSID,
   }
 
   typedef const void* (nsRuleNode::*ComputeFunc)(void*, const nsRuleData*,
-                                                 nsStyleContext*, nsRuleNode*,
+                                                 GeckoStyleContext*, nsRuleNode*,
                                                  RuleDetail,
                                                  const RuleNodeCacheConditions);
   static const ComputeFunc sComputeFuncs[] = {
@@ -2783,7 +2783,7 @@ nsRuleNode::WalkRuleTree(const nsStyleStructID aSID,
 }
 
 const void*
-nsRuleNode::SetDefaultOnRoot(const nsStyleStructID aSID, nsStyleContext* aContext)
+nsRuleNode::SetDefaultOnRoot(const nsStyleStructID aSID, GeckoStyleContext* aContext)
 {
   switch (aSID) {
     case eStyleStruct_Font:
@@ -2962,7 +2962,7 @@ nsRuleNode::SetDefaultOnRoot(const nsStyleStructID aSID, nsStyleContext* aContex
   NS_ASSERTION(aRuleDetail != eRuleFullInherited,                             \
                "should not have bothered calling Compute*Data");              \
                                                                               \
-  nsStyleContext* parentContext = aContext->GetParent();                      \
+  GeckoStyleContext* parentContext = aContext->GetParent();                   \
                                                                               \
   nsStyle##type_* data_ = nullptr;                                            \
   mozilla::Maybe<nsStyle##type_> maybeFakeParentData;                         \
@@ -3022,7 +3022,7 @@ nsRuleNode::SetDefaultOnRoot(const nsStyleStructID aSID, nsStyleContext* aContex
   NS_ASSERTION(aRuleDetail != eRuleFullInherited,                             \
                "should not have bothered calling Compute*Data");              \
                                                                               \
-  nsStyleContext* parentContext = aContext->GetParent();                      \
+  GeckoStyleContext* parentContext = aContext->GetParent();                   \
   /* Reset structs don't inherit from first-line */                           \
   /* See similar code in WalkRuleTree */                                      \
   while (parentContext &&                                                     \
@@ -3485,13 +3485,13 @@ struct SetFontSizeCalcOps : public css::BasicCoordCalcOps,
   const nscoord mParentSize;
   const nsStyleFont* const mParentFont;
   nsPresContext* const mPresContext;
-  nsStyleContext* const mStyleContext;
+  GeckoStyleContext* const mStyleContext;
   const bool mAtRoot;
   RuleNodeCacheConditions& mConditions;
 
   SetFontSizeCalcOps(nscoord aParentSize, const nsStyleFont* aParentFont,
                      nsPresContext* aPresContext,
-                     nsStyleContext* aStyleContext,
+                     GeckoStyleContext* aStyleContext,
                      bool aAtRoot,
                      RuleNodeCacheConditions& aConditions)
     : mParentSize(aParentSize),
@@ -3536,7 +3536,7 @@ struct SetFontSizeCalcOps : public css::BasicCoordCalcOps,
 
 /* static */ void
 nsRuleNode::SetFontSize(nsPresContext* aPresContext,
-                        nsStyleContext* aContext,
+                        GeckoStyleContext* aContext,
                         const nsRuleData* aRuleData,
                         const nsStyleFont* aFont,
                         const nsStyleFont* aParentFont,
@@ -3725,7 +3725,7 @@ nsRuleNode::ComputeSystemFont(nsFont* aSystemFont, LookAndFeel::FontID aFontID,
 }
 
 /* static */ void
-nsRuleNode::SetFont(nsPresContext* aPresContext, nsStyleContext* aContext,
+nsRuleNode::SetFont(nsPresContext* aPresContext, GeckoStyleContext* aContext,
                     uint8_t aGenericFontID, const nsRuleData* aRuleData,
                     const nsStyleFont* aParentFont,
                     nsStyleFont* aFont, bool aUsedStartStruct,
@@ -4367,14 +4367,14 @@ nsRuleNode::ComputeFontVariations(const nsCSSValuePairList* aVariationsList,
 //  - re-apply cascading rules from there without caching intermediate values
 /* static */ void
 nsRuleNode::SetGenericFont(nsPresContext* aPresContext,
-                           nsStyleContext* aContext,
+                           GeckoStyleContext* aContext,
                            uint8_t aGenericFontID,
                            nsStyleFont* aFont)
 {
   // walk up the contexts until a context with the desired generic font
-  AutoTArray<nsStyleContext*, 8> contextPath;
+  AutoTArray<GeckoStyleContext*, 8> contextPath;
   contextPath.AppendElement(aContext);
-  nsStyleContext* higherContext = aContext->GetParent();
+  GeckoStyleContext* higherContext = aContext->GetParent();
   while (higherContext) {
     if (higherContext->StyleFont()->mGenericID == aGenericFontID) {
       // done walking up the higher contexts
@@ -4407,7 +4407,7 @@ nsRuleNode::SetGenericFont(nsPresContext* aPresContext,
   void* dataStorage = alloca(nprops * sizeof(nsCSSValue));
 
   for (int32_t i = contextPath.Length() - 1; i >= 0; --i) {
-    nsStyleContext* context = contextPath[i];
+    GeckoStyleContext* context = contextPath[i];
     AutoCSSValueArray dataArray(dataStorage, nprops);
 
     nsRuleData ruleData(NS_STYLE_INHERIT_BIT(Font), dataArray.get(),
@@ -4460,7 +4460,7 @@ nsRuleNode::SetGenericFont(nsPresContext* aPresContext,
 const void*
 nsRuleNode::ComputeFontData(void* aStartStruct,
                             const nsRuleData* aRuleData,
-                            nsStyleContext* aContext,
+                            GeckoStyleContext* aContext,
                             nsRuleNode* aHighestNode,
                             const RuleDetail aRuleDetail,
                             const RuleNodeCacheConditions aConditions)
@@ -4568,7 +4568,7 @@ inline uint32_t ListLength(const T* aList)
 
 static already_AddRefed<nsCSSShadowArray>
 GetShadowData(const nsCSSValueList* aList,
-              nsStyleContext* aContext,
+              GeckoStyleContext* aContext,
               bool aIsBoxShadow,
               nsPresContext* aPresContext,
               RuleNodeCacheConditions& aConditions)
@@ -4709,11 +4709,11 @@ struct LengthNumberCalcObj
 struct LengthNumberCalcOps : public css::FloatCoeffsAlreadyNormalizedOps
 {
   typedef LengthNumberCalcObj result_type;
-  nsStyleContext* const mStyleContext;
+  GeckoStyleContext* const mStyleContext;
   nsPresContext* const mPresContext;
   RuleNodeCacheConditions& mConditions;
 
-  LengthNumberCalcOps(nsStyleContext* aStyleContext,
+  LengthNumberCalcOps(GeckoStyleContext* aStyleContext,
                       nsPresContext* aPresContext,
                       RuleNodeCacheConditions& aConditions)
     : mStyleContext(aStyleContext),
@@ -4791,7 +4791,7 @@ struct LengthNumberCalcOps : public css::FloatCoeffsAlreadyNormalizedOps
 
 struct SetLineHeightCalcOps : public LengthNumberCalcOps
 {
-  SetLineHeightCalcOps(nsStyleContext* aStyleContext,
+  SetLineHeightCalcOps(GeckoStyleContext* aStyleContext,
                        nsPresContext* aPresContext,
                        RuleNodeCacheConditions& aConditions)
     : LengthNumberCalcOps(aStyleContext, aPresContext, aConditions)
@@ -4828,7 +4828,7 @@ struct SetLineHeightCalcOps : public LengthNumberCalcOps
 const void*
 nsRuleNode::ComputeTextData(void* aStartStruct,
                             const nsRuleData* aRuleData,
-                            nsStyleContext* aContext,
+                            GeckoStyleContext* aContext,
                             nsRuleNode* aHighestNode,
                             const RuleDetail aRuleDetail,
                             const RuleNodeCacheConditions aConditions)
@@ -4954,7 +4954,7 @@ nsRuleNode::ComputeTextData(void* aStartStruct,
              NS_STYLE_TEXT_ALIGN_MATCH_PARENT ==
                textAlignValue->GetIntValue()) {
     conditions.SetUncacheable();
-    nsStyleContext* parent = aContext->GetParent();
+    GeckoStyleContext* parent = aContext->GetParent();
     if (parent) {
       uint8_t parentAlign = parentText->mTextAlign;
       uint8_t parentDirection = parent->StyleVisibility()->mDirection;
@@ -5210,7 +5210,7 @@ nsRuleNode::ComputeTextData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeTextResetData(void* aStartStruct,
                                  const nsRuleData* aRuleData,
-                                 nsStyleContext* aContext,
+                                 GeckoStyleContext* aContext,
                                  nsRuleNode* aHighestNode,
                                  const RuleDetail aRuleDetail,
                                  const RuleNodeCacheConditions aConditions)
@@ -5360,7 +5360,7 @@ nsRuleNode::ComputeTextResetData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeUserInterfaceData(void* aStartStruct,
                                      const nsRuleData* aRuleData,
-                                     nsStyleContext* aContext,
+                                     GeckoStyleContext* aContext,
                                      nsRuleNode* aHighestNode,
                                      const RuleDetail aRuleDetail,
                                      const RuleNodeCacheConditions aConditions)
@@ -5442,7 +5442,7 @@ nsRuleNode::ComputeUserInterfaceData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeUIResetData(void* aStartStruct,
                                const nsRuleData* aRuleData,
-                               nsStyleContext* aContext,
+                               GeckoStyleContext* aContext,
                                nsRuleNode* aHighestNode,
                                const RuleDetail aRuleDetail,
                                const RuleNodeCacheConditions aConditions)
@@ -5724,7 +5724,7 @@ GetWillChangeBitFieldFromPropFlags(const nsCSSPropertyID& aProp)
 const void*
 nsRuleNode::ComputeDisplayData(void* aStartStruct,
                                const nsRuleData* aRuleData,
-                               nsStyleContext* aContext,
+                               GeckoStyleContext* aContext,
                                nsRuleNode* aHighestNode,
                                const RuleDetail aRuleDetail,
                                const RuleNodeCacheConditions aConditions)
@@ -6789,7 +6789,7 @@ nsRuleNode::ComputeDisplayData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeVisibilityData(void* aStartStruct,
                                   const nsRuleData* aRuleData,
-                                  nsStyleContext* aContext,
+                                  GeckoStyleContext* aContext,
                                   nsRuleNode* aHighestNode,
                                   const RuleDetail aRuleDetail,
                                   const RuleNodeCacheConditions aConditions)
@@ -6887,7 +6887,7 @@ nsRuleNode::ComputeVisibilityData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeColorData(void* aStartStruct,
                              const nsRuleData* aRuleData,
-                             nsStyleContext* aContext,
+                             GeckoStyleContext* aContext,
                              nsRuleNode* aHighestNode,
                              const RuleDetail aRuleDetail,
                              const RuleNodeCacheConditions aConditions)
@@ -6923,7 +6923,7 @@ struct BackgroundItemComputer {
 template <>
 struct BackgroundItemComputer<nsCSSValueList, uint8_t>
 {
-  static void ComputeValue(nsStyleContext* aStyleContext,
+  static void ComputeValue(GeckoStyleContext* aStyleContext,
                            const nsCSSValueList* aSpecifiedValue,
                            uint8_t& aComputedValue,
                            RuleNodeCacheConditions& aConditions)
@@ -6936,7 +6936,7 @@ struct BackgroundItemComputer<nsCSSValueList, uint8_t>
 template <>
 struct BackgroundItemComputer<nsCSSValuePairList, nsStyleImageLayers::Repeat>
 {
-  static void ComputeValue(nsStyleContext* aStyleContext,
+  static void ComputeValue(GeckoStyleContext* aStyleContext,
                            const nsCSSValuePairList* aSpecifiedValue,
                            nsStyleImageLayers::Repeat& aComputedValue,
                            RuleNodeCacheConditions& aConditions)
@@ -6995,7 +6995,7 @@ struct BackgroundItemComputer<nsCSSValuePairList, nsStyleImageLayers::Repeat>
 template <>
 struct BackgroundItemComputer<nsCSSValueList, nsStyleImage>
 {
-  static void ComputeValue(nsStyleContext* aStyleContext,
+  static void ComputeValue(GeckoStyleContext* aStyleContext,
                            const nsCSSValueList* aSpecifiedValue,
                            nsStyleImage& aComputedValue,
                            RuleNodeCacheConditions& aConditions)
@@ -7010,7 +7010,7 @@ struct BackgroundItemComputer<nsCSSValueList, T>
 {
   typedef typename EnableIf<IsEnum<T>::value, T>::Type ComputedType;
 
-  static void ComputeValue(nsStyleContext* aStyleContext,
+  static void ComputeValue(GeckoStyleContext* aStyleContext,
                            const nsCSSValueList* aSpecifiedValue,
                            ComputedType& aComputedValue,
                            RuleNodeCacheConditions& aConditions)
@@ -7025,7 +7025,7 @@ struct BackgroundItemComputer<nsCSSValueList, T>
  * which represent an edge and an offset from that edge.
  */
 static void
-ComputePositionCoord(nsStyleContext* aStyleContext,
+ComputePositionCoord(GeckoStyleContext* aStyleContext,
                      const nsCSSValue& aEdge,
                      const nsCSSValue& aOffset,
                      Position::Coord* aResult,
@@ -7076,7 +7076,7 @@ ComputePositionCoord(nsStyleContext* aStyleContext,
 /* Helper function to convert a CSS <position> specified value into its
  * computed-style form. */
 static void
-ComputePositionValue(nsStyleContext* aStyleContext,
+ComputePositionValue(GeckoStyleContext* aStyleContext,
                      const nsCSSValue& aValue,
                      Position& aComputedValue,
                      RuleNodeCacheConditions& aConditions)
@@ -7113,7 +7113,7 @@ ComputePositionValue(nsStyleContext* aStyleContext,
 /* Helper function to convert the -x or -y part of a CSS <position> specified
  * value into its computed-style form. */
 static void
-ComputePositionCoordValue(nsStyleContext* aStyleContext,
+ComputePositionCoordValue(GeckoStyleContext* aStyleContext,
                           const nsCSSValue& aValue,
                           Position::Coord& aComputedValue,
                           RuleNodeCacheConditions& aConditions)
@@ -7156,7 +7156,7 @@ static const BackgroundSizeAxis gBGSizeAxes[] = {
 template <>
 struct BackgroundItemComputer<nsCSSValuePairList, nsStyleImageLayers::Size>
 {
-  static void ComputeValue(nsStyleContext* aStyleContext,
+  static void ComputeValue(GeckoStyleContext* aStyleContext,
                            const nsCSSValuePairList* aSpecifiedValue,
                            nsStyleImageLayers::Size& aComputedValue,
                            RuleNodeCacheConditions& aConditions)
@@ -7239,7 +7239,7 @@ struct BackgroundItemComputer<nsCSSValuePairList, nsStyleImageLayers::Size>
 
 template <class ComputedValueItem>
 static void
-SetImageLayerList(nsStyleContext* aStyleContext,
+SetImageLayerList(GeckoStyleContext* aStyleContext,
                   const nsCSSValue& aValue,
                   nsStyleAutoArray<nsStyleImageLayers::Layer>& aLayers,
                   const nsStyleAutoArray<nsStyleImageLayers::Layer>& aParentLayers,
@@ -7308,7 +7308,7 @@ SetImageLayerList(nsStyleContext* aStyleContext,
 // SetImageLayerList generic enough to handle both cases.
 static void
 SetImageLayerPositionCoordList(
-                  nsStyleContext* aStyleContext,
+                  GeckoStyleContext* aStyleContext,
                   const nsCSSValue& aValue,
                   nsStyleAutoArray<nsStyleImageLayers::Layer>& aLayers,
                   const nsStyleAutoArray<nsStyleImageLayers::Layer>& aParentLayers,
@@ -7374,7 +7374,7 @@ SetImageLayerPositionCoordList(
 
 template <class ComputedValueItem>
 static void
-SetImageLayerPairList(nsStyleContext* aStyleContext,
+SetImageLayerPairList(GeckoStyleContext* aStyleContext,
                       const nsCSSValue& aValue,
                       nsStyleAutoArray<nsStyleImageLayers::Layer>& aLayers,
                       const nsStyleAutoArray<nsStyleImageLayers::Layer>& aParentLayers,
@@ -7516,7 +7516,7 @@ nsRuleNode::FillAllBackgroundLists(nsStyleImageLayers& aImage,
 const void*
 nsRuleNode::ComputeBackgroundData(void* aStartStruct,
                                   const nsRuleData* aRuleData,
-                                  nsStyleContext* aContext,
+                                  GeckoStyleContext* aContext,
                                   nsRuleNode* aHighestNode,
                                   const RuleDetail aRuleDetail,
                                   const RuleNodeCacheConditions aConditions)
@@ -7637,7 +7637,7 @@ nsRuleNode::ComputeBackgroundData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeMarginData(void* aStartStruct,
                               const nsRuleData* aRuleData,
-                              nsStyleContext* aContext,
+                              GeckoStyleContext* aContext,
                               nsRuleNode* aHighestNode,
                               const RuleDetail aRuleDetail,
                               const RuleNodeCacheConditions aConditions)
@@ -7742,7 +7742,7 @@ SetBorderImageSlice(const nsCSSValue& aValue,
 const void*
 nsRuleNode::ComputeBorderData(void* aStartStruct,
                               const nsRuleData* aRuleData,
-                              nsStyleContext* aContext,
+                              GeckoStyleContext* aContext,
                               nsRuleNode* aHighestNode,
                               const RuleDetail aRuleDetail,
                               const RuleNodeCacheConditions aConditions)
@@ -8001,7 +8001,7 @@ nsRuleNode::ComputeBorderData(void* aStartStruct,
 const void*
 nsRuleNode::ComputePaddingData(void* aStartStruct,
                                const nsRuleData* aRuleData,
-                               nsStyleContext* aContext,
+                               GeckoStyleContext* aContext,
                                nsRuleNode* aHighestNode,
                                const RuleDetail aRuleDetail,
                                const RuleNodeCacheConditions aConditions)
@@ -8029,7 +8029,7 @@ nsRuleNode::ComputePaddingData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeOutlineData(void* aStartStruct,
                                const nsRuleData* aRuleData,
-                               nsStyleContext* aContext,
+                               GeckoStyleContext* aContext,
                                nsRuleNode* aHighestNode,
                                const RuleDetail aRuleDetail,
                                const RuleNodeCacheConditions aConditions)
@@ -8113,7 +8113,7 @@ nsRuleNode::ComputeOutlineData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeListData(void* aStartStruct,
                             const nsRuleData* aRuleData,
-                            nsStyleContext* aContext,
+                            GeckoStyleContext* aContext,
                             nsRuleNode* aHighestNode,
                             const RuleDetail aRuleDetail,
                             const RuleNodeCacheConditions aConditions)
@@ -8304,7 +8304,7 @@ nsRuleNode::ComputeListData(void* aStartStruct,
 static void
 SetGridTrackBreadth(const nsCSSValue& aValue,
                     nsStyleCoord& aResult,
-                    nsStyleContext* aStyleContext,
+                    GeckoStyleContext* aStyleContext,
                     nsPresContext* aPresContext,
                     RuleNodeCacheConditions& aConditions)
 {
@@ -8332,7 +8332,7 @@ static void
 SetGridTrackSize(const nsCSSValue& aValue,
                  nsStyleCoord& aResultMin,
                  nsStyleCoord& aResultMax,
-                 nsStyleContext* aStyleContext,
+                 GeckoStyleContext* aStyleContext,
                  nsPresContext* aPresContext,
                  RuleNodeCacheConditions& aConditions)
 {
@@ -8368,7 +8368,7 @@ SetGridAutoColumnsRows(const nsCSSValue& aValue,
                        nsStyleCoord& aResultMax,
                        const nsStyleCoord& aParentValueMin,
                        const nsStyleCoord& aParentValueMax,
-                       nsStyleContext* aStyleContext,
+                       GeckoStyleContext* aStyleContext,
                        nsPresContext* aPresContext,
                        RuleNodeCacheConditions& aConditions)
 
@@ -8418,7 +8418,7 @@ static void
 SetGridTrackList(const nsCSSValue& aValue,
                  nsStyleGridTemplate& aResult,
                  const nsStyleGridTemplate& aParentValue,
-                 nsStyleContext* aStyleContext,
+                 GeckoStyleContext* aStyleContext,
                  nsPresContext* aPresContext,
                  RuleNodeCacheConditions& aConditions)
 
@@ -8617,7 +8617,7 @@ SetGridLine(const nsCSSValue& aValue,
 const void*
 nsRuleNode::ComputePositionData(void* aStartStruct,
                                 const nsRuleData* aRuleData,
-                                nsStyleContext* aContext,
+                                GeckoStyleContext* aContext,
                                 nsRuleNode* aHighestNode,
                                 const RuleDetail aRuleDetail,
                                 const RuleNodeCacheConditions aConditions)
@@ -8960,7 +8960,7 @@ nsRuleNode::ComputePositionData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeTableData(void* aStartStruct,
                              const nsRuleData* aRuleData,
-                             nsStyleContext* aContext,
+                             GeckoStyleContext* aContext,
                              nsRuleNode* aHighestNode,
                              const RuleDetail aRuleDetail,
                              const RuleNodeCacheConditions aConditions)
@@ -8986,7 +8986,7 @@ nsRuleNode::ComputeTableData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeTableBorderData(void* aStartStruct,
                                    const nsRuleData* aRuleData,
-                                   nsStyleContext* aContext,
+                                   GeckoStyleContext* aContext,
                                    nsRuleNode* aHighestNode,
                                    const RuleDetail aRuleDetail,
                                    const RuleNodeCacheConditions aConditions)
@@ -9043,7 +9043,7 @@ nsRuleNode::ComputeTableBorderData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeContentData(void* aStartStruct,
                                const nsRuleData* aRuleData,
-                               nsStyleContext* aContext,
+                               GeckoStyleContext* aContext,
                                nsRuleNode* aHighestNode,
                                const RuleDetail aRuleDetail,
                                const RuleNodeCacheConditions aConditions)
@@ -9276,7 +9276,7 @@ nsRuleNode::ComputeContentData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeXULData(void* aStartStruct,
                            const nsRuleData* aRuleData,
-                           nsStyleContext* aContext,
+                           GeckoStyleContext* aContext,
                            nsRuleNode* aHighestNode,
                            const RuleDetail aRuleDetail,
                            const RuleNodeCacheConditions aConditions)
@@ -9341,7 +9341,7 @@ nsRuleNode::ComputeXULData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeColumnData(void* aStartStruct,
                               const nsRuleData* aRuleData,
-                              nsStyleContext* aContext,
+                              GeckoStyleContext* aContext,
                               nsRuleNode* aHighestNode,
                               const RuleDetail aRuleDetail,
                               const RuleNodeCacheConditions aConditions)
@@ -9437,7 +9437,7 @@ nsRuleNode::ComputeColumnData(void* aStartStruct,
 
 static void
 SetSVGPaint(const nsCSSValue& aValue, const nsStyleSVGPaint& parentPaint,
-            nsPresContext* aPresContext, nsStyleContext *aContext,
+            nsPresContext* aPresContext, GeckoStyleContext *aContext,
             nsStyleSVGPaint& aResult, nsStyleSVGPaintType aInitialPaintType,
             RuleNodeCacheConditions& aConditions)
 {
@@ -9596,7 +9596,7 @@ nsRuleNode::FillAllMaskLists(nsStyleImageLayers& aMask,
 const void*
 nsRuleNode::ComputeSVGData(void* aStartStruct,
                            const nsRuleData* aRuleData,
-                           nsStyleContext* aContext,
+                           GeckoStyleContext* aContext,
                            nsRuleNode* aHighestNode,
                            const RuleDetail aRuleDetail,
                            const RuleNodeCacheConditions aConditions)
@@ -9898,7 +9898,7 @@ nsRuleNode::ComputeSVGData(void* aStartStruct,
 
 static already_AddRefed<StyleBasicShape>
 GetStyleBasicShapeFromCSSValue(const nsCSSValue& aValue,
-                               nsStyleContext* aStyleContext,
+                               GeckoStyleContext* aStyleContext,
                                nsPresContext* aPresContext,
                                RuleNodeCacheConditions& aConditions)
 {
@@ -10051,7 +10051,7 @@ static void
 SetStyleShapeSourceToCSSValue(
   StyleShapeSource* aShapeSource,
   const nsCSSValue* aValue,
-  nsStyleContext* aStyleContext,
+  GeckoStyleContext* aStyleContext,
   nsPresContext* aPresContext,
   RuleNodeCacheConditions& aConditions)
 {
@@ -10089,7 +10089,7 @@ SetStyleShapeSourceToCSSValue(
 static bool
 SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
                          const nsCSSValue& aValue,
-                         nsStyleContext* aStyleContext,
+                         GeckoStyleContext* aStyleContext,
                          nsPresContext* aPresContext,
                          RuleNodeCacheConditions& aConditions)
 {
@@ -10147,7 +10147,7 @@ SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
 const void*
 nsRuleNode::ComputeSVGResetData(void* aStartStruct,
                                 const nsRuleData* aRuleData,
-                                nsStyleContext* aContext,
+                                GeckoStyleContext* aContext,
                                 nsRuleNode* aHighestNode,
                                 const RuleDetail aRuleDetail,
                                 const RuleNodeCacheConditions aConditions)
@@ -10356,7 +10356,7 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeVariablesData(void* aStartStruct,
                                  const nsRuleData* aRuleData,
-                                 nsStyleContext* aContext,
+                                 GeckoStyleContext* aContext,
                                  nsRuleNode* aHighestNode,
                                  const RuleDetail aRuleDetail,
                                  const RuleNodeCacheConditions aConditions)
@@ -10378,7 +10378,7 @@ nsRuleNode::ComputeVariablesData(void* aStartStruct,
 const void*
 nsRuleNode::ComputeEffectsData(void* aStartStruct,
                                const nsRuleData* aRuleData,
-                               nsStyleContext* aContext,
+                               GeckoStyleContext* aContext,
                                nsRuleNode* aHighestNode,
                                const RuleDetail aRuleDetail,
                                const RuleNodeCacheConditions aConditions)
@@ -10538,7 +10538,7 @@ nsRuleNode::ComputeEffectsData(void* aStartStruct,
 
 const void*
 nsRuleNode::GetStyleData(nsStyleStructID aSID,
-                         nsStyleContext* aContext,
+                         GeckoStyleContext* aContext,
                          bool aComputeData)
 {
   NS_ASSERTION(IsUsedDirectly(),
@@ -10607,6 +10607,8 @@ nsRuleNode::HasAuthorSpecifiedRules(nsStyleContext* aStyleContext,
   }
 #endif
 
+  RefPtr<GeckoStyleContext> styleContext = aStyleContext->AsGecko();
+
   uint32_t inheritBits = 0;
   if (ruleTypeMask & NS_AUTHOR_SPECIFIED_BACKGROUND)
     inheritBits |= NS_STYLE_INHERIT_BIT(Background);
@@ -10652,9 +10654,9 @@ nsRuleNode::HasAuthorSpecifiedRules(nsStyleContext* aStyleContext,
   void* dataStorage = alloca(nprops * sizeof(nsCSSValue));
   AutoCSSValueArray dataArray(dataStorage, nprops);
 
-  /* We're relying on the use of |aStyleContext| not mutating it! */
+  /* We're relying on the use of |styleContext| not mutating it! */
   nsRuleData ruleData(inheritBits, dataArray.get(),
-                      aStyleContext->PresContext(), aStyleContext);
+                      styleContext->PresContext(), styleContext);
 
   if (ruleTypeMask & NS_AUTHOR_SPECIFIED_BACKGROUND) {
     ruleData.mValueOffsets[eStyleStruct_Background] = backgroundOffset;
@@ -10752,7 +10754,7 @@ nsRuleNode::HasAuthorSpecifiedRules(nsStyleContext* aStyleContext,
     }
   }
 
-  nsStyleContext* styleContext = aStyleContext;
+  GeckoStyleContext* styleContextRef = styleContext;
 
   // We need to be careful not to count styles covered up by user-important or
   // UA-important declarations.  But we do want to catch explicit inherit
@@ -10763,7 +10765,7 @@ nsRuleNode::HasAuthorSpecifiedRules(nsStyleContext* aStyleContext,
   bool haveExplicitUAInherit;
   do {
     haveExplicitUAInherit = false;
-    for (nsRuleNode* ruleNode = styleContext->RuleNode(); ruleNode;
+    for (nsRuleNode* ruleNode = styleContextRef->RuleNode(); ruleNode;
          ruleNode = ruleNode->GetParent()) {
       nsIStyleRule *rule = ruleNode->GetRule();
       if (rule) {
@@ -10830,7 +10832,7 @@ nsRuleNode::HasAuthorSpecifiedRules(nsStyleContext* aStyleContext,
       for (uint32_t i = 0; i < nValues; ++i)
         if (values[i]->GetUnit() == eCSSUnit_DummyInherit)
           values[i]->Reset();
-      styleContext = styleContext->GetParent();
+      styleContextRef = styleContextRef->GetParent();
     }
   } while (haveExplicitUAInherit && styleContext);
 
@@ -10840,7 +10842,7 @@ nsRuleNode::HasAuthorSpecifiedRules(nsStyleContext* aStyleContext,
 /* static */ void
 nsRuleNode::ComputePropertiesOverridingAnimation(
                               const nsTArray<nsCSSPropertyID>& aProperties,
-                              nsStyleContext* aStyleContext,
+                              GeckoStyleContext* aStyleContext,
                               nsCSSPropertyIDSet& aPropertiesOverridden)
 {
   /*
@@ -10940,14 +10942,14 @@ nsRuleNode::ComputeColor(const nsCSSValue& aValue, nsPresContext* aPresContext,
 }
 
 /* static */ bool
-nsRuleNode::ParentHasPseudoElementData(nsStyleContext* aContext)
+nsRuleNode::ParentHasPseudoElementData(GeckoStyleContext* aContext)
 {
-  nsStyleContext* parent = aContext->GetParent();
+  GeckoStyleContext* parent = aContext->GetParent();
   return parent && parent->HasPseudoElementData();
 }
 
 /* static */ void
-nsRuleNode::StoreStyleOnContext(nsStyleContext* aContext,
+nsRuleNode::StoreStyleOnContext(GeckoStyleContext* aContext,
                                 nsStyleStructID aSID,
                                 void* aStruct)
 {
@@ -10957,7 +10959,7 @@ nsRuleNode::StoreStyleOnContext(nsStyleContext* aContext,
 
 #ifdef DEBUG
 bool
-nsRuleNode::ContextHasCachedData(nsStyleContext* aContext,
+nsRuleNode::ContextHasCachedData(GeckoStyleContext* aContext,
                                  nsStyleStructID aSID)
 {
   return !!aContext->GetCachedStyleData(aSID);
