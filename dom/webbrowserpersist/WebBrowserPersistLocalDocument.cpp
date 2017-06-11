@@ -257,7 +257,6 @@ WebBrowserPersistLocalDocument::GetBaseURI() const
     return mDocument->GetBaseURI();
 }
 
-
 namespace {
 
 // Helper class for ReadResources().
@@ -296,10 +295,6 @@ private:
                              const char* aAttribute,
                              const char* aNamespaceURI = "");
     nsresult OnWalkSubframe(nsIDOMNode* aNode);
-
-    bool IsFlagSet(uint32_t aFlag) const {
-        return mParent->GetPersistFlags() & aFlag;
-    }
 
     ~ResourceReader();
 
