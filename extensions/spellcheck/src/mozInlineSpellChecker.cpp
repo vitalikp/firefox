@@ -1260,7 +1260,7 @@ mozInlineSpellChecker::ShouldSpellCheckNode(nsIEditor* aEditor,
 {
   MOZ_ASSERT(aNode);
   if (!aNode->IsContent())
-    return true;
+    return false;
 
   nsIContent *content = aNode->AsContent();
 
