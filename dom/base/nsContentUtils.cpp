@@ -9874,15 +9874,12 @@ nsContentUtils::LookupCustomElementDefinition(nsIDocument* aDoc,
 {
   MOZ_ASSERT(aDoc);
 
-  // To support imported document.
-  nsCOMPtr<nsIDocument> doc = aDoc->MasterDocument();
-
   if (aNameSpaceID != kNameSpaceID_XHTML ||
-      !doc->GetDocShell()) {
+      !aDoc->GetDocShell()) {
     return nullptr;
   }
 
-  nsCOMPtr<nsPIDOMWindowInner> window(doc->GetInnerWindow());
+  nsCOMPtr<nsPIDOMWindowInner> window(aDoc->GetInnerWindow());
   if (!window) {
     return nullptr;
   }
@@ -9906,9 +9903,6 @@ nsContentUtils::SetupCustomElement(Element* aElement,
   if (!doc) {
     return;
   }
-
-  // To support imported document.
-  doc = doc->MasterDocument();
 
   if (aElement->GetNameSpaceID() != kNameSpaceID_XHTML ||
       !doc->GetDocShell()) {
@@ -9937,14 +9931,11 @@ nsContentUtils::EnqueueLifecycleCallback(nsIDocument* aDoc,
 {
   MOZ_ASSERT(aDoc);
 
-  // To support imported document.
-  nsCOMPtr<nsIDocument> doc = aDoc->MasterDocument();
-
-  if (!doc->GetDocShell()) {
+  if (!aDoc->GetDocShell()) {
     return;
   }
 
-  nsCOMPtr<nsPIDOMWindowInner> window(doc->GetInnerWindow());
+  nsCOMPtr<nsPIDOMWindowInner> window(aDoc->GetInnerWindow());
   if (!window) {
     return;
   }
@@ -9965,15 +9956,12 @@ nsContentUtils::GetCustomPrototype(nsIDocument* aDoc,
 {
   MOZ_ASSERT(aDoc);
 
-  // To support imported document.
-  nsCOMPtr<nsIDocument> doc = aDoc->MasterDocument();
-
   if (aNamespaceID != kNameSpaceID_XHTML ||
-      !doc->GetDocShell()) {
+      !aDoc->GetDocShell()) {
     return;
   }
 
-  nsCOMPtr<nsPIDOMWindowInner> window(doc->GetInnerWindow());
+  nsCOMPtr<nsPIDOMWindowInner> window(aDoc->GetInnerWindow());
   if (!window) {
     return;
   }

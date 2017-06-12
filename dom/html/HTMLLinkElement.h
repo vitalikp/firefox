@@ -9,7 +9,6 @@
 
 #include "mozilla/Attributes.h"
 #include "mozilla/dom/Link.h"
-#include "ImportManager.h"
 #include "nsGenericHTMLElement.h"
 #include "nsIDOMHTMLLinkElement.h"
 #include "nsStyleLinkElement.h"
@@ -42,8 +41,6 @@ public:
 
   void LinkAdded();
   void LinkRemoved();
-
-  void UpdateImport();
 
   // nsIDOMEventTarget
   virtual nsresult GetEventTargetParent(
@@ -165,12 +162,6 @@ public:
     return GetReferrerPolicyAsEnum();
   }
 
-  already_AddRefed<nsIDocument> GetImport();
-  already_AddRefed<ImportLoader> GetImportLoader()
-  {
-    return RefPtr<ImportLoader>(mImportLoader).forget();
-  }
-
   virtual CORSMode GetCORSMode() const override;
 
   virtual void NodeInfoChanged(nsIDocument* aOldDoc) final override
@@ -191,9 +182,6 @@ protected:
                                  bool* aIsAlternate) override;
 protected:
   RefPtr<nsDOMTokenList> mRelList;
-
-private:
-  RefPtr<ImportLoader> mImportLoader;
 };
 
 } // namespace dom
