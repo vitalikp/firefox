@@ -68,6 +68,7 @@ class mozJSComponentLoader : public mozilla::ModuleLoader,
     void UnloadModules();
 
     void CreateLoaderGlobal(JSContext* aCx,
+                            nsACString& aLocation,
                             JSAddonId* aAddonID,
                             JS::MutableHandleObject aGlobal);
 
