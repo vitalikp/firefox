@@ -338,14 +338,15 @@ public:
 
 protected:
   virtual ~Runnable() {}
-private:
-  Runnable(const Runnable&) = delete;
-  Runnable& operator=(const Runnable&) = delete;
-  Runnable& operator=(const Runnable&&) = delete;
 
 #ifndef RELEASE_OR_BETA
   const char* mName = nullptr;
 #endif
+
+private:
+  Runnable(const Runnable&) = delete;
+  Runnable& operator=(const Runnable&) = delete;
+  Runnable& operator=(const Runnable&&) = delete;
 };
 
 // This class is designed to be subclassed.
