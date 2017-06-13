@@ -132,11 +132,6 @@ static class ScopedXPCOM : public nsIDirectoryServiceProvider2
       printf("Finished running %s tests.\n", mTestName);
     }
 
-    bool failed()
-    {
-      return mServMgr == nullptr;
-    }
-
     already_AddRefed<nsIFile> GetProfileDirectory()
     {
       if (mProfD) {
