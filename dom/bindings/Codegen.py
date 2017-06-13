@@ -8745,7 +8745,7 @@ class CGEnumerateHook(CGAbstractBindingMethod):
     def generate_code(self):
         return CGGeneric(dedent("""
             binding_detail::FastErrorResult rv;
-            self->GetOwnPropertyNames(cx, properties, rv);
+            self->GetOwnPropertyNames(cx, properties, enumerableOnly, rv);
             if (rv.MaybeSetPendingException(cx)) {
               return false;
             }
@@ -10882,7 +10882,8 @@ class CGEnumerateOwnPropertiesViaGetOwnPropertyNames(CGAbstractBindingMethod):
     def generate_code(self):
         return CGGeneric(dedent("""
             binding_detail::FastErrorResult rv;
-            self->GetOwnPropertyNames(cx, props, rv);
+            // This wants all own props, not just enumerable ones.
+            self->GetOwnPropertyNames(cx, props, false, rv);
             if (rv.MaybeSetPendingException(cx)) {
               return false;
             }
