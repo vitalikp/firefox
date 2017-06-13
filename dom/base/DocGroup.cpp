@@ -77,7 +77,7 @@ DocGroup::Dispatch(const char* aName,
   return mTabGroup->Dispatch(aName, aCategory, Move(aRunnable));
 }
 
-nsIEventTarget*
+nsISerialEventTarget*
 DocGroup::EventTargetFor(TaskCategory aCategory) const
 {
   return mTabGroup->EventTargetFor(aCategory);

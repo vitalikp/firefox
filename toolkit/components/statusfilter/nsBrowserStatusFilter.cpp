@@ -9,6 +9,7 @@
 #include "nsITimer.h"
 #include "nsIServiceManager.h"
 #include "nsString.h"
+#include "nsThreadUtils.h"
 
 using namespace mozilla;
 
