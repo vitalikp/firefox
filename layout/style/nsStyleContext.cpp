@@ -1037,7 +1037,8 @@ nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
   // any change hints for those structs.
   bool checkUnrequestedServoStructs = mSource.IsServoComputedValues();
 
-#define DO_STRUCT_DIFFERENCE(struct_)                                         \
+#define EXPAND(...) __VA_ARGS__
+#define DO_STRUCT_DIFFERENCE_WITH_ARGS(struct_, extra_args_)                  \
   PR_BEGIN_MACRO                                                              \
     const nsStyle##struct_* this##struct_ = PeekStyle##struct_();             \
     bool unrequestedStruct;                                                   \
@@ -1059,7 +1060,7 @@ nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
         *aEqualStructs |= NS_STYLE_INHERIT_BIT(struct_);                      \
       } else {                                                                \
         nsChangeHint difference =                                             \
-          this##struct_->CalcDifference(*other##struct_ EXTRA_DIFF_ARGS);     \
+          this##struct_->CalcDifference(*other##struct_ EXPAND extra_args_);  \
         if (!unrequestedStruct) {                                             \
           hint |= difference;                                                 \
         }                                                                     \
@@ -1072,11 +1073,12 @@ nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
     }                                                                         \
     styleStructCount++;                                                       \
   PR_END_MACRO
+#define DO_STRUCT_DIFFERENCE(struct_) \
+  DO_STRUCT_DIFFERENCE_WITH_ARGS(struct_, ())
 
   // FIXME: The order of these DO_STRUCT_DIFFERENCE calls is no longer
   // significant.  With a small amount of effort, we could replace them with a
   // #include "nsStyleStructList.h".
-#define EXTRA_DIFF_ARGS /* nothing */
   DO_STRUCT_DIFFERENCE(Display);
   DO_STRUCT_DIFFERENCE(XUL);
   DO_STRUCT_DIFFERENCE(Column);
@@ -1091,11 +1093,7 @@ nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
   DO_STRUCT_DIFFERENCE(List);
   DO_STRUCT_DIFFERENCE(SVGReset);
   DO_STRUCT_DIFFERENCE(SVG);
-#undef EXTRA_DIFF_ARGS
-#define EXTRA_DIFF_ARGS , PeekStyleVisibility()
-  DO_STRUCT_DIFFERENCE(Position);
-#undef EXTRA_DIFF_ARGS
-#define EXTRA_DIFF_ARGS /* nothing */
+  DO_STRUCT_DIFFERENCE_WITH_ARGS(Position, (, PeekStyleVisibility()));
   DO_STRUCT_DIFFERENCE(Font);
   DO_STRUCT_DIFFERENCE(Margin);
   DO_STRUCT_DIFFERENCE(Padding);
@@ -1104,9 +1102,10 @@ nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
   DO_STRUCT_DIFFERENCE(Effects);
   DO_STRUCT_DIFFERENCE(Background);
   DO_STRUCT_DIFFERENCE(Color);
-#undef EXTRA_DIFF_ARGS
 
 #undef DO_STRUCT_DIFFERENCE
+#undef DO_STRUCT_DIFFERENCE_WITH_ARGS
+#undef EXPAND
 
   MOZ_ASSERT(styleStructCount == nsStyleStructID_Length,
              "missing a call to DO_STRUCT_DIFFERENCE");
