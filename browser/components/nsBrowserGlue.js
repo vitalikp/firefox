@@ -16,6 +16,8 @@ Cu.import("resource://gre/modules/AsyncPrefs.jsm");
 
 XPCOMUtils.defineLazyServiceGetter(this, "WindowsUIUtils", "@mozilla.org/windows-ui-utils;1", "nsIWindowsUIUtils");
 XPCOMUtils.defineLazyServiceGetter(this, "AlertsService", "@mozilla.org/alerts-service;1", "nsIAlertsService");
+XPCOMUtils.defineLazyModuleGetter(this, "ContextualIdentityService",
+                                  "resource://gre/modules/ContextualIdentityService.jsm");
 
 // lazy module getters
 [
@@ -1103,6 +1105,11 @@ BrowserGlue.prototype = {
     });
 
     ExtensionsUI.init();
+
+    // Let's load the contextual identities.
+    Services.tm.mainThread.idleDispatch(() => {
+      ContextualIdentityService.load();
+    });
 
     E10SAccessibilityCheck.onWindowsRestored();
   },
