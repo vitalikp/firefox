@@ -3260,7 +3260,8 @@ typedef struct ComplexObject {
 } ComplexObject;
 
 static bool
-sandbox_enumerate(JSContext* cx, HandleObject obj)
+sandbox_enumerate(JSContext* cx, JS::HandleObject obj, JS::AutoIdVector& properties,
+                  bool enumerableOnly)
 {
     RootedValue v(cx);
 
@@ -3270,7 +3271,7 @@ sandbox_enumerate(JSContext* cx, HandleObject obj)
     if (!ToBoolean(v))
         return true;
 
-    return JS_EnumerateStandardClasses(cx, obj);
+    return JS_NewEnumerateStandardClasses(cx, obj, properties, enumerableOnly);
 }
 
 static bool
@@ -3287,7 +3288,7 @@ sandbox_resolve(JSContext* cx, HandleObject obj, HandleId id, bool* resolvedp)
 
 static const JSClassOps sandbox_classOps = {
     nullptr, nullptr, nullptr, nullptr,
-    sandbox_enumerate, nullptr, sandbox_resolve,
+    nullptr, sandbox_enumerate, sandbox_resolve,
     nullptr, nullptr,
     nullptr, nullptr, nullptr,
     JS_GlobalObjectTraceHook
@@ -7158,10 +7159,11 @@ js::shell::WarningReporter(JSContext* cx, JSErrorReport* report)
 }
 
 static bool
-global_enumerate(JSContext* cx, HandleObject obj)
+global_enumerate(JSContext* cx, JS::HandleObject obj, JS::AutoIdVector& properties,
+                 bool enumerableOnly)
 {
 #ifdef LAZY_STANDARD_CLASSES
-    return JS_EnumerateStandardClasses(cx, obj);
+    return JS_NewEnumerateStandardClasses(cx, obj, properties, enumerableOnly);
 #else
     return true;
 #endif
@@ -7185,7 +7187,7 @@ global_mayResolve(const JSAtomState& names, jsid id, JSObject* maybeObj)
 
 static const JSClassOps global_classOps = {
     nullptr, nullptr, nullptr, nullptr,
-    global_enumerate, nullptr, global_resolve, global_mayResolve,
+    nullptr, global_enumerate, global_resolve, global_mayResolve,
     nullptr,
     nullptr, nullptr, nullptr,
     JS_GlobalObjectTraceHook
