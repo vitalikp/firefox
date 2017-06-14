@@ -590,9 +590,9 @@ struct DefaultHasher<jsid>
     }
 };
 
-using BaseShapeSet = JS::GCHashSet<ReadBarriered<UnownedBaseShape*>,
-                                   StackBaseShape,
-                                   SystemAllocPolicy>;
+using BaseShapeSet = JS::WeakCache<JS::GCHashSet<ReadBarriered<UnownedBaseShape*>,
+                                                 StackBaseShape,
+                                                 SystemAllocPolicy>>;
 
 class Shape : public gc::TenuredCell
 {
@@ -1273,7 +1273,9 @@ struct InitialShapeEntry
     }
 };
 
-using InitialShapeSet = JS::GCHashSet<InitialShapeEntry, InitialShapeEntry, SystemAllocPolicy>;
+using InitialShapeSet = JS::WeakCache<JS::GCHashSet<InitialShapeEntry,
+                                                    InitialShapeEntry,
+                                                    SystemAllocPolicy>>;
 
 struct StackShape
 {

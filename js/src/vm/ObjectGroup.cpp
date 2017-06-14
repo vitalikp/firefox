@@ -466,7 +466,7 @@ class ObjectGroupCompartment::NewTable : public JS::WeakCache<js::GCHashSet<NewE
     using Base = JS::WeakCache<Table>;
 
   public:
-    explicit NewTable(Zone* zone) : Base(zone, Table()) {}
+    explicit NewTable(Zone* zone) : Base(zone) {}
 };
 
 MOZ_ALWAYS_INLINE ObjectGroup*
@@ -1470,7 +1470,7 @@ class ObjectGroupCompartment::AllocationSiteTable
     using Base = JS::WeakCache<Table>;
 
   public:
-    explicit AllocationSiteTable(Zone* zone) : Base(zone, Table()) {}
+    explicit AllocationSiteTable(Zone* zone) : Base(zone) {}
 };
 
 /* static */ ObjectGroup*
