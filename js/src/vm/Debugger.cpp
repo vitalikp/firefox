@@ -5100,6 +5100,7 @@ Debugger::makeGlobalObjectReference(JSContext* cx, unsigned argc, Value* vp)
     return dbg->wrapDebuggeeValue(cx, args.rval());
 }
 
+#ifdef JS_TRACE_LOGGING
 static bool
 DefineProperty(JSContext* cx, HandleObject obj, HandleId id, const char* value, size_t n)
 {
@@ -5111,7 +5112,6 @@ DefineProperty(JSContext* cx, HandleObject obj, HandleId id, const char* value, 
     return JS_DefinePropertyById(cx, obj, id, str, JSPROP_ENUMERATE);
 }
 
-#ifdef JS_TRACE_LOGGING
 # ifdef NIGHTLY_BUILD
 bool
 Debugger::setupTraceLogger(JSContext* cx, unsigned argc, Value* vp)
