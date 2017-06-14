@@ -1912,6 +1912,10 @@ ScriptLoader::FireScriptEvaluated(nsresult aResult,
 already_AddRefed<nsIScriptGlobalObject>
 ScriptLoader::GetScriptGlobalObject()
 {
+  if (!mDocument) {
+    return nullptr;
+  }
+
   nsPIDOMWindowInner* pwin = mDocument->GetInnerWindow();
   if (!pwin) {
     return nullptr;
