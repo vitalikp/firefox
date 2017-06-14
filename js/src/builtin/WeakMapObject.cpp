@@ -320,6 +320,7 @@ static const ClassOps WeakMapObjectClassOps = {
     nullptr, /* getProperty */
     nullptr, /* setProperty */
     nullptr, /* enumerate */
+    nullptr, /* newEnumerate */
     nullptr, /* resolve */
     nullptr, /* mayResolve */
     WeakMap_finalize,

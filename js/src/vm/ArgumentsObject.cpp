@@ -873,6 +873,7 @@ const ClassOps MappedArgumentsObject::classOps_ = {
     nullptr,                 /* getProperty */
     nullptr,                 /* setProperty */
     MappedArgumentsObject::obj_enumerate,
+    nullptr,                 /* newEnumerate */
     MappedArgumentsObject::obj_resolve,
     ArgumentsObject::obj_mayResolve,
     ArgumentsObject::finalize,
@@ -910,6 +911,7 @@ const ClassOps UnmappedArgumentsObject::classOps_ = {
     nullptr,                 /* getProperty */
     nullptr,                 /* setProperty */
     UnmappedArgumentsObject::obj_enumerate,
+    nullptr,                 /* newEnumerate */
     UnmappedArgumentsObject::obj_resolve,
     ArgumentsObject::obj_mayResolve,
     ArgumentsObject::finalize,

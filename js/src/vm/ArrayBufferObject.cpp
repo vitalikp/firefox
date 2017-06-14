@@ -132,6 +132,7 @@ static const ClassOps ArrayBufferObjectClassOps = {
     nullptr,        /* getProperty */
     nullptr,        /* setProperty */
     nullptr,        /* enumerate */
+    nullptr,        /* newEnumerate */
     nullptr,        /* resolve */
     nullptr,        /* mayResolve */
     ArrayBufferObject::finalize,

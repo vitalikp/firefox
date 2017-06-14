@@ -1006,6 +1006,7 @@ const ClassOps CollatorObject::classOps_ = {
     nullptr, /* getProperty */
     nullptr, /* setProperty */
     nullptr, /* enumerate */
+    nullptr, /* newEnumerate */
     nullptr, /* resolve */
     nullptr, /* mayResolve */
     CollatorObject::finalize
@@ -1449,6 +1450,7 @@ const ClassOps NumberFormatObject::classOps_ = {
     nullptr, /* getProperty */
     nullptr, /* setProperty */
     nullptr, /* enumerate */
+    nullptr, /* newEnumerate */
     nullptr, /* resolve */
     nullptr, /* mayResolve */
     NumberFormatObject::finalize
@@ -2358,6 +2360,7 @@ const ClassOps DateTimeFormatObject::classOps_ = {
     nullptr, /* getProperty */
     nullptr, /* setProperty */
     nullptr, /* enumerate */
+    nullptr, /* newEnumerate */
     nullptr, /* resolve */
     nullptr, /* mayResolve */
     DateTimeFormatObject::finalize
@@ -3348,6 +3351,7 @@ const ClassOps PluralRulesObject::classOps_ = {
     nullptr, /* getProperty */
     nullptr, /* setProperty */
     nullptr, /* enumerate */
+    nullptr, /* newEnumerate */
     nullptr, /* resolve */
     nullptr, /* mayResolve */
     PluralRulesObject::finalize
