@@ -635,8 +635,8 @@ WebSocketImpl::Disconnect()
     rv.SuppressException();
   }
 
-  NS_ReleaseOnMainThread(mChannel.forget());
-  NS_ReleaseOnMainThread(mService.forget());
+  NS_ReleaseOnMainThread("WebSocketImpl::mChannel", mChannel.forget());
+  NS_ReleaseOnMainThread("WebSocketImpl::mService", mService.forget());
 
   mWebSocket->DontKeepAliveAnyMore();
   mWebSocket->mImpl = nullptr;

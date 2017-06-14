@@ -102,7 +102,8 @@ AsyncExecuteStatements::~AsyncExecuteStatements()
   MOZ_ASSERT(!mCallback, "Never called the Completion callback!");
   MOZ_ASSERT(!mHasTransaction, "There should be no transaction at this point");
   if (mCallback) {
-    NS_ProxyRelease(mCallingThread, mCallback.forget());
+    NS_ProxyRelease("AsyncExecuteStatements::mCallback", mCallingThread,
+                    mCallback.forget());
   }
 }
 

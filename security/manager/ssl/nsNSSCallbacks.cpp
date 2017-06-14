@@ -579,7 +579,7 @@ nsHTTPListener::~nsHTTPListener()
   }
 
   if (mLoader) {
-    NS_ReleaseOnMainThread(mLoader.forget());
+    NS_ReleaseOnMainThread("nsHTTPListener::mLoader", mLoader.forget());
   }
 }
 

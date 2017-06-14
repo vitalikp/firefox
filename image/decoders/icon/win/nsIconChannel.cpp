@@ -76,7 +76,8 @@ nsIconChannel::nsIconChannel()
 nsIconChannel::~nsIconChannel()
 {
   if (mLoadInfo) {
-    NS_ReleaseOnMainThread(mLoadInfo.forget());
+    NS_ReleaseOnMainThread(
+      "nsIconChannel::mLoadInfo", mLoadInfo.forget());
   }
 }
 

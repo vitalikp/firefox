@@ -65,7 +65,9 @@ public:
     mDict->SyncLoad();
 
     // Release the dictionary on the main thread
-    NS_ReleaseOnMainThread(mDict.forget());
+    NS_ReleaseOnMainThread(
+      "mozPersonalDictionaryLoader::mDict",
+      mDict.forget());
 
     return NS_OK;
   }
@@ -136,7 +138,9 @@ public:
     }
 
     // Release the dictionary on the main thread.
-    NS_ReleaseOnMainThread(mDict.forget());
+    NS_ReleaseOnMainThread(
+      "mozPersonalDictionarySave::mDict",
+      mDict.forget());
 
     return NS_OK;
   }

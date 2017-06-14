@@ -2821,7 +2821,7 @@ css::URLValueData::GetURI() const
     NS_NewURI(getter_AddRefs(newURI),
               NS_ConvertUTF16toUTF8(mString),
               nullptr, mExtraData->BaseURI());
-    mURI = new PtrHolder<nsIURI>(newURI.forget());
+    mURI = new PtrHolder<nsIURI>("URLValueData::mURI", newURI.forget());
     mURIResolved = true;
   }
 
@@ -2958,7 +2958,7 @@ URLValue::URLValue(const nsAString& aString, nsIURI* aBaseURI, nsIURI* aReferrer
 
 URLValue::URLValue(nsIURI* aURI, const nsAString& aString, nsIURI* aBaseURI,
                    nsIURI* aReferrer, nsIPrincipal* aOriginPrincipal)
-  : URLValueData(do_AddRef(new PtrHolder<nsIURI>(aURI)),
+  : URLValueData(do_AddRef(new PtrHolder<nsIURI>("URLValueData::mURI", aURI)),
                  aString,
                  do_AddRef(new URLExtraData(aBaseURI, aReferrer,
                                             aOriginPrincipal)))
@@ -2981,7 +2981,7 @@ css::URLValue::SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const
 css::ImageValue::ImageValue(nsIURI* aURI, const nsAString& aString,
                             already_AddRefed<URLExtraData> aExtraData,
                             nsIDocument* aDocument)
-  : URLValueData(do_AddRef(new PtrHolder<nsIURI>(aURI)),
+  : URLValueData(do_AddRef(new PtrHolder<nsIURI>("URLValueData::mURI", aURI)),
                  aString, Move(aExtraData))
 {
   Initialize(aDocument);

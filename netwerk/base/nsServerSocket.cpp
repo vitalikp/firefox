@@ -238,7 +238,8 @@ nsServerSocket::OnSocketDetached(PRFileDesc *fd)
     // XXX we need to proxy the release to the listener's target thread to work
     // around bug 337492.
     if (listener) {
-      NS_ProxyRelease(mListenerTarget, listener.forget());
+      NS_ProxyRelease(
+        "nsServerSocket::mListener", mListenerTarget, listener.forget());
     }
   }
 }
@@ -424,7 +425,8 @@ class ServerSocketListenerProxy final : public nsIServerSocketListener
 
 public:
   explicit ServerSocketListenerProxy(nsIServerSocketListener* aListener)
-    : mListener(new nsMainThreadPtrHolder<nsIServerSocketListener>(aListener))
+    : mListener(new nsMainThreadPtrHolder<nsIServerSocketListener>(
+        "ServerSocketListenerProxy::mListener", aListener))
     , mTarget(GetCurrentThreadEventTarget())
   { }
 

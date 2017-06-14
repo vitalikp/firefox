@@ -3731,7 +3731,9 @@ WebCryptoTask::~WebCryptoTask()
   }
 
   if (mWorkerHolder) {
-    NS_ProxyRelease(mOriginalEventTarget, mWorkerHolder.forget());
+    NS_ProxyRelease(
+      "WebCryptoTask::mWorkerHolder",
+      mOriginalEventTarget, mWorkerHolder.forget());
   }
 }
 
