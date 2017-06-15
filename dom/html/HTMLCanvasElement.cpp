@@ -1329,11 +1329,6 @@ HTMLCanvasElement::OnVisibilityChange()
         return NS_OK;
       }
 
-      void Revoke()
-      {
-        mRenderer = nullptr;
-      }
-
     private:
       RefPtr<AsyncCanvasRenderer> mRenderer;
     };
@@ -1369,11 +1364,6 @@ HTMLCanvasElement::OnMemoryPressure()
         }
 
         return NS_OK;
-      }
-
-      void Revoke()
-      {
-        mRenderer = nullptr;
       }
 
     private:
