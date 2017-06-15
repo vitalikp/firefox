@@ -51,7 +51,7 @@ class CallObject;
 class FrameIter;
 class EnvironmentObject;
 class ScriptFrameIter;
-class GeckoProfiler;
+class GeckoProfilerRuntime;
 class InterpreterFrame;
 class LexicalEnvironmentObject;
 class EnvironmentIter;

@@ -56,6 +56,7 @@
 #include "jit/JitFrames-inl.h"
 #include "vm/Debugger-inl.h"
 #include "vm/EnvironmentObject-inl.h"
+#include "vm/GeckoProfiler-inl.h"
 #include "vm/NativeObject-inl.h"
 #include "vm/Probes-inl.h"
 #include "vm/Stack-inl.h"
@@ -378,7 +379,7 @@ js::RunScript(JSContext* cx, RunState& state)
     js::AutoStopwatch stopwatch(cx);
 #endif // defined(MOZ_HAVE_RDTSC)
 
-    GeckoProfilerEntryMarker marker(cx->runtime(), state.script());
+    GeckoProfilerEntryMarker marker(cx, state.script());
 
     state.script()->ensureNonLazyCanonicalFunction();
 
@@ -1999,7 +2000,7 @@ CASE(JSOP_LOOPENTRY)
 
             jit::JitExecStatus maybeOsr;
             {
-                GeckoProfilerBaselineOSRMarker osr(cx->runtime(), wasProfiler);
+                GeckoProfilerBaselineOSRMarker osr(cx, wasProfiler);
                 maybeOsr = jit::EnterBaselineAtBranch(cx, REGS.fp(), REGS.pc);
             }
 
@@ -2013,7 +2014,7 @@ CASE(JSOP_LOOPENTRY)
             // version of the function popped a copy of the frame pushed by the
             // OSR trampoline.)
             if (wasProfiler)
-                cx->runtime()->geckoProfiler().exit(script, script->functionNonDelazifying());
+                cx->geckoProfiler().exit(script, script->functionNonDelazifying());
 
             if (activation.entryFrame() != REGS.fp())
                 goto jit_return_pop_frame;
@@ -2981,7 +2982,7 @@ CASE(JSOP_SPREADNEW)
 CASE(JSOP_SPREADCALL)
 CASE(JSOP_SPREADSUPERCALL)
     if (REGS.fp()->hasPushedGeckoProfilerFrame())
-        cx->runtime()->geckoProfiler().updatePC(script, REGS.pc);
+        cx->geckoProfiler().updatePC(cx, script, REGS.pc);
     /* FALL THROUGH */
 
 CASE(JSOP_SPREADEVAL)
@@ -3027,7 +3028,7 @@ CASE(JSOP_SUPERCALL)
 CASE(JSOP_FUNCALL)
 {
     if (REGS.fp()->hasPushedGeckoProfilerFrame())
-        cx->runtime()->geckoProfiler().updatePC(script, REGS.pc);
+        cx->geckoProfiler().updatePC(cx, script, REGS.pc);
 
     MaybeConstruct construct = MaybeConstruct(*REGS.pc == JSOP_NEW || *REGS.pc == JSOP_SUPERCALL);
     bool ignoresReturnValue = *REGS.pc == JSOP_CALL_IGNORES_RV;
