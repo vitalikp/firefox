@@ -448,8 +448,6 @@ ChannelMediaResource::CopySegmentToCache(nsIPrincipal* aPrincipal,
                                          uint32_t aCount,
                                          uint32_t* aWriteCount)
 {
-  mCallback->NotifyDataArrived();
-
   // Keep track of where we're up to.
   LOG("CopySegmentToCache at mOffset [%" PRId64 "] add "
       "[%d] bytes for decoder[%p]",
@@ -869,7 +867,7 @@ void
 ChannelMediaResource::DoNotifyDataReceived()
 {
   mDataReceivedEvent.Revoke();
-  mCallback->NotifyBytesDownloaded();
+  mCallback->NotifyDataArrived();
 }
 
 void
