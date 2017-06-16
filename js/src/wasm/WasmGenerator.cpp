@@ -1066,7 +1066,7 @@ ModuleGenerator::finishFuncDefs()
     // that all functions have been compiled.
 
     for (ElemSegment& elems : env_->elemSegments) {
-        Uint32Vector& codeRangeIndices = elems.elemCodeRangeIndices;
+        Uint32Vector& codeRangeIndices = elems.elemCodeRangeIndices(tier_);
 
         MOZ_ASSERT(codeRangeIndices.empty());
         if (!codeRangeIndices.reserve(elems.elemFuncIndices.length()))
@@ -1115,7 +1115,7 @@ ModuleGenerator::initSigTableElems(uint32_t sigIndex, Uint32Vector&& elemFuncInd
     if (!env_->elemSegments.emplaceBack(tableIndex, offset, Move(elemFuncIndices)))
         return false;
 
-    env_->elemSegments.back().elemCodeRangeIndices = Move(codeRangeIndices);
+    env_->elemSegments.back().elemCodeRangeIndices(tier_) = Move(codeRangeIndices);
     return true;
 }
 
