@@ -183,10 +183,6 @@ private:
       delete mDeadThreads.back();
       mDeadThreads.pop_back();
     }
-
-#if defined(USE_LUL_STACKWALK)
-    delete mLul;
-#endif
   }
 
 public:
@@ -241,7 +237,11 @@ public:
   PS_GET(ThreadVector&, DeadThreads)
 
 #ifdef USE_LUL_STACKWALK
-  PS_GET_AND_SET(lul::LUL*, Lul)
+  static lul::LUL* Lul(PSLockRef) { return sInstance->mLul.get(); }
+  static void SetLul(PSLockRef, UniquePtr<lul::LUL> aLul)
+  {
+    sInstance->mLul = Move(aLul);
+  }
 #endif
 
 private:
@@ -261,7 +261,7 @@ private:
 
 #ifdef USE_LUL_STACKWALK
   // LUL's state. Null prior to the first activation, non-null thereafter.
-  lul::LUL* mLul;
+  UniquePtr<lul::LUL> mLul;
 #endif
 };
 
