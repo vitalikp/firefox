@@ -1036,12 +1036,9 @@ public:
     return mHelper.IsRootScrollFrameOfDocument();
   }
 
-  // Update the style on our scrolled frame.
-  virtual void DoUpdateStyleOfOwnedAnonBoxes(mozilla::ServoStyleSet& aStyleSet,
-                                             nsStyleChangeList& aChangeList,
-                                             nsChangeHint aHintForThisFrame) override {
-    UpdateStyleOfChildAnonBox(mHelper.GetScrolledFrame(), aStyleSet,
-                              aChangeList, aHintForThisFrame);
+  // Return the scrolled frame.
+  void AppendDirectlyOwnedAnonBoxes(nsTArray<OwnedAnonBox>& aResult) override {
+    aResult.AppendElement(OwnedAnonBox(mHelper.GetScrolledFrame()));
   }
 
 #ifdef DEBUG_FRAME_DUMP
@@ -1489,11 +1486,9 @@ public:
     return mHelper.IsRootScrollFrameOfDocument();
   }
 
-  virtual void DoUpdateStyleOfOwnedAnonBoxes(mozilla::ServoStyleSet& aStyleSet,
-                                             nsStyleChangeList& aChangeList,
-                                             nsChangeHint aHintForThisFrame) override {
-    UpdateStyleOfChildAnonBox(mHelper.GetScrolledFrame(), aStyleSet,
-                              aChangeList, aHintForThisFrame);
+  // Return the scrolled frame.
+  void AppendDirectlyOwnedAnonBoxes(nsTArray<OwnedAnonBox>& aResult) override {
+    aResult.AppendElement(OwnedAnonBox(mHelper.GetScrolledFrame()));
   }
 
 #ifdef DEBUG_FRAME_DUMP
