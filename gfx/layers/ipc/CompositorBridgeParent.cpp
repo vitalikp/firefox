@@ -1651,8 +1651,9 @@ InsertVsyncProfilerMarker(TimeStamp aVsyncTimestamp)
 {
 #ifdef MOZ_GECKO_PROFILER
   MOZ_ASSERT(CompositorThreadHolder::IsInCompositorThread());
-  VsyncPayload* payload = new VsyncPayload(aVsyncTimestamp);
-  PROFILER_MARKER_PAYLOAD("VsyncTimestamp", payload);
+  PROFILER_MARKER_PAYLOAD(
+    "VsyncTimestamp",
+    MakeUnique<VsyncPayload>(aVsyncTimestamp));
 #endif
 }
 
