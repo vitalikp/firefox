@@ -8715,6 +8715,16 @@ HTMLInputElement::GetWebkitEntries(nsTArray<RefPtr<FileSystemEntry>>& aSequence)
   aSequence.AppendElements(mFileData->mEntries);
 }
 
+already_AddRefed<nsINodeList>
+HTMLInputElement::GetLabels()
+{
+  if (!IsLabelable()) {
+    return nullptr;
+  }
+
+  return nsGenericHTMLElement::Labels();
+}
+
 } // namespace dom
 } // namespace mozilla
 
