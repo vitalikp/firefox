@@ -834,6 +834,8 @@ static void
 MergeStacksIntoProfile(PSLockRef aLock, ProfileBuffer* aBuffer,
                        const TickSample& aSample, NativeStack& aNativeStack)
 {
+  // WARNING: this function runs within the profiler's "critical section".
+
   NotNull<RacyThreadInfo*> racyInfo = aSample.mRacyInfo;
   js::ProfileEntry* pseudoEntries = racyInfo->entries;
   uint32_t pseudoCount = racyInfo->stackSize();
@@ -1046,6 +1048,8 @@ static void
 DoNativeBacktrace(PSLockRef aLock, NativeStack& aNativeStack,
                   const TickSample& aSample)
 {
+  // WARNING: this function runs within the profiler's "critical section".
+
   // Start with the current function. We use 0 as the frame number here because
   // the FramePointerStackWalk() and MozStackWalk() calls below will use 1..N.
   // This is a bit weird but it doesn't matter because StackWalkCallback()
@@ -1077,6 +1081,8 @@ static void
 DoNativeBacktrace(PSLockRef aLock, NativeStack& aNativeStack,
                   const TickSample& aSample)
 {
+  // WARNING: this function runs within the profiler's "critical section".
+
   const mcontext_t* mcontext = &aSample.mContext->uc_mcontext;
   mcontext_t savedContext;
   NotNull<RacyThreadInfo*> racyInfo = aSample.mRacyInfo;
@@ -1154,6 +1160,8 @@ static void
 DoNativeBacktrace(PSLockRef aLock, NativeStack& aNativeStack,
                   const TickSample& aSample)
 {
+  // WARNING: this function runs within the profiler's "critical section".
+
   const mcontext_t* mc = &aSample.mContext->uc_mcontext;
 
   lul::UnwindRegs startRegs;
@@ -1255,6 +1263,8 @@ DoNativeBacktrace(PSLockRef aLock, NativeStack& aNativeStack,
 void
 Tick(PSLockRef aLock, const TickSample& aSample, ProfileBuffer* aBuffer)
 {
+  // WARNING: this function runs within the profiler's "critical section".
+
   MOZ_RELEASE_ASSERT(ActivePS::Exists(aLock));
 
   aBuffer->addTagThreadId(aSample.mThreadId, aSample.mLastSample);
