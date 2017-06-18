@@ -2318,11 +2318,10 @@ ServiceWorkerManager::RemoveScopeAndRegistration(ServiceWorkerRegistrationInfo* 
     return;
   }
 
-  data->mUpdateTimers.LookupRemoveIf(aRegistration->mScope,
-    [] (nsCOMPtr<nsITimer>& aTimer) {
-      aTimer->Cancel();
-      return true;  // remove it
-    });
+  if (auto entry = data->mUpdateTimers.Lookup(aRegistration->mScope)) {
+    entry.Data()->Cancel();
+    entry.Remove();
+  }
 
   // The registration should generally only be removed if there are no controlled
   // documents, but mControlledDocuments can contain references to potentially
@@ -2348,12 +2347,12 @@ ServiceWorkerManager::RemoveScopeAndRegistration(ServiceWorkerRegistrationInfo* 
 void
 ServiceWorkerManager::MaybeRemoveRegistrationInfo(const nsACString& aScopeKey)
 {
-  mRegistrationInfos.LookupRemoveIf(aScopeKey,
-    [] (RegistrationDataPerPrincipal* aData) {
-      bool remove = aData->mOrderedScopes.IsEmpty() &&
-                    aData->mJobQueues.Count() == 0;
-      return remove;
-    });
+  if (auto entry = mRegistrationInfos.Lookup(aScopeKey)) {
+    if (entry.Data()->mOrderedScopes.IsEmpty() &&
+        entry.Data()->mJobQueues.Count() == 0) {
+      entry.Remove();
+    }
+  }
 }
 
 void
@@ -3634,11 +3633,10 @@ ServiceWorkerManager::ForceUnregister(RegistrationDataPerPrincipal* aRegistratio
     queue->CancelAll();
   }
 
-  aRegistrationData->mUpdateTimers.LookupRemoveIf(aRegistration->mScope,
-    [] (nsCOMPtr<nsITimer>& aTimer) {
-      aTimer->Cancel();
-      return true;  // remove it
-    });
+  if (auto entry = aRegistrationData->mUpdateTimers.Lookup(aRegistration->mScope)) {
+    entry.Data()->Cancel();
+    entry.Remove();
+  }
 
   // Since Unregister is async, it is ok to call it in an enumeration.
   Unregister(aRegistration->mPrincipal, nullptr, NS_ConvertUTF8toUTF16(aRegistration->mScope));
@@ -4256,11 +4254,10 @@ ServiceWorkerManager::UpdateTimerFired(nsIPrincipal* aPrincipal,
     return;
   }
 
-  data->mUpdateTimers.LookupRemoveIf(aScope,
-    [] (nsCOMPtr<nsITimer>& aTimer) {
-      aTimer->Cancel();
-      return true;  // remove it
-    });
+  if (auto entry = data->mUpdateTimers.Lookup(aScope)) {
+    entry.Data()->Cancel();
+    entry.Remove();
+  }
 
   RefPtr<ServiceWorkerRegistrationInfo> registration;
   data->mInfos.Get(aScope, getter_AddRefs(registration));
