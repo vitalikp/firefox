@@ -52,10 +52,6 @@ EXPORTS.mozilla += [
     'WritingModes.h',
 ]
 
-EXPORTS.mozilla.dom += [
-    'Selection.h',
-]
-
 EXPORTS.mozilla.layout += [
     'FrameChildList.h',
 ]
@@ -105,7 +101,6 @@ UNIFIED_SOURCES += [
     'nsRubyFrame.cpp',
     'nsRubyTextContainerFrame.cpp',
     'nsRubyTextFrame.cpp',
-    'nsSelection.cpp',
     'nsSimplePageSequenceFrame.cpp',
     'nsSplittableFrame.cpp',
     'nsSubDocumentFrame.cpp',
