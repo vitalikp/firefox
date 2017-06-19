@@ -431,8 +431,6 @@ function dbCreateAsyncStatement(aQuery, aParams, aBindingArrays) {
 }
 
 /**
- * dbInit
- *
  * Attempts to initialize the database. This creates the file if it doesn't
  * exist, performs any migrations, etc.
  */
@@ -533,8 +531,6 @@ var Migrators = {
 };
 
 /**
- * dbAreExpectedColumnsPresent
- *
  * Sanity check to ensure that the columns this version of the code expects
  * are present in the DB we're using.
  */
@@ -558,8 +554,6 @@ function dbAreExpectedColumnsPresent() {
 }
 
 /**
- * dbCleanup
- *
  * Called when database creation fails. Finalizes database statements,
  * closes the database connection, deletes the database file.
  */
@@ -606,8 +600,6 @@ function dbClose(aShutdown) {
 }
 
 /**
- * updateFormHistoryWrite
- *
  * Constructs and executes database statements from a pre-processed list of
  * inputted changes.
  */
@@ -716,8 +708,6 @@ function updateFormHistoryWrite(aChanges, aCallbacks) {
  */
 
 /**
- * expireOldEntriesDeletion
- *
  * Removes entries from database.
  */
 function expireOldEntriesDeletion(aExpireTime, aBeginningCount) {
@@ -738,8 +728,6 @@ function expireOldEntriesDeletion(aExpireTime, aBeginningCount) {
 }
 
 /**
- * expireOldEntriesVacuum
- *
  * Counts number of entries removed and shrinks database as necessary.
  */
 function expireOldEntriesVacuum(aExpireTime, aBeginningCount) {
