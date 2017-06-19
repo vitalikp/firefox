@@ -4242,6 +4242,7 @@ nsStyleUIReset::nsStyleUIReset(const nsPresContext* aContext)
   , mIMEMode(NS_STYLE_IME_MODE_AUTO)
   , mWindowDragging(StyleWindowDragging::Default)
   , mWindowShadow(NS_STYLE_WINDOW_SHADOW_DEFAULT)
+  , mWindowOpacity(1.0)
 {
   MOZ_COUNT_CTOR(nsStyleUIReset);
 }
@@ -4252,6 +4253,7 @@ nsStyleUIReset::nsStyleUIReset(const nsStyleUIReset& aSource)
   , mIMEMode(aSource.mIMEMode)
   , mWindowDragging(aSource.mWindowDragging)
   , mWindowShadow(aSource.mWindowShadow)
+  , mWindowOpacity(aSource.mWindowOpacity)
 {
   MOZ_COUNT_CTOR(nsStyleUIReset);
 }
@@ -4264,29 +4266,35 @@ nsStyleUIReset::~nsStyleUIReset()
 nsChangeHint
 nsStyleUIReset::CalcDifference(const nsStyleUIReset& aNewData) const
 {
-  // ignore mIMEMode
+  nsChangeHint hint = nsChangeHint(0);
+
   if (mForceBrokenImageIcon != aNewData.mForceBrokenImageIcon) {
-    return nsChangeHint_ReconstructFrame;
+    hint |= nsChangeHint_ReconstructFrame;
   }
   if (mWindowShadow != aNewData.mWindowShadow) {
     // We really need just an nsChangeHint_SyncFrameView, except
     // on an ancestor of the frame, so we get that by doing a
     // reflow.
-    return NS_STYLE_HINT_REFLOW;
+    hint |= NS_STYLE_HINT_REFLOW;
   }
   if (mUserSelect != aNewData.mUserSelect) {
-    return NS_STYLE_HINT_VISUAL;
+    hint |= NS_STYLE_HINT_VISUAL;
   }
 
   if (mWindowDragging != aNewData.mWindowDragging) {
-    return nsChangeHint_SchedulePaint;
+    hint |= nsChangeHint_SchedulePaint;
   }
 
-  if (mIMEMode != aNewData.mIMEMode) {
-    return nsChangeHint_NeutralChange;
+  if (mWindowOpacity != aNewData.mWindowOpacity) {
+    hint |= nsChangeHint_UpdateWidgetProperties;
   }
 
-  return nsChangeHint(0);
+  if (!hint &&
+      mIMEMode != aNewData.mIMEMode) {
+    hint |= nsChangeHint_NeutralChange;
+  }
+
+  return hint;
 }
 
 //-----------------------

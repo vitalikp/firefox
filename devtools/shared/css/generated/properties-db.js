@@ -1486,6 +1486,20 @@ exports.CSS_PROPERTIES = {
       "unset"
     ]
   },
+  "-moz-window-opacity": {
+    "isInherited": false,
+    "subproperties": [
+      "-moz-window-opacity"
+    ],
+    "supports": [
+      7
+    ],
+    "values": [
+      "inherit",
+      "initial",
+      "unset"
+    ]
+  },
   "-webkit-align-content": {
     "isInherited": false,
     "subproperties": [
@@ -3093,6 +3107,7 @@ exports.CSS_PROPERTIES = {
       "will-change",
       "-moz-window-dragging",
       "-moz-window-shadow",
+      "-moz-window-opacity",
       "word-break",
       "word-spacing",
       "overflow-wrap",

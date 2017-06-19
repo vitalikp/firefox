@@ -454,6 +454,7 @@ RestyleManager::ChangeHintToString(nsChangeHint aHint)
     "ReflowChangesSizeOrPosition", "UpdateComputedBSize",
     "UpdateUsesOpacity", "UpdateBackgroundPosition",
     "AddOrRemoveTransform", "CSSOverflowChange",
+    "UpdateWidgetProperties"
   };
   static_assert(nsChangeHint_AllHints == (1 << ArrayLength(names)) - 1,
                 "Name list doesn't match change hints.");
@@ -1726,6 +1727,9 @@ RestyleManager::ProcessRestyledFrames(nsStyleChangeList& aChangeList)
       if ((hint & nsChangeHint_UpdateCursor) && !didUpdateCursor) {
         presContext->PresShell()->SynthesizeMouseMove(false);
         didUpdateCursor = true;
+      }
+      if (hint & nsChangeHint_UpdateWidgetProperties) {
+        frame->UpdateWidgetProperties();
       }
     }
   }

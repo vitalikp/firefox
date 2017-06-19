@@ -524,6 +524,7 @@ private:
   already_AddRefed<CSSValue> DoGetUserModify();
   already_AddRefed<CSSValue> DoGetUserSelect();
   already_AddRefed<CSSValue> DoGetWindowDragging();
+  already_AddRefed<CSSValue> DoGetWindowOpacity();
 
   /* Column properties */
   already_AddRefed<CSSValue> DoGetColumnCount();
