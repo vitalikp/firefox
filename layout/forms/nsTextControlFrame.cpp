@@ -730,19 +730,17 @@ nsresult nsTextControlFrame::SetFormProperty(nsIAtom* aName, const nsAString& aV
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsTextControlFrame::GetEditor(nsIEditor **aEditor)
+NS_IMETHODIMP_(already_AddRefed<TextEditor>)
+nsTextControlFrame::GetTextEditor()
 {
-  NS_ENSURE_ARG_POINTER(aEditor);
-
-  nsresult rv = EnsureEditorInitialized();
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (NS_WARN_IF(NS_FAILED(EnsureEditorInitialized()))) {
+    return nullptr;
+  }
 
   nsCOMPtr<nsITextControlElement> txtCtrl = do_QueryInterface(GetContent());
-  NS_ASSERTION(txtCtrl, "Content not a text control element");
-  *aEditor = txtCtrl->GetTextEditor();
-  NS_IF_ADDREF(*aEditor);
-  return NS_OK;
+  MOZ_ASSERT(txtCtrl, "Content not a text control element");
+  RefPtr<TextEditor> textEditor = txtCtrl->GetTextEditor();
+  return textEditor.forget();
 }
 
 nsresult
@@ -821,12 +819,11 @@ nsTextControlFrame::GetRootNodeAndInitializeEditor(nsIDOMElement **aRootElement)
 {
   NS_ENSURE_ARG_POINTER(aRootElement);
 
-  nsCOMPtr<nsIEditor> editor;
-  GetEditor(getter_AddRefs(editor));
-  if (!editor)
+  RefPtr<TextEditor> textEditor = GetTextEditor();
+  if (!textEditor) {
     return NS_OK;
-
-  return editor->GetRootElement(aRootElement);
+  }
+  return textEditor->GetRootElement(aRootElement);
 }
 
 nsresult
@@ -995,18 +992,14 @@ nsTextControlFrame::AttributeChanged(int32_t         aNameSpaceID,
                             nsGkAtoms::readonly == aAttribute ||
                             nsGkAtoms::disabled == aAttribute ||
                             nsGkAtoms::spellcheck == aAttribute;
-  nsCOMPtr<nsIEditor> editor;
-  if (needEditor) {
-    GetEditor(getter_AddRefs(editor));
-  }
-  if ((needEditor && !editor) || !selCon) {
+  RefPtr<TextEditor> textEditor = needEditor ? GetTextEditor() : nullptr;
+  if ((needEditor && !textEditor) || !selCon) {
     return nsContainerFrame::AttributeChanged(aNameSpaceID, aAttribute, aModType);
   }
 
   if (nsGkAtoms::maxlength == aAttribute) {
     int32_t maxLength;
     bool maxDefined = GetMaxLength(&maxLength);
-    nsCOMPtr<nsIPlaintextEditor> textEditor = do_QueryInterface(editor);
     if (textEditor) {
       if (maxDefined) { // set the maxLength attribute
         textEditor->SetMaxTextLength(maxLength);
@@ -1020,7 +1013,7 @@ nsTextControlFrame::AttributeChanged(int32_t         aNameSpaceID,
 
   if (nsGkAtoms::readonly == aAttribute) {
     uint32_t flags;
-    editor->GetFlags(&flags);
+    textEditor->GetFlags(&flags);
     if (AttributeExists(nsGkAtoms::readonly)) { // set readonly
       flags |= nsIPlaintextEditor::eEditorReadonlyMask;
       if (nsContentUtils::IsFocusedContent(mContent)) {
@@ -1028,18 +1021,18 @@ nsTextControlFrame::AttributeChanged(int32_t         aNameSpaceID,
       }
     } else { // unset readonly
       flags &= ~(nsIPlaintextEditor::eEditorReadonlyMask);
-      if (!(flags & nsIPlaintextEditor::eEditorDisabledMask) &&
+      if (!textEditor->IsDisabled() &&
           nsContentUtils::IsFocusedContent(mContent)) {
         selCon->SetCaretEnabled(true);
       }
     }
-    editor->SetFlags(flags);
+    textEditor->SetFlags(flags);
     return NS_OK;
   }
 
   if (nsGkAtoms::disabled == aAttribute) {
     uint32_t flags;
-    editor->GetFlags(&flags);
+    textEditor->GetFlags(&flags);
     int16_t displaySelection = nsISelectionController::SELECTION_OFF;
     const bool focused = nsContentUtils::IsFocusedContent(mContent);
     const bool hasAttr = AttributeExists(nsGkAtoms::disabled);
@@ -1054,7 +1047,7 @@ nsTextControlFrame::AttributeChanged(int32_t         aNameSpaceID,
     if (focused) {
       selCon->SetCaretEnabled(!hasAttr);
     }
-    editor->SetFlags(flags);
+    textEditor->SetFlags(flags);
     return NS_OK;
   }
 
