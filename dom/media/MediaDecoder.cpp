@@ -208,7 +208,7 @@ MediaDecoder::ResourceCallback::NotifyDataArrived()
     return;
   }
 
-  mDecoder->NotifyDownloadProgressed();
+  mDecoder->DownloadProgressed();
 
   if (mTimerArmed) {
     return;
@@ -1052,7 +1052,7 @@ MediaDecoder::NotifySuspendedStatusChanged()
 }
 
 void
-MediaDecoder::NotifyDownloadProgressed()
+MediaDecoder::DownloadProgressed()
 {
   MOZ_ASSERT(NS_IsMainThread());
   MOZ_DIAGNOSTIC_ASSERT(!IsShutdown());
@@ -1558,7 +1558,7 @@ void
 MediaDecoder::NotifyDataArrived()
 {
   NotifyDataArrivedInternal();
-  NotifyDownloadProgressed();
+  DownloadProgressed();
 }
 
 // Provide access to the state machine object
