@@ -1500,6 +1500,38 @@ exports.CSS_PROPERTIES = {
       "unset"
     ]
   },
+  "-moz-window-transform": {
+    "isInherited": false,
+    "subproperties": [
+      "-moz-window-transform"
+    ],
+    "supports": [],
+    "values": [
+      "inherit",
+      "initial",
+      "unset"
+    ]
+  },
+  "-moz-window-transform-origin": {
+    "isInherited": false,
+    "subproperties": [
+      "-moz-window-transform-origin"
+    ],
+    "supports": [
+      6,
+      8
+    ],
+    "values": [
+      "bottom",
+      "center",
+      "inherit",
+      "initial",
+      "left",
+      "right",
+      "top",
+      "unset"
+    ]
+  },
   "-webkit-align-content": {
     "isInherited": false,
     "subproperties": [
@@ -3108,6 +3140,8 @@ exports.CSS_PROPERTIES = {
       "-moz-window-dragging",
       "-moz-window-shadow",
       "-moz-window-opacity",
+      "-moz-window-transform",
+      "-moz-window-transform-origin",
       "word-break",
       "word-spacing",
       "overflow-wrap",

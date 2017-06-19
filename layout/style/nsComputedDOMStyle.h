@@ -213,6 +213,8 @@ private:
 
   already_AddRefed<CSSValue> GetSVGPaintFor(bool aFill);
 
+  already_AddRefed<CSSValue> GetTransformValue(nsCSSValueSharedList* aSpecifiedTransform);
+
   // Appends all aLineNames (may be empty) space-separated to aResult.
   void AppendGridLineNames(nsString& aResult,
                            const nsTArray<nsString>& aLineNames);
@@ -525,6 +527,8 @@ private:
   already_AddRefed<CSSValue> DoGetUserSelect();
   already_AddRefed<CSSValue> DoGetWindowDragging();
   already_AddRefed<CSSValue> DoGetWindowOpacity();
+  already_AddRefed<CSSValue> DoGetWindowTransform();
+  already_AddRefed<CSSValue> DoGetWindowTransformOrigin();
 
   /* Column properties */
   already_AddRefed<CSSValue> DoGetColumnCount();
