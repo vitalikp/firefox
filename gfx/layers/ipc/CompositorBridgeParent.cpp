@@ -1641,7 +1641,7 @@ InsertVsyncProfilerMarker(TimeStamp aVsyncTimestamp)
   MOZ_ASSERT(CompositorThreadHolder::IsInCompositorThread());
   PROFILER_MARKER_PAYLOAD(
     "VsyncTimestamp",
-    MakeUnique<VsyncPayload>(aVsyncTimestamp));
+    MakeUnique<VsyncMarkerPayload>(aVsyncTimestamp));
 #endif
 }
 

@@ -2948,7 +2948,7 @@ profiler_tracing(const char* aCategory, const char* aMarkerName,
     return;
   }
 
-  auto payload = MakeUnique<ProfilerMarkerTracing>(aCategory, aKind);
+  auto payload = MakeUnique<TracingMarkerPayload>(aCategory, aKind);
   racy_profiler_add_marker(aMarkerName, Move(payload));
 }
 
@@ -2964,7 +2964,7 @@ profiler_tracing(const char* aCategory, const char* aMarkerName,
   }
 
   auto payload =
-    MakeUnique<ProfilerMarkerTracing>(aCategory, aKind, Move(aCause));
+    MakeUnique<TracingMarkerPayload>(aCategory, aKind, Move(aCause));
   racy_profiler_add_marker(aMarkerName, Move(payload));
 }
 
