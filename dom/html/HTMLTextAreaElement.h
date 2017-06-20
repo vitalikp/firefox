@@ -299,7 +299,7 @@ public:
   nsIControllers* GetControllers(ErrorResult& aError);
   nsIEditor* GetEditor()
   {
-    return mState.GetEditor();
+    return mState.GetTextEditor();
   }
 
 protected:
