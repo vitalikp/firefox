@@ -344,7 +344,7 @@ EditorBase::PostCreate()
   }
 
   // FYI: This call might cause destroying this editor.
-  IMEStateManager::OnEditorInitialized(this);
+  IMEStateManager::OnEditorInitialized(*this);
 
   return NS_OK;
 }
@@ -454,7 +454,7 @@ EditorBase::PreDestroy(bool aDestroyingFrames)
   if (mDidPreDestroy)
     return NS_OK;
 
-  IMEStateManager::OnEditorDestroying(this);
+  IMEStateManager::OnEditorDestroying(*this);
 
   // Let spellchecker clean up its observers etc. It is important not to
   // actually free the spellchecker here, since the spellchecker could have
