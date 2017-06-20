@@ -13802,11 +13802,14 @@ class MDebugCheckSelfHosted
 
 };
 
-class MAsmJSNeg
+// Flips the input's sign bit, independently of the rest of the number's
+// payload. Note this is different from multiplying by minus-one, which has
+// side-effects for e.g. NaNs.
+class MWasmNeg
   : public MUnaryInstruction,
     public NoTypePolicy::Data
 {
-    MAsmJSNeg(MDefinition* op, MIRType type)
+    MWasmNeg(MDefinition* op, MIRType type)
       : MUnaryInstruction(op)
     {
         setResultType(type);
@@ -13814,7 +13817,7 @@ class MAsmJSNeg
     }
 
   public:
-    INSTRUCTION_HEADER(AsmJSNeg)
+    INSTRUCTION_HEADER(WasmNeg)
     TRIVIAL_NEW_WRAPPERS
 };
 
