@@ -37,7 +37,7 @@ nsScriptableUnicodeConverter::ConvertFromUnicodeWithLength(const nsAString& aSrc
 
   nsresult rv = NS_OK;
   int32_t inLength = aSrc.Length();
-  const nsAFlatString& flatSrc = PromiseFlatString(aSrc);
+  const nsString& flatSrc = PromiseFlatString(aSrc);
   rv = mEncoder->GetMaxLength(flatSrc.get(), inLength, aOutLen);
   if (NS_SUCCEEDED(rv)) {
     mozilla::CheckedInt<int32_t> needed(*aOutLen);

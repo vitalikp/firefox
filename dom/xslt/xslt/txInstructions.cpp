@@ -321,7 +321,7 @@ txCopy::execute(txExecutionState& aEs)
         case txXPathNodeType::DOCUMENT_NODE:
         case txXPathNodeType::DOCUMENT_FRAGMENT_NODE:
         {
-            const nsAFlatString& empty = EmptyString();
+            const nsString& empty = EmptyString();
 
             // "close" current element to ensure that no attributes are added
             rv = aEs.mResultHandler->characters(empty, false);

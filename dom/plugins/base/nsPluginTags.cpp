@@ -440,7 +440,7 @@ nsPluginTag::InitSandboxLevel()
 
 #if !defined(XP_WIN) && !defined(XP_MACOSX)
 static nsresult ConvertToUTF8(nsIUnicodeDecoder *aUnicodeDecoder,
-                              nsAFlatCString& aString)
+                              nsCString& aString)
 {
   int32_t numberOfBytes = aString.Length();
   int32_t outUnicodeLen;

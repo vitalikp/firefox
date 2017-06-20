@@ -167,9 +167,9 @@ static bool statefulCharset(const char *charset)
   return false;
 }
 
-nsresult nsTextToSubURI::convertURItoUnicode(const nsAFlatCString &aCharset,
-                                             const nsAFlatCString &aURI, 
-                                             nsAString &_retval)
+nsresult nsTextToSubURI::convertURItoUnicode(const nsCString& aCharset,
+                                             const nsCString& aURI,
+                                             nsAString& _retval)
 {
   // check for 7bit encoding the data may not be ASCII after we decode
   bool isStatefulCharset = statefulCharset(aCharset.get());

@@ -1143,7 +1143,7 @@ nsJSProtocolHandler::Create(nsISupports *aOuter, REFNSIID aIID, void **aResult)
 }
 
 nsresult 
-nsJSProtocolHandler::EnsureUTF8Spec(const nsAFlatCString &aSpec, const char *aCharset, 
+nsJSProtocolHandler::EnsureUTF8Spec(const nsCString& aSpec, const char *aCharset,
                                     nsACString &aUTF8Spec)
 {
   aUTF8Spec.Truncate();

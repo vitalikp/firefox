@@ -766,7 +766,7 @@ nsHttpHandler::GenerateHostPort(const nsCString& host, int32_t port,
 // nsHttpHandler <private>
 //-----------------------------------------------------------------------------
 
-const nsAFlatCString &
+const nsCString&
 nsHttpHandler::UserAgent()
 {
     if (nsContentUtils::ShouldResistFingerprinting() &&

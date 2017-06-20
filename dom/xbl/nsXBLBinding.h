@@ -130,7 +130,7 @@ public:
   void WalkRules(nsIStyleRuleProcessor::EnumFunc aFunc, void* aData);
 
   static nsresult DoInitJSClass(JSContext *cx, JS::Handle<JSObject*> obj,
-                                const nsAFlatString& aClassName,
+                                const nsString& aClassName,
                                 nsXBLPrototypeBinding* aProtoBinding,
                                 JS::MutableHandle<JSObject*> aClassObject,
                                 bool* aNew);

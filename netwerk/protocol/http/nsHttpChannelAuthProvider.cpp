@@ -556,7 +556,7 @@ nsHttpChannelAuthProvider::PrepareForAuthentication(bool proxyAuth)
 nsresult
 nsHttpChannelAuthProvider::GetCredentials(const char     *challenges,
                                           bool            proxyAuth,
-                                          nsAFlatCString &creds)
+                                          nsCString& creds)
 {
     nsCOMPtr<nsIHttpAuthenticator> auth;
     nsAutoCString challenge;
@@ -694,7 +694,7 @@ nsHttpChannelAuthProvider::GetCredentialsForChallenge(const char *challenge,
                                                       const char *authType,
                                                       bool        proxyAuth,
                                                       nsIHttpAuthenticator *auth,
-                                                      nsAFlatCString     &creds)
+                                                      nsCString& creds)
 {
     LOG(("nsHttpChannelAuthProvider::GetCredentialsForChallenge "
          "[this=%p channel=%p proxyAuth=%d challenges=%s]\n",

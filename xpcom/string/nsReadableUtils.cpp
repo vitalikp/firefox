@@ -1248,7 +1248,7 @@ StringEndsWith(const nsACString& aSource, const nsACString& aSubstring,
 
 static const char16_t empty_buffer[1] = { '\0' };
 
-const nsAFlatString&
+const nsString&
 EmptyString()
 {
   static const nsDependentString sEmpty(empty_buffer);
@@ -1256,7 +1256,7 @@ EmptyString()
   return sEmpty;
 }
 
-const nsAFlatCString&
+const nsCString&
 EmptyCString()
 {
   static const nsDependentCString sEmpty((const char*)empty_buffer);
@@ -1264,7 +1264,7 @@ EmptyCString()
   return sEmpty;
 }
 
-const nsAFlatString&
+const nsString&
 NullString()
 {
   static const nsXPIDLString sNull;
@@ -1272,7 +1272,7 @@ NullString()
   return sNull;
 }
 
-const nsAFlatCString&
+const nsCString&
 NullCString()
 {
   static const nsXPIDLCString sNull;

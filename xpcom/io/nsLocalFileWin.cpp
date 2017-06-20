@@ -546,7 +546,7 @@ struct PRFilePrivate
 
 // PR_Open and _PR_MD_OPEN
 nsresult
-OpenFile(const nsAFlatString& aName,
+OpenFile(const nsString& aName,
          int aOsflags,
          int aMode,
          bool aShareDelete,
@@ -648,7 +648,7 @@ FileTimeToPRTime(const FILETIME* aFiletime, PRTime* aPrtm)
 
 // changes : PR_GetFileInfo64, _PR_MD_GETFILEINFO64
 static nsresult
-GetFileInfo(const nsAFlatString& aName, PRFileInfo64* aInfo)
+GetFileInfo(const nsString& aName, PRFileInfo64* aInfo)
 {
   WIN32_FILE_ATTRIBUTE_DATA fileData;
 
@@ -689,7 +689,7 @@ struct nsDir
 };
 
 static nsresult
-OpenDir(const nsAFlatString& aName, nsDir** aDir)
+OpenDir(const nsString& aName, nsDir** aDir)
 {
   if (NS_WARN_IF(!aDir)) {
     return NS_ERROR_INVALID_ARG;
@@ -1468,7 +1468,7 @@ nsLocalFile::AppendRelativePath(const nsAString& aNode)
 
 
 nsresult
-nsLocalFile::AppendInternal(const nsAFlatString& aNode,
+nsLocalFile::AppendInternal(const nsString& aNode,
                             bool aMultipleComponents)
 {
   if (aNode.IsEmpty()) {

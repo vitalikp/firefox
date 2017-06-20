@@ -36,7 +36,7 @@ ToUTF8(const nsACString &aString, const char *aCharset,
 
   int32_t srcLen = aString.Length();
   int32_t dstLen;
-  const nsAFlatCString& inStr = PromiseFlatCString(aString);
+  const nsCString& inStr = PromiseFlatCString(aString);
   rv = unicodeDecoder->GetMaxLength(inStr.get(), srcLen, &dstLen);
   NS_ENSURE_SUCCESS(rv, rv);
 

@@ -1647,7 +1647,7 @@ nsCSSValue::AppendToString(nsCSSPropertyID aProperty,
     }
 
     default:
-      const nsAFlatCString& name = nsCSSProps::LookupPropertyValue(aProperty, intValue);
+      const nsCString& name = nsCSSProps::LookupPropertyValue(aProperty, intValue);
       AppendASCIItoUTF16(name, aResult);
       break;
     }
