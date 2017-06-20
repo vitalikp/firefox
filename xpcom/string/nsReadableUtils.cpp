@@ -741,7 +741,7 @@ public:
 };
 
 void
-ToUpperCase(nsCSubstring& aCString)
+ToUpperCase(nsACString& aCString)
 {
   ConvertToUpperCase converter;
   char* start;
@@ -825,7 +825,7 @@ public:
 };
 
 void
-ToLowerCase(nsCSubstring& aCString)
+ToLowerCase(nsACString& aCString)
 {
   ConvertToLowerCase converter;
   char* start;

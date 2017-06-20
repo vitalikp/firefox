@@ -2168,7 +2168,7 @@ struct MOZ_STACK_CLASS nsGridContainerFrame::Grid
    * @return null if not found
    */
   static const css::GridNamedArea*
-  FindNamedArea(const nsSubstring& aName, const nsStylePosition* aStyle)
+  FindNamedArea(const nsAString& aName, const nsStylePosition* aStyle)
   {
     if (!aStyle->mGridTemplateAreas) {
       return nullptr;

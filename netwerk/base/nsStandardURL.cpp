@@ -351,7 +351,7 @@ nsStandardURL::InvalidateCache(bool invalidateCachedFile)
 //
 // Note that the value returned is guaranteed to be in [-1, 3] range.
 inline int32_t
-ValidateIPv4Number(const nsCSubstring& host,
+ValidateIPv4Number(const nsACString& host,
                    int32_t bases[4], int32_t dotIndex[3],
                    bool& onlyBase10, int32_t& length)
 {
@@ -430,7 +430,7 @@ ValidateIPv4Number(const nsCSubstring& host,
 }
 
 inline nsresult
-ParseIPv4Number10(const nsCSubstring& input, uint32_t& number, uint32_t maxNumber)
+ParseIPv4Number10(const nsACString& input, uint32_t& number, uint32_t maxNumber)
 {
     uint64_t value = 0;
     const char* current = input.BeginReading();
@@ -452,7 +452,7 @@ ParseIPv4Number10(const nsCSubstring& input, uint32_t& number, uint32_t maxNumbe
 }
 
 inline nsresult
-ParseIPv4Number(const nsCSubstring& input, int32_t base, uint32_t& number, uint32_t maxNumber)
+ParseIPv4Number(const nsACString& input, int32_t base, uint32_t& number, uint32_t maxNumber)
 {
     // Accumulate in the 64-bit value
     uint64_t value = 0;
@@ -496,7 +496,7 @@ ParseIPv4Number(const nsCSubstring& input, int32_t base, uint32_t& number, uint3
 
 // IPv4 parser spec: https://url.spec.whatwg.org/#concept-ipv4-parser
 /* static */ nsresult
-nsStandardURL::NormalizeIPv4(const nsCSubstring& host, nsCString& result)
+nsStandardURL::NormalizeIPv4(const nsACString& host, nsCString& result)
 {
     int32_t bases[4] = {10,10,10,10};
     bool onlyBase10 = true;           // Track this as a special case
@@ -553,7 +553,7 @@ nsStandardURL::NormalizeIPv4(const nsCSubstring& host, nsCString& result)
 }
 
 nsresult
-nsStandardURL::NormalizeIDN(const nsCSubstring &host, nsCString &result)
+nsStandardURL::NormalizeIDN(const nsACString& host, nsCString& result)
 {
     // If host is ACE, then convert to UTF-8.  Else, if host is already UTF-8,
     // then make sure it is normalized per IDN.
@@ -3674,7 +3674,7 @@ nsStandardURL::SizeOfIncludingThis(MallocSizeOf aMallocSizeOf) const {
 
 // For unit tests.  Including nsStandardURL.h seems to cause problems via RustURL.h
 nsresult
-Test_NormalizeIPv4(const nsCSubstring& host, nsCString& result)
+Test_NormalizeIPv4(const nsACString& host, nsCString& result)
 {
     return nsStandardURL::NormalizeIPv4(host, result);
 }

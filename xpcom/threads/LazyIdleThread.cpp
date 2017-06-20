@@ -32,7 +32,7 @@
 namespace mozilla {
 
 LazyIdleThread::LazyIdleThread(uint32_t aIdleTimeoutMS,
-                               const nsCSubstring& aName,
+                               const nsACString& aName,
                                ShutdownMethod aShutdownMethod,
                                nsIObserver* aIdleObserver)
   : mMutex("LazyIdleThread::mMutex")

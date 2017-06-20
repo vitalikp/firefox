@@ -156,7 +156,7 @@ public:
    * replacing its current contents. |aURL| and |aLineNumber| are used for error
    * reporting.
    */
-  void ParseMediaList(const nsSubstring& aBuffer,
+  void ParseMediaList(const nsAString& aBuffer,
                       nsIURI*            aURL,
                       uint32_t           aLineNumber,
                       nsMediaList*       aMediaList);
@@ -183,7 +183,7 @@ public:
    * Parse aBuffer into a nsCSSValue |aValue|. Will return false
    * if aBuffer is not a valid font family list.
    */
-  bool ParseFontFamilyListString(const nsSubstring& aBuffer,
+  bool ParseFontFamilyListString(const nsAString& aBuffer,
                                  nsIURI*            aURL,
                                  uint32_t           aLineNumber,
                                  nsCSSValue&        aValue);
@@ -194,7 +194,7 @@ public:
    * One can use nsRuleNode::ComputeColor to compute an nscolor from
    * the returned nsCSSValue.
    */
-  bool ParseColorString(const nsSubstring& aBuffer,
+  bool ParseColorString(const nsAString& aBuffer,
                         nsIURI*            aURL,
                         uint32_t           aLineNumber,
                         nsCSSValue&        aValue,
@@ -206,7 +206,7 @@ public:
    * One can use nsRuleNode::GetRectValue to compute an nsCSSRect from
    * the returned nsCSSValue.
    */
-  bool ParseMarginString(const nsSubstring& aBuffer,
+  bool ParseMarginString(const nsAString& aBuffer,
                          nsIURI*            aURL,
                          uint32_t           aLineNumber,
                          nsCSSValue&        aValue,
@@ -216,7 +216,7 @@ public:
    * Parse aBuffer into a selector list.  On success, caller must
    * delete *aSelectorList when done with it.
    */
-  nsresult ParseSelectorString(const nsSubstring&  aSelectorString,
+  nsresult ParseSelectorString(const nsAString&  aSelectorString,
                                nsIURI*             aURL,
                                uint32_t            aLineNumber,
                                nsCSSSelectorList** aSelectorList);
@@ -226,7 +226,7 @@ public:
    * Return it if the parse was successful.
    */
   already_AddRefed<nsCSSKeyframeRule>
-  ParseKeyframeRule(const nsSubstring& aBuffer,
+  ParseKeyframeRule(const nsAString& aBuffer,
                     nsIURI*            aURL,
                     uint32_t           aLineNumber);
 
@@ -234,7 +234,7 @@ public:
    * Parse a selector list for a keyframe rule.  Return whether
    * the parse succeeded.
    */
-  bool ParseKeyframeSelectorString(const nsSubstring& aSelectorString,
+  bool ParseKeyframeSelectorString(const nsAString& aSelectorString,
                                    nsIURI*            aURL,
                                    uint32_t           aLineNumber,
                                    InfallibleTArray<float>& aSelectorList);

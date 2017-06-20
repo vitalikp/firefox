@@ -64,7 +64,7 @@ namespace {
 
 void
 getSiteKey(const nsACString& hostName, uint16_t port,
-           /*out*/ nsCSubstring& key)
+           /*out*/ nsACString& key)
 {
   key = hostName;
   key.AppendASCII(":");
@@ -1712,7 +1712,7 @@ nsSSLIOLayerHelpers::setInsecureFallbackSites(const nsCString& str)
   nsCCharSeparatedTokenizer toker(str, ',');
 
   while (toker.hasMoreTokens()) {
-    const nsCSubstring& host = toker.nextToken();
+    const nsACString& host = toker.nextToken();
     if (!host.IsEmpty()) {
       mInsecureFallbackSites.PutEntry(host);
     }
@@ -1755,7 +1755,7 @@ FallbackPrefRemover::Run()
   nsCCharSeparatedTokenizer toker(oldValue, ',');
   nsCString newValue;
   while (toker.hasMoreTokens()) {
-    const nsCSubstring& host = toker.nextToken();
+    const nsACString& host = toker.nextToken();
     if (host.Equals(mHost)) {
       continue;
     }

@@ -126,7 +126,7 @@ protected:
 public:
   // Data for loading a sheet linked from a document
   SheetLoadData(Loader* aLoader,
-                const nsSubstring& aTitle,
+                const nsAString& aTitle,
                 nsIURI* aURI,
                 StyleSheet* aSheet,
                 nsIStyleSheetLinkingElement* aOwningElement,
@@ -302,7 +302,7 @@ NS_IMPL_ISUPPORTS(SheetLoadData, nsIUnicharStreamLoaderObserver, nsIRunnable,
                   nsIThreadObserver)
 
 SheetLoadData::SheetLoadData(Loader* aLoader,
-                             const nsSubstring& aTitle,
+                             const nsAString& aTitle,
                              nsIURI* aURI,
                              StyleSheet* aSheet,
                              nsIStyleSheetLinkingElement* aOwningElement,
@@ -1267,8 +1267,8 @@ Loader::CreateSheet(nsIURI* aURI,
  */
 void
 Loader::PrepareSheet(StyleSheet* aSheet,
-                     const nsSubstring& aTitle,
-                     const nsSubstring& aMediaString,
+                     const nsAString& aTitle,
+                     const nsAString& aMediaString,
                      MediaList* aMediaList,
                      Element* aScopeElement,
                      bool aIsAlternate)
@@ -2264,7 +2264,7 @@ Loader::LoadChildSheet(StyleSheet* aParentSheet,
     state = eSheetComplete;
   } else {
     bool isAlternate;
-    const nsSubstring& empty = EmptyString();
+    const nsAString& empty = EmptyString();
     // For now, use CORS_NONE for child sheets
     rv = CreateSheet(aURL, nullptr, principal,
                      aParentSheet->ParsingMode(),
@@ -2404,7 +2404,7 @@ Loader::InternalLoadNonDocumentSheet(nsIURI* aURL,
   bool isAlternate;
   RefPtr<StyleSheet> sheet;
   bool syncLoad = (aObserver == nullptr);
-  const nsSubstring& empty = EmptyString();
+  const nsAString& empty = EmptyString();
 
   rv = CreateSheet(aURL, nullptr, aOriginPrincipal, aParsingMode,
                    aCORSMode, aReferrerPolicy, aIntegrity, syncLoad,

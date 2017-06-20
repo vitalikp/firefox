@@ -326,7 +326,7 @@ class nsCSSKeyframesRule final : public mozilla::css::GroupRule,
                                  public nsIDOMCSSKeyframesRule
 {
 public:
-  nsCSSKeyframesRule(const nsSubstring& aName,
+  nsCSSKeyframesRule(const nsAString& aName,
                      uint32_t aLineNumber, uint32_t aColumnNumber)
     : mozilla::css::GroupRule(aLineNumber, aColumnNumber)
     , mName(aName)

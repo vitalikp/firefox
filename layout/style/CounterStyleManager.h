@@ -51,16 +51,16 @@ public:
   // styles are dependent for fallback.
   bool IsDependentStyle() const;
 
-  virtual void GetStyleName(nsSubstring& aResult) = 0;
-  virtual void GetPrefix(nsSubstring& aResult) = 0;
-  virtual void GetSuffix(nsSubstring& aResult) = 0;
+  virtual void GetStyleName(nsAString& aResult) = 0;
+  virtual void GetPrefix(nsAString& aResult) = 0;
+  virtual void GetSuffix(nsAString& aResult) = 0;
   void GetCounterText(CounterValue aOrdinal,
                       WritingMode aWritingMode,
-                      nsSubstring& aResult,
+                      nsAString& aResult,
                       bool& aIsRTL);
   virtual void GetSpokenCounterText(CounterValue aOrdinal,
                                     WritingMode aWritingMode,
-                                    nsSubstring& aResult,
+                                    nsAString& aResult,
                                     bool& aIsBullet);
 
   // XXX This method could be removed once ::-moz-list-bullet and
@@ -87,11 +87,11 @@ public:
 
   virtual void CallFallbackStyle(CounterValue aOrdinal,
                                  WritingMode aWritingMode,
-                                 nsSubstring& aResult,
+                                 nsAString& aResult,
                                  bool& aIsRTL);
   virtual bool GetInitialCounterText(CounterValue aOrdinal,
                                      WritingMode aWritingMode,
-                                     nsSubstring& aResult,
+                                     nsAString& aResult,
                                      bool& aIsRTL) = 0;
 
   virtual AnonymousCounterStyle* AsAnonymous() { return nullptr; }
@@ -103,7 +103,7 @@ protected:
 class AnonymousCounterStyle final : public CounterStyle
 {
 public:
-  explicit AnonymousCounterStyle(const nsSubstring& aContent);
+  explicit AnonymousCounterStyle(const nsAString& aContent);
   explicit AnonymousCounterStyle(const nsCSSValue::Array* aValue);
 
   virtual void GetStyleName(nsAString& aResult) override;
@@ -121,7 +121,7 @@ public:
 
   virtual bool GetInitialCounterText(CounterValue aOrdinal,
                                      WritingMode aWritingMode,
-                                     nsSubstring& aResult,
+                                     nsAString& aResult,
                                      bool& aIsRTL) override;
 
   virtual AnonymousCounterStyle* AsAnonymous() override { return this; }

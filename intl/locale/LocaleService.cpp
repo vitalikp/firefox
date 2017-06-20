@@ -608,7 +608,7 @@ LocaleService::Locale::Locale(const nsCString& aLocale, bool aRange)
   nsAutoCString normLocale(aLocale);
   normLocale.ReplaceChar('_', '-');
 
-  for (const nsCSubstring& part : normLocale.Split('-')) {
+  for (const nsACString& part : normLocale.Split('-')) {
     switch (partNum) {
       case 0:
         if (part.EqualsLiteral("*") ||

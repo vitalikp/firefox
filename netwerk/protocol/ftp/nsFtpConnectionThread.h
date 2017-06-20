@@ -137,7 +137,7 @@ private:
     void KillControlConnection();
     nsresult StopProcessing();
     nsresult EstablishControlConnection();
-    nsresult SendFTPCommand(const nsCSubstring& command);
+    nsresult SendFTPCommand(const nsACString& command);
     void ConvertFilespecToVMS(nsCString& fileSpec);
     void ConvertDirspecToVMS(nsCString& fileSpec);
     void ConvertDirspecFromVMS(nsCString& fileSpec);
