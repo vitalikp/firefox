@@ -1429,9 +1429,9 @@ nsXMLContentSerializer::AppendToStringConvertLF(const nsAString& aStr,
 
 bool
 nsXMLContentSerializer::AppendFormatedWrapped_WhitespaceSequence(
-                        nsASingleFragmentString::const_char_iterator &aPos,
-                        const nsASingleFragmentString::const_char_iterator aEnd,
-                        const nsASingleFragmentString::const_char_iterator aSequenceStart,
+                        nsAString::const_char_iterator &aPos,
+                        const nsAString::const_char_iterator aEnd,
+                        const nsAString::const_char_iterator aSequenceStart,
                         bool &aMayIgnoreStartOfLineWhitespaceSequence,
                         nsAString &aOutputStr)
 {
@@ -1507,9 +1507,9 @@ nsXMLContentSerializer::AppendFormatedWrapped_WhitespaceSequence(
 
 bool
 nsXMLContentSerializer::AppendWrapped_NonWhitespaceSequence(
-                        nsASingleFragmentString::const_char_iterator &aPos,
-                        const nsASingleFragmentString::const_char_iterator aEnd,
-                        const nsASingleFragmentString::const_char_iterator aSequenceStart,
+                        nsAString::const_char_iterator &aPos,
+                        const nsAString::const_char_iterator aEnd,
+                        const nsAString::const_char_iterator aSequenceStart,
                         bool &aMayIgnoreStartOfLineWhitespaceSequence,
                         bool &aSequenceStartAfterAWhiteSpace,
                         nsAString& aOutputStr)
@@ -1672,14 +1672,14 @@ nsXMLContentSerializer::AppendWrapped_NonWhitespaceSequence(
 }
 
 bool
-nsXMLContentSerializer::AppendToStringFormatedWrapped(const nsASingleFragmentString& aStr,
+nsXMLContentSerializer::AppendToStringFormatedWrapped(const nsAString& aStr,
                                                       nsAString& aOutputStr)
 {
   if (mBodyOnly && !mInBody) {
     return true;
   }
 
-  nsASingleFragmentString::const_char_iterator pos, end, sequenceStart;
+  nsAString::const_char_iterator pos, end, sequenceStart;
 
   aStr.BeginReading(pos);
   aStr.EndReading(end);
@@ -1721,9 +1721,9 @@ nsXMLContentSerializer::AppendToStringFormatedWrapped(const nsASingleFragmentStr
 
 bool
 nsXMLContentSerializer::AppendWrapped_WhitespaceSequence(
-                        nsASingleFragmentString::const_char_iterator &aPos,
-                        const nsASingleFragmentString::const_char_iterator aEnd,
-                        const nsASingleFragmentString::const_char_iterator aSequenceStart,
+                        nsAString::const_char_iterator &aPos,
+                        const nsAString::const_char_iterator aEnd,
+                        const nsAString::const_char_iterator aSequenceStart,
                         nsAString &aOutputStr)
 {
   // Handle the complete sequence of whitespace.
@@ -1733,7 +1733,7 @@ nsXMLContentSerializer::AppendWrapped_WhitespaceSequence(
   mIsIndentationAddedOnCurrentLine = false;
 
   bool leaveLoop = false;
-  nsASingleFragmentString::const_char_iterator lastPos = aPos;
+  nsAString::const_char_iterator lastPos = aPos;
 
   do {
     switch (*aPos) {
@@ -1775,14 +1775,14 @@ nsXMLContentSerializer::AppendWrapped_WhitespaceSequence(
 }
 
 bool
-nsXMLContentSerializer::AppendToStringWrapped(const nsASingleFragmentString& aStr,
+nsXMLContentSerializer::AppendToStringWrapped(const nsAString& aStr,
                                               nsAString& aOutputStr)
 {
   if (mBodyOnly && !mInBody) {
     return true;
   }
 
-  nsASingleFragmentString::const_char_iterator pos, end, sequenceStart;
+  nsAString::const_char_iterator pos, end, sequenceStart;
 
   aStr.BeginReading(pos);
   aStr.EndReading(end);
