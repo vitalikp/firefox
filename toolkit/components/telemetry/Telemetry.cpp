@@ -2624,14 +2624,12 @@ TelemetryImpl::RecordChromeHang(uint32_t aDuration,
                                    Move(annotations));
 }
 
-#if defined(ENABLE_STACK_CAPTURE)
 void
 TelemetryImpl::DoStackCapture(const nsACString& aKey) {
   if (Telemetry::CanRecordExtended() && XRE_IsParentProcess()) {
     sTelemetry->mStackCapturer.Capture(aKey);
   }
 }
-#endif
 #endif
 
 nsresult

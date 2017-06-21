@@ -1305,8 +1305,6 @@ EventListenerManager::HandleEventInternal(nsPresContext* aPresContext,
                 "DOMEvent",
                 MakeUnique<DOMEventMarkerPayload>(typeStr, phase,
                                                   startTime, endTime));
-#else
-              MOZ_CRASH("Gecko Profiler is N/A but profiler_is_active() returned true");
 #endif
             } else {
               rv = HandleEventSubType(listener, *aDOMEvent, aCurrentTarget);
