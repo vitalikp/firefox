@@ -411,9 +411,7 @@ nsNodeUtils::CloneNodeImpl(nsINode *aNode, bool aDeep, nsINode **aResult)
   *aResult = nullptr;
 
   nsCOMPtr<nsINode> newNode;
-  nsCOMArray<nsINode> nodesWithProperties;
-  nsresult rv = Clone(aNode, aDeep, nullptr, nodesWithProperties,
-                      getter_AddRefs(newNode));
+  nsresult rv = Clone(aNode, aDeep, nullptr, nullptr, getter_AddRefs(newNode));
   NS_ENSURE_SUCCESS(rv, rv);
 
   newNode.forget(aResult);
@@ -425,7 +423,7 @@ nsresult
 nsNodeUtils::CloneAndAdopt(nsINode *aNode, bool aClone, bool aDeep,
                            nsNodeInfoManager *aNewNodeInfoManager,
                            JS::Handle<JSObject*> aReparentScope,
-                           nsCOMArray<nsINode> &aNodesWithProperties,
+                           nsCOMArray<nsINode> *aNodesWithProperties,
                            nsINode *aParent, nsINode **aResult)
 {
   NS_PRECONDITION((!aClone && aNewNodeInfoManager) || !aReparentScope,
@@ -598,11 +596,11 @@ nsNodeUtils::CloneAndAdopt(nsINode *aNode, bool aClone, bool aDeep,
     }
   }
 
-  if (aNode->HasProperties()) {
-    bool ok = aNodesWithProperties.AppendObject(aNode);
+  if (aNodesWithProperties && aNode->HasProperties()) {
+    bool ok = aNodesWithProperties->AppendObject(aNode);
     MOZ_RELEASE_ASSERT(ok, "Out of memory");
     if (aClone) {
-      ok = aNodesWithProperties.AppendObject(clone);
+      ok = aNodesWithProperties->AppendObject(clone);
       MOZ_RELEASE_ASSERT(ok, "Out of memory");
     }
   }
