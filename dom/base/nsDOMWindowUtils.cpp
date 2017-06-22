@@ -3286,7 +3286,7 @@ PrepareForFullscreenChange(nsIPresShell* aPresShell, const nsSize& aSize,
 NS_IMETHODIMP
 nsDOMWindowUtils::HandleFullscreenRequests(bool* aRetVal)
 {
-  PROFILER_MARKER("Enter fullscreen");
+  profiler_add_marker("Enter fullscreen");
   nsCOMPtr<nsIDocument> doc = GetDocument();
   NS_ENSURE_STATE(doc);
 
@@ -3309,7 +3309,7 @@ nsDOMWindowUtils::HandleFullscreenRequests(bool* aRetVal)
 nsresult
 nsDOMWindowUtils::ExitFullscreen()
 {
-  PROFILER_MARKER("Exit fullscreen");
+  profiler_add_marker("Exit fullscreen");
   nsCOMPtr<nsIDocument> doc = GetDocument();
   NS_ENSURE_STATE(doc);
 

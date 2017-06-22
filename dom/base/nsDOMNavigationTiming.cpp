@@ -76,7 +76,7 @@ nsDOMNavigationTiming::NotifyNavigationStart(DocShellState aDocShellState)
   mNavigationStartHighRes = (double)PR_Now() / PR_USEC_PER_MSEC;
   mNavigationStartTimeStamp = TimeStamp::Now();
   mDocShellHasBeenActiveSinceNavigationStart = (aDocShellState == DocShellState::eActive);
-  PROFILER_MARKER("Navigation::Start");
+  profiler_add_marker("Navigation::Start");
 }
 
 void
@@ -155,7 +155,7 @@ nsDOMNavigationTiming::NotifyDOMLoading(nsIURI* aURI)
     mDOMLoading = DurationFromStart();
     mDOMLoadingSet = true;
 
-    PROFILER_MARKER("Navigation::DOMLoading");
+    profiler_add_marker("Navigation::DOMLoading");
   }
 }
 
@@ -167,7 +167,7 @@ nsDOMNavigationTiming::NotifyDOMInteractive(nsIURI* aURI)
     mDOMInteractive = DurationFromStart();
     mDOMInteractiveSet = true;
 
-    PROFILER_MARKER("Navigation::DOMInteractive");
+    profiler_add_marker("Navigation::DOMInteractive");
   }
 }
 
@@ -179,7 +179,7 @@ nsDOMNavigationTiming::NotifyDOMComplete(nsIURI* aURI)
     mDOMComplete = DurationFromStart();
     mDOMCompleteSet = true;
 
-    PROFILER_MARKER("Navigation::DOMComplete");
+    profiler_add_marker("Navigation::DOMComplete");
   }
 }
 
@@ -228,7 +228,7 @@ nsDOMNavigationTiming::NotifyNonBlankPaintForRootContentDocument()
     nsPrintfCString marker("Non-blank paint after %dms for URL %s, %s",
                            int(elapsed.ToMilliseconds()), spec.get(),
                            mDocShellHasBeenActiveSinceNavigationStart ? "foreground tab" : "this tab was inactive some of the time between navigation start and first non-blank paint");
-    PROFILER_MARKER(marker.get());
+    profiler_add_marker(marker.get());
   }
 
   if (mDocShellHasBeenActiveSinceNavigationStart) {
