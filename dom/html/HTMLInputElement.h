@@ -171,7 +171,9 @@ public:
   // nsIDOMNSEditableElement
   NS_IMETHOD GetEditor(nsIEditor** aEditor) override
   {
-    return nsGenericHTMLElement::GetEditor(aEditor);
+    nsCOMPtr<nsIEditor> editor = GetEditor();
+    editor.forget(aEditor);
+    return NS_OK;
   }
 
   NS_IMETHOD SetUserInput(const nsAString& aInput) override;
@@ -238,7 +240,7 @@ public:
   NS_IMETHOD_(void) GetDefaultValueFromContent(nsAString& aValue) override;
   NS_IMETHOD_(bool) ValueChanged() const override;
   NS_IMETHOD_(void) GetTextEditorValue(nsAString& aValue, bool aIgnoreWrap) const override;
-  NS_IMETHOD_(nsIEditor*) GetTextEditor() override;
+  NS_IMETHOD_(mozilla::TextEditor*) GetTextEditor() override;
   NS_IMETHOD_(nsISelectionController*) GetSelectionController() override;
   NS_IMETHOD_(nsFrameSelection*) GetConstFrameSelection() override;
   NS_IMETHOD BindToFrame(nsTextControlFrame* aFrame) override;
@@ -918,6 +920,9 @@ public:
 
   bool MozIsTextField(bool aExcludePassword);
 
+  /**
+   * GetEditor() is for webidl bindings.
+   */
   nsIEditor* GetEditor();
 
   void SetUserInput(const nsAString& aInput,
@@ -1166,6 +1171,8 @@ protected:
 
   void FreeData();
   nsTextEditorState *GetEditorState() const;
+
+  mozilla::TextEditor* GetTextEditorFromState();
 
   /**
    * Manages the internal data storage across type changes.
