@@ -489,7 +489,7 @@ StartupCache::WaitOnWriteThread()
 void
 StartupCache::ThreadedWrite(void *aClosure)
 {
-  AutoProfilerRegister registerThread("StartupCache");
+  AutoProfilerRegisterThread registerThread("StartupCache");
   NS_SetCurrentThreadName("StartupCache");
   mozilla::IOInterposer::RegisterCurrentThread();
   /*
