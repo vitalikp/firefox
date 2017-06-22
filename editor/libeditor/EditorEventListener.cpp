@@ -1248,8 +1248,7 @@ EditorEventListener::ShouldHandleNativeKeyBindings(
   }
 
   RefPtr<EditorBase> editorBase(mEditorBase);
-  nsCOMPtr<nsIHTMLEditor> htmlEditor =
-    do_QueryInterface(static_cast<nsIEditor*>(editorBase));
+  HTMLEditor* htmlEditor = editorBase->AsHTMLEditor();
   if (!htmlEditor) {
     return false;
   }
