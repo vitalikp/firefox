@@ -85,9 +85,7 @@
 #include "nsWrapperCache.h"
 #include "nsStringBuffer.h"
 #include "GeckoProfiler.h"
-#ifdef MOZ_GECKO_PROFILER
 #include "ProfilerMarkerPayload.h"
-#endif
 
 #include "nsIException.h"
 #include "nsIPlatformInfo.h"
@@ -826,7 +824,6 @@ CycleCollectedJSRuntime::GCSliceCallback(JSContext* aContext,
   CycleCollectedJSRuntime* self = CycleCollectedJSRuntime::Get();
   MOZ_ASSERT(CycleCollectedJSContext::Get()->Context() == aContext);
 
-#ifdef MOZ_GECKO_PROFILER
   if (profiler_is_active()) {
     if (aProgress == JS::GC_CYCLE_END) {
       profiler_add_marker(
@@ -842,7 +839,6 @@ CycleCollectedJSRuntime::GCSliceCallback(JSContext* aContext,
                                          aDesc.sliceToJSON(aContext)));
     }
   }
-#endif
 
   if (aProgress == JS::GC_CYCLE_END) {
     JS::gcreason::Reason reason = aDesc.reason_;
@@ -927,13 +923,11 @@ CycleCollectedJSRuntime::GCNurseryCollectionCallback(JSContext* aContext,
   } else if ((aProgress == JS::GCNurseryProgress::GC_NURSERY_COLLECTION_END) &&
              profiler_is_active())
   {
-#ifdef MOZ_GECKO_PROFILER
     profiler_add_marker(
       "GCMinor",
       MakeUnique<GCMinorMarkerPayload>(self->mLatestNurseryCollectionStart,
                                        TimeStamp::Now(),
                                        JS::MinorGcToJSON(aContext)));
-#endif
   }
 
   if (self->mPrevGCNurseryCollectionCallback) {
