@@ -1305,6 +1305,9 @@ struct TlsData
     // Shortcut to instance->zone->group->addressOfOwnerContext
     JSContext** addressOfContext;
 
+    // Pointer that should be freed (due to padding before the TlsData).
+    void* allocatedBase;
+
     // The globalArea must be the last field.  Globals for the module start here
     // and are inline in this structure.  16-byte alignment is required for SIMD
     // data.
