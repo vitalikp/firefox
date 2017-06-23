@@ -1069,7 +1069,7 @@ public:
                    : MediaStreamGraph::SYSTEM_THREAD_DRIVER;
     MediaStreamGraph* msg =
       MediaStreamGraph::GetInstance(graphDriverType,
-                                    dom::AudioChannel::Normal);
+                                    dom::AudioChannel::Normal, window);
 
     RefPtr<DOMMediaStream> domStream;
     RefPtr<SourceMediaStream> stream;
@@ -3566,7 +3566,7 @@ SourceListener::StopSharing()
     window->SetAudioCapture(false);
     MediaStreamGraph* graph =
       MediaStreamGraph::GetInstance(MediaStreamGraph::AUDIO_THREAD_DRIVER,
-                                    dom::AudioChannel::Normal);
+                                    dom::AudioChannel::Normal, window);
     graph->UnregisterCaptureStreamForWindow(windowID);
     mStream->Destroy();
   }
