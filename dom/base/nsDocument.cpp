@@ -7021,13 +7021,15 @@ nsDocument::GetBoxObjectFor(Element* aElement, ErrorResult& aRv)
                                     "UseOfGetBoxObjectForWarning");
   }
 
-  RefPtr<BoxObject> boxObject;
   if (!mBoxObjectTable) {
     mBoxObjectTable = new nsRefPtrHashtable<nsPtrHashKey<nsIContent>, BoxObject>(6);
-  } else {
-    if (mBoxObjectTable->Get(aElement, getter_AddRefs(boxObject))) {
-      return boxObject.forget();
-    }
+  }
+
+  RefPtr<BoxObject> boxObject;
+  auto entry = mBoxObjectTable->LookupForAdd(aElement);
+  if (entry) {
+    boxObject = entry.Data();
+    return boxObject.forget();
   }
 
   int32_t namespaceID;
@@ -7061,7 +7063,7 @@ nsDocument::GetBoxObjectFor(Element* aElement, ErrorResult& aRv)
   }
 
   boxObject->Init(aElement);
-  mBoxObjectTable->Put(aElement, boxObject.get());
+  entry.OrInsert([&boxObject]() { return boxObject; });
 
   return boxObject.forget();
 }
@@ -7070,10 +7072,10 @@ void
 nsDocument::ClearBoxObjectFor(nsIContent* aContent)
 {
   if (mBoxObjectTable) {
-    nsPIBoxObject *boxObject = mBoxObjectTable->GetWeak(aContent);
-    if (boxObject) {
+    if (auto entry = mBoxObjectTable->Lookup(aContent)) {
+      nsPIBoxObject* boxObject = entry.Data();
       boxObject->Clear();
-      mBoxObjectTable->Remove(aContent);
+      entry.Remove();
     }
   }
 }
