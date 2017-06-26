@@ -1300,6 +1300,7 @@ TenuredCell::readBarrier(TenuredCell* thing)
 {
     MOZ_ASSERT(!CurrentThreadIsIonCompiling());
     MOZ_ASSERT(thing);
+    MOZ_ASSERT(CurrentThreadCanAccessZone(thing->zoneFromAnyThread()));
 
     // It would be good if barriers were never triggered during collection, but
     // at the moment this can happen e.g. when rekeying tables containing
