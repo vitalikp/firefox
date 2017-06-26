@@ -417,11 +417,6 @@ static const FinalizePhase ForegroundObjectFinalizePhase = {
  */
 static const FinalizePhase IncrementalFinalizePhases[] = {
     {
-        gcstats::PhaseKind::SWEEP_STRING, {
-            AllocKind::EXTERNAL_STRING
-        }
-    },
-    {
         gcstats::PhaseKind::SWEEP_SCRIPT, {
             AllocKind::SCRIPT
         }
@@ -468,6 +463,7 @@ static const FinalizePhase BackgroundFinalizePhases[] = {
         gcstats::PhaseKind::SWEEP_STRING, {
             AllocKind::FAT_INLINE_STRING,
             AllocKind::STRING,
+            AllocKind::EXTERNAL_STRING,
             AllocKind::FAT_INLINE_ATOM,
             AllocKind::ATOM,
             AllocKind::SYMBOL
