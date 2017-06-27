@@ -99,8 +99,7 @@ InterposeCall(JSContext* cx, JS::HandleObject target, const JS::CallArgs& args, 
     nsCOMPtr<nsIAddonInterposition> interp = scope->GetInterposition();
 
     RootedObject unwrappedTarget(cx, UncheckedUnwrap(target));
-    XPCWrappedNativeScope* targetScope = ObjectScope(unwrappedTarget);
-    bool hasInterpostion = targetScope->HasCallInterposition();
+    bool hasInterpostion = xpc::CompartmentPrivate::Get(unwrappedTarget)->addonCallInterposition;
 
     if (!hasInterpostion)
         return true;
