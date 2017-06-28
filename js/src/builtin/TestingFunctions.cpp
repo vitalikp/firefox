@@ -2098,7 +2098,7 @@ testingFunc_inIon(JSContext* cx, unsigned argc, Value* vp)
     }
 
     ScriptFrameIter iter(cx);
-    if (iter.isIon()) {
+    if (!iter.done() && iter.isIon()) {
         // Reset the counter of the IonScript's script.
         jit::JitFrameIterator jitIter(cx);
         ++jitIter;
@@ -2116,7 +2116,7 @@ testingFunc_inIon(JSContext* cx, unsigned argc, Value* vp)
         }
     }
 
-    args.rval().setBoolean(iter.isIon());
+    args.rval().setBoolean(!iter.done() && iter.isIon());
     return true;
 }
 
