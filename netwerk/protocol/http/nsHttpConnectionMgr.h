@@ -281,6 +281,8 @@ private:
         // Try using TCP Fast Open.
         bool mUseFastOpen : 1;
 
+        bool mDoNotDestroy : 1;
+
         // Set the IP family preference flags according the connected family
         void RecordIPFamilyPreference(uint16_t family);
         // Resets all flags to their default values
@@ -392,7 +394,7 @@ private:
         already_AddRefed<PendingTransactionInfo>
         FindTransactionHelper(bool removeWhenFound);
 
-        nsConnectionEntry              *mEnt;
+        nsConnectionEntry             *mEnt;
         RefPtr<nsAHttpTransaction>     mTransaction;
         bool                           mDispatchedMTransaction;
         nsCOMPtr<nsISocketTransport>   mSocketTransport;
