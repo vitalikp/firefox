@@ -1322,15 +1322,18 @@ ServoStyleSet::RunPostTraversalTasks()
 }
 
 bool
-ServoStyleSet::MightHaveAttributeDependency(nsIAtom* aAttribute)
+ServoStyleSet::MightHaveAttributeDependency(const Element& aElement,
+                                            nsIAtom* aAttribute)
 {
-  return Servo_StyleSet_MightHaveAttributeDependency(mRawSet.get(), aAttribute);
+  return Servo_StyleSet_MightHaveAttributeDependency(
+      mRawSet.get(), &aElement, aAttribute);
 }
 
 bool
-ServoStyleSet::HasStateDependency(EventStates aState)
+ServoStyleSet::HasStateDependency(const Element& aElement, EventStates aState)
 {
-  return Servo_StyleSet_HasStateDependency(mRawSet.get(), aState.ServoValue());
+  return Servo_StyleSet_HasStateDependency(
+      mRawSet.get(), &aElement, aState.ServoValue());
 }
 
 ServoStyleSet* ServoStyleSet::sInServoTraversal = nullptr;
