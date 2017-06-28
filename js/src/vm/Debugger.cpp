@@ -1971,6 +1971,7 @@ Debugger::slowPathOnNewWasmInstance(JSContext* cx, Handle<WasmInstanceObject*> w
 Debugger::onTrap(JSContext* cx, MutableHandleValue vp)
 {
     FrameIter iter(cx);
+    JS::AutoSaveExceptionState saveExc(cx);
     Rooted<GlobalObject*> global(cx);
     BreakpointSite* site;
     bool isJS; // true when iter.hasScript(), false when iter.isWasm()
@@ -2068,13 +2069,7 @@ Debugger::onSingleStep(JSContext* cx, MutableHandleValue vp)
      * onStep handlers mess with that (other than by returning a resumption
      * value).
      */
-    RootedValue exception(cx, UndefinedValue());
-    bool exceptionPending = cx->isExceptionPending();
-    if (exceptionPending) {
-        if (!cx->getPendingException(&exception))
-            return JSTRAP_ERROR;
-        cx->clearPendingException();
-    }
+    JS::AutoSaveExceptionState saveExc(cx);
 
     /*
      * Build list of Debugger.Frame instances referring to this frame with
@@ -2140,8 +2135,6 @@ Debugger::onSingleStep(JSContext* cx, MutableHandleValue vp)
     }
 
     vp.setUndefined();
-    if (exceptionPending)
-        cx->setPendingException(exception);
     return JSTRAP_CONTINUE;
 }
 
