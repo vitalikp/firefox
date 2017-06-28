@@ -1222,7 +1222,9 @@ nsScriptSecurityManager::CanCreateWrapper(JSContext *cx,
     }
 
     // We give remote-XUL whitelisted domains a free pass here. See bug 932906.
-    if (!xpc::AllowContentXBLScope(js::GetContextCompartment(cx)))
+    JS::Rooted<JS::Realm*> contextRealm(cx, JS::GetCurrentRealmOrNull(cx));
+    MOZ_RELEASE_ASSERT(contextRealm);
+    if (!xpc::AllowContentXBLScope(contextRealm))
     {
         return NS_OK;
     }
