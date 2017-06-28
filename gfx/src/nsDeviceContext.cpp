@@ -657,7 +657,7 @@ nsDeviceContext::CalcPrintingSize()
         return (mWidth > 0 && mHeight > 0);
     }
 
-    gfxSize size = mPrintTarget->GetSize();
+    gfxSize size(mPrintTarget->GetSize());
     // For printing, CSS inches and physical inches are identical
     // so it doesn't matter which we use here
     mWidth = NSToCoordRound(size.width * AppUnitsPerPhysicalInch()
