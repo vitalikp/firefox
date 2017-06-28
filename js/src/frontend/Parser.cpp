@@ -845,7 +845,7 @@ ParserBase::ParserBase(JSContext* cx, LifoAlloc& alloc,
     checkOptionsCalled(false),
 #endif
     isUnexpectedEOF_(false),
-    awaitIsKeyword_(false)
+    awaitHandling_(AwaitIsName)
 {
     cx->frontendCollectionPool().addActiveCompilation();
     tempPoolMark = alloc.mark();
@@ -904,18 +904,18 @@ Parser<ParseHandler, CharT>::~Parser()
 
 template <>
 void
-Parser<SyntaxParseHandler, char16_t>::setAwaitIsKeyword(bool isKeyword)
+Parser<SyntaxParseHandler, char16_t>::setAwaitHandling(AwaitHandling awaitHandling)
 {
-    awaitIsKeyword_ = isKeyword;
+    awaitHandling_ = awaitHandling;
 }
 
 template <>
 void
-Parser<FullParseHandler, char16_t>::setAwaitIsKeyword(bool isKeyword)
+Parser<FullParseHandler, char16_t>::setAwaitHandling(AwaitHandling awaitHandling)
 {
-    awaitIsKeyword_ = isKeyword;
+    awaitHandling_ = awaitHandling;
     if (syntaxParser_)
-        syntaxParser_->setAwaitIsKeyword(isKeyword);
+        syntaxParser_->setAwaitHandling(awaitHandling);
 }
 
 ObjectBox*
@@ -2269,7 +2269,7 @@ Parser<FullParseHandler, char16_t>::moduleBody(ModuleSharedContext* modulesc)
     if (!mn)
         return null();
 
-    AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, true);
+    AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, AwaitIsModuleKeyword);
     ParseNode* pn = statementList(YieldIsKeyword);
     if (!pn)
         return null();
@@ -2537,6 +2537,14 @@ GetYieldHandling(GeneratorKind generatorKind)
     return YieldIsKeyword;
 }
 
+static AwaitHandling
+GetAwaitHandling(FunctionAsyncKind asyncKind)
+{
+    if (asyncKind == SyncFunction)
+        return AwaitIsName;
+    return AwaitIsKeyword;
+}
+
 template <>
 ParseNode*
 Parser<FullParseHandler, char16_t>::standaloneFunction(HandleFunction fun,
@@ -2597,7 +2605,8 @@ Parser<FullParseHandler, char16_t>::standaloneFunction(HandleFunction fun,
     funpc.setIsStandaloneFunctionBody();
 
     YieldHandling yieldHandling = GetYieldHandling(generatorKind);
-    AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, asyncKind == AsyncFunction);
+    AwaitHandling awaitHandling = GetAwaitHandling(asyncKind);
+    AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, awaitHandling);
     if (!functionFormalParametersAndBody(InAllowed, yieldHandling, fn, Statement,
                                          parameterListEnd, /* isStandaloneFunction = */ true))
     {
@@ -3707,8 +3716,10 @@ Parser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling inHandli
     // See below for an explanation why arrow function parameters and arrow
     // function bodies are parsed with different yield/await settings.
     {
-        bool asyncOrArrowInAsync = funbox->isAsync() || (kind == Arrow && awaitIsKeyword());
-        AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, asyncOrArrowInAsync);
+        AwaitHandling awaitHandling = funbox->isAsync() || (kind == Arrow && awaitIsKeyword())
+                                      ? AwaitIsKeyword
+                                      : AwaitIsName;
+        AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, awaitHandling);
         if (!functionArguments(yieldHandling, kind, pn))
             return false;
     }
@@ -3779,10 +3790,11 @@ Parser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling inHandli
     // Whereas the |yield| in the function body is always parsed as a name.
     // The same goes when parsing |await| in arrow functions.
     YieldHandling bodyYieldHandling = GetYieldHandling(pc->generatorKind());
+    AwaitHandling bodyAwaitHandling = GetAwaitHandling(pc->asyncKind());
     bool inheritedStrict = pc->sc()->strict();
     Node body;
     {
-        AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, funbox->isAsync());
+        AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, bodyAwaitHandling);
         body = functionBody(inHandling, bodyYieldHandling, kind, bodyType);
         if (!body)
             return false;
@@ -3946,7 +3958,7 @@ Parser<ParseHandler, CharT>::functionExpr(uint32_t toStringStart, InvokedPredict
 {
     MOZ_ASSERT(tokenStream.isCurrentTokenType(TOK_FUNCTION));
 
-    AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, asyncKind == AsyncFunction);
+    AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, GetAwaitHandling(asyncKind));
     GeneratorKind generatorKind = NotGenerator;
     TokenKind tt;
     if (!tokenStream.getToken(&tt))
