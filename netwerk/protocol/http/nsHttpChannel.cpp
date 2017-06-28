@@ -348,6 +348,7 @@ nsHttpChannel::nsHttpChannel()
     , mIsReadingFromCache(false)
     , mOnCacheAvailableCalled(false)
     , mRaceCacheWithNetwork(false)
+    , mCacheAsyncOpenCalled(false)
     , mDidReval(false)
 {
     LOG(("Creating nsHttpChannel [this=%p]\n", this));
@@ -3780,11 +3781,21 @@ nsHttpChannel::OpenCacheEntry(bool isHttps)
         }
 
         if (!mCacheOpenDelay) {
+            MOZ_ASSERT(NS_IsMainThread(), "Should be called on the main thread");
+            mCacheAsyncOpenCalled = true;
+            if (mNetworkTriggered) {
+                mRaceCacheWithNetwork = true;
+            }
             rv = cacheStorage->AsyncOpenURI(openURI, extension, cacheEntryOpenFlags, this);
         } else {
             // We pass `this` explicitly as a parameter due to the raw pointer
             // to refcounted object in lambda analysis.
             mCacheOpenFunc = [openURI, extension, cacheEntryOpenFlags, cacheStorage] (nsHttpChannel* self) -> void {
+                MOZ_ASSERT(NS_IsMainThread(), "Should be called on the main thread");
+                self->mCacheAsyncOpenCalled = true;
+                if (self->mNetworkTriggered) {
+                    self->mRaceCacheWithNetwork = true;
+                }
                 cacheStorage->AsyncOpenURI(openURI, extension, cacheEntryOpenFlags, self);
             };
 
@@ -8776,6 +8787,10 @@ nsHttpChannel::TriggerNetwork(int32_t aTimeout)
             return NS_OK;
         }
 
+        if (mCacheAsyncOpenCalled && !mOnCacheAvailableCalled) {
+            mRaceCacheWithNetwork = true;
+        }
+
         LOG(("  triggering network\n"));
         return TryHSTSPriming();
     }
@@ -8821,12 +8836,6 @@ nsHttpChannel::MaybeRaceCacheWithNetwork()
     LOG(("nsHttpChannel::MaybeRaceCacheWithNetwork [this=%p, delay=%u]\n",
          this, delay));
 
-    if (!mOnCacheAvailableCalled) {
-        // If the network was triggered before onCacheEntryAvailable was
-        // called, it means we are racing the network with the cache.
-        mRaceCacheWithNetwork = true;
-    }
-
     return TriggerNetwork(delay);
 }
 
@@ -8834,11 +8843,6 @@ NS_IMETHODIMP
 nsHttpChannel::Test_triggerNetwork(int32_t aTimeout)
 {
     MOZ_ASSERT(NS_IsMainThread(), "Must be called on the main thread");
-    if (!mOnCacheAvailableCalled) {
-        // If the network was triggered before onCacheEntryAvailable was
-        // called, it means we are racing the network with the cache.
-        mRaceCacheWithNetwork = true;
-    }
     return TriggerNetwork(aTimeout);
 }
 
