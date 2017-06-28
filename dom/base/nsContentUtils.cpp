@@ -10231,6 +10231,12 @@ nsContentUtils::AppendNativeAnonymousChildren(
     }
   }
 
+  // Get manually created NAC (editor resize handles, etc.).
+  if (auto nac = static_cast<ManualNAC*>(
+        aContent->GetProperty(nsGkAtoms::manualNACProperty))) {
+    aKids.AppendElements(*nac);
+  }
+
   // The root scroll frame is not the primary frame of the root element.
   // Detect and handle this case.
   if (!(aFlags & nsIContent::eSkipDocumentLevelNativeAnonymousContent) &&
