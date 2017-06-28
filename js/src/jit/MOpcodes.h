@@ -278,6 +278,7 @@ namespace jit {
     _(SetDOMProperty)                                                       \
     _(IsConstructor)                                                        \
     _(IsCallable)                                                           \
+    _(IsArray)                                                              \
     _(IsObject)                                                             \
     _(HasClass)                                                             \
     _(GuardToClass)                                                         \
