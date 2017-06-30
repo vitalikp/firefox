@@ -350,13 +350,13 @@ DecodeFunctionBodyExprs(const ModuleEnvironment& env, const Sig& sig, const ValT
 #define CHECK(c) if (!(c)) return false; break
 
     while (true) {
-        uint16_t op = 0;
+        OpBytes op = {};
         if (!iter.readOp(&op))
             return false;
 
         Nothing nothing;
 
-        switch (op) {
+        switch (op.b0) {
           case uint16_t(Op::End): {
             LabelKind unusedKind;
             ExprType unusedType;
@@ -681,7 +681,7 @@ DecodeFunctionBodyExprs(const ModuleEnvironment& env, const Sig& sig, const ValT
           case uint16_t(Op::Unreachable):
             CHECK(iter.readUnreachable());
           default:
-            return iter.unrecognizedOpcode(op);
+            return iter.unrecognizedOpcode(&op);
         }
     }
 
@@ -1135,11 +1135,11 @@ static bool
 DecodeInitializerExpression(Decoder& d, const GlobalDescVector& globals, ValType expected,
                             InitExpr* init)
 {
-    uint16_t op;
+    OpBytes op;
     if (!d.readOp(&op))
         return d.fail("failed to read initializer type");
 
-    switch (op) {
+    switch (op.b0) {
       case uint16_t(Op::I32Const): {
         int32_t i32;
         if (!d.readVarS32(&i32))
@@ -1187,8 +1187,8 @@ DecodeInitializerExpression(Decoder& d, const GlobalDescVector& globals, ValType
     if (expected != init->type())
         return d.fail("type mismatch: initializer type and expected type don't match");
 
-    uint16_t end;
-    if (!d.readOp(&end) || end != uint16_t(Op::End))
+    OpBytes end;
+    if (!d.readOp(&end) || end.b0 != uint16_t(Op::End))
         return d.fail("failed to read end of initializer expression");
 
     return true;
