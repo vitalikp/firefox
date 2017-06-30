@@ -12300,6 +12300,22 @@ class CGDOMJSProxyHandler_isCallable(ClassMethod):
         """)
 
 
+class CGDOMJSProxyHandler_canNurseryAllocate(ClassMethod):
+    """
+    Override the default canNurseryAllocate in BaseProxyHandler, for cases when
+    we should be nursery-allocated.
+    """
+    def __init__(self):
+        ClassMethod.__init__(self, "canNurseryAllocate", "bool",
+                             [],
+                             virtual=True, override=True, const=True)
+
+    def getBody(self):
+        return dedent("""
+            return true;
+        """)
+
+
 class CGDOMJSProxyHandler(CGClass):
     def __init__(self, descriptor):
         assert (descriptor.supportsIndexedProperties() or
@@ -12336,6 +12352,11 @@ class CGDOMJSProxyHandler(CGClass):
         if descriptor.operations['LegacyCaller']:
             methods.append(CGDOMJSProxyHandler_call())
             methods.append(CGDOMJSProxyHandler_isCallable())
+        if descriptor.interface.hasProbablyShortLivingWrapper():
+            if not descriptor.wrapperCache:
+                raise TypeError("Need a wrapper cache to support nursery "
+                                "allocation of DOM objects")
+            methods.append(CGDOMJSProxyHandler_canNurseryAllocate())
 
         if descriptor.interface.getExtendedAttribute('OverrideBuiltins'):
             parentClass = 'ShadowingDOMProxyHandler'
