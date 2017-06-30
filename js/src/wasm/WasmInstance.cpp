@@ -928,7 +928,8 @@ GlobalSegment::create(uint32_t globalDataLength)
 
 GlobalSegment::~GlobalSegment()
 {
-    js_free(tlsData_->allocatedBase);
+    if (tlsData_)
+        js_free(tlsData_->allocatedBase);
 }
 
 size_t
