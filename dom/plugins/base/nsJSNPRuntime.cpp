@@ -22,7 +22,6 @@
 #include "nsIXPConnect.h"
 #include "xpcpublic.h"
 #include "nsIDOMElement.h"
-#include "prmem.h"
 #include "nsIContent.h"
 #include "nsPluginInstanceOwner.h"
 #include "nsWrapperCacheInlines.h"
@@ -1045,7 +1044,7 @@ nsJSObjWrapper::NP_Enumerate(NPObject *npobj, NPIdentifier **idarray,
   }
 
   *count = ida.length();
-  *idarray = (NPIdentifier *)PR_Malloc(*count * sizeof(NPIdentifier));
+  *idarray = (NPIdentifier*) malloc(*count * sizeof(NPIdentifier));
   if (!*idarray) {
     ThrowJSExceptionASCII(cx, "Memory allocation failed for NPIdentifier!");
     return false;
@@ -1054,7 +1053,7 @@ nsJSObjWrapper::NP_Enumerate(NPObject *npobj, NPIdentifier **idarray,
   for (uint32_t i = 0; i < *count; i++) {
     JS::Rooted<JS::Value> v(cx);
     if (!JS_IdToValue(cx, ida[i], &v)) {
-      PR_Free(*idarray);
+      free(*idarray);
       return false;
     }
 
@@ -1063,7 +1062,7 @@ nsJSObjWrapper::NP_Enumerate(NPObject *npobj, NPIdentifier **idarray,
       JS::Rooted<JSString*> str(cx, v.toString());
       str = JS_AtomizeAndPinJSString(cx, str);
       if (!str) {
-        PR_Free(*idarray);
+        free(*idarray);
         return false;
       }
       id = StringToNPIdentifier(cx, str);
@@ -1501,7 +1500,7 @@ CallNPMethodInternal(JSContext *cx, JS::Handle<JSObject*> obj, unsigned argc,
   if (argc > (sizeof(npargs_buf) / sizeof(NPVariant))) {
     // Our stack buffer isn't large enough to hold all arguments,
     // malloc a buffer.
-    npargs = (NPVariant *)PR_Malloc(argc * sizeof(NPVariant));
+    npargs = (NPVariant*) malloc(argc * sizeof(NPVariant));
 
     if (!npargs) {
       ThrowJSExceptionASCII(cx, "Out of memory!");
@@ -1517,7 +1516,7 @@ CallNPMethodInternal(JSContext *cx, JS::Handle<JSObject*> obj, unsigned argc,
       ThrowJSExceptionASCII(cx, "Error converting jsvals to NPVariants!");
 
       if (npargs != npargs_buf) {
-        PR_Free(npargs);
+        free(npargs);
       }
 
       return false;
@@ -1579,7 +1578,7 @@ CallNPMethodInternal(JSContext *cx, JS::Handle<JSObject*> obj, unsigned argc,
   }
 
   if (npargs != npargs_buf) {
-    PR_Free(npargs);
+    free(npargs);
   }
 
   if (!ok) {
@@ -1648,7 +1647,7 @@ NPObjWrapper_NewEnumerate(JSContext *cx, JS::Handle<JSObject*> obj,
     properties.infallibleAppend(id);
   }
 
-  PR_Free(identifiers);
+  free(identifiers);
   return true;
 }
 
@@ -2000,7 +1999,7 @@ nsJSNPRuntime::OnPluginDestroy(NPP npp)
         if (npobj->_class && npobj->_class->deallocate) {
           npobj->_class->deallocate(npobj);
         } else {
-          PR_Free(npobj);
+          free(npobj);
         }
 
         ::JS_SetPrivate(entry->mJSObj, nullptr);
@@ -2069,8 +2068,8 @@ CreateNPObjectMember(NPP npp, JSContext *cx,
     return false;
   }
 
-  NPObjectMemberPrivate *memberPrivate =
-    (NPObjectMemberPrivate *)PR_Malloc(sizeof(NPObjectMemberPrivate));
+  NPObjectMemberPrivate* memberPrivate =
+    (NPObjectMemberPrivate*) malloc(sizeof(NPObjectMemberPrivate));
   if (!memberPrivate)
     return false;
 
@@ -2082,7 +2081,7 @@ CreateNPObjectMember(NPP npp, JSContext *cx,
 
   JSObject *memobj = ::JS_NewObject(cx, &sNPObjectMemberClass);
   if (!memobj) {
-    PR_Free(memberPrivate);
+    free(memberPrivate);
     return false;
   }
 
@@ -2157,7 +2156,7 @@ NPObjectMember_Finalize(JSFreeOp *fop, JSObject *obj)
   if (!memberPrivate)
     return;
 
-  PR_Free(memberPrivate);
+  free(memberPrivate);
 }
 
 static bool
@@ -2188,7 +2187,7 @@ NPObjectMember_Call(JSContext *cx, unsigned argc, JS::Value *vp)
   if (args.length() > (sizeof(npargs_buf) / sizeof(NPVariant))) {
     // Our stack buffer isn't large enough to hold all arguments,
     // malloc a buffer.
-    npargs = (NPVariant *)PR_Malloc(args.length() * sizeof(NPVariant));
+    npargs = (NPVariant*) malloc(args.length() * sizeof(NPVariant));
 
     if (!npargs) {
       ThrowJSExceptionASCII(cx, "Out of memory!");
@@ -2203,7 +2202,7 @@ NPObjectMember_Call(JSContext *cx, unsigned argc, JS::Value *vp)
       ThrowJSExceptionASCII(cx, "Error converting jsvals to NPVariants!");
 
       if (npargs != npargs_buf) {
-        PR_Free(npargs);
+        free(npargs);
       }
 
       return false;
@@ -2222,7 +2221,7 @@ NPObjectMember_Call(JSContext *cx, unsigned argc, JS::Value *vp)
   }
 
   if (npargs != npargs_buf) {
-    PR_Free(npargs);
+    free(npargs);
   }
 
   if (!ok) {

@@ -9,7 +9,6 @@
 #include "mozilla/ArrayUtils.h"
 
 #include "pratom.h"
-#include "prmem.h"
 #include "prenv.h"
 #include "prclist.h"
 
@@ -1203,7 +1202,7 @@ _createobject(NPP npp, NPClass* aClass)
   if (aClass->allocate) {
     npobj = aClass->allocate(npp, aClass);
   } else {
-    npobj = (NPObject *)PR_Malloc(sizeof(NPObject));
+    npobj = (NPObject*) malloc(sizeof(NPObject));
   }
 
   if (npobj) {
@@ -1267,7 +1266,7 @@ _releaseobject(NPObject* npobj)
     if (npobj->_class && npobj->_class->deallocate) {
       npobj->_class->deallocate(npobj);
     } else {
-      PR_Free(npobj);
+      free(npobj);
     }
   }
 }
@@ -1678,7 +1677,7 @@ _releasevariantvalue(NPVariant* variant)
       if (s->UTF8Characters) {
 #if defined(MOZ_MEMORY_WINDOWS)
         if (malloc_usable_size((void *)s->UTF8Characters) != 0) {
-          PR_Free((void *)s->UTF8Characters);
+          free((void*)s->UTF8Characters);
         } else {
           void *p = (void *)s->UTF8Characters;
           DWORD nheaps = 0;

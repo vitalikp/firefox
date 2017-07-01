@@ -26,7 +26,6 @@
 #include "prdtoa.h"
 #include "mozilla/Logging.h"
 #include "mozilla/Sprintf.h"
-#include "prmem.h"
 #include "nsCRTGlue.h"
 #include "nsTextFormatter.h"
 #include "nsMemory.h"
@@ -91,7 +90,7 @@ struct NumArgState
 
 #define ELEMENTS_OF(array_) (sizeof(array_) / sizeof(array_[0]))
 
-#define PR_CHECK_DELETE(nas) if (nas && (nas != nasArray)) { PR_DELETE(nas); }
+#define FREE_IF_NECESSARY(nas) if (nas && (nas != nasArray)) { free(nas); }
 
 /*
 ** Fill into the buffer using the data in src
@@ -760,7 +759,7 @@ BuildArgArray(const char16_t* aFmt, va_list aAp, int* aRv,
   */
   if (*aRv < 0) {
     if (nas != aNasArray) {
-      PR_DELETE(nas);
+      free(nas);
     }
     return nullptr;
   }
@@ -798,7 +797,7 @@ BuildArgArray(const char16_t* aFmt, va_list aAp, int* aRv,
 
       default:
         if (nas != aNasArray) {
-          PR_DELETE(nas);
+          free(nas);
         }
         *aRv = -1;
         va_end(aAp);
@@ -860,7 +859,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
       rv = (*aState->stuff)(aState, aFmt - 1, 1);
       if (rv < 0) {
         va_end(aAp);
-        PR_CHECK_DELETE(nas);
+        FREE_IF_NECESSARY(nas);
         return rv;
       }
       continue;
@@ -877,7 +876,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
       rv = (*aState->stuff)(aState, aFmt - 1, 1);
       if (rv < 0) {
         va_end(aAp);
-        PR_CHECK_DELETE(nas);
+        FREE_IF_NECESSARY(nas);
         return rv;
       }
       continue;
@@ -894,7 +893,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
 
       if (nas[i - 1].type == NumArgState::UNKNOWN) {
         if (nas != nasArray) {
-          PR_DELETE(nas);
+          free(nas);
         }
         va_end(aAp);
         return -1;
@@ -1044,7 +1043,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
             rv = cvt_l(aState, u.l, width, prec, radix, type, flags, hexp);
             if (rv < 0) {
               va_end(aAp);
-              PR_CHECK_DELETE(nas);
+              FREE_IF_NECESSARY(nas);
               return rv;
             }
             break;
@@ -1062,7 +1061,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
             rv = cvt_ll(aState, u.ll, width, prec, radix, type, flags, hexp);
             if (rv < 0) {
               va_end(aAp);
-              PR_CHECK_DELETE(nas);
+              FREE_IF_NECESSARY(nas);
               return rv;
             }
             break;
@@ -1088,7 +1087,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
             rv = (*aState->stuff)(aState, &space, 1);
             if (rv < 0) {
               va_end(aAp);
-              PR_CHECK_DELETE(nas);
+              FREE_IF_NECESSARY(nas);
               return rv;
             }
           }
@@ -1096,7 +1095,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
         rv = (*aState->stuff)(aState, &u.ch, 1);
         if (rv < 0) {
           va_end(aAp);
-          PR_CHECK_DELETE(nas);
+          FREE_IF_NECESSARY(nas);
           return rv;
         }
         if (flags & _LEFT) {
@@ -1104,7 +1103,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
             rv = (*aState->stuff)(aState, &space, 1);
             if (rv < 0) {
               va_end(aAp);
-              PR_CHECK_DELETE(nas);
+              FREE_IF_NECESSARY(nas);
               return rv;
             }
           }
@@ -1137,7 +1136,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
         rv = cvt_S(aState, u.S, width, prec, flags);
         if (rv < 0) {
           va_end(aAp);
-          PR_CHECK_DELETE(nas);
+          FREE_IF_NECESSARY(nas);
           return rv;
         }
         break;
@@ -1147,7 +1146,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
         rv = cvt_s(aState, u.s, width, prec, flags);
         if (rv < 0) {
           va_end(aAp);
-          PR_CHECK_DELETE(nas);
+          FREE_IF_NECESSARY(nas);
           return rv;
         }
         break;
@@ -1168,13 +1167,13 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
         rv = (*aState->stuff)(aState, &perct, 1);
         if (rv < 0) {
           va_end(aAp);
-          PR_CHECK_DELETE(nas);
+          FREE_IF_NECESSARY(nas);
           return rv;
         }
         rv = (*aState->stuff)(aState, aFmt - 1, 1);
         if (rv < 0) {
           va_end(aAp);
-          PR_CHECK_DELETE(nas);
+          FREE_IF_NECESSARY(nas);
           return rv;
         }
     }
@@ -1186,7 +1185,7 @@ dosprintf(SprintfStateStr* aState, const char16_t* aFmt, va_list aAp)
   rv = (*aState->stuff)(aState, &null, 1);
 
   va_end(aAp);
-  PR_CHECK_DELETE(nas);
+  FREE_IF_NECESSARY(nas);
 
   return rv;
 }
@@ -1305,7 +1304,7 @@ nsTextFormatter::vsmprintf(const char16_t* aFmt, va_list aAp)
   rv = dosprintf(&ss, aFmt, aAp);
   if (rv < 0) {
     if (ss.base) {
-      PR_DELETE(ss.base);
+      free(ss.base);
     }
     return 0;
   }

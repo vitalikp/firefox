@@ -268,7 +268,7 @@ NetworkActivityMonitor::AttachIOLayer(PRFileDesc *fd)
   status = PR_PushIOLayer(fd, PR_NSPR_IO_LAYER, layer);
 
   if (status == PR_FAILURE) {
-    PR_DELETE(layer);
+    PR_Free(layer); // PR_CreateIOLayerStub() uses PR_Malloc().
     return NS_ERROR_FAILURE;
   }
 
