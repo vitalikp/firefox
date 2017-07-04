@@ -310,6 +310,7 @@ namespace jit {
     _(AsmJSAtomicBinopHeap)                                                 \
     _(WasmNeg)                                                              \
     _(WasmBoundsCheck)                                                      \
+    _(WasmAlignmentCheck)                                                   \
     _(WasmLoadTls)                                                          \
     _(WasmAddOffset)                                                        \
     _(WasmLoad)                                                             \
