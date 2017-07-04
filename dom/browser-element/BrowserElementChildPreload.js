@@ -1233,7 +1233,6 @@ BrowserElementChild.prototype = {
     var visible = data.json.visible;
     if (docShell && docShell.isActive !== visible) {
       docShell.isActive = visible;
-      sendAsyncMsg('visibilitychange', {visible: visible});
 
       // Ensure painting is not frozen if the app goes visible.
       if (visible && this._paintFrozenTimer) {
