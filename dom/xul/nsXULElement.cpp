@@ -1965,7 +1965,7 @@ nsXULElement::RecompileScriptEventListeners()
 }
 
 bool
-nsXULElement::IsEventAttributeName(nsIAtom *aName)
+nsXULElement::IsEventAttributeNameInternal(nsIAtom *aName)
 {
   return nsContentUtils::IsEventAttributeName(aName, EventNameType_XUL);
 }
