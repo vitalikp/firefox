@@ -85,6 +85,7 @@ JSCompartment::JSCompartment(Zone* zone, const JS::CompartmentOptions& options =
     randomKeyGenerator_(runtime_->forkRandomKeyGenerator()),
     watchpointMap(nullptr),
     scriptCountsMap(nullptr),
+    scriptNameMap(nullptr),
     debugScriptMap(nullptr),
     debugEnvs(nullptr),
     enumerators(nullptr),
@@ -115,6 +116,7 @@ JSCompartment::~JSCompartment()
     js_delete(jitCompartment_);
     js_delete(watchpointMap);
     js_delete(scriptCountsMap);
+    js_delete(scriptNameMap);
     js_delete(debugScriptMap);
     js_delete(debugEnvs);
     js_delete(objectMetadataTable);
@@ -823,6 +825,7 @@ JSCompartment::finishRoots()
         objectMetadataTable->clear();
 
     clearScriptCounts();
+    clearScriptNames();
 
     if (nonSyntacticLexicalEnvironments_)
         nonSyntacticLexicalEnvironments_->clear();
@@ -1021,6 +1024,14 @@ JSCompartment::fixupScriptMapsAfterMovingGC()
         }
     }
 
+    if (scriptNameMap) {
+        for (ScriptNameMap::Enum e(*scriptNameMap); !e.empty(); e.popFront()) {
+            JSScript* script = e.front().key();
+            if (!IsAboutToBeFinalizedUnbarriered(&script) && script != e.front().key())
+                e.rekeyFront(script);
+        }
+    }
+
     if (debugScriptMap) {
         for (DebugScriptMap::Enum e(*debugScriptMap); !e.empty(); e.popFront()) {
             JSScript* script = e.front().key();
@@ -1039,6 +1050,15 @@ JSCompartment::checkScriptMapsAfterMovingGC()
             JSScript* script = r.front().key();
             CheckGCThingAfterMovingGC(script);
             auto ptr = scriptCountsMap->lookup(script);
+            MOZ_RELEASE_ASSERT(ptr.found() && &*ptr == &r.front());
+        }
+    }
+
+    if (scriptNameMap) {
+        for (auto r = scriptNameMap->all(); !r.empty(); r.popFront()) {
+            JSScript* script = r.front().key();
+            CheckGCThingAfterMovingGC(script);
+            auto ptr = scriptNameMap->lookup(script);
             MOZ_RELEASE_ASSERT(ptr.found() && &*ptr == &r.front());
         }
     }
@@ -1287,6 +1307,7 @@ JSCompartment::updateDebuggerObservesCoverage()
         return;
 
     clearScriptCounts();
+    clearScriptNames();
 }
 
 bool
@@ -1326,6 +1347,19 @@ JSCompartment::clearScriptCounts()
 
     js_delete(scriptCountsMap);
     scriptCountsMap = nullptr;
+}
+
+void
+JSCompartment::clearScriptNames()
+{
+    if (!scriptNameMap)
+        return;
+
+    for (ScriptNameMap::Range r = scriptNameMap->all(); !r.empty(); r.popFront())
+        js_delete(r.front().value());
+
+    js_delete(scriptNameMap);
+    scriptNameMap = nullptr;
 }
 
 void
