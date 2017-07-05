@@ -117,6 +117,7 @@ class WasmToken
         Return,
         SetGlobal,
         SetLocal,
+        Shared,
         SignedInteger,
         Start,
         Store,
@@ -342,6 +343,7 @@ class WasmToken
           case OpenParen:
           case Param:
           case Result:
+          case Shared:
           case SignedInteger:
           case Start:
           case Table:
@@ -1615,6 +1617,10 @@ WasmTokenStream::next()
             return WasmToken(WasmToken::SetGlobal, begin, cur_);
         if (consume(u"set_local"))
             return WasmToken(WasmToken::SetLocal, begin, cur_);
+#ifdef ENABLE_WASM_THREAD_OPS
+        if (consume(u"shared"))
+            return WasmToken(WasmToken::Shared, begin, cur_);
+#endif
         if (consume(u"start"))
             return WasmToken(WasmToken::Start, begin, cur_);
         break;
@@ -3198,7 +3204,7 @@ ParseDataSegment(WasmParseContext& c)
 }
 
 static bool
-ParseLimits(WasmParseContext& c, Limits* limits)
+ParseLimits(WasmParseContext& c, Limits* limits, Shareable allowShared)
 {
     WasmToken initial;
     if (!c.ts.match(WasmToken::Index, &initial, c.error))
@@ -3209,7 +3215,18 @@ ParseLimits(WasmParseContext& c, Limits* limits)
     if (c.ts.getIf(WasmToken::Index, &token))
         maximum.emplace(token.index());
 
-    *limits = Limits(initial.index(), maximum);
+    Shareable shared = Shareable::False;
+    if (c.ts.getIf(WasmToken::Shared, &token)) {
+        // A missing maximum is caught later.
+        if (allowShared == Shareable::True)
+            shared = Shareable::True;
+        else {
+            c.ts.generateError(token, "'shared' not allowed", c.error);
+            return false;
+        }
+    }
+
+    *limits = Limits(initial.index(), maximum, shared);
     return true;
 }
 
@@ -3228,7 +3245,7 @@ ParseMemory(WasmParseContext& c, WasmToken token, AstModule* module)
                 return false;
 
             Limits memory;
-            if (!ParseLimits(c, &memory))
+            if (!ParseLimits(c, &memory, Shareable::True))
                 return false;
 
             auto* imp = new(c.lifo) AstImport(name, names.module.text(), names.field.text(),
@@ -3276,7 +3293,7 @@ ParseMemory(WasmParseContext& c, WasmToken token, AstModule* module)
                 return false;
         }
 
-        if (!module->addMemory(name, Limits(pages, Some(pages))))
+        if (!module->addMemory(name, Limits(pages, Some(pages), Shareable::False)))
             return false;
 
         if (!c.ts.match(WasmToken::CloseParen, c.error))
@@ -3286,7 +3303,7 @@ ParseMemory(WasmParseContext& c, WasmToken token, AstModule* module)
     }
 
     Limits memory;
-    if (!ParseLimits(c, &memory))
+    if (!ParseLimits(c, &memory, Shareable::True))
         return false;
 
     return module->addMemory(name, memory);
@@ -3336,7 +3353,7 @@ ParseElemType(WasmParseContext& c)
 static bool
 ParseTableSig(WasmParseContext& c, Limits* table)
 {
-    return ParseLimits(c, table) &&
+    return ParseLimits(c, table, Shareable::False) &&
            ParseElemType(c);
 }
 
@@ -3361,7 +3378,7 @@ ParseImport(WasmParseContext& c, AstModule* module)
                 name = c.ts.getIfName();
 
             Limits memory;
-            if (!ParseLimits(c, &memory))
+            if (!ParseLimits(c, &memory, Shareable::True))
                 return nullptr;
             if (!c.ts.match(WasmToken::CloseParen, c.error))
                 return nullptr;
@@ -3568,7 +3585,7 @@ ParseTable(WasmParseContext& c, WasmToken token, AstModule* module)
     if (numElements != elems.length())
         return false;
 
-    if (!module->addTable(name, Limits(numElements, Some(numElements))))
+    if (!module->addTable(name, Limits(numElements, Some(numElements), Shareable::False)))
         return false;
 
     auto* zero = new(c.lifo) AstConst(Val(uint32_t(0)));
@@ -4929,7 +4946,12 @@ EncodeBytes(Encoder& e, AstName wasmName)
 static bool
 EncodeLimits(Encoder& e, const Limits& limits)
 {
-    uint32_t flags = limits.maximum ? 1 : 0;
+    uint32_t flags = limits.maximum
+                   ? uint32_t(MemoryTableFlags::HasMaximum)
+                   : uint32_t(MemoryTableFlags::Default);
+    if (limits.shared == Shareable::True)
+        flags |= uint32_t(MemoryTableFlags::IsShared);
+
     if (!e.writeVarU32(flags))
         return false;
 
