@@ -59,11 +59,7 @@ nsHashPropertyBagBase::SetProperty(const nsAString& aName, nsIVariant* aValue)
 NS_IMETHODIMP
 nsHashPropertyBagBase::DeleteProperty(const nsAString& aName)
 {
-  if (auto entry = mPropertyHash.Lookup(aName)) {
-    entry.Remove();
-    return NS_OK;
-  }
-  return NS_ERROR_FAILURE;
+  return mPropertyHash.Remove(aName) ? NS_OK : NS_ERROR_FAILURE;
 }
 
 

@@ -4800,8 +4800,7 @@ void
 ContentParent::SendGetFilesResponseAndForget(const nsID& aUUID,
                                              const GetFilesResponseResult& aResult)
 {
-  if (auto entry = mGetFilesPendingRequests.Lookup(aUUID)) {
-    entry.Remove();
+  if (mGetFilesPendingRequests.Remove(aUUID)) {
     Unused << SendGetFilesResponse(aUUID, aResult);
   }
 }
