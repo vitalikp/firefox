@@ -462,7 +462,7 @@ CertBlocklist::SaveEntries()
   for (auto iter = issuers.Iter(); !iter.Done(); iter.Next()) {
     nsCStringHashKey* hashKey = iter.Get();
     nsAutoPtr<BlocklistStringSet> issuerSet;
-    issuerTable.RemoveAndForget(hashKey->GetKey(), issuerSet);
+    issuerTable.Remove(hashKey->GetKey(), &issuerSet);
 
     nsresult rv = WriteLine(outputStream, hashKey->GetKey());
     if (NS_FAILED(rv)) {

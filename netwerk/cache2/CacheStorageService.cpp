@@ -1897,7 +1897,7 @@ CacheStorageService::DoomStorageEntries(nsCSubstring const& aContextKey,
     // we need to remove the memory entries from the disk table one
     // by one manually.
     nsAutoPtr<CacheEntryTable> memoryEntries;
-    sGlobalEntryTables->RemoveAndForget(memoryStorageID, memoryEntries);
+    sGlobalEntryTables->Remove(memoryStorageID, &memoryEntries);
 
     CacheEntryTable* diskEntries;
     if (memoryEntries && sGlobalEntryTables->Get(aContextKey, &diskEntries)) {

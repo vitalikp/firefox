@@ -790,7 +790,7 @@ nsAutoPtr<LinkedList<UndisplayedNode>>
 nsFrameManagerBase::UndisplayedMap::UnlinkNodesFor(nsIContent* aParentContent)
 {
   nsAutoPtr<LinkedList<UndisplayedNode>> list;
-  RemoveAndForget(GetApplicableParent(aParentContent), list);
+  Remove(GetApplicableParent(aParentContent), &list);
   return list;
 }
 
