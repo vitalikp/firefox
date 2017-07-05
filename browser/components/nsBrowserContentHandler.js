@@ -346,7 +346,8 @@ nsBrowserContentHandler.prototype = {
     try {
       while ((uriparam = cmdLine.handleFlagWithParam("new-tab", false))) {
         let uri = resolveURIInternal(cmdLine, uriparam);
-        handURIToExistingBrowser(uri, nsIBrowserDOMWindow.OPEN_NEWTAB, cmdLine);
+        handURIToExistingBrowser(uri, nsIBrowserDOMWindow.OPEN_NEWTAB, cmdLine, false,
+                                 Services.scriptSecurityManager.getSystemPrincipal());
         cmdLine.preventDefault = true;
       }
     } catch (e) {
@@ -394,7 +395,8 @@ nsBrowserContentHandler.prototype = {
       var privateWindowParam = cmdLine.handleFlagWithParam("private-window", false);
       if (privateWindowParam) {
         let resolvedURI = resolveURIInternal(cmdLine, privateWindowParam);
-        handURIToExistingBrowser(resolvedURI, nsIBrowserDOMWindow.OPEN_NEWTAB, cmdLine, true);
+        handURIToExistingBrowser(resolvedURI, nsIBrowserDOMWindow.OPEN_NEWTAB, cmdLine, true,
+                                 Services.scriptSecurityManager.getSystemPrincipal());
         cmdLine.preventDefault = true;
       }
     } catch (e) {
@@ -605,8 +607,8 @@ nsBrowserContentHandler.prototype = {
     }
 
     request.QueryInterface(nsIChannel);
-    handURIToExistingBrowser(request.URI,
-      nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW, null);
+    handURIToExistingBrowser(request.URI, nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW, null, false,
+                             request.loadInfo.triggeringPrincipal);
     request.cancel(NS_BINDING_ABORTED);
   },
 
@@ -640,7 +642,7 @@ nsBrowserContentHandler.prototype = {
 };
 var gBrowserContentHandler = new nsBrowserContentHandler();
 
-function handURIToExistingBrowser(uri, location, cmdLine, forcePrivate) {
+function handURIToExistingBrowser(uri, location, cmdLine, forcePrivate, triggeringPrincipal) {
   if (!shouldLoadURI(uri))
     return;
 
@@ -665,7 +667,7 @@ function handURIToExistingBrowser(uri, location, cmdLine, forcePrivate) {
                         .getInterface(nsIDOMWindow);
   var bwin = rootWin.QueryInterface(nsIDOMChromeWindow).browserDOMWindow;
   bwin.openURI(uri, null, location,
-               nsIBrowserDOMWindow.OPEN_EXTERNAL);
+               nsIBrowserDOMWindow.OPEN_EXTERNAL, triggeringPrincipal);
 }
 
 function nsDefaultCommandLineHandler() {
@@ -752,7 +754,8 @@ nsDefaultCommandLineHandler.prototype = {
         // Try to find an existing window and load our URI into the
         // current tab, new tab, or new window as prefs determine.
         try {
-          handURIToExistingBrowser(urilist[0], nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW, cmdLine);
+          handURIToExistingBrowser(urilist[0], nsIBrowserDOMWindow.OPEN_DEFAULTWINDOW, cmdLine, false,
+                                   Services.scriptSecurityManager.getSystemPrincipal());
           return;
         } catch (e) {
         }
