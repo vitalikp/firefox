@@ -460,6 +460,14 @@ struct arena_stats_s {
  * Extent data structures.
  */
 
+enum ChunkType {
+  UNKNOWN_CHUNK,
+  ZEROED_CHUNK,   // chunk only contains zeroes
+  ARENA_CHUNK,    // used to back arena runs created by arena_run_alloc
+  HUGE_CHUNK,     // used to back huge allocations (e.g. huge_malloc)
+  RECYCLED_CHUNK, // chunk has been stored for future use by chunk_recycle
+};
+
 /* Tree of extents. */
 typedef struct extent_node_s extent_node_t;
 struct extent_node_s {
@@ -475,8 +483,8 @@ struct extent_node_s {
 	/* Total region size. */
 	size_t	size;
 
-	/* True if zero-filled; used by chunk recycling code. */
-	bool	zeroed;
+	/* What type of chunk is there; used by chunk recycling code. */
+	ChunkType chunk_type;
 };
 typedef rb_tree(extent_node_t) extent_tree_t;
 
@@ -747,13 +755,6 @@ struct arena_s {
 	 *   --------+------+
 	 */
 	arena_bin_t		bins[1]; /* Dynamically sized. */
-};
-
-enum ChunkType {
-  UNKNOWN_CHUNK,
-  ARENA_CHUNK,    // used to back arena runs created by arena_run_alloc
-  HUGE_CHUNK,     // used to back huge allocations (e.g. huge_malloc)
-  RECYCLED_CHUNK, // chunk has been stored for future use by chunk_recycle
 };
 
 /******************************************************************************/
@@ -1911,7 +1912,7 @@ chunk_recycle(extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, size_t size,
 	extent_node_t *node;
 	extent_node_t key;
 	size_t alloc_size, leadsize, trailsize;
-	bool zeroed;
+	ChunkType chunk_type;
 
 	if (base) {
 		/*
@@ -1940,8 +1941,8 @@ chunk_recycle(extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, size_t size,
 	MOZ_ASSERT(node->size >= leadsize + size);
 	trailsize = node->size - leadsize - size;
 	ret = (void *)((uintptr_t)node->addr + leadsize);
-	zeroed = node->zeroed;
-	if (zeroed)
+	chunk_type = node->chunk_type;
+	if (chunk_type == ZEROED_CHUNK)
 	    *zero = true;
 	/* Remove node from the tree. */
 	extent_tree_szad_remove(chunks_szad, node);
@@ -1966,14 +1967,14 @@ chunk_recycle(extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, size_t size,
 			malloc_mutex_unlock(&chunks_mtx);
 			node = base_node_alloc();
 			if (!node) {
-				chunk_dealloc(ret, size, RECYCLED_CHUNK);
+				chunk_dealloc(ret, size, chunk_type);
 				return nullptr;
 			}
 			malloc_mutex_lock(&chunks_mtx);
 		}
 		node->addr = (void *)((uintptr_t)(ret) + size);
 		node->size = trailsize;
-		node->zeroed = zeroed;
+		node->chunk_type = chunk_type;
 		extent_tree_szad_insert(chunks_szad, node);
 		extent_tree_ad_insert(chunks_ad, node);
 		node = nullptr;
@@ -1989,7 +1990,7 @@ chunk_recycle(extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, size_t size,
 	pages_commit(ret, size);
 #endif
 	if (*zero) {
-		if (zeroed == false)
+		if (chunk_type != ZEROED_CHUNK)
 			memset(ret, 0, size);
 #ifdef DEBUG
 		else {
@@ -2054,12 +2055,15 @@ RETURN:
 
 static void
 chunk_record(extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, void *chunk,
-    size_t size, enum ChunkType type)
+    size_t size, ChunkType chunk_type)
 {
-	bool zeroed;
 	extent_node_t *xnode, *node, *prev, *xprev, key;
 
-	zeroed = pages_purge(chunk, size, type == HUGE_CHUNK);
+	if (chunk_type != ZEROED_CHUNK) {
+		if (pages_purge(chunk, size, chunk_type == HUGE_CHUNK)) {
+			chunk_type = ZEROED_CHUNK;
+		}
+	}
 
 	/*
 	 * Allocate a node before acquiring chunks_mtx even though it might not
@@ -2084,7 +2088,9 @@ chunk_record(extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, void *chunk,
 		extent_tree_szad_remove(chunks_szad, node);
 		node->addr = chunk;
 		node->size += size;
-		node->zeroed = node->zeroed && zeroed;
+		if (node->chunk_type != chunk_type) {
+			node->chunk_type = RECYCLED_CHUNK;
+		}
 		extent_tree_szad_insert(chunks_szad, node);
 	} else {
 		/* Coalescing forward failed, so insert a new node. */
@@ -2101,7 +2107,7 @@ chunk_record(extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, void *chunk,
 		xnode = nullptr; /* Prevent deallocation below. */
 		node->addr = chunk;
 		node->size = size;
-		node->zeroed = zeroed;
+		node->chunk_type = chunk_type;
 		extent_tree_ad_insert(chunks_ad, node);
 		extent_tree_szad_insert(chunks_szad, node);
 	}
@@ -2121,7 +2127,9 @@ chunk_record(extent_tree_t *chunks_szad, extent_tree_t *chunks_ad, void *chunk,
 		extent_tree_szad_remove(chunks_szad, node);
 		node->addr = prev->addr;
 		node->size += prev->size;
-		node->zeroed = (node->zeroed && prev->zeroed);
+		if (node->chunk_type != prev->chunk_type) {
+			node->chunk_type = RECYCLED_CHUNK;
+		}
 		extent_tree_szad_insert(chunks_szad, node);
 
 		xprev = prev;
