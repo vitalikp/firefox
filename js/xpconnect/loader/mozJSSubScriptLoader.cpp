@@ -203,19 +203,6 @@ EvalScript(JSContext* cx,
         cachePath.AppendPrintf("jssubloader/%d", version);
         PathifyURI(uri, cachePath);
 
-        nsCOMPtr<nsIScriptSecurityManager> secman =
-            do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID);
-        if (!secman) {
-            return false;
-        }
-
-        nsCOMPtr<nsIPrincipal> principal;
-        nsresult rv = secman->GetSystemPrincipal(getter_AddRefs(principal));
-        if (NS_FAILED(rv) || !principal) {
-            ReportError(cx, LOAD_ERROR_NOPRINCIPALS, uri);
-            return false;
-        }
-
         nsCString uriStr;
         if (preloadCache && NS_SUCCEEDED(uri->GetSpec(uriStr))) {
             // Note that, when called during startup, this will keep the
@@ -243,8 +230,7 @@ EvalScript(JSContext* cx,
 
         if (startupCache) {
             JSAutoCompartment ac(cx, script);
-            WriteCachedScript(StartupCache::GetSingleton(),
-                              cachePath, cx, principal, script);
+            WriteCachedScript(StartupCache::GetSingleton(), cachePath, cx, script);
         }
     }
 
