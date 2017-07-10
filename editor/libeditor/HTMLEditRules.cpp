@@ -5434,20 +5434,16 @@ HTMLEditRules::NormalizeSelection(Selection* inSelection)
  * GetPromotedPoint() figures out where a start or end point for a block
  * operation really is.
  */
-void
+EditorDOMPoint
 HTMLEditRules::GetPromotedPoint(RulesEndpoint aWhere,
-                                nsIDOMNode* aNode,
+                                nsINode& aNode,
                                 int32_t aOffset,
-                                EditAction actionID,
-                                nsCOMPtr<nsIDOMNode>* outNode,
-                                int32_t* outOffset)
+                                EditAction actionID)
 {
-  nsCOMPtr<nsINode> node = do_QueryInterface(aNode);
-  MOZ_ASSERT(node && outNode && outOffset);
-
-  // default values
-  *outNode = node->AsDOMNode();
-  *outOffset = aOffset;
+  if (NS_WARN_IF(!mHTMLEditor)) {
+    return EditorDOMPoint(&aNode, aOffset);
+  }
+  RefPtr<HTMLEditor> htmlEditor = mHTMLEditor;
 
   // we do one thing for text actions, something else entirely for other
   // actions
@@ -5456,7 +5452,10 @@ HTMLEditRules::GetPromotedPoint(RulesEndpoint aWhere,
       actionID == EditAction::insertBreak ||
       actionID == EditAction::deleteText) {
     bool isSpace, isNBSP;
-    nsCOMPtr<nsIContent> content = do_QueryInterface(node), temp;
+    nsCOMPtr<nsIContent> content =
+      aNode.IsContent() ? aNode.AsContent() : nullptr;
+    nsCOMPtr<nsIContent> temp;
+    int32_t newOffset = aOffset;
     // for text actions, we want to look backwards (or forwards, as
     // appropriate) for additional whitespace or nbsp's.  We may have to act on
     // these later even though they are outside of the initial selection.  Even
@@ -5464,28 +5463,26 @@ HTMLEditRules::GetPromotedPoint(RulesEndpoint aWhere,
     while (content) {
       int32_t offset;
       if (aWhere == kStart) {
-        NS_ENSURE_TRUE_VOID(mHTMLEditor);
-        mHTMLEditor->IsPrevCharInNodeWhitespace(content, *outOffset,
-                                                &isSpace, &isNBSP,
-                                                getter_AddRefs(temp), &offset);
+        htmlEditor->IsPrevCharInNodeWhitespace(content, newOffset,
+                                               &isSpace, &isNBSP,
+                                               getter_AddRefs(temp), &offset);
       } else {
-        NS_ENSURE_TRUE_VOID(mHTMLEditor);
-        mHTMLEditor->IsNextCharInNodeWhitespace(content, *outOffset,
-                                                &isSpace, &isNBSP,
-                                                getter_AddRefs(temp), &offset);
+        htmlEditor->IsNextCharInNodeWhitespace(content, newOffset,
+                                               &isSpace, &isNBSP,
+                                               getter_AddRefs(temp), &offset);
       }
       if (isSpace || isNBSP) {
         content = temp;
-        *outOffset = offset;
+        newOffset = offset;
       } else {
         break;
       }
     }
 
-    *outNode = content->AsDOMNode();
-    return;
+    return EditorDOMPoint(content, newOffset);
   }
 
+  nsCOMPtr<nsINode> node = &aNode;
   int32_t offset = aOffset;
 
   // else not a text section.  In this case we want to see if we should grab
@@ -5495,7 +5492,7 @@ HTMLEditRules::GetPromotedPoint(RulesEndpoint aWhere,
     if (node->IsNodeOfType(nsINode::eTEXT)) {
       if (!node->GetParentNode()) {
         // Okay, can't promote any further
-        return;
+        return EditorDOMPoint(node, offset);
       }
       offset = node->GetParentNode()->IndexOf(node);
       node = node->GetParentNode();
@@ -5503,25 +5500,22 @@ HTMLEditRules::GetPromotedPoint(RulesEndpoint aWhere,
 
     // look back through any further inline nodes that aren't across a <br>
     // from us, and that are enclosed in the same block.
-    NS_ENSURE_TRUE_VOID(mHTMLEditor);
     nsCOMPtr<nsINode> priorNode =
-      mHTMLEditor->GetPriorHTMLNode(node, offset, true);
+      htmlEditor->GetPriorHTMLNode(node, offset, true);
 
     while (priorNode && priorNode->GetParentNode() &&
-           mHTMLEditor && !mHTMLEditor->IsVisBreak(priorNode) &&
+           !htmlEditor->IsVisBreak(priorNode) &&
            !IsBlockNode(*priorNode)) {
       offset = priorNode->GetParentNode()->IndexOf(priorNode);
       node = priorNode->GetParentNode();
-      NS_ENSURE_TRUE_VOID(mHTMLEditor);
-      priorNode = mHTMLEditor->GetPriorHTMLNode(node, offset, true);
+      priorNode = htmlEditor->GetPriorHTMLNode(node, offset, true);
     }
 
     // finding the real start for this point.  look up the tree for as long as
     // we are the first node in the container, and as long as we haven't hit
     // the body node.
-    NS_ENSURE_TRUE_VOID(mHTMLEditor);
     nsCOMPtr<nsIContent> nearNode =
-      mHTMLEditor->GetPriorHTMLNode(node, offset, true);
+      htmlEditor->GetPriorHTMLNode(node, offset, true);
     while (!nearNode && !node->IsHTMLElement(nsGkAtoms::body) &&
            node->GetParentNode()) {
       // some cutoffs are here: we don't need to also include them in the
@@ -5544,22 +5538,17 @@ HTMLEditRules::GetPromotedPoint(RulesEndpoint aWhere,
                               actionID == EditAction::outdent ||
                               actionID == EditAction::align ||
                               actionID == EditAction::makeBasicBlock;
-      NS_ENSURE_TRUE_VOID(mHTMLEditor);
-      if (!mHTMLEditor->IsDescendantOfEditorRoot(parent) &&
-          (blockLevelAction || !mHTMLEditor ||
-           !mHTMLEditor->IsDescendantOfEditorRoot(node))) {
-        NS_ENSURE_TRUE_VOID(mHTMLEditor);
+      if (!htmlEditor->IsDescendantOfEditorRoot(parent) &&
+          (blockLevelAction ||
+           !htmlEditor->IsDescendantOfEditorRoot(node))) {
         break;
       }
 
       node = parent;
       offset = parentOffset;
-      NS_ENSURE_TRUE_VOID(mHTMLEditor);
-      nearNode = mHTMLEditor->GetPriorHTMLNode(node, offset, true);
+      nearNode = htmlEditor->GetPriorHTMLNode(node, offset, true);
     }
-    *outNode = node->AsDOMNode();
-    *outOffset = offset;
-    return;
+    return EditorDOMPoint(node, offset);
   }
 
   // aWhere == kEnd
@@ -5567,7 +5556,7 @@ HTMLEditRules::GetPromotedPoint(RulesEndpoint aWhere,
   if (node->IsNodeOfType(nsINode::eTEXT)) {
     if (!node->GetParentNode()) {
       // Okay, can't promote any further
-      return;
+      return EditorDOMPoint(node, offset);
     }
     // want to be after the text node
     offset = 1 + node->GetParentNode()->IndexOf(node);
@@ -5576,21 +5565,19 @@ HTMLEditRules::GetPromotedPoint(RulesEndpoint aWhere,
 
   // look ahead through any further inline nodes that aren't across a <br> from
   // us, and that are enclosed in the same block.
-  NS_ENSURE_TRUE(mHTMLEditor, /* void */);
   nsCOMPtr<nsIContent> nextNode =
-    mHTMLEditor->GetNextHTMLNode(node, offset, true);
+    htmlEditor->GetNextHTMLNode(node, offset, true);
 
   while (nextNode && !IsBlockNode(*nextNode) && nextNode->GetParentNode()) {
     offset = 1 + nextNode->GetParentNode()->IndexOf(nextNode);
     node = nextNode->GetParentNode();
-    NS_ENSURE_TRUE_VOID(mHTMLEditor);
-    if (mHTMLEditor->IsVisBreak(nextNode)) {
+    if (htmlEditor->IsVisBreak(nextNode)) {
       break;
     }
 
     // Check for newlines in pre-formatted text nodes.
     bool isPRE;
-    mHTMLEditor->IsPreformatted(nextNode->AsDOMNode(), &isPRE);
+    htmlEditor->IsPreformatted(nextNode->AsDOMNode(), &isPRE);
     if (isPRE) {
       if (EditorBase::IsTextNode(nextNode)) {
         nsAutoString tempString;
@@ -5601,22 +5588,18 @@ HTMLEditRules::GetPromotedPoint(RulesEndpoint aWhere,
             // No need for special processing if the newline is at the end.
             break;
           }
-          *outNode = nextNode->AsDOMNode();
-          *outOffset = newlinePos + 1;
-          return;
+          return EditorDOMPoint(nextNode, newlinePos + 1);
         }
       }
     }
-    NS_ENSURE_TRUE_VOID(mHTMLEditor);
-    nextNode = mHTMLEditor->GetNextHTMLNode(node, offset, true);
+    nextNode = htmlEditor->GetNextHTMLNode(node, offset, true);
   }
 
   // finding the real end for this point.  look up the tree for as long as we
   // are the last node in the container, and as long as we haven't hit the body
   // node.
-  NS_ENSURE_TRUE_VOID(mHTMLEditor);
   nsCOMPtr<nsIContent> nearNode =
-    mHTMLEditor->GetNextHTMLNode(node, offset, true);
+    htmlEditor->GetNextHTMLNode(node, offset, true);
   while (!nearNode && !node->IsHTMLElement(nsGkAtoms::body) &&
          node->GetParentNode()) {
     int32_t parentOffset = node->GetParentNode()->IndexOf(node);
@@ -5625,20 +5608,17 @@ HTMLEditRules::GetPromotedPoint(RulesEndpoint aWhere,
     // Don't walk past the editable section. Note that we need to check before
     // walking up to a parent because we need to return the parent object, so
     // the parent itself might not be in the editable area, but it's OK.
-    if ((!mHTMLEditor || !mHTMLEditor->IsDescendantOfEditorRoot(node)) &&
-        (!mHTMLEditor || !mHTMLEditor->IsDescendantOfEditorRoot(parent))) {
-      NS_ENSURE_TRUE_VOID(mHTMLEditor);
+    if (!htmlEditor->IsDescendantOfEditorRoot(node) &&
+        !htmlEditor->IsDescendantOfEditorRoot(parent)) {
       break;
     }
 
     node = parent;
     // we want to be AFTER nearNode
     offset = parentOffset + 1;
-    NS_ENSURE_TRUE_VOID(mHTMLEditor);
-    nearNode = mHTMLEditor->GetNextHTMLNode(node, offset, true);
+    nearNode = htmlEditor->GetNextHTMLNode(node, offset, true);
   }
-  *outNode = node->AsDOMNode();
-  *outOffset = offset;
+  return EditorDOMPoint(node, offset);
 }
 
 /**
@@ -5680,6 +5660,10 @@ HTMLEditRules::PromoteRange(nsRange& aRange,
   NS_ENSURE_TRUE(mHTMLEditor, );
   RefPtr<HTMLEditor> htmlEditor(mHTMLEditor);
 
+  if (!aRange.IsPositioned()) {
+    return;
+  }
+
   nsCOMPtr<nsINode> startNode = aRange.GetStartParent();
   nsCOMPtr<nsINode> endNode = aRange.GetEndParent();
   int32_t startOffset = aRange.StartOffset();
@@ -5712,27 +5696,22 @@ HTMLEditRules::PromoteRange(nsRange& aRange,
   // This is tricky.  The basic idea is to push out the range endpoints to
   // truly enclose the blocks that we will affect.
 
-  nsCOMPtr<nsIDOMNode> opDOMStartNode;
-  nsCOMPtr<nsIDOMNode> opDOMEndNode;
-  int32_t opStartOffset, opEndOffset;
-
-  GetPromotedPoint(kStart, GetAsDOMNode(startNode), startOffset,
-                   aOperationType, address_of(opDOMStartNode), &opStartOffset);
-  GetPromotedPoint(kEnd, GetAsDOMNode(endNode), endOffset, aOperationType,
-                   address_of(opDOMEndNode), &opEndOffset);
+  EditorDOMPoint opStart =
+    GetPromotedPoint(kStart, *startNode, startOffset, aOperationType);
+  EditorDOMPoint opEnd =
+    GetPromotedPoint(kEnd, *endNode, endOffset, aOperationType);
 
   // Make sure that the new range ends up to be in the editable section.
   if (!htmlEditor->IsDescendantOfEditorRoot(
-        EditorBase::GetNodeAtRangeOffsetPoint(opDOMStartNode, opStartOffset)) ||
+        EditorBase::GetNodeAtRangeOffsetPoint(opStart.node, opStart.offset)) ||
       !htmlEditor->IsDescendantOfEditorRoot(
-        EditorBase::GetNodeAtRangeOffsetPoint(opDOMEndNode, opEndOffset - 1))) {
+        EditorBase::GetNodeAtRangeOffsetPoint(opEnd.node, opEnd.offset - 1))) {
     return;
   }
 
-  nsCOMPtr<nsINode> opStartNode = do_QueryInterface(opDOMStartNode);
-  nsCOMPtr<nsINode> opEndNode = do_QueryInterface(opDOMEndNode);
   DebugOnly<nsresult> rv =
-    aRange.SetStartAndEnd(opStartNode, opStartOffset, opEndNode, opEndOffset);
+    aRange.SetStartAndEnd(opStart.node, opStart.offset,
+                          opEnd.node, opEnd.offset);
   MOZ_ASSERT(NS_SUCCEEDED(rv));
 }
 
