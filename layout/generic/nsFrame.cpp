@@ -10204,7 +10204,7 @@ nsIFrame::UpdateStyleOfChildAnonBox(nsIFrame* aChildFrame,
 {
   MOZ_ASSERT(aChildFrame->GetParent() == this,
              "This should only be used for children!");
-  MOZ_ASSERT((!GetContent() && IsViewportFrame()) ||
+  MOZ_ASSERT(!GetContent() || !aChildFrame->GetContent() ||
              aChildFrame->GetContent() == GetContent(),
              "What content node is it a frame for?");
   MOZ_ASSERT(!aChildFrame->GetPrevContinuation(),
