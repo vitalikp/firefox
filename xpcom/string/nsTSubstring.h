@@ -1046,7 +1046,7 @@ public:
     if (mFlags & nsAString::F_SHARED) {
       mData = char_traits::sEmptyBuffer;
       mLength = 0;
-      mFlags = F_TERMINATED;
+      SetDataFlags(F_TERMINATED);
     }
   }
 
