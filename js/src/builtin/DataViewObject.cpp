@@ -218,8 +218,7 @@ DataViewObject::constructSameCompartment(JSContext* cx, HandleObject bufobj, con
         return false;
 
     RootedObject proto(cx);
-    RootedObject newTarget(cx, &args.newTarget().toObject());
-    if (!GetPrototypeFromConstructor(cx, newTarget, &proto))
+    if (!GetPrototypeFromBuiltinConstructor(cx, args, &proto))
         return false;
 
     Rooted<ArrayBufferObjectMaybeShared*> buffer(cx, &AsArrayBufferMaybeShared(bufobj));
@@ -263,8 +262,7 @@ DataViewObject::constructWrapped(JSContext* cx, HandleObject bufobj, const CallA
     // Make sure to get the [[Prototype]] for the created view from this
     // compartment.
     RootedObject proto(cx);
-    RootedObject newTarget(cx, &args.newTarget().toObject());
-    if (!GetPrototypeFromConstructor(cx, newTarget, &proto))
+    if (!GetPrototypeFromBuiltinConstructor(cx, args, &proto))
         return false;
 
     Rooted<GlobalObject*> global(cx, cx->compartment()->maybeGlobal());
