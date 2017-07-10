@@ -1621,7 +1621,7 @@ ObjectGroupCompartment::removeDefaultNewGroup(const Class* clasp, TaggedProto pr
     auto p = defaultNewTable->lookup(NewEntry::Lookup(clasp, proto, associated));
     MOZ_RELEASE_ASSERT(p);
 
-    defaultNewTable->get().remove(p);
+    defaultNewTable->remove(p);
     defaultNewGroupCache.purge();
 }
 
@@ -1633,7 +1633,7 @@ ObjectGroupCompartment::replaceDefaultNewGroup(const Class* clasp, TaggedProto p
 
     auto p = defaultNewTable->lookup(lookup);
     MOZ_RELEASE_ASSERT(p);
-    defaultNewTable->get().remove(p);
+    defaultNewTable->remove(p);
     defaultNewGroupCache.purge();
     {
         AutoEnterOOMUnsafeRegion oomUnsafe;
