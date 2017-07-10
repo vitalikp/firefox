@@ -2001,8 +2001,7 @@ class CGHasInstanceHook(CGAbstractStaticMethod):
 
                     // FIXME Limit this to chrome by checking xpc::AccessCheck::isChrome(obj).
                     nsISupports* native =
-                      nsContentUtils::XPConnect()->GetNativeOfWrapper(cx,
-                                                                      js::UncheckedUnwrap(instance, /* stopAtWindowProxy = */ false));
+                      xpc::UnwrapReflectorToISupports(js::UncheckedUnwrap(instance, /* stopAtWindowProxy = */ false));
                     nsCOMPtr<nsIDOM${name}> qiResult = do_QueryInterface(native);
                     args.rval().setBoolean(!!qiResult);
                     return true;
