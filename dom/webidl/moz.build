@@ -186,7 +186,6 @@ WEBIDL_FILES = [
     'History.webidl',
     'HTMLAllCollection.webidl',
     'HTMLAnchorElement.webidl',
-    'HTMLAppletElement.webidl',
     'HTMLAreaElement.webidl',
     'HTMLAudioElement.webidl',
     'HTMLBaseElement.webidl',
