@@ -51,8 +51,10 @@
 #include "mozilla/dom/ScriptLoader.h"
 #include "nsParserConstants.h"
 #include "nsSandboxFlags.h"
+#include "Link.h"
 
 using namespace mozilla;
+using namespace mozilla::dom;
 
 LazyLogModule gContentSinkLogModuleInfo("nscontentsink");
 
@@ -466,6 +468,7 @@ nsContentSink::ProcessLinkHeader(const nsAString& aLinkData)
   nsAutoString media;
   nsAutoString anchor;
   nsAutoString crossOrigin;
+  nsAutoString as;
 
   crossOrigin.SetIsVoid(true);
 
@@ -648,6 +651,11 @@ nsContentSink::ProcessLinkHeader(const nsAString& aLinkData)
               crossOrigin = value;
               crossOrigin.StripWhitespace();
             }
+          } else if (attr.LowerCaseEqualsLiteral("as")) {
+            if (as.IsEmpty()) {
+              as = value;
+              as.CompressWhitespace();
+            }
           }
         }
       }
@@ -661,7 +669,7 @@ nsContentSink::ProcessLinkHeader(const nsAString& aLinkData)
         rv = ProcessLink(anchor, href, rel,
                          // prefer RFC 5987 variant over non-I18zed version
                          titleStar.IsEmpty() ? title : titleStar,
-                         type, media, crossOrigin);
+                         type, media, crossOrigin, as);
       }
 
       href.Truncate();
@@ -683,7 +691,7 @@ nsContentSink::ProcessLinkHeader(const nsAString& aLinkData)
     rv = ProcessLink(anchor, href, rel,
                      // prefer RFC 5987 variant over non-I18zed version
                      titleStar.IsEmpty() ? title : titleStar,
-                     type, media, crossOrigin);
+                     type, media, crossOrigin, as);
   }
 
   return rv;
@@ -694,7 +702,8 @@ nsresult
 nsContentSink::ProcessLink(const nsAString& aAnchor, const nsAString& aHref,
                            const nsAString& aRel, const nsAString& aTitle,
                            const nsAString& aType, const nsAString& aMedia,
-                           const nsAString& aCrossOrigin)
+                           const nsAString& aCrossOrigin,
+                           const nsAString& aAs)
 {
   uint32_t linkTypes =
     nsStyleLinkElement::ParseLinkTypes(aRel);
@@ -707,14 +716,15 @@ nsContentSink::ProcessLink(const nsAString& aAnchor, const nsAString& aHref,
     return NS_OK;
   }
 
-  if (!nsContentUtils::PrefetchEnabled(mDocShell)) {
+  if (!nsContentUtils::PrefetchPreloadEnabled(mDocShell)) {
     return NS_OK;
   }
 
-  bool hasPrefetch = linkTypes & nsStyleLinkElement::ePREFETCH;
   // prefetch href if relation is "next" or "prefetch"
-  if (hasPrefetch || (linkTypes & nsStyleLinkElement::eNEXT)) {
-    PrefetchHref(aHref, mDocument, hasPrefetch);
+  if ((linkTypes & nsStyleLinkElement::eNEXT) ||
+      (linkTypes & nsStyleLinkElement::ePREFETCH) ||
+      (linkTypes & nsStyleLinkElement::ePRELOAD)) {
+    PrefetchPreloadHref(aHref, mDocument, linkTypes, aAs, aType, aMedia);
   }
 
   if (linkTypes & nsStyleLinkElement::ePRERENDER) {
@@ -849,9 +859,12 @@ nsContentSink::ProcessMETATag(nsIContent* aContent)
 
 
 void
-nsContentSink::PrefetchHref(const nsAString &aHref,
-                            nsINode *aSource,
-                            bool aExplicit)
+nsContentSink::PrefetchPreloadHref(const nsAString &aHref,
+                                   nsINode *aSource,
+                                   uint32_t aLinkTypes,
+                                   const nsAString& aAs,
+                                   const nsAString& aType,
+                                   const nsAString& aMedia)
 {
   nsCOMPtr<nsIPrefetchService> prefetchService(do_GetService(NS_PREFETCHSERVICE_CONTRACTID));
   if (prefetchService) {
@@ -863,7 +876,29 @@ nsContentSink::PrefetchHref(const nsAString &aHref,
               mDocument->GetDocBaseURI());
     if (uri) {
       nsCOMPtr<nsIDOMNode> domNode = do_QueryInterface(aSource);
-      prefetchService->PrefetchURI(uri, mDocumentURI, domNode, aExplicit);
+      if (aLinkTypes & nsStyleLinkElement::ePRELOAD) {
+        nsAttrValue asAttr;
+        Link::ParseAsValue(aAs, asAttr);
+        nsContentPolicyType policyType = Link::AsValueToContentPolicy(asAttr);
+
+        if (policyType == nsIContentPolicy::TYPE_INVALID) {
+          // Ignore preload with a wrong or empty as attribute.
+          return;
+        }
+
+        nsAutoString mimeType;
+        nsAutoString notUsed;
+        nsContentUtils::SplitMimeType(aType, mimeType, notUsed);
+        if (!nsStyleLinkElement::CheckPreloadAttrs(asAttr, mimeType,
+                                                   aMedia,mDocument)) {
+          policyType = nsIContentPolicy::TYPE_INVALID;
+        }
+
+        prefetchService->PreloadURI(uri, mDocumentURI, domNode, policyType);
+      } else {
+        prefetchService->PrefetchURI(uri, mDocumentURI, domNode,
+                                     aLinkTypes & nsStyleLinkElement::ePREFETCH);
+      }
     }
   }
 }
