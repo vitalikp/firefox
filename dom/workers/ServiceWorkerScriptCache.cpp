@@ -471,7 +471,7 @@ private:
 
       Request* request;
       JS::Rooted<JSObject*> requestObj(aCx, &val.toObject());
-      if (NS_WARN_IF(NS_FAILED(UNWRAP_OBJECT(Request, requestObj, request)))) {
+      if (NS_WARN_IF(NS_FAILED(UNWRAP_OBJECT(Request, &requestObj, request)))) {
         return;
       };
 
@@ -508,7 +508,7 @@ private:
     }
 
     Cache* cache = nullptr;
-    rv = UNWRAP_OBJECT(Cache, obj, cache);
+    rv = UNWRAP_OBJECT(Cache, &obj, cache);
     if (NS_WARN_IF(NS_FAILED(rv))) {
       return;
     }
@@ -1122,7 +1122,7 @@ CompareCache::ManageValueResult(JSContext* aCx, JS::Handle<JS::Value> aValue)
   }
 
   Response* response = nullptr;
-  nsresult rv = UNWRAP_OBJECT(Response, obj, response);
+  nsresult rv = UNWRAP_OBJECT(Response, &obj, response);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     Finish(rv, false);
     return;
