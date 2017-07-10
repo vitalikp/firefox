@@ -1287,7 +1287,7 @@ GetPrincipalOrSOP(JSContext* cx, HandleObject from, nsISupports** out)
     MOZ_ASSERT(out);
     *out = nullptr;
 
-    nsISupports* native = xpc::UnwrapReflectorToISupports(from);
+    nsCOMPtr<nsISupports> native = xpc::UnwrapReflectorToISupports(from);
 
     if (nsCOMPtr<nsIScriptObjectPrincipal> sop = do_QueryInterface(native)) {
         sop.forget(out);
