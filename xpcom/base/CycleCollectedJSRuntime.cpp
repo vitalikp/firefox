@@ -505,7 +505,7 @@ CycleCollectedJSRuntime::CycleCollectedJSRuntime(JSContext* aCx)
   , mJSRuntime(JS_GetRuntime(aCx))
   , mPrevGCSliceCallback(nullptr)
   , mPrevGCNurseryCollectionCallback(nullptr)
-  , mJSHolders(256)
+  , mJSHolderMap(256)
   , mOutOfMemoryState(OOMState::OK)
   , mLargeAllocationFailureState(OOMState::OK)
 {
@@ -579,7 +579,8 @@ CycleCollectedJSRuntime::SizeOfExcludingThis(MallocSizeOf aMallocSizeOf) const
 
   // We're deliberately not measuring anything hanging off the entries in
   // mJSHolders.
-  n += mJSHolders.ShallowSizeOfExcludingThis(aMallocSizeOf);
+  n += mJSHolders.SizeOfExcludingThis(aMallocSizeOf);
+  n += mJSHolderMap.ShallowSizeOfExcludingThis(aMallocSizeOf);
 
   return n;
 }
@@ -588,8 +589,8 @@ void
 CycleCollectedJSRuntime::UnmarkSkippableJSHolders()
 {
   for (auto iter = mJSHolders.Iter(); !iter.Done(); iter.Next()) {
-    void* holder = iter.Key();
-    nsScriptObjectTracer*& tracer = iter.Data();
+    void* holder = iter.Get().mHolder;
+    nsScriptObjectTracer* tracer = iter.Get().mTracer;
     tracer->CanSkip(holder, true);
   }
 }
@@ -768,8 +769,8 @@ CycleCollectedJSRuntime::TraverseNativeRoots(nsCycleCollectionNoteRootCallback& 
   TraverseAdditionalNativeRoots(aCb);
 
   for (auto iter = mJSHolders.Iter(); !iter.Done(); iter.Next()) {
-    void* holder = iter.Key();
-    nsScriptObjectTracer*& tracer = iter.Data();
+    void* holder = iter.Get().mHolder;
+    nsScriptObjectTracer* tracer = iter.Get().mTracer;
 
     bool noteRoot = false;
     if (MOZ_UNLIKELY(aCb.WantAllTraces())) {
@@ -1028,8 +1029,8 @@ CycleCollectedJSRuntime::TraceNativeGrayRoots(JSTracer* aTracer)
   TraceAdditionalNativeGrayRoots(aTracer);
 
   for (auto iter = mJSHolders.Iter(); !iter.Done(); iter.Next()) {
-    void* holder = iter.Key();
-    nsScriptObjectTracer*& tracer = iter.Data();
+    void* holder = iter.Get().mHolder;
+    nsScriptObjectTracer* tracer = iter.Get().mTracer;
     tracer->Trace(holder, JsGcTracer(), aTracer);
   }
 }
@@ -1037,7 +1038,15 @@ CycleCollectedJSRuntime::TraceNativeGrayRoots(JSTracer* aTracer)
 void
 CycleCollectedJSRuntime::AddJSHolder(void* aHolder, nsScriptObjectTracer* aTracer)
 {
-  mJSHolders.Put(aHolder, aTracer);
+  JSHolderInfo* info = nullptr;
+  if (mJSHolderMap.Get(aHolder, &info)) {
+    MOZ_ASSERT(info->mHolder == aHolder);
+    info->mTracer = aTracer;
+    return;
+  }
+
+  mJSHolders.InfallibleAppend(JSHolderInfo {aHolder, aTracer});
+  mJSHolderMap.Put(aHolder, &mJSHolders.GetLast());
 }
 
 struct ClearJSHolder : public TraceCallbacks
@@ -1087,9 +1096,19 @@ struct ClearJSHolder : public TraceCallbacks
 void
 CycleCollectedJSRuntime::RemoveJSHolder(void* aHolder)
 {
-  if (auto entry = mJSHolders.Lookup(aHolder)) {
-    entry.Data()->Trace(aHolder, ClearJSHolder(), nullptr);
-    entry.Remove();
+  JSHolderInfo* info = nullptr;
+  if (mJSHolderMap.Get(aHolder, &info)) {
+    MOZ_ASSERT(info->mHolder == aHolder);
+    info->mTracer->Trace(aHolder, ClearJSHolder(), nullptr);
+
+    JSHolderInfo* lastInfo = &mJSHolders.GetLast();
+    if (info != lastInfo) {
+      *info = *lastInfo;
+      mJSHolderMap.Put(info->mHolder, info);
+    }
+
+    mJSHolders.PopLast();
+    mJSHolderMap.Remove(aHolder);
   }
 }
 
@@ -1097,7 +1116,7 @@ CycleCollectedJSRuntime::RemoveJSHolder(void* aHolder)
 bool
 CycleCollectedJSRuntime::IsJSHolder(void* aHolder)
 {
-  return mJSHolders.Get(aHolder, nullptr);
+  return mJSHolderMap.Get(aHolder, nullptr);
 }
 
 static void
@@ -1109,10 +1128,13 @@ AssertNoGcThing(JS::GCCellPtr aGCThing, const char* aName, void* aClosure)
 void
 CycleCollectedJSRuntime::AssertNoObjectsToTrace(void* aPossibleJSHolder)
 {
-  nsScriptObjectTracer* tracer = mJSHolders.Get(aPossibleJSHolder);
-  if (tracer) {
-    tracer->Trace(aPossibleJSHolder, TraceCallbackFunc(AssertNoGcThing), nullptr);
+  JSHolderInfo* info = nullptr;
+  if (!mJSHolderMap.Get(aPossibleJSHolder, &info)) {
+    return;
   }
+
+  MOZ_ASSERT(info->mHolder == aPossibleJSHolder);
+  info->mTracer->Trace(aPossibleJSHolder, TraceCallbackFunc(AssertNoGcThing), nullptr);
 }
 #endif
 
