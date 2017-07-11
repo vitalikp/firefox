@@ -350,7 +350,7 @@ HTMLEditRules::BeforeEdit(EditAction action,
     if (NS_WARN_IF(!selection) || !selection->RangeCount()) {
       return NS_ERROR_UNEXPECTED;
     }
-    mRangeItem->startNode = selection->GetRangeAt(0)->GetStartParent();
+    mRangeItem->startNode = selection->GetRangeAt(0)->GetStartContainer();
     mRangeItem->startOffset = selection->GetRangeAt(0)->StartOffset();
     mRangeItem->endNode = selection->GetRangeAt(0)->GetEndParent();
     mRangeItem->endOffset = selection->GetRangeAt(0)->EndOffset();
@@ -611,7 +611,7 @@ HTMLEditRules::WillDoAction(Selection* aSelection,
   NS_ENSURE_TRUE(aSelection->RangeCount(), NS_OK);
 
   RefPtr<nsRange> range = aSelection->GetRangeAt(0);
-  nsCOMPtr<nsINode> selStartNode = range->GetStartParent();
+  nsCOMPtr<nsINode> selStartNode = range->GetStartContainer();
 
   NS_ENSURE_STATE(mHTMLEditor);
   if (!mHTMLEditor->IsModifiableNode(selStartNode)) {
@@ -849,8 +849,9 @@ HTMLEditRules::GetAlignment(bool* aMixed,
                        root->GetParentNode()->IndexOf(root) : -1;
 
   NS_ENSURE_STATE(selection->GetRangeAt(0) &&
-                  selection->GetRangeAt(0)->GetStartParent());
-  OwningNonNull<nsINode> parent = *selection->GetRangeAt(0)->GetStartParent();
+                  selection->GetRangeAt(0)->GetStartContainer());
+  OwningNonNull<nsINode> parent =
+    *selection->GetRangeAt(0)->GetStartContainer();
   int32_t offset = selection->GetRangeAt(0)->StartOffset();
 
   // Is the selection collapsed?
@@ -1213,8 +1214,9 @@ HTMLEditRules::WillInsert(Selection& aSelection,
   // If we are after a mozBR in the same block, then move selection to be
   // before it
   NS_ENSURE_TRUE_VOID(aSelection.GetRangeAt(0) &&
-                      aSelection.GetRangeAt(0)->GetStartParent());
-  OwningNonNull<nsINode> selNode = *aSelection.GetRangeAt(0)->GetStartParent();
+                      aSelection.GetRangeAt(0)->GetStartContainer());
+  OwningNonNull<nsINode> selNode =
+    *aSelection.GetRangeAt(0)->GetStartContainer();
   int32_t selOffset = aSelection.GetRangeAt(0)->StartOffset();
 
   // Get prior node
@@ -1291,7 +1293,7 @@ HTMLEditRules::WillInsertText(EditAction aAction,
   // get the (collapsed) selection location
   NS_ENSURE_STATE(mHTMLEditor);
   NS_ENSURE_STATE(aSelection->GetRangeAt(0));
-  nsCOMPtr<nsINode> selNode = aSelection->GetRangeAt(0)->GetStartParent();
+  nsCOMPtr<nsINode> selNode = aSelection->GetRangeAt(0)->GetStartContainer();
   int32_t selOffset = aSelection->GetRangeAt(0)->StartOffset();
   NS_ENSURE_STATE(selNode);
 
@@ -1520,9 +1522,9 @@ HTMLEditRules::WillInsertBreak(Selection& aSelection,
 
   // Smart splitting rules
   NS_ENSURE_TRUE(aSelection.GetRangeAt(0) &&
-                 aSelection.GetRangeAt(0)->GetStartParent(),
+                 aSelection.GetRangeAt(0)->GetStartContainer(),
                  NS_ERROR_FAILURE);
-  OwningNonNull<nsINode> node = *aSelection.GetRangeAt(0)->GetStartParent();
+  OwningNonNull<nsINode> node = *aSelection.GetRangeAt(0)->GetStartContainer();
   int32_t offset = aSelection.GetRangeAt(0)->StartOffset();
 
   // Do nothing if the node is read-only
@@ -1571,10 +1573,10 @@ HTMLEditRules::WillInsertBreak(Selection& aSelection,
 
     // Reinitialize node/offset in case they're not inside the new block
     if (NS_WARN_IF(!aSelection.GetRangeAt(0) ||
-                   !aSelection.GetRangeAt(0)->GetStartParent())) {
+                   !aSelection.GetRangeAt(0)->GetStartContainer())) {
       return NS_ERROR_FAILURE;
     }
-    node = *aSelection.GetRangeAt(0)->GetStartParent();
+    node = *aSelection.GetRangeAt(0)->GetStartContainer();
     offset = aSelection.GetRangeAt(0)->StartOffset();
 
     blockParent = mHTMLEditor->GetBlock(node);
@@ -1927,7 +1929,7 @@ HTMLEditRules::WillDeleteSelection(Selection* aSelection,
   int32_t selOffset;
 
   NS_ENSURE_STATE(aSelection->GetRangeAt(0));
-  nsCOMPtr<nsINode> startNode = aSelection->GetRangeAt(0)->GetStartParent();
+  nsCOMPtr<nsINode> startNode = aSelection->GetRangeAt(0)->GetStartContainer();
   int32_t startOffset = aSelection->GetRangeAt(0)->StartOffset();
   NS_ENSURE_TRUE(startNode, NS_ERROR_FAILURE);
 
@@ -1961,7 +1963,7 @@ HTMLEditRules::WillDeleteSelection(Selection* aSelection,
 
     // ExtendSelectionForDelete() may have changed the selection, update it
     NS_ENSURE_STATE(aSelection->GetRangeAt(0));
-    startNode = aSelection->GetRangeAt(0)->GetStartParent();
+    startNode = aSelection->GetRangeAt(0)->GetStartContainer();
     startOffset = aSelection->GetRangeAt(0)->StartOffset();
     NS_ENSURE_TRUE(startNode, NS_ERROR_FAILURE);
 
@@ -2033,7 +2035,7 @@ HTMLEditRules::WillDeleteSelection(Selection* aSelection,
         RefPtr<nsRange> range = aSelection->GetRangeAt(0);
         NS_ENSURE_STATE(range);
 
-        NS_ASSERTION(range->GetStartParent() == visNode,
+        NS_ASSERTION(range->GetStartContainer() == visNode,
                      "selection start not in visNode");
         NS_ASSERTION(range->GetEndParent() == visNode,
                      "selection end not in visNode");
@@ -2361,7 +2363,7 @@ HTMLEditRules::WillDeleteSelection(Selection* aSelection,
 
   // Refresh start and end points
   NS_ENSURE_STATE(aSelection->GetRangeAt(0));
-  startNode = aSelection->GetRangeAt(0)->GetStartParent();
+  startNode = aSelection->GetRangeAt(0)->GetStartContainer();
   startOffset = aSelection->GetRangeAt(0)->StartOffset();
   NS_ENSURE_TRUE(startNode, NS_ERROR_FAILURE);
   nsCOMPtr<nsINode> endNode = aSelection->GetRangeAt(0)->GetEndParent();
@@ -3220,7 +3222,7 @@ HTMLEditRules::WillMakeList(Selection* aSelection,
 
     // get selection location
     NS_ENSURE_STATE(aSelection->RangeCount());
-    nsCOMPtr<nsINode> parent = aSelection->GetRangeAt(0)->GetStartParent();
+    nsCOMPtr<nsINode> parent = aSelection->GetRangeAt(0)->GetStartContainer();
     int32_t offset = aSelection->GetRangeAt(0)->StartOffset();
     NS_ENSURE_STATE(parent);
 
@@ -3565,9 +3567,9 @@ HTMLEditRules::MakeBasicBlock(Selection& aSelection, nsIAtom& blockType)
   if (ListIsEmptyLine(arrayOfNodes)) {
     // Get selection location
     NS_ENSURE_STATE(aSelection.GetRangeAt(0) &&
-                    aSelection.GetRangeAt(0)->GetStartParent());
+                    aSelection.GetRangeAt(0)->GetStartContainer());
     OwningNonNull<nsINode> parent =
-      *aSelection.GetRangeAt(0)->GetStartParent();
+      *aSelection.GetRangeAt(0)->GetStartContainer();
     int32_t offset = aSelection.GetRangeAt(0)->StartOffset();
 
     if (&blockType == nsGkAtoms::normal ||
@@ -3662,9 +3664,9 @@ HTMLEditRules::DidMakeBasicBlock(Selection* aSelection,
   }
 
   NS_ENSURE_STATE(aSelection->GetRangeAt(0) &&
-                  aSelection->GetRangeAt(0)->GetStartParent());
+                  aSelection->GetRangeAt(0)->GetStartContainer());
   nsresult rv =
-    InsertMozBRIfNeeded(*aSelection->GetRangeAt(0)->GetStartParent());
+    InsertMozBRIfNeeded(*aSelection->GetRangeAt(0)->GetStartContainer());
   NS_ENSURE_SUCCESS(rv, rv);
   return NS_OK;
 }
@@ -3745,7 +3747,7 @@ HTMLEditRules::WillCSSIndent(Selection* aSelection,
   if (ListIsEmptyLine(arrayOfNodes)) {
     // get selection location
     NS_ENSURE_STATE(aSelection->RangeCount());
-    nsCOMPtr<nsINode> parent = aSelection->GetRangeAt(0)->GetStartParent();
+    nsCOMPtr<nsINode> parent = aSelection->GetRangeAt(0)->GetStartContainer();
     int32_t offset = aSelection->GetRangeAt(0)->StartOffset();
     NS_ENSURE_STATE(parent);
 
@@ -3932,7 +3934,7 @@ HTMLEditRules::WillHTMLIndent(Selection* aSelection,
   if (ListIsEmptyLine(arrayOfNodes)) {
     // get selection location
     NS_ENSURE_STATE(aSelection->RangeCount());
-    nsCOMPtr<nsINode> parent = aSelection->GetRangeAt(0)->GetStartParent();
+    nsCOMPtr<nsINode> parent = aSelection->GetRangeAt(0)->GetStartContainer();
     int32_t offset = aSelection->GetRangeAt(0)->StartOffset();
     NS_ENSURE_STATE(parent);
 
@@ -4353,7 +4355,8 @@ HTMLEditRules::WillOutdent(Selection& aSelection,
     if (aSelection.Collapsed()) {
       // Push selection past end of rememberedLeftBQ
       NS_ENSURE_TRUE(aSelection.GetRangeAt(0), NS_OK);
-      nsCOMPtr<nsINode> startNode = aSelection.GetRangeAt(0)->GetStartParent();
+      nsCOMPtr<nsINode> startNode =
+        aSelection.GetRangeAt(0)->GetStartContainer();
       int32_t startOffset = aSelection.GetRangeAt(0)->StartOffset();
       if (rememberedLeftBQ &&
           (startNode == rememberedLeftBQ ||
@@ -4364,7 +4367,7 @@ HTMLEditRules::WillOutdent(Selection& aSelection,
         aSelection.Collapse(startNode, startOffset);
       }
       // And pull selection before beginning of rememberedRightBQ
-      startNode = aSelection.GetRangeAt(0)->GetStartParent();
+      startNode = aSelection.GetRangeAt(0)->GetStartContainer();
       startOffset = aSelection.GetRangeAt(0)->StartOffset();
       if (rememberedRightBQ &&
           (startNode == rememberedRightBQ ||
@@ -4532,7 +4535,7 @@ HTMLEditRules::CreateStyleForInsertText(Selection& aSelection,
 
   bool weDidSomething = false;
   NS_ENSURE_STATE(aSelection.GetRangeAt(0));
-  nsCOMPtr<nsINode> node = aSelection.GetRangeAt(0)->GetStartParent();
+  nsCOMPtr<nsINode> node = aSelection.GetRangeAt(0)->GetStartContainer();
   int32_t offset = aSelection.GetRangeAt(0)->StartOffset();
 
   // next examine our present style and make sure default styles are either
@@ -4718,9 +4721,9 @@ HTMLEditRules::WillAlign(Selection& aSelection,
       // can be empty?  We should probably revisit this issue. - kin
 
       NS_ENSURE_STATE(aSelection.GetRangeAt(0) &&
-                      aSelection.GetRangeAt(0)->GetStartParent());
+                      aSelection.GetRangeAt(0)->GetStartContainer());
       OwningNonNull<nsINode> parent =
-        *aSelection.GetRangeAt(0)->GetStartParent();
+        *aSelection.GetRangeAt(0)->GetStartContainer();
 
       emptyDiv = !HTMLEditUtils::IsTableElement(parent) ||
                  HTMLEditUtils::IsTableCellOrCaption(parent);
@@ -4728,7 +4731,7 @@ HTMLEditRules::WillAlign(Selection& aSelection,
   }
   if (emptyDiv) {
     nsCOMPtr<nsINode> parent =
-      aSelection.GetRangeAt(0) ? aSelection.GetRangeAt(0)->GetStartParent()
+      aSelection.GetRangeAt(0) ? aSelection.GetRangeAt(0)->GetStartContainer()
                                : nullptr;
     NS_ENSURE_STATE(parent);
     int32_t offset = aSelection.GetRangeAt(0)->StartOffset();
@@ -5162,7 +5165,7 @@ HTMLEditRules::ExpandSelectionForDeletion(Selection& aSelection)
   NS_ENSURE_TRUE(aSelection.GetRangeAt(0), NS_ERROR_NULL_POINTER);
   OwningNonNull<nsRange> range = *aSelection.GetRangeAt(0);
 
-  nsCOMPtr<nsINode> selStartNode = range->GetStartParent();
+  nsCOMPtr<nsINode> selStartNode = range->GetStartContainer();
   int32_t selStartOffset = range->StartOffset();
   nsCOMPtr<nsINode> selEndNode = range->GetEndParent();
   int32_t selEndOffset = range->EndOffset();
@@ -5664,7 +5667,7 @@ HTMLEditRules::PromoteRange(nsRange& aRange,
     return;
   }
 
-  nsCOMPtr<nsINode> startNode = aRange.GetStartParent();
+  nsCOMPtr<nsINode> startNode = aRange.GetStartContainer();
   nsCOMPtr<nsINode> endNode = aRange.GetEndParent();
   int32_t startOffset = aRange.StartOffset();
   int32_t endOffset = aRange.EndOffset();
@@ -7258,7 +7261,7 @@ HTMLEditRules::ReapplyCachedStyles()
     return NS_OK;
   }
   nsCOMPtr<nsIContent> selNode =
-    do_QueryInterface(selection->GetRangeAt(0)->GetStartParent());
+    do_QueryInterface(selection->GetRangeAt(0)->GetStartContainer());
   if (!selNode) {
     // Nothing to do
     return NS_OK;
@@ -7445,8 +7448,9 @@ HTMLEditRules::CheckInterlinePosition(Selection& aSelection)
 
   // Get the (collapsed) selection location
   NS_ENSURE_TRUE_VOID(aSelection.GetRangeAt(0) &&
-                      aSelection.GetRangeAt(0)->GetStartParent());
-  OwningNonNull<nsINode> selNode = *aSelection.GetRangeAt(0)->GetStartParent();
+                      aSelection.GetRangeAt(0)->GetStartContainer());
+  OwningNonNull<nsINode> selNode =
+    *aSelection.GetRangeAt(0)->GetStartContainer();
   int32_t selOffset = aSelection.GetRangeAt(0)->StartOffset();
 
   // First, let's check to see if we are after a <br>.  We take care of this
@@ -8707,9 +8711,9 @@ HTMLEditRules::WillAbsolutePosition(Selection& aSelection,
   if (ListIsEmptyLine(arrayOfNodes)) {
     // Get selection location
     NS_ENSURE_STATE(aSelection.GetRangeAt(0) &&
-                    aSelection.GetRangeAt(0)->GetStartParent());
+                    aSelection.GetRangeAt(0)->GetStartContainer());
     OwningNonNull<nsINode> parent =
-      *aSelection.GetRangeAt(0)->GetStartParent();
+      *aSelection.GetRangeAt(0)->GetStartContainer();
     int32_t offset = aSelection.GetRangeAt(0)->StartOffset();
 
     // Make sure we can put a block here

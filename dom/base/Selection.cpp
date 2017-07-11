@@ -401,11 +401,11 @@ void printRange(nsRange *aDomRange)
   {
     printf("NULL nsIDOMRange\n");
   }
-  nsINode* startNode = aDomRange->GetStartParent();
+  nsINode* startNode = aDomRange->GetStartContainer();
   nsINode* endNode = aDomRange->GetEndParent();
   int32_t startOffset = aDomRange->StartOffset();
   int32_t endOffset = aDomRange->EndOffset();
-  
+
   printf("range: 0x%lx\t start: 0x%lx %ld, \t end: 0x%lx,%ld\n",
          (unsigned long)aDomRange,
          (unsigned long)startNode, (long)startOffset,
@@ -593,7 +593,7 @@ Selection::GetTableCellLocationFromRange(nsRange* aRange,
   // Get the child content (the cell) pointed to by starting node of range
   // We do minimal checking since GetTableSelectionType assures
   //   us that this really is a table cell
-  nsCOMPtr<nsIContent> content = do_QueryInterface(aRange->GetStartParent());
+  nsCOMPtr<nsIContent> content = do_QueryInterface(aRange->GetStartContainer());
   if (!content)
     return NS_ERROR_FAILURE;
 
@@ -659,15 +659,15 @@ Selection::GetTableSelectionType(nsIDOMRange* aDOMRange,
   if (!aDOMRange || !aTableSelectionType)
     return NS_ERROR_NULL_POINTER;
   nsRange* range = static_cast<nsRange*>(aDOMRange);
-  
+
   *aTableSelectionType = nsISelectionPrivate::TABLESELECTION_NONE;
- 
+
   // Must have access to frame selection to get cell info
   if(!mFrameSelection) return NS_OK;
 
-  nsINode* startNode = range->GetStartParent();
+  nsINode* startNode = range->GetStartContainer();
   if (!startNode) return NS_ERROR_FAILURE;
-  
+
   nsINode* endNode = range->GetEndParent();
   if (!endNode) return NS_ERROR_FAILURE;
 
@@ -816,9 +816,9 @@ Selection::GetAnchorNode()
 {
   if (!mAnchorFocusRange)
     return nullptr;
-   
+
   if (GetDirection() == eDirNext) {
-    return mAnchorFocusRange->GetStartParent();
+    return mAnchorFocusRange->GetStartContainer();
   }
 
   return mAnchorFocusRange->GetEndParent();
@@ -854,7 +854,7 @@ Selection::GetFocusNode()
     return mAnchorFocusRange->GetEndParent();
   }
 
-  return mAnchorFocusRange->GetStartParent();
+  return mAnchorFocusRange->GetStartContainer();
 }
 
 NS_IMETHODIMP
@@ -908,7 +908,7 @@ static nsresult
 CompareToRangeStart(nsINode* aCompareNode, int32_t aCompareOffset,
                     nsRange* aRange, int32_t* aCmp)
 {
-  nsINode* start = aRange->GetStartParent();
+  nsINode* start = aRange->GetStartContainer();
   NS_ENSURE_STATE(aCompareNode && start);
   // If the nodes that we're comparing are not in the same document,
   // assume that aCompareNode will fall at the end of the ranges.
@@ -1000,7 +1000,7 @@ Selection::SubtractRange(RangeData* aRange, nsRange* aSubtract,
 
   // First we want to compare to the range start
   int32_t cmp;
-  nsresult rv = CompareToRangeStart(range->GetStartParent(),
+  nsresult rv = CompareToRangeStart(range->GetStartContainer(),
                                     range->StartOffset(),
                                     aSubtract, &cmp);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1037,10 +1037,11 @@ Selection::SubtractRange(RangeData* aRange, nsRange* aSubtract,
   if (cmp < 0) {
     // We need to add a new RangeData to the output, running from
     // the start of the range to the start of aSubtract
-    RefPtr<nsRange> preOverlap = new nsRange(range->GetStartParent());
-    rv = preOverlap->SetStartAndEnd(
-                       range->GetStartParent(), range->StartOffset(),
-                       aSubtract->GetStartParent(), aSubtract->StartOffset());
+    RefPtr<nsRange> preOverlap = new nsRange(range->GetStartContainer());
+    rv = preOverlap->SetStartAndEnd(range->GetStartContainer(),
+                                    range->StartOffset(),
+                                    aSubtract->GetStartContainer(),
+                                    aSubtract->StartOffset());
     if (NS_WARN_IF(NS_FAILED(rv))) {
       return rv;
     }
@@ -1114,7 +1115,7 @@ Selection::AddItem(nsRange* aItem, int32_t* aOutIndex, bool aNoStartSelect)
         // pref, disabled by default.
         // See https://github.com/w3c/selection-api/issues/53.
         bool dispatchEvent = true;
-        nsCOMPtr<nsINode> target = aItem->GetStartParent();
+        nsCOMPtr<nsINode> target = aItem->GetStartContainer();
         if (nsFrameSelection::sSelectionEventsOnTextControlsEnabled) {
           // Get the first element which isn't in a native anonymous subtree
           while (target && target->IsInNativeAnonymousSubtree()) {
@@ -1190,7 +1191,7 @@ Selection::AddItemInternal(nsRange* aItem, int32_t* aOutIndex)
   }
 
   int32_t startIndex, endIndex;
-  nsresult rv = GetIndicesForInterval(aItem->GetStartParent(),
+  nsresult rv = GetIndicesForInterval(aItem->GetStartContainer(),
                                       aItem->StartOffset(),
                                       aItem->GetEndParent(),
                                       aItem->EndOffset(), false,
@@ -1210,10 +1211,10 @@ Selection::AddItemInternal(nsRange* aItem, int32_t* aOutIndex)
   }
 
   // If the range is already contained in mRanges, silently succeed
-  bool sameRange = EqualsRangeAtPoint(aItem->GetStartParent(),
-                                        aItem->StartOffset(),
-                                        aItem->GetEndParent(),
-                                        aItem->EndOffset(), startIndex);
+  bool sameRange = EqualsRangeAtPoint(aItem->GetStartContainer(),
+                                      aItem->StartOffset(),
+                                      aItem->GetEndParent(),
+                                      aItem->EndOffset(), startIndex);
   if (sameRange) {
     *aOutIndex = startIndex;
     return NS_OK;
@@ -1257,7 +1258,7 @@ Selection::AddItemInternal(nsRange* aItem, int32_t* aOutIndex)
 
   // Insert the new element into our "leftovers" array
   int32_t insertionPoint;
-  rv = FindInsertionPoint(&temp, aItem->GetStartParent(),
+  rv = FindInsertionPoint(&temp, aItem->GetStartContainer(),
                           aItem->StartOffset(), CompareToRangeStart,
                           &insertionPoint);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1358,7 +1359,8 @@ Selection::GetType(int16_t* aType)
 static inline bool
 RangeMatchesBeginPoint(nsRange* aRange, nsINode* aNode, int32_t aOffset)
 {
-  return aRange->GetStartParent() == aNode && aRange->StartOffset() == aOffset;
+  return aRange->GetStartContainer() == aNode &&
+         aRange->StartOffset() == aOffset;
 }
 
 static inline bool
@@ -1755,7 +1757,7 @@ Selection::SelectFrames(nsPresContext* aPresContext, nsRange* aRange,
 
   // Loop through the content iterator for each content node; for each text
   // node, call SetSelected on it:
-  nsINode* startNode = aRange->GetStartParent();
+  nsINode* startNode = aRange->GetStartContainer();
   nsIContent* startContent =
     startNode->IsContent() ? startNode->AsContent() : nullptr;
   if (!startContent) {
@@ -1896,7 +1898,7 @@ Selection::LookUpSelection(nsIContent* aContent, int32_t aContentOffset,
 
   for (uint32_t i = 0; i < overlappingRanges.Length(); i++) {
     nsRange* range = overlappingRanges[i];
-    nsINode* startNode = range->GetStartParent();
+    nsINode* startNode = range->GetStartContainer();
     nsINode* endNode = range->GetEndParent();
     int32_t startOffset = range->StartOffset();
     int32_t endOffset = range->EndOffset();
@@ -2342,7 +2344,7 @@ Selection::RemoveRange(nsRange& aRange, ErrorResult& aRv)
     return;
   }
 
-  nsINode* beginNode = aRange.GetStartParent();
+  nsINode* beginNode = aRange.GetStartContainer();
   nsINode* endNode = aRange.GetEndParent();
 
   if (!beginNode || !endNode) {
@@ -2579,7 +2581,7 @@ Selection::CollapseToStart(ErrorResult& aRv)
     int16_t reason = mFrameSelection->PopReason() | nsISelectionListener::COLLAPSETOSTART_REASON;
     mFrameSelection->PostReason(reason);
   }
-  nsINode* parent = firstRange->GetStartParent();
+  nsINode* parent = firstRange->GetStartContainer();
   if (!parent) {
     aRv.Throw(NS_ERROR_FAILURE);
     return;
@@ -2864,7 +2866,7 @@ Selection::Extend(nsINode& aParentNode, uint32_t aOffset, ErrorResult& aRv)
 
   RefPtr<nsRange> range = mAnchorFocusRange->CloneRange();
 
-  nsINode* startNode = range->GetStartParent();
+  nsINode* startNode = range->GetStartContainer();
   nsINode* endNode = range->GetEndParent();
   int32_t startOffset = range->StartOffset();
   int32_t endOffset = range->EndOffset();
@@ -3021,7 +3023,7 @@ Selection::Extend(nsINode& aParentNode, uint32_t aOffset, ErrorResult& aRv)
       return;
     }
     SelectFrames(presContext, difRange , false);
-    difRange->SetStart(range->GetStartParent(), range->StartOffset());
+    difRange->SetStart(range->GetStartContainer(), range->StartOffset());
     SelectFrames(presContext, difRange, true); // must reselect last node
   }
   else if (result3 >= 0 && result1 <= 0) {//2,a,1 or 2a,1 or 2,a1 or 2a1
@@ -3066,7 +3068,7 @@ Selection::Extend(nsINode& aParentNode, uint32_t aOffset, ErrorResult& aRv)
     }
     SetDirection(eDirPrevious);
     res = difRange->SetStartAndEnd(
-                      range->GetStartParent(), range->StartOffset(),
+                      range->GetStartContainer(), range->StartOffset(),
                       focusNode, focusOffset);
     if (NS_FAILED(res)) {
       aRv.Throw(res);
@@ -3245,9 +3247,11 @@ Selection::ContainsPoint(const nsPoint& aPoint)
   for (uint32_t i = 0; i < RangeCount(); i++) {
     nsRange* range = GetRangeAt(i);
     nsRange::CollectClientRectsAndText(&checker, nullptr, range,
-                                range->GetStartParent(), range->StartOffset(),
-                                range->GetEndParent(), range->EndOffset(),
-                                true, false);
+                                       range->GetStartContainer(),
+                                       range->StartOffset(),
+                                       range->GetEndParent(),
+                                       range->EndOffset(),
+                                       true, false);
     if (checker.MatchFound()) {
       return true;
     }
