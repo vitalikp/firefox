@@ -231,6 +231,8 @@ var ignoreFunctions = {
     "calloc" : true,
 
     "uint8 nsContentUtils::IsExpandedPrincipal(nsIPrincipal*)" : true,
+
+    "void mozilla::AutoProfilerLabel::~AutoProfilerLabel(int32)" : true,
 };
 
 function extraGCFunctions() {
