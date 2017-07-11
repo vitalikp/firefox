@@ -678,7 +678,7 @@ RangeItem::StoreRange(nsRange* aRange)
   MOZ_ASSERT(aRange);
   startNode = aRange->GetStartContainer();
   startOffset = aRange->StartOffset();
-  endNode = aRange->GetEndParent();
+  endNode = aRange->GetEndContainer();
   endOffset = aRange->EndOffset();
 }
 

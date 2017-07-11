@@ -4780,7 +4780,7 @@ PresShell::ClipListToRange(nsDisplayListBuilder *aBuilder,
     nsIContent* content = frame->GetContent();
     if (content) {
       bool atStart = (content == aRange->GetStartContainer());
-      bool atEnd = (content == aRange->GetEndParent());
+      bool atEnd = (content == aRange->GetEndContainer());
       if ((atStart || atEnd) && frame->IsTextFrame()) {
         int32_t frameStartOffset, frameEndOffset;
         frame->GetOffsets(frameStartOffset, frameEndOffset);
@@ -4877,7 +4877,7 @@ PresShell::CreateRangePaintInfo(nsIDOMRange* aRange,
   // frame, otherwise get the common ancestor of the two endpoints of the
   // range.
   nsINode* startParent = range->GetStartContainer();
-  nsINode* endParent = range->GetEndParent();
+  nsINode* endParent = range->GetEndContainer();
   nsIDocument* doc = startParent->GetComposedDoc();
   if (startParent == doc || endParent == doc) {
     ancestorFrame = rootFrame;
