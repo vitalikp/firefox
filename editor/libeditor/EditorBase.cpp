@@ -3774,14 +3774,14 @@ EditorBase::GetStartNodeAndOffset(Selection* aSelection,
 
 nsresult
 EditorBase::GetStartNodeAndOffset(Selection* aSelection,
-                                  nsINode** aStartNode,
+                                  nsINode** aStartContainer,
                                   int32_t* aStartOffset)
 {
   MOZ_ASSERT(aSelection);
-  MOZ_ASSERT(aStartNode);
+  MOZ_ASSERT(aStartContainer);
   MOZ_ASSERT(aStartOffset);
 
-  *aStartNode = nullptr;
+  *aStartContainer = nullptr;
   *aStartOffset = 0;
 
   if (!aSelection->RangeCount()) {
@@ -3793,7 +3793,7 @@ EditorBase::GetStartNodeAndOffset(Selection* aSelection,
 
   NS_ENSURE_TRUE(range->IsPositioned(), NS_ERROR_FAILURE);
 
-  NS_IF_ADDREF(*aStartNode = range->GetStartContainer());
+  NS_IF_ADDREF(*aStartContainer = range->GetStartContainer());
   *aStartOffset = range->StartOffset();
   return NS_OK;
 }
@@ -4624,14 +4624,14 @@ EditorBase::CreateTxnForDeleteRange(nsRange* aRangeToDelete,
 }
 
 nsresult
-EditorBase::CreateRange(nsIDOMNode* aStartParent,
+EditorBase::CreateRange(nsIDOMNode* aStartContainer,
                         int32_t aStartOffset,
                         nsIDOMNode* aEndParent,
                         int32_t aEndOffset,
                         nsRange** aRange)
 {
-  return nsRange::CreateRange(aStartParent, aStartOffset, aEndParent,
-                              aEndOffset, aRange);
+  return nsRange::CreateRange(aStartContainer, aStartOffset,
+                              aEndParent, aEndOffset, aRange);
 }
 
 nsresult
@@ -4774,7 +4774,7 @@ EditorBase::HandleInlineSpellCheck(EditAction action,
                                    Selection* aSelection,
                                    nsIDOMNode* previousSelectedNode,
                                    int32_t previousSelectedOffset,
-                                   nsIDOMNode* aStartNode,
+                                   nsIDOMNode* aStartContainer,
                                    int32_t aStartOffset,
                                    nsIDOMNode* aEndNode,
                                    int32_t aEndOffset)
@@ -4783,7 +4783,7 @@ EditorBase::HandleInlineSpellCheck(EditAction action,
   return mInlineSpellChecker ? mInlineSpellChecker->SpellCheckAfterEditorChange(
                                  (int32_t)action, aSelection,
                                  previousSelectedNode, previousSelectedOffset,
-                                 aStartNode, aStartOffset, aEndNode,
+                                 aStartContainer, aStartOffset, aEndNode,
                                  aEndOffset)
                              : NS_OK;
 }
