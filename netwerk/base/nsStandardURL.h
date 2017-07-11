@@ -171,7 +171,7 @@ protected:
                            const nsACString& newRef,
                            nsIURI** aClone);
     // Helper method that copies member variables from the source StandardURL
-    // if copyCached = true, it will also copy mFile and mHostA
+    // if copyCached = true, it will also copy mFile and mDisplayHost
     nsresult CopyMembers(nsStandardURL * source, RefHandlingEnum mode,
                          const nsACString& newRef,
                          bool copyCached = false);
@@ -282,9 +282,10 @@ private:
     // mFile is protected so subclasses can access it directly
 protected:
     nsCOMPtr<nsIFile>      mFile;  // cached result for nsIFileURL::GetFile
-    
+
 private:
-    char                  *mHostA; // cached result for nsIURI::GetHostA
+    // cached result for nsIURI::GetDisplayHost
+    nsCString              mDisplayHost;
 
     enum {
         eEncoding_Unknown,
@@ -292,11 +293,13 @@ private:
         eEncoding_UTF8
     };
 
-    uint32_t mHostEncoding    : 2; // eEncoding_xxx
     uint32_t mSpecEncoding    : 2; // eEncoding_xxx
     uint32_t mURLType         : 2; // nsIStandardURL::URLTYPE_xxx
     uint32_t mMutable         : 1; // nsIStandardURL::mutable
     uint32_t mSupportsFileURL : 1; // QI to nsIFileURL?
+    uint32_t mCheckedIfHostA  : 1; // If set to true, it means either that
+                                   // mDisplayHost has a been initialized, or
+                                   // that the hostname is not punycode
 
     // global objects.  don't use COMPtr as its destructor will cause a
     // coredump if we leak it.
