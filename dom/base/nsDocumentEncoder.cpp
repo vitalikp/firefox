@@ -956,8 +956,8 @@ nsDocumentEncoder::SerializeRangeToString(nsRange *aRange,
   NS_ENSURE_TRUE(startContainer, NS_ERROR_FAILURE);
   int32_t startOffset = aRange->StartOffset();
 
-  nsINode* endParent = aRange->GetEndContainer();
-  NS_ENSURE_TRUE(endParent, NS_ERROR_FAILURE);
+  nsINode* endContainer = aRange->GetEndContainer();
+  NS_ENSURE_TRUE(endContainer, NS_ERROR_FAILURE);
   int32_t endOffset = aRange->EndOffset();
 
   mStartDepth = mEndDepth = 0;
@@ -971,7 +971,7 @@ nsDocumentEncoder::SerializeRangeToString(nsRange *aRange,
   nsCOMPtr<nsIDOMNode> sp = do_QueryInterface(startContainer);
   nsContentUtils::GetAncestorsAndOffsets(sp, startOffset,
                                          &mStartNodes, &mStartOffsets);
-  nsCOMPtr<nsIDOMNode> ep = do_QueryInterface(endParent);
+  nsCOMPtr<nsIDOMNode> ep = do_QueryInterface(endContainer);
   nsContentUtils::GetAncestorsAndOffsets(ep, endOffset,
                                          &mEndNodes, &mEndOffsets);
 
@@ -984,7 +984,7 @@ nsDocumentEncoder::SerializeRangeToString(nsRange *aRange,
   rv = SerializeRangeContextStart(mCommonAncestors, aOutputString);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  if ((startContainer == endParent) && IsTextNode(startContainer)) {
+  if (startContainer == endContainer && IsTextNode(startContainer)) {
     if (mFlags & SkipInvisibleContent) {
       // Check that the parent is visible if we don't a frame.
       // IsVisibleNode() will do it when there's a frame.
