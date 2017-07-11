@@ -856,7 +856,7 @@ public:
                                       nsIDOMNode** outEndNode,
                                       int32_t* outEndOffset);
   static nsresult GetEndNodeAndOffset(Selection* aSelection,
-                                      nsINode** aEndNode,
+                                      nsINode** aEndContainer,
                                       int32_t* aEndOffset);
 #if DEBUG_JOE
   static void DumpNode(nsIDOMNode* aNode, int32_t indent = 0);
@@ -877,7 +877,7 @@ public:
    * Used by table cell selection methods.
    */
   nsresult CreateRange(nsIDOMNode* aStartContainer, int32_t aStartOffset,
-                       nsIDOMNode* aEndParent, int32_t aEndOffset,
+                       nsIDOMNode* aEndContainer, int32_t aEndOffset,
                        nsRange** aRange);
 
   /**
@@ -919,7 +919,7 @@ public:
                                   int32_t previousSelectedOffset,
                                   nsIDOMNode* aStartContainer,
                                   int32_t aStartOffset,
-                                  nsIDOMNode* aEndNode,
+                                  nsIDOMNode* aEndContainer,
                                   int32_t aEndOffset);
 
   virtual already_AddRefed<dom::EventTarget> GetDOMEventTarget() = 0;
