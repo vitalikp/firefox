@@ -40,8 +40,8 @@ public:
   NS_INLINE_DECL_CYCLE_COLLECTING_NATIVE_REFCOUNTING(RangeItem)
   NS_DECL_CYCLE_COLLECTION_NATIVE_CLASS(RangeItem)
 
-  nsCOMPtr<nsINode> startNode;
-  int32_t startOffset;
+  nsCOMPtr<nsINode> mStartContainer;
+  int32_t mStartOffset;
   nsCOMPtr<nsINode> endNode;
   int32_t endOffset;
 };
@@ -194,9 +194,9 @@ public:
     , mOffset(aOffset)
   {
     mRangeItem = new RangeItem();
-    mRangeItem->startNode = *mNode;
+    mRangeItem->mStartContainer = *mNode;
     mRangeItem->endNode = *mNode;
-    mRangeItem->startOffset = *mOffset;
+    mRangeItem->mStartOffset = *mOffset;
     mRangeItem->endOffset = *mOffset;
     mRangeUpdater.RegisterRangeItem(mRangeItem);
   }
@@ -209,9 +209,9 @@ public:
     , mOffset(aOffset)
   {
     mRangeItem = new RangeItem();
-    mRangeItem->startNode = do_QueryInterface(*mDOMNode);
+    mRangeItem->mStartContainer = do_QueryInterface(*mDOMNode);
     mRangeItem->endNode = do_QueryInterface(*mDOMNode);
-    mRangeItem->startOffset = *mOffset;
+    mRangeItem->mStartOffset = *mOffset;
     mRangeItem->endOffset = *mOffset;
     mRangeUpdater.RegisterRangeItem(mRangeItem);
   }
@@ -220,11 +220,11 @@ public:
   {
     mRangeUpdater.DropRangeItem(mRangeItem);
     if (mNode) {
-      *mNode = mRangeItem->startNode;
+      *mNode = mRangeItem->mStartContainer;
     } else {
-      *mDOMNode = GetAsDOMNode(mRangeItem->startNode);
+      *mDOMNode = GetAsDOMNode(mRangeItem->mStartContainer);
     }
-    *mOffset = mRangeItem->startOffset;
+    *mOffset = mRangeItem->mStartOffset;
   }
 };
 
