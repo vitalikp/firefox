@@ -3475,7 +3475,7 @@ GetBrandName(nsXPIDLString& brandName)
 
     if (bundle)
         bundle->GetStringFromName(
-            u"brandShortName",
+            "brandShortName",
             getter_Copies(brandName));
 
     if (brandName.IsEmpty())

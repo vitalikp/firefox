@@ -577,7 +577,7 @@ ImageDocument::OnLoadComplete(imgIRequest* aRequest, nsresult aStatus)
     NS_ConvertUTF8toUTF16 srcString(src);
     const char16_t* formatString[] = { srcString.get() };
     nsXPIDLString errorMsg;
-    mStringBundle->FormatStringFromName(u"InvalidImage", formatString, 1,
+    mStringBundle->FormatStringFromName("InvalidImage", formatString, 1,
                                         getter_Copies(errorMsg));
 
     mImageContent->SetAttr(kNameSpaceID_None, nsGkAtoms::alt, errorMsg, false);
@@ -791,12 +791,12 @@ ImageDocument::UpdateTitleAndCharset()
     ratioStr.AppendInt(NSToCoordFloor(GetRatio() * 100));
 
     const char16_t* formatString[1] = { ratioStr.get() };
-    mStringBundle->FormatStringFromName(u"ScaledImage",
+    mStringBundle->FormatStringFromName("ScaledImage",
                                         formatString, 1,
                                         getter_Copies(status));
   }
 
-  static const char* const formatNames[4] = 
+  static const char* const formatNames[4] =
   {
     "ImageTitleWithNeitherDimensionsNorFile",
     "ImageTitleWithoutDimensions",

@@ -991,11 +991,11 @@ nsWindowsShellService::SetDesktopBackground(nsIDOMElement* aElement,
   rv = bundleService->CreateBundle(SHELLSERVICE_PROPERTIES,
                                    getter_AddRefs(shellBundle));
   NS_ENSURE_SUCCESS(rv, rv);
- 
+
   // e.g. "Desktop Background.bmp"
   nsString fileLeafName;
   rv = shellBundle->GetStringFromName
-                      (u"desktopBackgroundLeafNameWin",
+                      ("desktopBackgroundLeafNameWin",
                        getter_Copies(fileLeafName));
   NS_ENSURE_SUCCESS(rv, rv);
 

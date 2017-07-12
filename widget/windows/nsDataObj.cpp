@@ -1009,7 +1009,7 @@ CreateFilenameFromTextW(nsString & aText, const wchar_t * aExtension,
 #define PAGEINFO_PROPERTIES "chrome://navigator/locale/pageInfo.properties"
 
 static bool
-GetLocalizedString(const char16_t * aName, nsXPIDLString & aString)
+GetLocalizedString(const char* aName, nsXPIDLString & aString)
 {
   nsCOMPtr<nsIStringBundleService> stringService =
     mozilla::services::GetStringBundleService();
@@ -1055,7 +1055,7 @@ nsDataObj :: GetFileDescriptorInternetShortcutA ( FORMATETC& aFE, STGMEDIUM& aST
   if (!CreateFilenameFromTextA(title, ".URL", 
                                fileGroupDescA->fgd[0].cFileName, NS_MAX_FILEDESCRIPTOR)) {
     nsXPIDLString untitled;
-    if (!GetLocalizedString(u"noPageTitle", untitled) ||
+    if (!GetLocalizedString("noPageTitle", untitled) ||
         !CreateFilenameFromTextA(untitled, ".URL", 
                                  fileGroupDescA->fgd[0].cFileName, NS_MAX_FILEDESCRIPTOR)) {
       strcpy(fileGroupDescA->fgd[0].cFileName, "Untitled.URL");
@@ -1096,7 +1096,7 @@ nsDataObj :: GetFileDescriptorInternetShortcutW ( FORMATETC& aFE, STGMEDIUM& aST
   if (!CreateFilenameFromTextW(title, L".URL",
                                fileGroupDescW->fgd[0].cFileName, NS_MAX_FILEDESCRIPTOR)) {
     nsXPIDLString untitled;
-    if (!GetLocalizedString(u"noPageTitle", untitled) ||
+    if (!GetLocalizedString("noPageTitle", untitled) ||
         !CreateFilenameFromTextW(untitled, L".URL",
                                  fileGroupDescW->fgd[0].cFileName, NS_MAX_FILEDESCRIPTOR)) {
       wcscpy(fileGroupDescW->fgd[0].cFileName, L"Untitled.URL");

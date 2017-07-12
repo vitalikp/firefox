@@ -286,7 +286,7 @@ nsCSPParser::logWarningErrorToConsole(uint32_t aSeverityFlag,
   CSPPARSERLOG(("nsCSPParser::logWarningErrorToConsole: %s", aProperty));
   // send console messages off to the context and let the context
   // deal with it (potentially messages need to be queued up)
-  mCSPContext->logToConsole(NS_ConvertUTF8toUTF16(aProperty).get(),
+  mCSPContext->logToConsole(aProperty,
                             aParams,
                             aParamsLength,
                             EmptyString(), // aSourceName

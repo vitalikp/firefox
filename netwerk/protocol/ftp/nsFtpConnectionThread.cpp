@@ -943,12 +943,13 @@ nsFtpState::R_syst() {
                                                       getter_AddRefs(bundle));
             if (NS_FAILED(rv))
                 return FTP_ERROR;
-            
+
             char16_t* ucs2Response = ToNewUnicode(mResponseMsg);
             const char16_t *formatStrings[1] = { ucs2Response };
 
             nsXPIDLString formattedString;
-            rv = bundle->FormatStringFromName(u"UnsupportedFTPServer", formatStrings, 1,
+            rv = bundle->FormatStringFromName("UnsupportedFTPServer",
+                                              formatStrings, 1,
                                               getter_Copies(formattedString));
             free(ucs2Response);
             if (NS_FAILED(rv))

@@ -116,7 +116,7 @@ public:
   static void TimerCallback(nsITimer* aTimer, void* aClosure);
 
   nsresult PrintErrorOnConsole(const char* aBundleURI,
-                               const char16_t* aError,
+                               const char* aError,
                                const char16_t** aFormatStrings,
                                uint32_t aFormatStringsLen);
   nsresult ConsoleError();
@@ -1265,7 +1265,7 @@ EventSourceImpl::SetReconnectionTimeout()
 
 nsresult
 EventSourceImpl::PrintErrorOnConsole(const char* aBundleURI,
-                                     const char16_t* aError,
+                                     const char* aError,
                                      const char16_t** aFormatStrings,
                                      uint32_t aFormatStringsLen)
 {
@@ -1328,11 +1328,11 @@ EventSourceImpl::ConsoleError()
 
   if (ReadyState() == CONNECTING) {
     rv = PrintErrorOnConsole("chrome://global/locale/appstrings.properties",
-                             u"connectionFailure",
+                             "connectionFailure",
                              formatStrings, ArrayLength(formatStrings));
   } else {
     rv = PrintErrorOnConsole("chrome://global/locale/appstrings.properties",
-                             u"netInterrupt",
+                             "netInterrupt",
                              formatStrings, ArrayLength(formatStrings));
   }
   NS_ENSURE_SUCCESS(rv, rv);
