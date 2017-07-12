@@ -3588,6 +3588,40 @@ CompareIRGenerator::tryAttachString(ValOperandId lhsId, ValOperandId rhsId)
 }
 
 bool
+CompareIRGenerator::tryAttachObject(ValOperandId lhsId, ValOperandId rhsId)
+{
+    MOZ_ASSERT(IsEqualityOp(op_));
+
+    if (!lhsVal_.isObject() || !rhsVal_.isObject())
+        return false;
+
+    ObjOperandId lhsObjId = writer.guardIsObject(lhsId);
+    ObjOperandId rhsObjId = writer.guardIsObject(rhsId);
+    writer.compareObjectResult(op_, lhsObjId, rhsObjId);
+    writer.returnFromIC();
+
+    trackAttached("Object");
+    return true;
+}
+
+bool
+CompareIRGenerator::tryAttachSymbol(ValOperandId lhsId, ValOperandId rhsId)
+{
+    MOZ_ASSERT(IsEqualityOp(op_));
+
+    if (!lhsVal_.isSymbol() || !rhsVal_.isSymbol())
+        return false;
+
+    SymbolOperandId lhsSymId = writer.guardIsSymbol(lhsId);
+    SymbolOperandId rhsSymId = writer.guardIsSymbol(rhsId);
+    writer.compareSymbolResult(op_, lhsSymId, rhsSymId);
+    writer.returnFromIC();
+
+    trackAttached("Symbol");
+    return true;
+}
+
+bool
 CompareIRGenerator::tryAttachStub()
 {
     MOZ_ASSERT(cacheKind_ == CacheKind::Compare);
@@ -3602,6 +3636,10 @@ CompareIRGenerator::tryAttachStub()
 
     if (IsEqualityOp(op_)) {
         if (tryAttachString(lhsId, rhsId))
+            return true;
+        if (tryAttachObject(lhsId, rhsId))
+            return true;
+        if (tryAttachSymbol(lhsId, rhsId))
             return true;
 
         trackNotAttached();
