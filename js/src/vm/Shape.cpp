@@ -1576,7 +1576,7 @@ PropertyTree::inlinedGetChild(JSContext* cx, Shape* parent, Handle<StackShape> c
         if (!zone->isGCSweepingOrCompacting() ||
             !IsAboutToBeFinalizedUnbarriered(&existingShape))
         {
-            if (existingShape->isMarked(gc::GRAY))
+            if (existingShape->isMarkedGray())
                 UnmarkGrayShapeRecursively(existingShape);
             return existingShape;
         }
@@ -1584,7 +1584,7 @@ PropertyTree::inlinedGetChild(JSContext* cx, Shape* parent, Handle<StackShape> c
          * The shape we've found is unreachable and due to be finalized, so
          * remove our weak reference to it and don't use it.
          */
-        MOZ_ASSERT(parent->isMarked());
+        MOZ_ASSERT(parent->isMarkedAny());
         parent->removeChild(existingShape);
     }
 
@@ -1617,7 +1617,7 @@ Shape::sweep()
      * reallocated, since allocating a cell in a zone that is being marked will
      * set the mark bit for that cell.
      */
-    if (parent && parent->isMarked()) {
+    if (parent && parent->isMarkedAny()) {
         if (inDictionary()) {
             if (parent->listp == &parent)
                 parent->listp = nullptr;

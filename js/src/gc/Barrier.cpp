@@ -33,13 +33,8 @@ RuntimeFromActiveCooperatingThreadIsHeapMajorCollecting(JS::shadow::Zone* shadow
 bool
 IsMarkedBlack(JSObject* obj)
 {
-    // Note: we assume conservatively that Nursery things will be live.
-    if (!obj->isTenured())
-        return true;
-
-    gc::TenuredCell& tenured = obj->asTenured();
-    return (tenured.isMarked(gc::BLACK) && !tenured.isMarked(gc::GRAY)) ||
-           tenured.arena()->allocatedDuringIncremental;
+    return obj->isMarkedBlack() ||
+           (obj->isTenured() && obj->asTenured().arena()->allocatedDuringIncremental);
 }
 
 bool

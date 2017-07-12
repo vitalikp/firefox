@@ -254,7 +254,9 @@ struct Cell
     MOZ_ALWAYS_INLINE const TenuredCell& asTenured() const;
     MOZ_ALWAYS_INLINE TenuredCell& asTenured();
 
-    MOZ_ALWAYS_INLINE bool isMarked(uint32_t color = BLACK) const;
+    MOZ_ALWAYS_INLINE bool isMarkedAny() const;
+    MOZ_ALWAYS_INLINE bool isMarkedBlack() const;
+    MOZ_ALWAYS_INLINE bool isMarkedGray() const;
 
     inline JSRuntime* runtimeFromActiveCooperatingThread() const;
 
@@ -294,7 +296,10 @@ class TenuredCell : public Cell
     static MOZ_ALWAYS_INLINE const TenuredCell* fromPointer(const void* ptr);
 
     // Mark bit management.
-    MOZ_ALWAYS_INLINE bool isMarked(uint32_t color = BLACK) const;
+    MOZ_ALWAYS_INLINE bool isMarkedAny() const;
+    MOZ_ALWAYS_INLINE bool isMarkedBlack() const;
+    MOZ_ALWAYS_INLINE bool isMarkedGray() const;
+
     // The return value indicates if the cell went from unmarked to marked.
     MOZ_ALWAYS_INLINE bool markIfUnmarked(uint32_t color = BLACK) const;
     MOZ_ALWAYS_INLINE void markBlack() const;
@@ -914,14 +919,16 @@ struct ChunkBitmap
         return *word & mask;
     }
 
-    MOZ_ALWAYS_INLINE MOZ_TSAN_BLACKLIST bool isMarked(const Cell* cell, uint32_t color) {
-        if (color == BLACK) {
-            return markBit(cell, ColorBit::BlackBit) ||
-                   markBit(cell, ColorBit::GrayOrBlackBit);
-        } else {
-            return !markBit(cell, ColorBit::BlackBit) &&
-                   markBit(cell, ColorBit::GrayOrBlackBit);
-        }
+    MOZ_ALWAYS_INLINE MOZ_TSAN_BLACKLIST bool isMarkedAny(const Cell* cell) {
+        return markBit(cell, ColorBit::BlackBit) || markBit(cell, ColorBit::GrayOrBlackBit);
+    }
+
+    MOZ_ALWAYS_INLINE MOZ_TSAN_BLACKLIST bool isMarkedBlack(const Cell* cell) {
+        return markBit(cell, ColorBit::BlackBit);
+    }
+
+    MOZ_ALWAYS_INLINE MOZ_TSAN_BLACKLIST bool isMarkedGray(const Cell* cell) {
+        return !markBit(cell, ColorBit::BlackBit) && markBit(cell, ColorBit::GrayOrBlackBit);
     }
 
     // The return value indicates if the cell went from unmarked to marked.
@@ -1177,14 +1184,21 @@ Cell::asTenured()
 }
 
 MOZ_ALWAYS_INLINE bool
-Cell::isMarked(uint32_t color) const
+Cell::isMarkedAny() const
 {
-    if (color == BLACK) {
-        return !isTenured() || asTenured().isMarked(BLACK);
-    } else {
-        MOZ_ASSERT(color == GRAY);
-        return isTenured() && asTenured().isMarked(GRAY);
-    }
+    return !isTenured() || asTenured().isMarkedAny();
+}
+
+MOZ_ALWAYS_INLINE bool
+Cell::isMarkedBlack() const
+{
+    return !isTenured() || asTenured().isMarkedBlack();
+}
+
+MOZ_ALWAYS_INLINE bool
+Cell::isMarkedGray() const
+{
+    return isTenured() && asTenured().isMarkedGray();
 }
 
 inline JSRuntime*
@@ -1259,11 +1273,24 @@ TenuredCell::fromPointer(const void* ptr)
 }
 
 bool
-TenuredCell::isMarked(uint32_t color /* = BLACK */) const
+TenuredCell::isMarkedAny() const
 {
     MOZ_ASSERT(arena()->allocated());
-    AssertValidColor(this, color);
-    return chunk()->bitmap.isMarked(this, color);
+    return chunk()->bitmap.isMarkedAny(this);
+}
+
+bool
+TenuredCell::isMarkedBlack() const
+{
+    MOZ_ASSERT(arena()->allocated());
+    return chunk()->bitmap.isMarkedBlack(this);
+}
+
+bool
+TenuredCell::isMarkedGray() const
+{
+    MOZ_ASSERT(arena()->allocated());
+    return chunk()->bitmap.isMarkedGray(this);
 }
 
 bool
@@ -1351,7 +1378,7 @@ TenuredCell::readBarrier(TenuredCell* thing)
         MOZ_ASSERT(tmp == thing);
     }
 
-    if (thing->isMarked(GRAY)) {
+    if (thing->isMarkedGray()) {
         // There shouldn't be anything marked grey unless we're on the active thread.
         MOZ_ASSERT(CurrentThreadCanAccessRuntime(thing->runtimeFromAnyThread()));
         if (!RuntimeFromActiveCooperatingThreadIsHeapMajorCollecting(shadowZone))

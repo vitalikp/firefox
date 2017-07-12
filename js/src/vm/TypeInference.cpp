@@ -2956,7 +2956,7 @@ ObjectGroup::maybeClearNewScriptOnOOM()
 {
     MOZ_ASSERT(zone()->isGCSweepingOrCompacting());
 
-    if (!isMarked())
+    if (!isMarkedAny())
         return;
 
     TypeNewScript* newScript = anyNewScript();
