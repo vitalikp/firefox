@@ -441,7 +441,7 @@ public:
 
   PS_GET(const Vector<std::string>&, Filters)
 
-  static ProfileBuffer* Buffer(PSLockRef) { return sInstance->mBuffer.get(); }
+  static ProfileBuffer& Buffer(PSLockRef) { return *sInstance->mBuffer.get(); }
 
   PS_GET_AND_SET(bool, IsPaused)
 
@@ -485,8 +485,8 @@ private:
   // Substrings of names of threads we want to profile.
   Vector<std::string> mFilters;
 
-  // The buffer into which all samples are recorded. Always used in conjunction
-  // with CorePS::m{Live,Dead}Threads.
+  // The buffer into which all samples are recorded. Always non-null. Always
+  // used in conjunction with CorePS::m{Live,Dead}Threads.
   const UniquePtr<ProfileBuffer> mBuffer;
 
   // The current sampler thread. This class is not responsible for destroying
@@ -656,15 +656,15 @@ public:
 };
 
 static void
-AddPseudoEntry(PSLockRef aLock, ProfileBuffer* aBuffer,
-               js::ProfileEntry& entry, NotNull<RacyThreadInfo*> aRacyInfo)
+AddPseudoEntry(PSLockRef aLock, NotNull<RacyThreadInfo*> aRacyInfo,
+               const js::ProfileEntry& entry, ProfileBuffer& aBuffer)
 {
   // WARNING: this function runs within the profiler's "critical section".
 
   MOZ_ASSERT(entry.kind() == js::ProfileEntry::Kind::CPP_NORMAL ||
              entry.kind() == js::ProfileEntry::Kind::JS_NORMAL);
 
-  aBuffer->AddEntry(ProfileBufferEntry::Label(entry.label()));
+  aBuffer.AddEntry(ProfileBufferEntry::Label(entry.label()));
 
   const char* dynamicString = entry.dynamicString();
   int lineno = -1;
@@ -681,7 +681,7 @@ AddPseudoEntry(PSLockRef aLock, ProfileBuffer* aBuffer,
     }
 
     // Store the string using one or more DynamicStringFragment entries.
-    aBuffer->AddDynamicStringEntry(dynamicString);
+    aBuffer.AddDynamicStringEntry(dynamicString);
     if (entry.isJs()) {
       JSScript* script = entry.script();
       if (script) {
@@ -704,10 +704,10 @@ AddPseudoEntry(PSLockRef aLock, ProfileBuffer* aBuffer,
   }
 
   if (lineno != -1) {
-    aBuffer->AddEntry(ProfileBufferEntry::LineNumber(lineno));
+    aBuffer.AddEntry(ProfileBufferEntry::LineNumber(lineno));
   }
 
-  aBuffer->AddEntry(ProfileBufferEntry::Category(int(entry.category())));
+  aBuffer.AddEntry(ProfileBufferEntry::Category(int(entry.category())));
 }
 
 // Setting MAX_NATIVE_FRAMES too high risks the unwinder wasting a lot of time
@@ -748,7 +748,7 @@ struct AutoWalkJSStack
 static void
 MergeStacksIntoProfile(PSLockRef aLock, bool aIsSynchronous,
                        const ThreadInfo& aThreadInfo, const Registers& aRegs,
-                       const NativeStack& aNativeStack, ProfileBuffer* aBuffer)
+                       const NativeStack& aNativeStack, ProfileBuffer& aBuffer)
 {
   // WARNING: this function runs within the profiler's "critical section".
 
@@ -768,7 +768,7 @@ MergeStacksIntoProfile(PSLockRef aLock, bool aIsSynchronous,
   uint32_t startBufferGen;
   startBufferGen = aIsSynchronous
                  ? UINT32_MAX
-                 : aBuffer->mGeneration;
+                 : aBuffer.mGeneration;
   uint32_t jsCount = 0;
   JS::ProfilingFrameIterator::Frame jsFrames[MAX_JS_FRAMES];
 
@@ -880,7 +880,7 @@ MergeStacksIntoProfile(PSLockRef aLock, bool aIsSynchronous,
       // Pseudo-frames with the CPP_MARKER_FOR_JS kind are just annotations and
       // should not be recorded in the profile.
       if (pseudoEntry.kind() != js::ProfileEntry::Kind::CPP_MARKER_FOR_JS) {
-        AddPseudoEntry(aLock, aBuffer, pseudoEntry, racyInfo);
+        AddPseudoEntry(aLock, racyInfo, pseudoEntry, aBuffer);
       }
       pseudoIndex++;
       continue;
@@ -906,12 +906,12 @@ MergeStacksIntoProfile(PSLockRef aLock, bool aIsSynchronous,
       // with stale JIT code return addresses.
       if (aIsSynchronous ||
           jsFrame.kind == JS::ProfilingFrameIterator::Frame_Wasm) {
-        aBuffer->AddEntry(ProfileBufferEntry::Label(""));
-        aBuffer->AddDynamicStringEntry(jsFrame.label);
+        aBuffer.AddEntry(ProfileBufferEntry::Label(""));
+        aBuffer.AddDynamicStringEntry(jsFrame.label);
       } else {
         MOZ_ASSERT(jsFrame.kind == JS::ProfilingFrameIterator::Frame_Ion ||
                    jsFrame.kind == JS::ProfilingFrameIterator::Frame_Baseline);
-        aBuffer->AddEntry(
+        aBuffer.AddEntry(
           ProfileBufferEntry::JitReturnAddr(jsFrames[jsIndex].returnAddress));
       }
 
@@ -924,7 +924,7 @@ MergeStacksIntoProfile(PSLockRef aLock, bool aIsSynchronous,
     if (nativeStackAddr) {
       MOZ_ASSERT(nativeIndex >= 0);
       void* addr = (void*)aNativeStack.mPCs[nativeIndex];
-      aBuffer->AddEntry(ProfileBufferEntry::NativeLeafAddr(addr));
+      aBuffer.AddEntry(ProfileBufferEntry::NativeLeafAddr(addr));
     }
     if (nativeIndex >= 0) {
       nativeIndex--;
@@ -936,9 +936,9 @@ MergeStacksIntoProfile(PSLockRef aLock, bool aIsSynchronous,
   // Do not do this for synchronous samples, which use their own
   // ProfileBuffers instead of the global one in CorePS.
   if (!aIsSynchronous && context) {
-    MOZ_ASSERT(aBuffer->mGeneration >= startBufferGen);
-    uint32_t lapCount = aBuffer->mGeneration - startBufferGen;
-    JS::UpdateJSContextProfilerSampleBufferGen(context, aBuffer->mGeneration,
+    MOZ_ASSERT(aBuffer.mGeneration >= startBufferGen);
+    uint32_t lapCount = aBuffer.mGeneration - startBufferGen;
+    JS::UpdateJSContextProfilerSampleBufferGen(context, aBuffer.mGeneration,
                                                lapCount);
   }
 }
@@ -1184,16 +1184,16 @@ static inline void
 DoSharedSample(PSLockRef aLock, bool aIsSynchronous,
                ThreadInfo& aThreadInfo, const TimeStamp& aNow,
                const Registers& aRegs, ProfileBuffer::LastSample* aLS,
-               ProfileBuffer* aBuffer)
+               ProfileBuffer& aBuffer)
 {
   // WARNING: this function runs within the profiler's "critical section".
 
   MOZ_RELEASE_ASSERT(ActivePS::Exists(aLock));
 
-  aBuffer->AddThreadIdEntry(aThreadInfo.ThreadId(), aLS);
+  aBuffer.AddThreadIdEntry(aThreadInfo.ThreadId(), aLS);
 
   TimeDuration delta = aNow - CorePS::ProcessStartTime();
-  aBuffer->AddEntry(ProfileBufferEntry::Time(delta.ToMilliseconds()));
+  aBuffer.AddEntry(ProfileBufferEntry::Time(delta.ToMilliseconds()));
 
   NativeStack nativeStack;
 #if defined(HAVE_NATIVE_UNWIND)
@@ -1209,7 +1209,7 @@ DoSharedSample(PSLockRef aLock, bool aIsSynchronous,
                            nativeStack, aBuffer);
 
     if (ActivePS::FeatureLeaf(aLock)) {
-      aBuffer->AddEntry(ProfileBufferEntry::NativeLeafAddr((void*)aRegs.mPC));
+      aBuffer.AddEntry(ProfileBufferEntry::NativeLeafAddr((void*)aRegs.mPC));
     }
   }
 }
@@ -1217,7 +1217,7 @@ DoSharedSample(PSLockRef aLock, bool aIsSynchronous,
 // Writes the components of a synchronous sample to the given ProfileBuffer.
 static void
 DoSyncSample(PSLockRef aLock, ThreadInfo& aThreadInfo, const TimeStamp& aNow,
-             const Registers& aRegs, ProfileBuffer* aBuffer)
+             const Registers& aRegs, ProfileBuffer& aBuffer)
 {
   // WARNING: this function runs within the profiler's "critical section".
 
@@ -1233,7 +1233,7 @@ DoPeriodicSample(PSLockRef aLock, ThreadInfo& aThreadInfo,
 {
   // WARNING: this function runs within the profiler's "critical section".
 
-  ProfileBuffer* buffer = ActivePS::Buffer(aLock);
+  ProfileBuffer& buffer = ActivePS::Buffer(aLock);
 
   DoSharedSample(aLock, /* isSynchronous = */ false, aThreadInfo, aNow, aRegs,
                  &aThreadInfo.LastSample(), buffer);
@@ -1242,25 +1242,24 @@ DoPeriodicSample(PSLockRef aLock, ThreadInfo& aThreadInfo,
     aThreadInfo.RacyInfo()->GetPendingMarkers();
   while (pendingMarkersList && pendingMarkersList->peek()) {
     ProfilerMarker* marker = pendingMarkersList->popHead();
-    buffer->AddStoredMarker(marker);
-    buffer->AddEntry(ProfileBufferEntry::Marker(marker));
+    buffer.AddStoredMarker(marker);
+    buffer.AddEntry(ProfileBufferEntry::Marker(marker));
   }
 
   ThreadResponsiveness* resp = aThreadInfo.GetThreadResponsiveness();
   if (resp && resp->HasData()) {
     TimeDuration delta = resp->GetUnresponsiveDuration(aNow);
-    buffer->AddEntry(
-      ProfileBufferEntry::Responsiveness(delta.ToMilliseconds()));
+    buffer.AddEntry(ProfileBufferEntry::Responsiveness(delta.ToMilliseconds()));
   }
 
   if (aRSSMemory != 0) {
     double rssMemory = static_cast<double>(aRSSMemory);
-    buffer->AddEntry(ProfileBufferEntry::ResidentMemory(rssMemory));
+    buffer.AddEntry(ProfileBufferEntry::ResidentMemory(rssMemory));
   }
 
   if (aUSSMemory != 0) {
     double ussMemory = static_cast<double>(aUSSMemory);
-    buffer->AddEntry(ProfileBufferEntry::UnsharedMemory(ussMemory));
+    buffer.AddEntry(ProfileBufferEntry::UnsharedMemory(ussMemory));
   }
 }
 
@@ -1777,7 +1776,7 @@ SamplerThread::Run()
         return;
       }
 
-      ActivePS::Buffer(lock)->DeleteExpiredStoredMarkers();
+      ActivePS::Buffer(lock).DeleteExpiredStoredMarkers();
 
       if (!ActivePS::IsPaused(lock)) {
         const CorePS::ThreadVector& liveThreads = CorePS::LiveThreads(lock);
@@ -1794,7 +1793,7 @@ SamplerThread::Run()
           // cheaper than taking a new sample.
           if (info->RacyInfo()->CanDuplicateLastSampleDueToSleep()) {
             bool dup_ok =
-              ActivePS::Buffer(lock)->DuplicateLastSample(
+              ActivePS::Buffer(lock).DuplicateLastSample(
                 info->ThreadId(), CorePS::ProcessStartTime(),
                 info->LastSample());
             if (dup_ok) {
@@ -2330,9 +2329,9 @@ profiler_get_buffer_info_helper(uint32_t* aCurrentPosition,
     return;
   }
 
-  *aCurrentPosition = ActivePS::Buffer(lock)->mWritePos;
+  *aCurrentPosition = ActivePS::Buffer(lock).mWritePos;
   *aEntries = ActivePS::Entries(lock);
-  *aGeneration = ActivePS::Buffer(lock)->mGeneration;
+  *aGeneration = ActivePS::Buffer(lock).mGeneration;
 }
 
 static void
@@ -2771,7 +2770,7 @@ profiler_get_backtrace()
   // 1000 should be plenty for a single backtrace.
   auto buffer = MakeUnique<ProfileBuffer>(1000);
 
-  DoSyncSample(lock, *info, now, regs, buffer.get());
+  DoSyncSample(lock, *info, now, regs, *buffer.get());
 
   return UniqueProfilerBacktrace(
     new ProfilerBacktrace("SyncProfile", tid, Move(buffer)));
@@ -2959,8 +2958,8 @@ profiler_clear_js_context()
   if (ActivePS::Exists(lock)) {
     // Flush this thread's ThreadInfo, if it is being profiled.
     if (info->IsBeingProfiled()) {
-      info->FlushSamplesAndMarkers(ActivePS::Buffer(lock),
-                                   CorePS::ProcessStartTime());
+      info->FlushSamplesAndMarkers(CorePS::ProcessStartTime(),
+                                   ActivePS::Buffer(lock));
     }
   }
 
