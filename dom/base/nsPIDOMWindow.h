@@ -329,11 +329,6 @@ public:
   virtual bool CanClose() = 0;
   virtual void ForceClose() = 0;
 
-  bool IsModalContentWindow() const
-  {
-    return mIsModalContentWindow;
-  }
-
   /**
    * Call this to indicate that some node (this window, its document,
    * or content in that document) has a paint event listener.
@@ -667,10 +662,6 @@ protected:
   // This member is only used by inner windows.
   bool                   mInnerObjectsFreed;
 
-
-  // This variable is used on both inner and outer windows (and they
-  // should match).
-  bool                   mIsModalContentWindow;
 
   // Tracks activation state that's used for :-moz-window-inactive.
   // Only used on outer windows.
