@@ -692,7 +692,7 @@ FetchBodyConsumer<Derived>::ShutDownMainThreadConsuming()
       new ShutDownMainThreadConsumingRunnable<Derived>(this);
 
     IgnoredErrorResult rv;
-    r->Dispatch(Terminating, rv);
+    r->Dispatch(Killing, rv);
     if (NS_WARN_IF(rv.Failed())) {
       return;
     }
