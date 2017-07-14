@@ -595,11 +595,11 @@ nsNumberControlFrame::HandleFocusEvent(WidgetEvent* aEvent)
   }
 }
 
-nsresult
+void
 nsNumberControlFrame::HandleSelectCall()
 {
   RefPtr<HTMLInputElement> textField = HTMLInputElement::FromContent(mTextField);
-  return textField->Select();
+  textField->Select();
 }
 
 #define STYLES_DISABLING_NATIVE_THEMING \

@@ -155,7 +155,7 @@ public:
   /**
    * Our element had HTMLInputElement::Select() called on it.
    */
-  nsresult HandleSelectCall();
+  void HandleSelectCall();
 
   virtual Element* GetPseudoElement(CSSPseudoElementType aType) override;
 

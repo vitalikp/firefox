@@ -1229,7 +1229,8 @@ PersistNodeFixup::FixupNode(nsIDOMNode *aNodeIn,
                 case NS_FORM_INPUT_RADIO:
                     {
                         bool checked = nodeAsInput->Checked();
-                        outElt->SetDefaultChecked(checked);
+                        IgnoredErrorResult ignored;
+                        outElt->SetDefaultChecked(checked, ignored);
                     }
                     break;
                 default:
