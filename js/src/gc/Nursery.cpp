@@ -500,6 +500,16 @@ js::Nursery::renderProfileJSON(JSONPrinter& json) const
     }
 
     json.beginObject();
+
+    json.property("reason", JS::gcreason::ExplainReason(previousGC.reason));
+    json.property("bytes_tenured", previousGC.tenuredBytes);
+    json.floatProperty("promotion_rate",
+                       100.0 * previousGC.tenuredBytes / double(previousGC.nurseryUsedBytes), 2);
+    json.property("nursery_bytes", previousGC.nurseryUsedBytes);
+    json.property("new_nursery_bytes", numChunks() * ChunkSize);
+
+    json.beginObjectProperty("timings");
+
 #define EXTRACT_NAME(name, text) #name,
     static const char* names[] = {
 FOR_EACH_NURSERY_PROFILE_TIME(EXTRACT_NAME)
@@ -509,6 +519,8 @@ FOR_EACH_NURSERY_PROFILE_TIME(EXTRACT_NAME)
     size_t i = 0;
     for (auto time : profileDurations_)
         json.property(names[i++], time, json.MICROSECONDS);
+
+    json.endObject(); // timings value
 
     json.endObject();
 }
@@ -791,6 +803,10 @@ js::Nursery::doCollection(JS::gcreason::Reason reason,
         CheckHashTablesAfterMovingGC(rt);
 #endif
     endProfile(ProfileKey::CheckHashTables);
+
+    previousGC.reason = reason;
+    previousGC.nurseryUsedBytes = initialNurserySize;
+    previousGC.tenuredBytes = mover.tenuredSize;
 
     // Calculate and return the promotion rate.
     return mover.tenuredSize / double(initialNurserySize);
