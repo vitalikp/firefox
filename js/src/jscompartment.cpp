@@ -89,7 +89,6 @@ JSCompartment::JSCompartment(Zone* zone, const JS::CompartmentOptions& options =
     debugScriptMap(nullptr),
     debugEnvs(nullptr),
     enumerators(nullptr),
-    lastCachedNativeIterator(nullptr),
     compartmentStats_(nullptr),
     scheduledForDestruction(false),
     maybeAlive(true),
@@ -1082,7 +1081,6 @@ JSCompartment::purge()
 {
     dtoaCache.purge();
     newProxyCache.purge();
-    lastCachedNativeIterator = nullptr;
     objectGroups.purge();
 }
 

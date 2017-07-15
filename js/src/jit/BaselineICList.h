@@ -66,7 +66,7 @@ namespace jit {
                                                  \
     _(TableSwitch)                               \
                                                  \
-    _(IteratorNew_Fallback)                      \
+    _(GetIterator_Fallback)                      \
     _(IteratorMore_Fallback)                     \
     _(IteratorMore_Native)                       \
     _(IteratorClose_Fallback)                    \

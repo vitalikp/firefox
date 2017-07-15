@@ -1113,9 +1113,6 @@ struct JSCompartment
      */
     js::NativeIterator* enumerators;
 
-    /* Native iterator most recently started. */
-    js::PropertyIteratorObject* lastCachedNativeIterator;
-
   private:
     /* Used by memory reporters and invalid otherwise. */
     JS::CompartmentStats* compartmentStats_;

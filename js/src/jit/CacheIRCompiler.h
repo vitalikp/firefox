@@ -593,6 +593,8 @@ class MOZ_RAII CacheIRCompiler
     void emitStoreTypedObjectReferenceProp(ValueOperand val, ReferenceTypeDescr::Type type,
                                            const Address& dest, Register scratch);
 
+    void emitRegisterEnumerator(Register enumeratorsList, Register iter, Register scratch);
+
   private:
     void emitPostBarrierShared(Register obj, const ConstantOrRegister& val, Register scratch,
                                Register maybeIndex);
