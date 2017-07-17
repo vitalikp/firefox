@@ -50,6 +50,7 @@ JS::Zone::Zone(JSRuntime* rt, ZoneGroup* group)
     propertyTree_(group, this),
     baseShapes_(group, this),
     initialShapes_(group, this),
+    nurseryShapes_(group),
     data(group, nullptr),
     isSystem(group, false),
 #ifdef DEBUG
