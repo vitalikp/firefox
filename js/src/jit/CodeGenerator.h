@@ -400,6 +400,7 @@ class CodeGenerator final : public CodeGeneratorSpecific
     void visitNaNToZero(LNaNToZero* ins);
     void visitOutOfLineNaNToZero(OutOfLineNaNToZero* ool);
     void visitFinishBoundFunctionInit(LFinishBoundFunctionInit* lir);
+    void visitIsPackedArray(LIsPackedArray* lir);
 
     void visitCheckOverRecursed(LCheckOverRecursed* lir);
     void visitCheckOverRecursedFailure(CheckOverRecursedFailure* ool);
