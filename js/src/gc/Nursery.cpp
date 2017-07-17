@@ -595,6 +595,16 @@ js::Nursery::maybeEndProfile(ProfileKey key)
         endProfile(key);
 }
 
+static inline bool
+IsFullStoreBufferReason(JS::gcreason::Reason reason)
+{
+    return reason == JS::gcreason::FULL_WHOLE_CELL_BUFFER ||
+           reason == JS::gcreason::FULL_GENERIC_BUFFER ||
+           reason == JS::gcreason::FULL_VALUE_BUFFER ||
+           reason == JS::gcreason::FULL_CELL_PTR_BUFFER ||
+           reason == JS::gcreason::FULL_SLOT_BUFFER;
+}
+
 void
 js::Nursery::collect(JS::gcreason::Reason reason)
 {
@@ -648,7 +658,7 @@ js::Nursery::collect(JS::gcreason::Reason reason)
     // excessively and try to pretenure them.
     maybeStartProfile(ProfileKey::Pretenure);
     uint32_t pretenureCount = 0;
-    if (promotionRate > 0.8 || reason == JS::gcreason::FULL_STORE_BUFFER) {
+    if (promotionRate > 0.8 || IsFullStoreBufferReason(reason)) {
         JSContext* cx = TlsContext.get();
         for (auto& entry : tenureCounts.entries) {
             if (entry.count >= 3000) {
