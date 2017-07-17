@@ -1035,7 +1035,7 @@ js::FunctionToString(JSContext* cx, HandleFunction fun, bool prettyPrint)
     // If we're not in pretty mode, put parentheses around lambda functions
     // so that eval returns lambda, not function statement.
     if (haveSource && !prettyPrint && funIsNonArrowLambda) {
-        if (!out.append("("))
+        if (!out.append('('))
             return nullptr;
     }
 
@@ -1079,7 +1079,7 @@ js::FunctionToString(JSContext* cx, HandleFunction fun, bool prettyPrint)
             return nullptr;
 
         if (!prettyPrint && funIsNonArrowLambda) {
-            if (!out.append(")"))
+            if (!out.append(')'))
                 return nullptr;
         }
     } else if (fun->isInterpreted() &&
@@ -1098,21 +1098,13 @@ js::FunctionToString(JSContext* cx, HandleFunction fun, bool prettyPrint)
                       fun->compartment()->behaviors().discardSource());
 
         if (!AppendPrelude() ||
-            !out.append("() {\n    ") ||
-            !out.append("[sourceless code]") ||
-            !out.append("\n}"))
+            !out.append("() {\n    [sourceless code]\n}"))
         {
             return nullptr;
         }
     } else {
         if (!AppendPrelude() ||
-            !out.append("() {\n    "))
-            return nullptr;
-
-        if (!out.append("[native code]"))
-            return nullptr;
-
-        if (!out.append("\n}"))
+            !out.append("() {\n    [native code]\n}"))
             return nullptr;
     }
     return out.finishString();
