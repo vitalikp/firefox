@@ -1207,8 +1207,6 @@ nsresult CacheFile::SetNetworkTimes(uint64_t aOnStartTime, uint64_t aOnStopTime)
 
   MOZ_ASSERT(mMetadata);
   NS_ENSURE_TRUE(mMetadata, NS_ERROR_UNEXPECTED);
-  MOZ_ASSERT(aOnStartTime != kIndexTimeNotAvailable);
-  MOZ_ASSERT(aOnStopTime != kIndexTimeNotAvailable);
 
   PostWriteTimer();
 
