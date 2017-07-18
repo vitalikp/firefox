@@ -1645,6 +1645,12 @@ MacroAssembler::branchTestMagic(Condition cond, const Address& valaddr, JSWhyMag
     B(label, cond);
 }
 
+void
+MacroAssembler::branchToComputedAddress(const BaseIndex& addr)
+{
+    MOZ_CRASH("branchToComputedAddress");
+}
+
 // ========================================================================
 // Memory access primitives.
 void
