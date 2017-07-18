@@ -956,9 +956,8 @@ DownloadsPlacesView.prototype = {
   },
 
   get selectedNodes() {
-    return [for (element of this._richlistbox.selectedItems)
-            if (element._placesNode)
-            element._placesNode];
+      return Array.filter(this._richlistbox.selectedItems,
+                          element => element._placesNode);
   },
 
   get selectedNode() {
@@ -1189,8 +1188,8 @@ DownloadsPlacesView.prototype = {
   },
 
   _copySelectedDownloadsToClipboard() {
-    let urls = [for (element of this._richlistbox.selectedItems)
-                element._shell.download.source.url];
+    let urls = Array.map(this._richlistbox.selectedItems,
+                         element => element._shell.download.source.url);
 
     Cc["@mozilla.org/widget/clipboardhelper;1"]
       .getService(Ci.nsIClipboardHelper)
