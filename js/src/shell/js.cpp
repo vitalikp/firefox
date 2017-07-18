@@ -1299,7 +1299,7 @@ ParseCompileOptions(JSContext* cx, CompileOptions& options, HandleObject opts,
         int32_t c;
         if (!ToInt32(cx, v, &c))
             return false;
-        options.setColumn(c, c);
+        options.setColumn(c);
     }
 
     if (!JS_GetProperty(cx, opts, "sourceIsLazy", &v))
