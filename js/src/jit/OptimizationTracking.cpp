@@ -213,7 +213,7 @@ HashType(TypeSet::Type ty)
 {
     if (ty.isObjectUnchecked())
         return PointerHasher<TypeSet::ObjectKey*>::hash(ty.objectKey());
-    return HashNumber(ty.raw());
+    return mozilla::HashGeneric(ty.raw());
 }
 
 static HashNumber
