@@ -1651,6 +1651,10 @@ pref("network.http.rcwn.small_resource_size_kb", 256);
 // all available active connections.
 pref("network.http.focused_window_transaction_ratio", "0.9");
 
+// Whether or not we give more priority to active tab.
+// Note that this requires restart for changes to take effect.
+pref("network.http.active_tab_priority", true);
+
 // default values for FTP
 // in a DSCP environment this should be 40 (0x28, or AF11), per RFC-4594,
 // Section 4.8 "High-Throughput Data Service Class", and 80 (0x50, or AF22)
