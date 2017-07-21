@@ -3274,7 +3274,7 @@ js::PCToLineNumber(unsigned startLine, jssrcnote* notes, jsbytecode* code, jsbyt
         if (offset > target)
             break;
 
-        SrcNoteType type = (SrcNoteType) SN_TYPE(sn);
+        SrcNoteType type = SN_TYPE(sn);
         if (type == SRC_SETLINE) {
             lineno = unsigned(GetSrcNoteOffset(sn, 0));
             column = 0;
@@ -3326,7 +3326,7 @@ js::LineNumberToPC(JSScript* script, unsigned target)
             }
         }
         offset += SN_DELTA(sn);
-        SrcNoteType type = (SrcNoteType) SN_TYPE(sn);
+        SrcNoteType type = SN_TYPE(sn);
         if (type == SRC_SETLINE) {
             lineno = unsigned(GetSrcNoteOffset(sn, 0));
         } else if (type == SRC_NEWLINE) {
@@ -3345,7 +3345,7 @@ js::GetScriptLineExtent(JSScript* script)
     unsigned lineno = script->lineno();
     unsigned maxLineNo = lineno;
     for (jssrcnote* sn = script->notes(); !SN_IS_TERMINATOR(sn); sn = SN_NEXT(sn)) {
-        SrcNoteType type = (SrcNoteType) SN_TYPE(sn);
+        SrcNoteType type = SN_TYPE(sn);
         if (type == SRC_SETLINE)
             lineno = unsigned(GetSrcNoteOffset(sn, 0));
         else if (type == SRC_NEWLINE)
