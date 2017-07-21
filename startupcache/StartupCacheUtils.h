@@ -35,8 +35,11 @@ NewObjectOutputWrappedStorageStream(nsIObjectOutputStream **wrapperStream,
 // allocated with 'new []'.  After calling this function, the caller would
 // typically call nsIStartupCache::PutBuffer with the returned buffer.
 nsresult
-NewBufferFromStorageStream(nsIStorageStream *storageStream, 
+NewBufferFromStorageStream(nsIStorageStream *storageStream,
                            UniquePtr<char[]>* buffer, uint32_t* len);
+
+nsresult
+ResolveURI(nsIURI *in, nsIURI **out);
 
 nsresult
 PathifyURI(nsIURI *in, nsACString &out);
