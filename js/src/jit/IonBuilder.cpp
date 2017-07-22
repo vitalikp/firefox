@@ -595,8 +595,6 @@ IonBuilder::analyzeNewLoopTypes(const CFGBlock* loopEntryBlock)
             continue;
         if (slot >= info().firstStackSlot())
             continue;
-        if (!analysis().maybeInfo(pc))
-            continue;
         if (!last)
             continue;
 
@@ -1769,8 +1767,6 @@ IonBuilder::visitControlInstruction(CFGControlInstruction* ins, bool* restarted)
 AbortReasonOr<Ok>
 IonBuilder::inspectOpcode(JSOp op)
 {
-    MOZ_ASSERT(analysis_.maybeInfo(pc), "Compiling unreachable op");
-
     // Add not yet implemented opcodes at the bottom of the switch!
     switch (op) {
       case JSOP_NOP:
