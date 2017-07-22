@@ -1298,8 +1298,7 @@ nsComputedDOMStyle::DoGetContent()
         MOZ_ASSERT(eCSSUnit_None != a->Item(typeItem).GetUnit(),
                    "'none' should be handled as identifier value");
         nsString type;
-        a->Item(typeItem).AppendToString(eCSSProperty_list_style_type,
-                                         type, nsCSSValue::eNormalized);
+        a->Item(typeItem).AppendToString(eCSSProperty_list_style_type, type);
         if (!type.LowerCaseEqualsLiteral("decimal")) {
           str.AppendLiteral(", ");
           str.Append(type);

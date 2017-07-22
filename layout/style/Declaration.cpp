@@ -182,7 +182,7 @@ void
 Declaration::GetPropertyValueByID(nsCSSPropertyID aPropID,
                                   nsAString& aValue) const
 {
-  GetPropertyValueInternal(aPropID, aValue, nsCSSValue::eNormalized);
+  GetPropertyValueInternal(aPropID, aValue);
 }
 
 bool
@@ -241,7 +241,6 @@ Declaration::HasProperty(nsCSSPropertyID aProperty) const
 bool
 Declaration::AppendValueToString(nsCSSPropertyID aProperty,
                                  nsAString& aResult,
-                                 nsCSSValue::Serialization aSerialization,
                                  bool* aIsTokenStream) const
 {
   MOZ_ASSERT(0 <= aProperty && aProperty < eCSSProperty_COUNT_no_shorthands,
@@ -257,7 +256,7 @@ Declaration::AppendValueToString(nsCSSPropertyID aProperty,
   if (aIsTokenStream) {
     *aIsTokenStream = val->GetUnit() == eCSSUnit_TokenStream;
   }
-  val->AppendToString(aProperty, aResult, aSerialization);
+  val->AppendToString(aProperty, aResult);
   return true;
 }
 
@@ -265,8 +264,7 @@ static void
 AppendSingleImageLayerPositionValue(const nsCSSValue& aPositionX,
                                     const nsCSSValue& aPositionY,
                                     const nsCSSPropertyID aTable[],
-                                    nsAString& aValue,
-                                    nsCSSValue::Serialization aSerialization)
+                                    nsAString& aValue)
 {
   // We need to make sure that we don't serialize to an invalid 3-value form.
   // The 3-value form is only valid if both edges are present.
@@ -284,7 +282,7 @@ AppendSingleImageLayerPositionValue(const nsCSSValue& aPositionX,
     aValue.AppendLiteral("left ");
   }
   aPositionX.AppendToString(aTable[nsStyleImageLayers::positionX],
-                            aValue, aSerialization);
+                            aValue);
 
   aValue.Append(char16_t(' '));
 
@@ -293,14 +291,13 @@ AppendSingleImageLayerPositionValue(const nsCSSValue& aPositionX,
     aValue.AppendLiteral("top ");
   }
   aPositionY.AppendToString(aTable[nsStyleImageLayers::positionY],
-                            aValue, aSerialization);
+                            aValue);
 }
 
 void
 Declaration::GetImageLayerValue(
                    nsCSSCompressedDataBlock *data,
                    nsAString& aValue,
-                   nsCSSValue::Serialization aSerialization,
                    const nsCSSPropertyID aTable[]) const
 {
   // We know from our caller that all subproperties were specified.
@@ -347,43 +344,37 @@ Declaration::GetImageLayerValue(
     // Serialize background-color at the beginning of the last item.
     if (!image->mNext) {
       if (aTable[nsStyleImageLayers::color] != eCSSProperty_UNKNOWN) {
-        AppendValueToString(aTable[nsStyleImageLayers::color], aValue,
-                            aSerialization);
+        AppendValueToString(aTable[nsStyleImageLayers::color], aValue);
         aValue.Append(char16_t(' '));
       }
     }
 
-    image->mValue.AppendToString(aTable[nsStyleImageLayers::image], aValue,
-                                 aSerialization);
+    image->mValue.AppendToString(aTable[nsStyleImageLayers::image], aValue);
 
     aValue.Append(char16_t(' '));
-    repeat->mXValue.AppendToString(aTable[nsStyleImageLayers::repeat], aValue,
-                                   aSerialization);
+    repeat->mXValue.AppendToString(aTable[nsStyleImageLayers::repeat], aValue);
     if (repeat->mYValue.GetUnit() != eCSSUnit_Null) {
-      repeat->mYValue.AppendToString(aTable[nsStyleImageLayers::repeat], aValue,
-                                     aSerialization);
+      repeat->mYValue.AppendToString(aTable[nsStyleImageLayers::repeat], aValue);
     }
 
     if (attachment) {
       aValue.Append(char16_t(' '));
           attachment->mValue.AppendToString(aTable[nsStyleImageLayers::attachment],
-                                            aValue, aSerialization);
+                                            aValue);
     }
 
     aValue.Append(char16_t(' '));
     AppendSingleImageLayerPositionValue(positionX->mValue, positionY->mValue,
-                                        aTable, aValue, aSerialization);
+                                        aTable, aValue);
 
     if (size->mXValue.GetUnit() != eCSSUnit_Auto ||
         size->mYValue.GetUnit() != eCSSUnit_Auto) {
       aValue.Append(char16_t(' '));
       aValue.Append(char16_t('/'));
       aValue.Append(char16_t(' '));
-      size->mXValue.AppendToString(aTable[nsStyleImageLayers::size], aValue,
-                                   aSerialization);
+      size->mXValue.AppendToString(aTable[nsStyleImageLayers::size], aValue);
       aValue.Append(char16_t(' '));
-      size->mYValue.AppendToString(aTable[nsStyleImageLayers::size], aValue,
-                                   aSerialization);
+      size->mYValue.AppendToString(aTable[nsStyleImageLayers::size], aValue);
     }
 
     MOZ_ASSERT(clip->mValue.GetUnit() == eCSSUnit_Enumerated &&
@@ -408,26 +399,23 @@ Declaration::GetImageLayerValue(
       }
 #endif
       aValue.Append(char16_t(' '));
-      origin->mValue.AppendToString(aTable[nsStyleImageLayers::origin], aValue,
-                                    aSerialization);
+      origin->mValue.AppendToString(aTable[nsStyleImageLayers::origin], aValue);
 
       if (clip->mValue != origin->mValue) {
         aValue.Append(char16_t(' '));
-        clip->mValue.AppendToString(aTable[nsStyleImageLayers::clip], aValue,
-                                    aSerialization);
+        clip->mValue.AppendToString(aTable[nsStyleImageLayers::clip], aValue);
       }
     }
 
     if (composite) {
       aValue.Append(char16_t(' '));
       composite->mValue.AppendToString(aTable[nsStyleImageLayers::composite],
-                                       aValue, aSerialization);
+                                       aValue);
     }
 
     if (mode) {
       aValue.Append(char16_t(' '));
-      mode->mValue.AppendToString(aTable[nsStyleImageLayers::maskMode],
-                                  aValue, aSerialization);
+      mode->mValue.AppendToString(aTable[nsStyleImageLayers::maskMode], aValue);
     }
 
     image = image->mNext;
@@ -498,7 +486,6 @@ void
 Declaration::GetImageLayerPositionValue(
                    nsCSSCompressedDataBlock *data,
                    nsAString& aValue,
-                   nsCSSValue::Serialization aSerialization,
                    const nsCSSPropertyID aTable[]) const
 {
   // We know from above that all subproperties were specified.
@@ -511,7 +498,7 @@ Declaration::GetImageLayerPositionValue(
     data->ValueFor(aTable[nsStyleImageLayers::positionY])->GetListValue();
   for (;;) {
     AppendSingleImageLayerPositionValue(positionX->mValue, positionY->mValue,
-                                        aTable, aValue, aSerialization);
+                                        aTable, aValue);
     positionX = positionX->mNext;
     positionY = positionY->mNext;
 
@@ -530,7 +517,7 @@ Declaration::GetImageLayerPositionValue(
 void
 Declaration::GetPropertyValueInternal(
     nsCSSPropertyID aProperty, nsAString& aValue,
-    nsCSSValue::Serialization aSerialization, bool* aIsTokenStream) const
+    bool* aIsTokenStream) const
 {
   aValue.Truncate(0);
   if (aIsTokenStream) {
@@ -539,7 +526,7 @@ Declaration::GetPropertyValueInternal(
 
   // simple properties are easy.
   if (!nsCSSProps::IsShorthand(aProperty)) {
-    AppendValueToString(aProperty, aValue, aSerialization, aIsTokenStream);
+    AppendValueToString(aProperty, aValue, aIsTokenStream);
     return;
   }
 
@@ -612,20 +599,17 @@ Declaration::GetPropertyValueInternal(
   }
   if (initialCount == totalCount) {
     // Simplify serialization below by serializing initial up-front.
-    nsCSSValue(eCSSUnit_Initial).AppendToString(eCSSProperty_UNKNOWN, aValue,
-                                                nsCSSValue::eNormalized);
+    nsCSSValue(eCSSUnit_Initial).AppendToString(eCSSProperty_UNKNOWN, aValue);
     return;
   }
   if (inheritCount == totalCount) {
     // Simplify serialization below by serializing inherit up-front.
-    nsCSSValue(eCSSUnit_Inherit).AppendToString(eCSSProperty_UNKNOWN, aValue,
-                                                nsCSSValue::eNormalized);
+    nsCSSValue(eCSSUnit_Inherit).AppendToString(eCSSProperty_UNKNOWN, aValue);
     return;
   }
   if (unsetCount == totalCount) {
     // Simplify serialization below by serializing unset up-front.
-    nsCSSValue(eCSSUnit_Unset).AppendToString(eCSSProperty_UNKNOWN, aValue,
-                                              nsCSSValue::eNormalized);
+    nsCSSValue(eCSSUnit_Unset).AppendToString(eCSSProperty_UNKNOWN, aValue);
     return;
   }
   if (initialCount != 0 || inheritCount != 0 ||
@@ -670,8 +654,7 @@ Declaration::GetPropertyValueInternal(
         data->ValueFor(subprops[2]),
         data->ValueFor(subprops[3])
       };
-      nsCSSValue::AppendSidesShorthandToString(subprops, vals, aValue,
-                                               aSerialization);
+      nsCSSValue::AppendSidesShorthandToString(subprops, vals, aValue);
       break;
     }
     case eCSSProperty_border_radius:
@@ -684,8 +667,7 @@ Declaration::GetPropertyValueInternal(
         data->ValueFor(subprops[2]),
         data->ValueFor(subprops[3])
       };
-      nsCSSValue::AppendBasicShapeRadiusToString(subprops, vals, aValue,
-                                                 aSerialization);
+      nsCSSValue::AppendBasicShapeRadiusToString(subprops, vals, aValue);
       break;
     }
     case eCSSProperty_border_image: {
@@ -693,8 +675,7 @@ Declaration::GetPropertyValueInternal(
       // 'border-image-source' (when it's none), it's probably not a
       // good idea since it's likely to be confusing.  It would also
       // require adding the extra check that we serialize *something*.
-      AppendValueToString(eCSSProperty_border_image_source, aValue,
-                          aSerialization);
+      AppendValueToString(eCSSProperty_border_image_source, aValue);
 
       bool sliceDefault = data->HasDefaultBorderImageSlice();
       bool widthDefault = data->HasDefaultBorderImageWidth();
@@ -702,19 +683,16 @@ Declaration::GetPropertyValueInternal(
 
       if (!sliceDefault || !widthDefault || !outsetDefault) {
         aValue.Append(char16_t(' '));
-        AppendValueToString(eCSSProperty_border_image_slice, aValue,
-                            aSerialization);
+        AppendValueToString(eCSSProperty_border_image_slice, aValue);
         if (!widthDefault || !outsetDefault) {
           aValue.AppendLiteral(" /");
           if (!widthDefault) {
             aValue.Append(char16_t(' '));
-            AppendValueToString(eCSSProperty_border_image_width, aValue,
-                                aSerialization);
+            AppendValueToString(eCSSProperty_border_image_width, aValue);
           }
           if (!outsetDefault) {
             aValue.AppendLiteral(" / ");
-            AppendValueToString(eCSSProperty_border_image_outset, aValue,
-                                aSerialization);
+            AppendValueToString(eCSSProperty_border_image_outset, aValue);
           }
         }
       }
@@ -722,8 +700,7 @@ Declaration::GetPropertyValueInternal(
       bool repeatDefault = data->HasDefaultBorderImageRepeat();
       if (!repeatDefault) {
         aValue.Append(char16_t(' '));
-        AppendValueToString(eCSSProperty_border_image_repeat, aValue,
-                            aSerialization);
+        AppendValueToString(eCSSProperty_border_image_repeat, aValue);
       }
       break;
     }
@@ -789,10 +766,10 @@ Declaration::GetPropertyValueInternal(
                                 NS_LITERAL_CSTRING("-color")),
                  "third subprop must be the color property");
 
-      bool ok = AppendValueToString(subprops[0], aValue, aSerialization);
+      bool ok = AppendValueToString(subprops[0], aValue);
       if (ok) {
         aValue.Append(u' ');
-        ok = AppendValueToString(subprops[1], aValue, aSerialization);
+        ok = AppendValueToString(subprops[1], aValue);
         if (ok) {
           const nsCSSValue *colorValue = data->ValueFor(subprops[2]);
           bool isCurrentColor =
@@ -802,7 +779,7 @@ Declaration::GetPropertyValueInternal(
           // Don't output a third value when it's currentcolor.
           if (!isCurrentColor) {
             aValue.Append(u' ');
-            ok = AppendValueToString(subprops[2], aValue, aSerialization);
+            ok = AppendValueToString(subprops[2], aValue);
           }
         }
       }
@@ -813,23 +790,22 @@ Declaration::GetPropertyValueInternal(
       break;
     }
     case eCSSProperty_background: {
-      GetImageLayerValue(data, aValue, aSerialization,
+      GetImageLayerValue(data, aValue,
                          nsStyleImageLayers::kBackgroundLayerTable);
       break;
     }
     case eCSSProperty_background_position: {
-      GetImageLayerPositionValue(data, aValue, aSerialization,
+      GetImageLayerPositionValue(data, aValue,
                                  nsStyleImageLayers::kBackgroundLayerTable);
       break;
     }
 #ifdef MOZ_ENABLE_MASK_AS_SHORTHAND
     case eCSSProperty_mask: {
-      GetImageLayerValue(data, aValue, aSerialization,
-                         nsStyleImageLayers::kMaskLayerTable);
+      GetImageLayerValue(data, aValue, nsStyleImageLayers::kMaskLayerTable);
       break;
     }
     case eCSSProperty_mask_position: {
-      GetImageLayerPositionValue(data, aValue, aSerialization,
+      GetImageLayerPositionValue(data, aValue,
                                  nsStyleImageLayers::kMaskLayerTable);
       break;
     }
@@ -898,8 +874,7 @@ Declaration::GetPropertyValueInternal(
           // This can't be represented as a shorthand.
           return;
         }
-        systemFont->AppendToString(eCSSProperty__x_system_font, aValue,
-                                   aSerialization);
+        systemFont->AppendToString(eCSSProperty__x_system_font, aValue);
       } else {
         // properties reset by this shorthand property to their
         // initial values but not represented in its syntax
@@ -928,35 +903,31 @@ Declaration::GetPropertyValueInternal(
 
         if (style->GetUnit() != eCSSUnit_Enumerated ||
             style->GetIntValue() != NS_FONT_STYLE_NORMAL) {
-          style->AppendToString(eCSSProperty_font_style, aValue,
-                                aSerialization);
+          style->AppendToString(eCSSProperty_font_style, aValue);
           aValue.Append(char16_t(' '));
         }
         if (fontVariantCaps->GetUnit() != eCSSUnit_Normal) {
-          fontVariantCaps->AppendToString(eCSSProperty_font_variant_caps, aValue,
-                                  aSerialization);
+          fontVariantCaps->AppendToString(eCSSProperty_font_variant_caps,
+                                          aValue);
           aValue.Append(char16_t(' '));
         }
         if (weight->GetUnit() != eCSSUnit_Enumerated ||
             weight->GetIntValue() != NS_FONT_WEIGHT_NORMAL) {
-          weight->AppendToString(eCSSProperty_font_weight, aValue,
-                                 aSerialization);
+          weight->AppendToString(eCSSProperty_font_weight, aValue);
           aValue.Append(char16_t(' '));
         }
         if (stretch->GetUnit() != eCSSUnit_Enumerated ||
             stretch->GetIntValue() != NS_FONT_STRETCH_NORMAL) {
-          stretch->AppendToString(eCSSProperty_font_stretch, aValue,
-                                  aSerialization);
+          stretch->AppendToString(eCSSProperty_font_stretch, aValue);
           aValue.Append(char16_t(' '));
         }
-        size->AppendToString(eCSSProperty_font_size, aValue, aSerialization);
+        size->AppendToString(eCSSProperty_font_size, aValue);
         if (lh->GetUnit() != eCSSUnit_Normal) {
           aValue.Append(char16_t('/'));
-          lh->AppendToString(eCSSProperty_line_height, aValue, aSerialization);
+          lh->AppendToString(eCSSProperty_line_height, aValue);
         }
         aValue.Append(char16_t(' '));
-        family->AppendToString(eCSSProperty_font_family, aValue,
-                               aSerialization);
+        family->AppendToString(eCSSProperty_font_family, aValue);
       }
       break;
     }
@@ -990,8 +961,7 @@ Declaration::GetPropertyValueInternal(
           (normalNonLigs && ligsNone) ||
           systemFont) {
         fontVariantLigatures->AppendToString(eCSSProperty_font_variant_ligatures,
-                                             aValue,
-                                             aSerialization);
+                                             aValue);
       } else if (ligsNone || hasSystem) {
         // ligatures none but other values are non-normal ==> empty
         // at least one but not all values are system font ==> empty
@@ -1008,23 +978,20 @@ Declaration::GetPropertyValueInternal(
             } else {
               appendSpace = true;
             }
-            spVal->AppendToString(*sp, aValue, aSerialization);
+            spVal->AppendToString(*sp, aValue);
           }
         }
       }
       break;
     }
     case eCSSProperty_list_style:
-      if (AppendValueToString(eCSSProperty_list_style_position, aValue,
-                              aSerialization)) {
+      if (AppendValueToString(eCSSProperty_list_style_position, aValue)) {
         aValue.Append(char16_t(' '));
       }
-      if (AppendValueToString(eCSSProperty_list_style_image, aValue,
-                              aSerialization)) {
+      if (AppendValueToString(eCSSProperty_list_style_image, aValue)) {
         aValue.Append(char16_t(' '));
       }
-      AppendValueToString(eCSSProperty_list_style_type, aValue,
-                          aSerialization);
+      AppendValueToString(eCSSProperty_list_style_type, aValue);
       break;
     case eCSSProperty_overflow: {
       const nsCSSValue &xValue =
@@ -1032,7 +999,7 @@ Declaration::GetPropertyValueInternal(
       const nsCSSValue &yValue =
         *data->ValueFor(eCSSProperty_overflow_y);
       if (xValue == yValue)
-        xValue.AppendToString(eCSSProperty_overflow_x, aValue, aSerialization);
+        xValue.AppendToString(eCSSProperty_overflow_x, aValue);
       break;
     }
     case eCSSProperty_text_decoration: {
@@ -1044,19 +1011,16 @@ Declaration::GetPropertyValueInternal(
       MOZ_ASSERT(decorationStyle->GetUnit() == eCSSUnit_Enumerated,
                  "bad text-decoration-style unit");
 
-      AppendValueToString(eCSSProperty_text_decoration_line, aValue,
-                          aSerialization);
+      AppendValueToString(eCSSProperty_text_decoration_line, aValue);
       if (decorationStyle->GetIntValue() !=
             NS_STYLE_TEXT_DECORATION_STYLE_SOLID) {
         aValue.Append(char16_t(' '));
-        AppendValueToString(eCSSProperty_text_decoration_style, aValue,
-                            aSerialization);
+        AppendValueToString(eCSSProperty_text_decoration_style, aValue);
       }
       if (decorationColor->GetUnit() != eCSSUnit_EnumColor ||
           decorationColor->GetIntValue() != NS_COLOR_CURRENTCOLOR) {
         aValue.Append(char16_t(' '));
-        AppendValueToString(eCSSProperty_text_decoration_color, aValue,
-                            aSerialization);
+        AppendValueToString(eCSSProperty_text_decoration_color, aValue);
       }
       break;
     }
@@ -1089,17 +1053,14 @@ Declaration::GetPropertyValueInternal(
         // If any of the other three lists has more than one element,
         // we can't use the shorthand.
         if (!dur->mNext && !tim->mNext && !del->mNext) {
-          transProp->AppendToString(eCSSProperty_transition_property, aValue,
-                                    aSerialization);
+          transProp->AppendToString(eCSSProperty_transition_property, aValue);
           aValue.Append(char16_t(' '));
-          dur->mValue.AppendToString(eCSSProperty_transition_duration,aValue,
-                                     aSerialization);
+          dur->mValue.AppendToString(eCSSProperty_transition_duration, aValue);
           aValue.Append(char16_t(' '));
           tim->mValue.AppendToString(eCSSProperty_transition_timing_function,
-                                     aValue, aSerialization);
+                                     aValue);
           aValue.Append(char16_t(' '));
-          del->mValue.AppendToString(eCSSProperty_transition_delay, aValue,
-                                     aSerialization);
+          del->mValue.AppendToString(eCSSProperty_transition_delay, aValue);
           aValue.Append(char16_t(' '));
         } else {
           aValue.Truncate();
@@ -1110,17 +1071,15 @@ Declaration::GetPropertyValueInternal(
                    "bad t-prop unit");
         const nsCSSValueList* pro = transProp->GetListValue();
         for (;;) {
-          pro->mValue.AppendToString(eCSSProperty_transition_property,
-                                        aValue, aSerialization);
+          pro->mValue.AppendToString(eCSSProperty_transition_property, aValue);
           aValue.Append(char16_t(' '));
-          dur->mValue.AppendToString(eCSSProperty_transition_duration,
-                                        aValue, aSerialization);
+          dur->mValue.AppendToString(eCSSProperty_transition_duration, aValue);
           aValue.Append(char16_t(' '));
           tim->mValue.AppendToString(eCSSProperty_transition_timing_function,
-                                        aValue, aSerialization);
+                                     aValue);
           aValue.Append(char16_t(' '));
           del->mValue.AppendToString(eCSSProperty_transition_delay,
-                                        aValue, aSerialization);
+                                     aValue);
           pro = pro->mNext;
           dur = dur->mNext;
           tim = tim->mNext;
@@ -1161,7 +1120,7 @@ Declaration::GetPropertyValueInternal(
                    "animation-name must be last");
         bool done = false;
         for (uint32_t i = 0;;) {
-          lists[i]->mValue.AppendToString(subprops[i], aValue, aSerialization);
+          lists[i]->mValue.AppendToString(subprops[i], aValue);
           lists[i] = lists[i]->mNext;
           if (!lists[i]) {
             done = true;
@@ -1193,16 +1152,16 @@ Declaration::GetPropertyValueInternal(
       const nsCSSValue &startValue =
         *data->ValueFor(eCSSProperty_marker_start);
       if (endValue == midValue && midValue == startValue)
-        AppendValueToString(eCSSProperty_marker_end, aValue, aSerialization);
+        AppendValueToString(eCSSProperty_marker_end, aValue);
       break;
     }
     case eCSSProperty_columns: {
       // Two values, column-count and column-width, separated by a space.
       const nsCSSPropertyID* subprops =
         nsCSSProps::SubpropertyEntryFor(aProperty);
-      AppendValueToString(subprops[0], aValue, aSerialization);
+      AppendValueToString(subprops[0], aValue);
       aValue.Append(char16_t(' '));
-      AppendValueToString(subprops[1], aValue, aSerialization);
+      AppendValueToString(subprops[1], aValue);
       break;
     }
     case eCSSProperty_flex: {
@@ -1210,11 +1169,11 @@ Declaration::GetPropertyValueInternal(
       const nsCSSPropertyID* subprops =
         nsCSSProps::SubpropertyEntryFor(aProperty);
 
-      AppendValueToString(subprops[0], aValue, aSerialization);
+      AppendValueToString(subprops[0], aValue);
       aValue.Append(char16_t(' '));
-      AppendValueToString(subprops[1], aValue, aSerialization);
+      AppendValueToString(subprops[1], aValue);
       aValue.Append(char16_t(' '));
-      AppendValueToString(subprops[2], aValue, aSerialization);
+      AppendValueToString(subprops[2], aValue);
       break;
     }
     case eCSSProperty_flex_flow: {
@@ -1224,9 +1183,9 @@ Declaration::GetPropertyValueInternal(
       MOZ_ASSERT(subprops[2] == eCSSProperty_UNKNOWN,
                  "must have exactly two subproperties");
 
-      AppendValueToString(subprops[0], aValue, aSerialization);
+      AppendValueToString(subprops[0], aValue);
       aValue.Append(char16_t(' '));
-      AppendValueToString(subprops[1], aValue, aSerialization);
+      AppendValueToString(subprops[1], aValue);
       break;
     }
     case eCSSProperty_grid_row:
@@ -1238,9 +1197,9 @@ Declaration::GetPropertyValueInternal(
                  "must have exactly two subproperties");
 
       // TODO: should we simplify when possible?
-      AppendValueToString(subprops[0], aValue, aSerialization);
+      AppendValueToString(subprops[0], aValue);
       aValue.AppendLiteral(" / ");
-      AppendValueToString(subprops[1], aValue, aSerialization);
+      AppendValueToString(subprops[1], aValue);
       break;
     }
     case eCSSProperty_grid_area: {
@@ -1250,13 +1209,13 @@ Declaration::GetPropertyValueInternal(
                  "must have exactly four subproperties");
 
       // TODO: should we simplify when possible?
-      AppendValueToString(subprops[0], aValue, aSerialization);
+      AppendValueToString(subprops[0], aValue);
       aValue.AppendLiteral(" / ");
-      AppendValueToString(subprops[1], aValue, aSerialization);
+      AppendValueToString(subprops[1], aValue);
       aValue.AppendLiteral(" / ");
-      AppendValueToString(subprops[2], aValue, aSerialization);
+      AppendValueToString(subprops[2], aValue);
       aValue.AppendLiteral(" / ");
-      AppendValueToString(subprops[3], aValue, aSerialization);
+      AppendValueToString(subprops[3], aValue);
       break;
     }
 
@@ -1309,12 +1268,10 @@ Declaration::GetPropertyValueInternal(
         }
         if (autoRowsValue.GetUnit() != eCSSUnit_Auto) {
           aValue.Append(' ');
-          AppendValueToString(eCSSProperty_grid_auto_rows,
-                              aValue, aSerialization);
+          AppendValueToString(eCSSProperty_grid_auto_rows, aValue);
         }
         aValue.AppendLiteral(" / ");
-        AppendValueToString(eCSSProperty_grid_template_columns,
-                            aValue, aSerialization);
+        AppendValueToString(eCSSProperty_grid_template_columns, aValue);
         break;
       }
 
@@ -1326,14 +1283,12 @@ Declaration::GetPropertyValueInternal(
           autoRowsValue.GetUnit() == eCSSUnit_Auto &&
           autoFlowValue.GetUnit() == eCSSUnit_Enumerated &&
           (autoFlowValue.GetIntValue() & NS_STYLE_GRID_AUTO_FLOW_COLUMN)) {
-        AppendValueToString(eCSSProperty_grid_template_rows,
-                            aValue, aSerialization);
+        AppendValueToString(eCSSProperty_grid_template_rows, aValue);
         aValue.AppendLiteral(" / auto-flow ");
         if (autoFlowValue.GetIntValue() & NS_STYLE_GRID_AUTO_FLOW_DENSE) {
           aValue.AppendLiteral("dense ");
         }
-        AppendValueToString(eCSSProperty_grid_auto_columns,
-                            aValue, aSerialization);
+        AppendValueToString(eCSSProperty_grid_auto_columns, aValue);
         break;
       }
 
@@ -1355,11 +1310,9 @@ Declaration::GetPropertyValueInternal(
       const nsCSSValue& rowsValue =
         *data->ValueFor(eCSSProperty_grid_template_rows);
       if (areasValue.GetUnit() == eCSSUnit_None) {
-        AppendValueToString(eCSSProperty_grid_template_rows,
-                            aValue, aSerialization);
+        AppendValueToString(eCSSProperty_grid_template_rows, aValue);
         aValue.AppendLiteral(" / ");
-        AppendValueToString(eCSSProperty_grid_template_columns,
-                            aValue, aSerialization);
+        AppendValueToString(eCSSProperty_grid_template_columns, aValue);
         break;
       }
       if (columnsValue.GetUnit() == eCSSUnit_List ||
@@ -1410,7 +1363,7 @@ Declaration::GetPropertyValueInternal(
           // Non-empty <line-names>
           aValue.Append('[');
           rowsItem->mValue.AppendToString(eCSSProperty_grid_template_rows,
-                                          aValue, aSerialization);
+                                          aValue);
           aValue.Append(']');
 
         } else {
@@ -1424,7 +1377,7 @@ Declaration::GetPropertyValueInternal(
             return;
           }
           rowsItem->mValue.AppendToString(eCSSProperty_grid_template_rows,
-                                          aValue, aSerialization);
+                                          aValue);
           if (rowsItem->mNext &&
               rowsItem->mNext->mValue.GetUnit() == eCSSUnit_Null &&
               !rowsItem->mNext->mNext) {
@@ -1454,8 +1407,7 @@ Declaration::GetPropertyValueInternal(
           colsItem = colsItem->mNext; // skip <line-names>
         }
         aValue.AppendLiteral(" / ");
-        AppendValueToString(eCSSProperty_grid_template_columns,
-                            aValue, aSerialization);
+        AppendValueToString(eCSSProperty_grid_template_columns, aValue);
       }
       break;
     }
@@ -1499,8 +1451,8 @@ Declaration::GetPropertyValueInternal(
                  "must have exactly two subproperties");
 
       nsAutoString val1, val2;
-      AppendValueToString(subprops[0], val1, aSerialization);
-      AppendValueToString(subprops[1], val2, aSerialization);
+      AppendValueToString(subprops[0], val1);
+      AppendValueToString(subprops[1], val2);
       if (val1 == val2) {
         aValue.Append(val1);
       } else {
@@ -1519,15 +1471,13 @@ Declaration::GetPropertyValueInternal(
         emphasisColor->GetIntValue() == NS_COLOR_CURRENTCOLOR;
 
       if (emphasisStyle->GetUnit() != eCSSUnit_None || isDefaultColor) {
-        AppendValueToString(eCSSProperty_text_emphasis_style,
-                            aValue, aSerialization);
+        AppendValueToString(eCSSProperty_text_emphasis_style, aValue);
         if (!isDefaultColor) {
           aValue.Append(char16_t(' '));
         }
       }
       if (!isDefaultColor) {
-        AppendValueToString(eCSSProperty_text_emphasis_color,
-                            aValue, aSerialization);
+        AppendValueToString(eCSSProperty_text_emphasis_color, aValue);
       }
       break;
     }
@@ -1537,7 +1487,7 @@ Declaration::GetPropertyValueInternal(
         nsCSSProps::SubpropertyEntryFor(aProperty);
       MOZ_ASSERT(subprops[1] == eCSSProperty_UNKNOWN,
                  "must have exactly one subproperty");
-      AppendValueToString(subprops[0], aValue, aSerialization);
+      AppendValueToString(subprops[0], aValue);
       break;
     }
     case eCSSProperty_scroll_snap_type: {
@@ -1546,8 +1496,7 @@ Declaration::GetPropertyValueInternal(
       const nsCSSValue& yValue =
         *data->ValueFor(eCSSProperty_scroll_snap_type_y);
       if (xValue == yValue) {
-        AppendValueToString(eCSSProperty_scroll_snap_type_x, aValue,
-                            aSerialization);
+        AppendValueToString(eCSSProperty_scroll_snap_type_x, aValue);
       }
       // If scroll-snap-type-x and scroll-snap-type-y are not equal,
       // we don't have a shorthand that can express. Bail.
@@ -1563,15 +1512,13 @@ Declaration::GetPropertyValueInternal(
 
       if (strokeWidth->GetUnit() != eCSSUnit_Integer ||
           strokeWidth->GetIntValue() != 0 || isDefaultColor) {
-        AppendValueToString(eCSSProperty__webkit_text_stroke_width,
-                            aValue, aSerialization);
+        AppendValueToString(eCSSProperty__webkit_text_stroke_width, aValue);
         if (!isDefaultColor) {
           aValue.Append(char16_t(' '));
         }
       }
       if (!isDefaultColor) {
-        AppendValueToString(eCSSProperty__webkit_text_stroke_color,
-                            aValue, aSerialization);
+        AppendValueToString(eCSSProperty__webkit_text_stroke_color, aValue);
       }
       break;
     }
@@ -1624,8 +1571,7 @@ Declaration::AppendPropertyAndValueToString(nsCSSPropertyID aProperty,
              "aValue should be given for shorthands but not longhands");
   AppendASCIItoUTF16(nsCSSProps::GetStringValue(aProperty), aResult);
   if (aValue.IsEmpty()) {
-    AppendValueToString(aProperty, aValue,
-                        nsCSSValue::eNormalized, &aValueIsTokenStream);
+    AppendValueToString(aProperty, aValue, &aValueIsTokenStream);
   }
   aResult.Append(':');
   if (!aValueIsTokenStream) {
@@ -1756,8 +1702,7 @@ Declaration::ToString(nsAString& aString) const
       nsCSSPropertyID shorthand = *shorthands;
 
       bool isTokenStream;
-      GetPropertyValueInternal(shorthand, value,
-                               nsCSSValue::eNormalized, &isTokenStream);
+      GetPropertyValueInternal(shorthand, value, &isTokenStream);
 
       // in the system font case, skip over font-variant shorthand, since all
       // subproperties are already dealt with via the font shorthand
@@ -1781,8 +1726,7 @@ Declaration::ToString(nsAString& aString) const
           // Output the shorthand font declaration that we will
           // partially override later.  But don't add it to
           // |shorthandsUsed|, since we will have to override it.
-          systemFont->AppendToString(eCSSProperty__x_system_font, value,
-                                     nsCSSValue::eNormalized);
+          systemFont->AppendToString(eCSSProperty__x_system_font, value);
           isTokenStream = systemFont->GetUnit() == eCSSUnit_TokenStream;
           AppendPropertyAndValueToString(eCSSProperty_font, aString,
                                          value, isTokenStream);

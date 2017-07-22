@@ -3796,7 +3796,7 @@ StyleAnimationValue::UncomputeValue(nsCSSPropertyID aProperty,
     return false;
   }
 
-  val.AppendToString(aProperty, aSpecifiedValue, nsCSSValue::eNormalized);
+  val.AppendToString(aProperty, aSpecifiedValue);
   return true;
 }
 
