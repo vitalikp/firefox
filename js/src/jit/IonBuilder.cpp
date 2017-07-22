@@ -747,7 +747,7 @@ IonBuilder::build()
         script()->baselineScript()->resetMaxInliningDepth();
 
     MBasicBlock* entry;
-    MOZ_TRY_VAR(entry, newBlock(pc));
+    MOZ_TRY_VAR(entry, newBlock(info().firstStackSlot(), pc));
     MOZ_TRY(setCurrentAndSpecializePhis(entry));
 
 #ifdef JS_JITSPEW
@@ -943,7 +943,7 @@ IonBuilder::buildInline(IonBuilder* callerBuilder, MResumePoint* callerResumePoi
 
     // Generate single entrance block.
     MBasicBlock* entry;
-    MOZ_TRY_VAR(entry, newBlock(pc));
+    MOZ_TRY_VAR(entry, newBlock(info().firstStackSlot(), pc));
     MOZ_TRY(setCurrentAndSpecializePhis(entry));
 
     current->setCallerResumePoint(callerResumePoint);
@@ -3850,7 +3850,7 @@ IonBuilder::inlineScriptedCall(CallInfo& callInfo, JSFunction* target)
     // Create return block.
     jsbytecode* postCall = GetNextPc(pc);
     MBasicBlock* returnBlock;
-    MOZ_TRY_VAR(returnBlock, newBlock(nullptr, postCall));
+    MOZ_TRY_VAR(returnBlock, newBlock(current->stackDepth(), postCall));
     graph().addBlock(returnBlock);
     returnBlock->setCallerResumePoint(callerResumePoint_);
 
@@ -4546,10 +4546,13 @@ IonBuilder::inlineCalls(CallInfo& callInfo, const InliningTargets& targets, Bool
         dispatch = MFunctionDispatch::New(alloc(), callInfo.fun());
     }
 
+    MOZ_ASSERT(dispatchBlock->stackDepth() >= callInfo.numFormals());
+    uint32_t stackDepth = dispatchBlock->stackDepth() - callInfo.numFormals() + 1;
+
     // Generate a return block to host the rval-collecting MPhi.
     jsbytecode* postCall = GetNextPc(pc);
     MBasicBlock* returnBlock;
-    MOZ_TRY_VAR(returnBlock, newBlock(nullptr, postCall));
+    MOZ_TRY_VAR(returnBlock, newBlock(stackDepth, postCall));
     graph().addBlock(returnBlock);
     returnBlock->setCallerResumePoint(callerResumePoint_);
 
@@ -6485,9 +6488,11 @@ IonBuilder::jsop_initelem_getter_setter()
 }
 
 AbortReasonOr<MBasicBlock*>
-IonBuilder::newBlock(MBasicBlock* predecessor, jsbytecode* pc)
+IonBuilder::newBlock(size_t stackDepth, jsbytecode* pc, MBasicBlock* maybePredecessor)
 {
-    MBasicBlock* block = MBasicBlock::New(graph(), &analysis(), info(), predecessor,
+    MOZ_ASSERT_IF(maybePredecessor, maybePredecessor->stackDepth() == stackDepth);
+
+    MBasicBlock* block = MBasicBlock::New(graph(), stackDepth, info(), maybePredecessor,
                                           bytecodeSite(pc), MBasicBlock::NORMAL);
     if (!block)
         return abort(AbortReason::Alloc);
@@ -6521,9 +6526,12 @@ IonBuilder::newBlockPopN(MBasicBlock* predecessor, jsbytecode* pc, uint32_t popp
 }
 
 AbortReasonOr<MBasicBlock*>
-IonBuilder::newBlockAfter(MBasicBlock* at, MBasicBlock* predecessor, jsbytecode* pc)
+IonBuilder::newBlockAfter(MBasicBlock* at, size_t stackDepth, jsbytecode* pc,
+                          MBasicBlock* maybePredecessor)
 {
-    MBasicBlock* block = MBasicBlock::New(graph(), &analysis(), info(), predecessor,
+    MOZ_ASSERT_IF(maybePredecessor, maybePredecessor->stackDepth() == stackDepth);
+
+    MBasicBlock* block = MBasicBlock::New(graph(), stackDepth, info(), maybePredecessor,
                                           bytecodeSite(pc), MBasicBlock::NORMAL);
     if (!block)
         return abort(AbortReason::Alloc);
@@ -6544,7 +6552,7 @@ IonBuilder::newOsrPreheader(MBasicBlock* predecessor, jsbytecode* loopEntry,
     // the preheader, which has the OSR entry block as a predecessor. The
     // OSR block is always the second block (with id 1).
     MBasicBlock* osrBlock;
-    MOZ_TRY_VAR(osrBlock, newBlockAfter(*graph().begin(), loopEntry));
+    MOZ_TRY_VAR(osrBlock, newBlockAfter(*graph().begin(), predecessor->stackDepth(), loopEntry));
     MBasicBlock* preheader;
     MOZ_TRY_VAR(preheader, newBlock(predecessor, loopEntry));
 
