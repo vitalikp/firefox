@@ -851,6 +851,7 @@ struct JSCompartment
     ~JSCompartment();
 
     MOZ_MUST_USE bool init(JSContext* maybecx);
+    void destroy(js::FreeOp* fop);
 
     MOZ_MUST_USE inline bool wrap(JSContext* cx, JS::MutableHandleValue vp);
 
