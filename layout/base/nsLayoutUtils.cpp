@@ -3863,9 +3863,9 @@ nsLayoutUtils::BinarySearchForPosition(DrawTarget* aDrawTarget,
   return false;
 }
 
-static void
-AddBoxesForFrame(nsIFrame* aFrame,
-                 nsLayoutUtils::BoxCallback* aCallback)
+void
+nsLayoutUtils::AddBoxesForFrame(nsIFrame* aFrame,
+                                nsLayoutUtils::BoxCallback* aCallback)
 {
   nsIAtom* pseudoType = aFrame->StyleContext()->GetPseudo();
 
