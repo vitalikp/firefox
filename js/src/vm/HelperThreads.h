@@ -633,11 +633,13 @@ StartOffThreadIonFree(jit::IonBuilder* builder, const AutoLockHelperThreadState&
 
 struct AllCompilations {};
 struct ZonesInState { JSRuntime* runtime; JS::Zone::GCState state; };
+struct CompilationsUsingNursery { JSRuntime* runtime; };
 
 using CompilationSelector = mozilla::Variant<JSScript*,
                                              JSCompartment*,
                                              ZonesInState,
                                              JSRuntime*,
+                                             CompilationsUsingNursery,
                                              AllCompilations>;
 
 /*
@@ -668,6 +670,12 @@ inline void
 CancelOffThreadIonCompile(JSRuntime* runtime)
 {
     CancelOffThreadIonCompile(CompilationSelector(runtime), true);
+}
+
+inline void
+CancelOffThreadIonCompilesUsingNurseryPointers(JSRuntime* runtime)
+{
+    CancelOffThreadIonCompile(CompilationSelector(CompilationsUsingNursery{runtime}), true);
 }
 
 inline void
