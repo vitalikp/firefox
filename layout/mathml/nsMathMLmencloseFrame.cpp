@@ -484,7 +484,7 @@ nsMathMLmencloseFrame::PlaceInternal(DrawTarget*          aDrawTarget,
   if (IsToDraw(NOTATION_LONGDIV)) {
     if (aWidthOnly) {
         nscoord longdiv_width = mMathMLChar[mLongDivCharIndex].
-          GetMaxWidth(PresContext(), aDrawTarget, fontSizeInflation);
+          GetMaxWidth(this, aDrawTarget, fontSizeInflation);
 
         // Update horizontal parameters
         dx_left = std::max(dx_left, longdiv_width);
@@ -496,7 +496,7 @@ nsMathMLmencloseFrame::PlaceInternal(DrawTarget*          aDrawTarget,
       contSize.descent = bmBase.ascent + bmBase.descent + psi;
 
       // height(longdiv) should be >= height(base) + psi + mRuleThickness
-      mMathMLChar[mLongDivCharIndex].Stretch(PresContext(), aDrawTarget,
+      mMathMLChar[mLongDivCharIndex].Stretch(this, aDrawTarget,
                                              fontSizeInflation,
                                              NS_STRETCH_DIRECTION_VERTICAL,
                                              contSize, bmLongdivChar,
@@ -523,11 +523,11 @@ nsMathMLmencloseFrame::PlaceInternal(DrawTarget*          aDrawTarget,
   // radical notation:
   if (IsToDraw(NOTATION_RADICAL)) {
     nscoord *dx_leading = StyleVisibility()->mDirection ? &dx_right : &dx_left;
-    
+
     if (aWidthOnly) {
       nscoord radical_width = mMathMLChar[mRadicalCharIndex].
-        GetMaxWidth(PresContext(), aDrawTarget, fontSizeInflation);
-      
+        GetMaxWidth(this, aDrawTarget, fontSizeInflation);
+
       // Update horizontal parameters
       *dx_leading = std::max(*dx_leading, radical_width);
     } else {
@@ -538,7 +538,7 @@ nsMathMLmencloseFrame::PlaceInternal(DrawTarget*          aDrawTarget,
       contSize.descent = bmBase.ascent + bmBase.descent + psi;
 
       // height(radical) should be >= height(base) + psi + mRadicalRuleThickness
-      mMathMLChar[mRadicalCharIndex].Stretch(PresContext(), aDrawTarget,
+      mMathMLChar[mRadicalCharIndex].Stretch(this, aDrawTarget,
                                              fontSizeInflation,
                                              NS_STRETCH_DIRECTION_VERTICAL,
                                              contSize, bmRadicalChar,
