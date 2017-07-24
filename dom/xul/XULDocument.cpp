@@ -3820,7 +3820,7 @@ XULDocument::OverlayForwardReference::Resolve()
 
     if (MOZ_LOG_TEST(gXULLog, LogLevel::Debug)) {
         nsAutoCString idC;
-        idC.AssignWithConversion(id);
+        LossyCopyUTF16toASCII(id, idC);
         MOZ_LOG(gXULLog, LogLevel::Debug,
                ("xul: overlay resolved '%s'",
                 idC.get()));
@@ -3992,7 +3992,7 @@ XULDocument::OverlayForwardReference::~OverlayForwardReference()
         mOverlay->GetAttr(kNameSpaceID_None, nsGkAtoms::id, id);
 
         nsAutoCString idC;
-        idC.AssignWithConversion(id);
+        LossyCopyUTF16toASCII(id, idC);
 
         nsIURI *protoURI = mDocument->mCurrentPrototype->GetURI();
 
@@ -4043,8 +4043,8 @@ XULDocument::BroadcasterHookup::~BroadcasterHookup()
         }
 
         nsAutoCString attributeC,broadcasteridC;
-        attributeC.AssignWithConversion(attribute);
-        broadcasteridC.AssignWithConversion(broadcasterID);
+        LossyCopyUTF16toASCII(attribute, attributeC);
+        LossyCopyUTF16toASCII(broadcasterID, broadcasteridC);
         MOZ_LOG(gXULLog, LogLevel::Warning,
                ("xul: broadcaster hookup failed <%s attribute='%s'> to %s",
                 nsAtomCString(mObservesElement->NodeInfo()->NameAtom()).get(),
@@ -4255,8 +4255,8 @@ XULDocument::CheckBroadcasterHookup(Element* aElement,
             return rv;
 
         nsAutoCString attributeC,broadcasteridC;
-        attributeC.AssignWithConversion(attribute);
-        broadcasteridC.AssignWithConversion(broadcasterID);
+        LossyCopyUTF16toASCII(attribute, attributeC);
+        LossyCopyUTF16toASCII(broadcasterID, broadcasteridC);
         MOZ_LOG(gXULLog, LogLevel::Debug,
                ("xul: broadcaster hookup <%s attribute='%s'> to %s",
                 nsAtomCString(content->NodeInfo()->NameAtom()).get(),

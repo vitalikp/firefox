@@ -6739,7 +6739,7 @@ CSSParserImpl::ParseColor(nsCSSValue& aValue)
       case eCSSToken_Number:
         if (tk->mIntegerValid && tk->mInteger < 1000000 && tk->mInteger >= 0) {
           SprintfLiteral(buffer, "%06d", tk->mInteger);
-          str.AssignWithConversion(buffer);
+          CopyASCIItoUTF16(buffer, str);
         }
         break;
 
@@ -6749,7 +6749,7 @@ CSSParserImpl::ParseColor(nsCSSValue& aValue)
             tk->mInteger >= 0) {
           SprintfLiteral(buffer, "%06d", tk->mInteger);
           nsAutoString temp;
-          temp.AssignWithConversion(buffer);
+          CopyASCIItoUTF16(buffer, temp);
           temp.Right(str, 6 - tk->mIdent.Length());
           str.Append(tk->mIdent);
         }

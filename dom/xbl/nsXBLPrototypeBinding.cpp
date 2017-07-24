@@ -637,7 +637,7 @@ nsXBLPrototypeBinding::ConstructAttributeTable(nsIContent* aElement)
         int32_t attributeNsID = kNameSpaceID_None;
 
         // Figure out if this token contains a :.
-        nsAutoString attrTok; attrTok.AssignWithConversion(token);
+        NS_ConvertASCIItoUTF16 attrTok(token);
         int32_t index = attrTok.Find("=", true);
         nsresult rv;
         if (index != -1) {
@@ -657,8 +657,7 @@ nsXBLPrototypeBinding::ConstructAttributeTable(nsIContent* aElement)
             return;
         }
         else {
-          nsAutoString tok;
-          tok.AssignWithConversion(token);
+          NS_ConvertASCIItoUTF16 tok(token);
           rv = nsContentUtils::SplitQName(aElement, tok, &atomNsID,
                                           getter_AddRefs(atom));
           if (NS_FAILED(rv))
