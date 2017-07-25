@@ -4548,7 +4548,7 @@ JS::CompileFunction(JSContext* cx, AutoObjectVector& envChain,
 }
 
 JS_PUBLIC_API(JSString*)
-JS_DecompileScript(JSContext* cx, HandleScript script, const char* name, unsigned indent)
+JS_DecompileScript(JSContext* cx, HandleScript script)
 {
     MOZ_ASSERT(!cx->runtime()->isAtomsCompartment(cx->compartment()));
 
@@ -4557,7 +4557,7 @@ JS_DecompileScript(JSContext* cx, HandleScript script, const char* name, unsigne
     script->ensureNonLazyCanonicalFunction();
     RootedFunction fun(cx, script->functionNonDelazifying());
     if (fun)
-        return JS_DecompileFunction(cx, fun, indent);
+        return JS_DecompileFunction(cx, fun);
     bool haveSource = script->scriptSource()->hasSourceData();
     if (!haveSource && !JSScript::loadSource(cx, script->scriptSource(), &haveSource))
         return nullptr;
@@ -4566,13 +4566,13 @@ JS_DecompileScript(JSContext* cx, HandleScript script, const char* name, unsigne
 }
 
 JS_PUBLIC_API(JSString*)
-JS_DecompileFunction(JSContext* cx, HandleFunction fun, unsigned indent)
+JS_DecompileFunction(JSContext* cx, HandleFunction fun)
 {
     MOZ_ASSERT(!cx->runtime()->isAtomsCompartment(cx->compartment()));
     AssertHeapIsIdle();
     CHECK_REQUEST(cx);
     assertSameCompartment(cx, fun);
-    return FunctionToString(cx, fun, !(indent & JS_DONT_PRETTY_PRINT));
+    return FunctionToString(cx, fun, /* isToSource = */ false);
 }
 
 MOZ_NEVER_INLINE static bool

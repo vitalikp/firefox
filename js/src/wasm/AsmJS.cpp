@@ -8901,7 +8901,7 @@ js::IsAsmJSModuleLoadedFromCache(JSContext* cx, unsigned argc, Value* vp)
 // asm.js toString/toSource support
 
 JSString*
-js::AsmJSModuleToString(JSContext* cx, HandleFunction fun, bool addParenToLambda)
+js::AsmJSModuleToString(JSContext* cx, HandleFunction fun, bool isToSource)
 {
     MOZ_ASSERT(IsAsmJSModule(fun));
 
@@ -8912,7 +8912,7 @@ js::AsmJSModuleToString(JSContext* cx, HandleFunction fun, bool addParenToLambda
 
     StringBuffer out(cx);
 
-    if (addParenToLambda && fun->isLambda() && !out.append("("))
+    if (isToSource && fun->isLambda() && !out.append("("))
         return nullptr;
 
     bool haveSource = source->hasSourceData();
@@ -8935,7 +8935,7 @@ js::AsmJSModuleToString(JSContext* cx, HandleFunction fun, bool addParenToLambda
             return nullptr;
     }
 
-    if (addParenToLambda && fun->isLambda() && !out.append(")"))
+    if (isToSource && fun->isLambda() && !out.append(")"))
         return nullptr;
 
     return out.finishString();
