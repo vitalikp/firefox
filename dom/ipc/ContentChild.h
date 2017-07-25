@@ -118,7 +118,7 @@ public:
     return mAppInfo;
   }
 
-  void SetProcessName(const nsAString& aName, bool aDontOverride = false);
+  void SetProcessName(const nsAString& aName);
 
   void GetProcessName(nsAString& aName) const;
 
@@ -674,7 +674,6 @@ private:
 
   bool mIsForBrowser;
   nsString mRemoteType = NullString();
-  bool mCanOverrideProcessName;
   bool mIsAlive;
   nsString mProcessName;
 
