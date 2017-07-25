@@ -195,6 +195,7 @@ mozJSComponentLoader::mozJSComponentLoader()
     : mModules(16),
       mImports(16),
       mInProgressImports(16),
+      mLocations(16),
       mInitialized(false)
 {
     MOZ_ASSERT(!sSelf, "mozJSComponentLoader should be a singleton");
@@ -249,11 +250,9 @@ class MOZ_STACK_CLASS ComponentLoaderInfo {
         return ResolveURI(mURI, getter_AddRefs(mResolvedURI));
     }
 
-    nsAutoCString& Key() { return *mKey; }
+    const nsACString& Key() { return mLocation; }
     nsresult EnsureKey() {
-        ENSURE_DEPS(ResolvedURI);
-        mKey.emplace();
-        return mResolvedURI->GetSpec(*mKey);
+        return NS_OK;
     }
 
     MOZ_MUST_USE nsresult GetLocation(nsCString& aLocation) {
@@ -268,7 +267,6 @@ class MOZ_STACK_CLASS ComponentLoaderInfo {
     nsCOMPtr<nsIURI> mURI;
     nsCOMPtr<nsIChannel> mScriptChannel;
     nsCOMPtr<nsIURI> mResolvedURI;
-    Maybe<nsAutoCString> mKey; // This is safe because we're MOZ_STACK_CLASS
 };
 
 #undef BEGIN_ENSURE
@@ -459,6 +457,7 @@ mozJSComponentLoader::SizeOfIncludingThis(MallocSizeOf aMallocSizeOf)
     size_t n = aMallocSizeOf(this);
     n += SizeOfTableExcludingThis(mModules, aMallocSizeOf);
     n += SizeOfTableExcludingThis(mImports, aMallocSizeOf);
+    n += mLocations.ShallowSizeOfExcludingThis(aMallocSizeOf);
     n += SizeOfTableExcludingThis(mInProgressImports, aMallocSizeOf);
     return n;
 }
@@ -770,6 +769,7 @@ mozJSComponentLoader::UnloadModules()
 
     mInProgressImports.Clear();
     mImports.Clear();
+    mLocations.Clear();
 
     for (auto iter = mModules.Iter(); !iter.Done(); iter.Next()) {
         iter.Data()->Clear();
@@ -918,6 +918,15 @@ mozJSComponentLoader::ImportInto(const nsACString& aLocation,
         rv = baseFileURL->GetFile(getter_AddRefs(sourceFile));
         NS_ENSURE_SUCCESS(rv, rv);
 
+        rv = info.ResolvedURI()->GetSpec(newEntry->resolvedURL);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        nsCString* existingPath;
+        if (mLocations.Get(newEntry->resolvedURL, &existingPath) && *existingPath != info.Key()) {
+            return NS_ERROR_UNEXPECTED;
+        }
+
+        mLocations.Put(newEntry->resolvedURL, new nsCString(info.Key()));
         mInProgressImports.Put(info.Key(), newEntry);
 
         rv = info.EnsureURI();
@@ -1093,6 +1102,7 @@ mozJSComponentLoader::Unload(const nsACString & aLocation)
     NS_ENSURE_SUCCESS(rv, rv);
     ModuleEntry* mod;
     if (mImports.Get(info.Key(), &mod)) {
+        mLocations.Remove(mod->resolvedURL);
         mImports.Remove(info.Key());
     }
 
