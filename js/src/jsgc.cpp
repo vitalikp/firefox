@@ -6045,7 +6045,7 @@ struct IncrementalIter
 
   public:
     template <typename... Args>
-    IncrementalIter(State& maybeIter, Args&&... args)
+    explicit IncrementalIter(State& maybeIter, Args&&... args)
       : maybeIter(maybeIter)
     {
         if (maybeIter.isNothing())
@@ -6079,7 +6079,7 @@ class SweepActionFunc : public SweepAction<Args...>
     Func func;
 
   public:
-    SweepActionFunc(Func f) : func(f) {}
+    explicit SweepActionFunc(Func f) : func(f) {}
     IncrementalProgress run(Args... args) override {
         return func(args...);
     }
