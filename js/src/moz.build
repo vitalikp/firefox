@@ -332,7 +332,6 @@ UNIFIED_SOURCES += [
     'wasm/WasmBaselineCompile.cpp',
     'wasm/WasmBinaryIterator.cpp',
     'wasm/WasmBinaryToAST.cpp',
-    'wasm/WasmBinaryToExperimentalText.cpp',
     'wasm/WasmBinaryToText.cpp',
     'wasm/WasmBuiltins.cpp',
     'wasm/WasmCode.cpp',
