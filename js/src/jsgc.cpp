@@ -3677,6 +3677,7 @@ JSCompartment::destroy(FreeOp* fop)
 void
 Zone::destroy(FreeOp* fop)
 {
+    MOZ_ASSERT(compartments().empty());
     fop->delete_(this);
     fop->runtime()->gc.stats().sweptZone();
 }
