@@ -89,17 +89,24 @@ SystemGroup::Dispatch(const char* aName,
                       TaskCategory aCategory,
                       already_AddRefed<nsIRunnable>&& aRunnable)
 {
+  if (!SystemGroupImpl::Initialized()) {
+    return NS_DispatchToMainThread(Move(aRunnable));
+  }
   return SystemGroupImpl::Get()->Dispatch(aName, aCategory, Move(aRunnable));
 }
 
 /* static */ nsISerialEventTarget*
 SystemGroup::EventTargetFor(TaskCategory aCategory)
 {
+  if (!SystemGroupImpl::Initialized()) {
+    return GetMainThreadSerialEventTarget();
+  }
   return SystemGroupImpl::Get()->EventTargetFor(aCategory);
 }
 
 /* static */ AbstractThread*
 SystemGroup::AbstractMainThreadFor(TaskCategory aCategory)
 {
+  MOZ_ASSERT(SystemGroupImpl::Initialized());
   return SystemGroupImpl::Get()->AbstractMainThreadFor(aCategory);
 }
