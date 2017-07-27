@@ -51,6 +51,12 @@ function getData(channel) {
   return extractFromChannel(channel, key) || attachToChannel(channel, key, {});
 }
 
+function getFinalChannelURI(channel) {
+  let {loadInfo} = channel;
+  // resultPrincipalURI may be null, but originalURI never will be.
+  return (loadInfo && loadInfo.resultPrincipalURI) || channel.originalURI;
+}
+
 var RequestId = {
   count: 1,
   create(channel = null) {
@@ -605,9 +611,10 @@ HttpObserverManager = {
   getRequestData(channel, loadContext, policyType, extraData) {
     let {loadInfo} = channel;
 
+    let URI = getFinalChannelURI(channel);
     let data = {
       requestId: RequestId.get(channel),
-      url: channel.URI.spec,
+      url: URI.spec,
       method: channel.requestMethod,
       browser: loadContext && loadContext.topFrameElement,
       type: WebRequestCommon.typeForPolicyType(policyType),
@@ -661,7 +668,10 @@ HttpObserverManager = {
   canModify(channel) {
     let {isHostPermitted} = AddonManagerPermissions;
 
-    if (isHostPermitted(channel.URI.host)) {
+    // Bug 1334550 introduced the possibility of having a JAR uri here,
+    // use the result uri if possible in that case.
+    let URI = getFinalChannelURI(channel);
+    if (URI && isHostPermitted(URI.host)) {
       return false;
     }
 
@@ -702,7 +712,7 @@ HttpObserverManager = {
 
       let canModify = this.canModify(channel);
       let commonData = null;
-      let uri = channel.URI;
+      let uri = getFinalChannelURI(channel);
       let requestBody;
       for (let [callback, opts] of this.listeners[kind].entries()) {
         if (!this.shouldRunListener(policyType, uri, opts.filter)) {
@@ -837,8 +847,10 @@ HttpObserverManager = {
   },
 
   onChannelReplaced(oldChannel, newChannel) {
+    // We want originalURI, this will provide a moz-ext rather than jar or file
+    // uri on redirects.
     this.runChannelListener(oldChannel, this.getLoadContext(oldChannel),
-                            "onRedirect", {redirectUrl: newChannel.URI.spec});
+                            "onRedirect", {redirectUrl: newChannel.originalURI.spec});
   },
 
   onStartRequest(channel, loadContext) {

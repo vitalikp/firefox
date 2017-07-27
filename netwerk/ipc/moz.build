@@ -29,6 +29,7 @@ IPDL_SOURCES = [
     'PNecko.ipdl',
     'PRtspChannel.ipdl',
     'PRtspController.ipdl',
+    'PSimpleChannel.ipdl',
 ]
 
 include('/ipc/chromium/chromium-config.mozbuild')
