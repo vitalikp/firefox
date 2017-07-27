@@ -1270,8 +1270,7 @@ nsSocketTransport::BuildSocket(PRFileDesc *&fd, bool &proxyTransparent, bool &us
             SOCKET_LOG(("  error pushing io layer [%u:%s rv=%" PRIx32 "]\n", i, mTypes[i],
                         static_cast<uint32_t>(rv)));
             if (fd) {
-                CloseSocket(fd,
-                    mSocketTransportService->IsTelemetryEnabledAndNotSleepPhase());
+                CloseSocket(fd, mSocketTransportService); 
             }
         }
     }
@@ -1465,8 +1464,7 @@ nsSocketTransport::InitiateSocket()
     // inform socket transport about this newly created socket...
     rv = mSocketTransportService->AttachSocket(fd, this);
     if (NS_FAILED(rv)) {
-        CloseSocket(fd,
-            mSocketTransportService->IsTelemetryEnabledAndNotSleepPhase());
+        CloseSocket(fd, mSocketTransportService);
         return rv;
     }
     mAttached = true;
@@ -1969,8 +1967,7 @@ public:
 
   NS_IMETHOD Run() override
   {
-    nsSocketTransport::CloseSocket(mFD,
-      gSocketTransportService->IsTelemetryEnabledAndNotSleepPhase());
+    nsSocketTransport::CloseSocket(mFD, gSocketTransportService);
     return NS_OK;
   }
 private:
@@ -2005,8 +2002,7 @@ nsSocketTransport::ReleaseFD_Locked(PRFileDesc *fd)
           SOCKET_LOG(("Intentional leak"));
         } else if (OnSocketThread()) {
             SOCKET_LOG(("nsSocketTransport: calling PR_Close [this=%p]\n", this));
-            CloseSocket(mFD,
-                mSocketTransportService->IsTelemetryEnabledAndNotSleepPhase());
+            CloseSocket(mFD, mSocketTransportService);
         } else {
             // Can't PR_Close() a socket off STS thread. Thunk it to STS to die
             STS_PRCloseOnSocketTransport(mFD);
@@ -3425,8 +3421,10 @@ nsSocketTransport::PRFileDescAutoLock::SetKeepaliveVals(bool aEnabled,
 }
 
 void
-nsSocketTransport::CloseSocket(PRFileDesc *aFd, bool aTelemetryEnabled)
+nsSocketTransport::CloseSocket(PRFileDesc *aFd, nsSocketTransportService *aSTS)
 {
+    bool telemetryEnabled = aSTS->IsTelemetryEnabledAndNotSleepPhase();
+
 #if defined(XP_WIN)
     AttachShutdownLayer(aFd);
 #endif
@@ -3435,13 +3433,13 @@ nsSocketTransport::CloseSocket(PRFileDesc *aFd, bool aTelemetryEnabled)
     // nsIOService::LastOfflineStateChange time and
     // nsIOService::LastConectivityChange time to be atomic.
     PRIntervalTime closeStarted;
-    if (aTelemetryEnabled) {
+    if (telemetryEnabled) {
         closeStarted = PR_IntervalNow();
     }
 
     PR_Close(aFd);
 
-    if (aTelemetryEnabled) {
+    if (telemetryEnabled) {
         SendPRBlockingTelemetry(closeStarted,
             Telemetry::PRCLOSE_TCP_BLOCKING_TIME_NORMAL,
             Telemetry::PRCLOSE_TCP_BLOCKING_TIME_SHUTDOWN,
