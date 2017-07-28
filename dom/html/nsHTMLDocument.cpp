@@ -1089,7 +1089,7 @@ nsIHTMLCollection*
 nsHTMLDocument::Applets()
 {
   if (!mApplets) {
-    mApplets = new nsContentList(this, kNameSpaceID_XHTML, nsGkAtoms::applet, nsGkAtoms::applet);
+    mApplets = new nsEmptyContentList(this);
   }
   return mApplets;
 }

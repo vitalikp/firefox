@@ -708,7 +708,6 @@ public:
   {
     return aTag == nsGkAtoms::img ||
            aTag == nsGkAtoms::form ||
-           aTag == nsGkAtoms::applet ||
            aTag == nsGkAtoms::embed ||
            aTag == nsGkAtoms::object;
   }
@@ -721,8 +720,7 @@ public:
   static inline bool
   ShouldExposeIdAsHTMLDocumentProperty(Element* aElement)
   {
-    if (aElement->IsAnyOfHTMLElements(nsGkAtoms::applet,
-                                      nsGkAtoms::embed,
+    if (aElement->IsAnyOfHTMLElements(nsGkAtoms::embed,
                                       nsGkAtoms::object)) {
       return true;
     }
