@@ -290,7 +290,8 @@ public:
                                       Text& aTextNode, int32_t aOffset,
                                       bool aSuppressIME = false);
 
-  nsresult SetTextImpl(const nsAString& aString,
+  nsresult SetTextImpl(Selection& aSelection,
+                       const nsAString& aString,
                        Text& aTextNode);
 
   NS_IMETHOD DeleteSelectionImpl(EDirection aAction,
@@ -505,6 +506,10 @@ protected:
    * Called after a transaction is redone successfully.
    */
   void DoAfterRedoTransaction();
+
+  // Note that aSelection is optional and can be nullptr.
+  nsresult DoTransaction(Selection* aSelection,
+                         nsITransaction* aTxn);
 
   enum TDocumentListenerNotification
   {
