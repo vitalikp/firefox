@@ -213,7 +213,7 @@ pref("dom.compartment_per_addon", true);
 // execution to record the bytecode of the JavaScript function used, and save it
 // in the existing cache entry. On the following loads of the same script, the
 // bytecode would be loaded from the cache instead of being generated once more.
-pref("dom.script_loader.bytecode_cache.enabled", false); // Not tuned yet.
+pref("dom.script_loader.bytecode_cache.enabled", false);
 
 // Choose one strategy to use to decide when the bytecode should be encoded and
 // saved. The following strategies are available right now:
