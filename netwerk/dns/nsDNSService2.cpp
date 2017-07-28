@@ -546,9 +546,9 @@ nsDNSService::Init()
     int      proxyType        = nsIProtocolProxyService::PROXYCONFIG_DIRECT;
     bool     notifyResolution = false;
 
-    nsAdoptingCString ipv4OnlyDomains;
-    nsAdoptingCString localDomains;
-    nsAdoptingCString forceResolve;
+    nsCString ipv4OnlyDomains;
+    nsCString localDomains;
+    nsCString forceResolve;
 
     // read prefs
     nsCOMPtr<nsIPrefBranch> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
@@ -617,18 +617,18 @@ nsDNSService::Init()
         MutexAutoLock lock(mLock);
         mResolver = res;
         mIDN = idn;
-        mIPv4OnlyDomains = ipv4OnlyDomains; // exchanges buffer ownership
+        mIPv4OnlyDomains = ipv4OnlyDomains;
         mOfflineLocalhost = offlineLocalhost;
         mDisableIPv6 = disableIPv6;
         mBlockDotOnion = blockDotOnion;
         mForceResolve = forceResolve;
         mForceResolveOn = !mForceResolve.IsEmpty();
 
-        // Disable prefetching either by explicit preference or if a manual proxy is configured 
+        // Disable prefetching either by explicit preference or if a manual proxy is configured
         mDisablePrefetch = disablePrefetch || (proxyType == nsIProtocolProxyService::PROXYCONFIG_MANUAL);
 
         mLocalDomains.Clear();
-        if (localDomains) {
+        if (!localDomains.IsVoid()) {
             nsCCharSeparatedTokenizer tokenizer(localDomains, ',',
                                                 nsCCharSeparatedTokenizer::SEPARATOR_OPTIONAL);
 
