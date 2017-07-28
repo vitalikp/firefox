@@ -175,13 +175,19 @@ void nsHttpTransaction::ResumeReading()
     }
 }
 
+bool nsHttpTransaction::EligibleForThrottling()
+{
+  return (mClassOfService & (nsIClassOfService::Throttleable |
+                             nsIClassOfService::Leader |
+                             nsIClassOfService::Unblocked)) ==
+    nsIClassOfService::Throttleable;
+}
+
 void nsHttpTransaction::SetClassOfService(uint32_t cos)
 {
-    bool wasThrottling = mClassOfService & nsIClassOfService::Throttleable;
-
+    bool wasThrottling = EligibleForThrottling();
     mClassOfService = cos;
-
-    bool isThrottling = mClassOfService & nsIClassOfService::Throttleable;
+    bool isThrottling = EligibleForThrottling();
 
     if (mConnection && wasThrottling != isThrottling) {
         // Do nothing until we are actually activated.  For now
@@ -831,8 +837,7 @@ bool nsHttpTransaction::ShouldStopReading()
         return false;
     }
 
-    if (!gHttpHandler->ConnMgr()->ShouldStopReading(
-            this, mClassOfService & nsIClassOfService::Throttleable)) {
+    if (!gHttpHandler->ConnMgr()->ShouldStopReading(this, EligibleForThrottling())) {
         // We are not obligated to throttle
         return false;
     }

@@ -392,6 +392,10 @@ public:
     // previously throttled transaction has to be resumed.
     void ResumeReading();
 
+    // This examins classification of this transaction whether the Throttleable class
+    // has been set while Leader or Unblocked are not.
+    bool EligibleForThrottling();
+
 private:
     bool mSubmittedRatePacing;
     bool mPassedRatePacing;
