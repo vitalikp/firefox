@@ -3251,7 +3251,7 @@ HTMLMediaElement::AddCaptureMediaTrackToOutputStream(MediaTrack* aTrack,
 }
 
 bool
-HTMLMediaElement::CanBeCaptured(bool aCaptureAudio)
+HTMLMediaElement::CanBeCaptured(StreamCaptureType aCaptureType)
 {
   // Don't bother capturing when the document has gone away
   nsPIDOMWindowInner* window = OwnerDoc()->GetInnerWindow();
@@ -3260,19 +3260,20 @@ HTMLMediaElement::CanBeCaptured(bool aCaptureAudio)
   }
 
   // Prevent capturing restricted video
-  if (!aCaptureAudio && ContainsRestrictedContent()) {
+  if (aCaptureType == StreamCaptureType::CAPTURE_ALL_TRACKS &&
+      ContainsRestrictedContent()) {
     return false;
   }
   return true;
 }
 
 already_AddRefed<DOMMediaStream>
-HTMLMediaElement::CaptureStreamInternal(bool aFinishWhenEnded,
-                                        bool aCaptureAudio,
+HTMLMediaElement::CaptureStreamInternal(StreamCaptureBehavior aFinishBehavior,
+                                        StreamCaptureType aStreamCaptureType,
                                         MediaStreamGraph* aGraph)
 {
   MOZ_RELEASE_ASSERT(aGraph);
-  MOZ_ASSERT(CanBeCaptured(aCaptureAudio));
+  MOZ_ASSERT(CanBeCaptured(aStreamCaptureType));
 
   MarkAsContentSource(CallerAPI::CAPTURE_STREAM);
   MarkAsTainted();
@@ -3288,10 +3289,10 @@ HTMLMediaElement::CaptureStreamInternal(bool aFinishWhenEnded,
   nsPIDOMWindowInner* window = OwnerDoc()->GetInnerWindow();
   out->mStream = DOMMediaStream::CreateTrackUnionStreamAsInput(window, aGraph, getter);
   out->mStream->SetInactiveOnFinish();
-  out->mFinishWhenEnded = aFinishWhenEnded;
-  out->mCapturingAudioOnly = aCaptureAudio;
+  out->mFinishWhenEnded = aFinishBehavior == StreamCaptureBehavior::FINISH_WHEN_ENDED;
+  out->mCapturingAudioOnly = aStreamCaptureType == StreamCaptureType::CAPTURE_AUDIO;
 
-  if (aCaptureAudio) {
+  if (aStreamCaptureType == StreamCaptureType::CAPTURE_AUDIO) {
     if (mSrcStream) {
       // We don't support applying volume and mute to the captured stream, when
       // capturing a MediaStream.
@@ -3312,7 +3313,7 @@ HTMLMediaElement::CaptureStreamInternal(bool aFinishWhenEnded,
   if (mDecoder) {
     out->mCapturingDecoder = true;
     mDecoder->AddOutputStream(out->mStream->GetInputStream()->AsProcessedStream(),
-                              aFinishWhenEnded);
+                              aFinishBehavior == StreamCaptureBehavior::FINISH_WHEN_ENDED);
   } else if (mSrcStream) {
     out->mCapturingMediaStream = true;
   }
@@ -3376,13 +3377,15 @@ HTMLMediaElement::CaptureAudio(ErrorResult& aRv,
 {
   MOZ_RELEASE_ASSERT(aGraph);
 
-  if (!CanBeCaptured(true)) {
+  if (!CanBeCaptured(StreamCaptureType::CAPTURE_AUDIO)) {
     aRv.Throw(NS_ERROR_FAILURE);
     return nullptr;
   }
 
   RefPtr<DOMMediaStream> stream =
-    CaptureStreamInternal(false, true, aGraph);
+    CaptureStreamInternal(StreamCaptureBehavior::CONTINUE_WHEN_ENDED,
+                          StreamCaptureType::CAPTURE_AUDIO,
+                          aGraph);
   if (!stream) {
     aRv.Throw(NS_ERROR_FAILURE);
     return nullptr;
@@ -3405,7 +3408,7 @@ HTMLMediaElement::MozCaptureStream(ErrorResult& aRv)
     return nullptr;
   }
 
-  if (!CanBeCaptured(false)) {
+  if (!CanBeCaptured(StreamCaptureType::CAPTURE_ALL_TRACKS)) {
     aRv.Throw(NS_ERROR_FAILURE);
     return nullptr;
   }
@@ -3414,7 +3417,9 @@ HTMLMediaElement::MozCaptureStream(ErrorResult& aRv)
     MediaStreamGraph::GetInstance(graphDriverType, mAudioChannel, window);
 
   RefPtr<DOMMediaStream> stream =
-    CaptureStreamInternal(false, false, graph);
+    CaptureStreamInternal(StreamCaptureBehavior::CONTINUE_WHEN_ENDED,
+                          StreamCaptureType::CAPTURE_ALL_TRACKS,
+                          graph);
   if (!stream) {
     aRv.Throw(NS_ERROR_FAILURE);
     return nullptr;
@@ -3436,7 +3441,7 @@ HTMLMediaElement::MozCaptureStreamUntilEnded(ErrorResult& aRv)
     return nullptr;
   }
 
-  if (!CanBeCaptured(false)) {
+  if (!CanBeCaptured(StreamCaptureType::CAPTURE_ALL_TRACKS)) {
     aRv.Throw(NS_ERROR_FAILURE);
     return nullptr;
   }
@@ -3445,7 +3450,9 @@ HTMLMediaElement::MozCaptureStreamUntilEnded(ErrorResult& aRv)
     MediaStreamGraph::GetInstance(graphDriverType, mAudioChannel, window);
 
   RefPtr<DOMMediaStream> stream =
-    CaptureStreamInternal(true, false, graph);
+    CaptureStreamInternal(StreamCaptureBehavior::FINISH_WHEN_ENDED,
+                          StreamCaptureType::CAPTURE_ALL_TRACKS,
+                          graph);
   if (!stream) {
     aRv.Throw(NS_ERROR_FAILURE);
     return nullptr;
@@ -7114,7 +7121,9 @@ HTMLMediaElement::AudioCaptureStreamChange(bool aCapture)
       mCaptureStreamPort = msg->ConnectToCaptureStream(id, GetSrcMediaStream());
     } else {
       RefPtr<DOMMediaStream> stream =
-        CaptureStreamInternal(false, false, msg);
+        CaptureStreamInternal(StreamCaptureBehavior::CONTINUE_WHEN_ENDED,
+                              StreamCaptureType::CAPTURE_AUDIO,
+                              msg);
       mCaptureStreamPort = msg->ConnectToCaptureStream(id, stream->GetPlaybackStream());
     }
   } else if (!aCapture && mCaptureStreamPort) {
