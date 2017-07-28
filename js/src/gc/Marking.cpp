@@ -2814,6 +2814,12 @@ TraceWholeCell(TenuringTracer& mover, JSObject* object)
 }
 
 static inline void
+TraceWholeCell(TenuringTracer& mover, JSString* str)
+{
+    str->traceChildren(&mover);
+}
+
+static inline void
 TraceWholeCell(TenuringTracer& mover, JSScript* script)
 {
     script->traceChildren(&mover);
@@ -2852,6 +2858,9 @@ js::gc::StoreBuffer::WholeCellBuffer::trace(StoreBuffer* owner, TenuringTracer& 
         switch (kind) {
           case JS::TraceKind::Object:
             TraceBufferedCells<JSObject>(mover, arena, cells);
+            break;
+          case JS::TraceKind::String:
+            TraceBufferedCells<JSString>(mover, arena, cells);
             break;
           case JS::TraceKind::Script:
             TraceBufferedCells<JSScript>(mover, arena, cells);

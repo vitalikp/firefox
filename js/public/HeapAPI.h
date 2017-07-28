@@ -463,11 +463,8 @@ GetTenuredGCThingZone(GCCellPtr thing)
     return js::gc::detail::GetGCThingZone(thing.unsafeAsUIntPtr());
 }
 
-static MOZ_ALWAYS_INLINE Zone*
-GetStringZone(JSString* str)
-{
-    return js::gc::detail::GetGCThingZone(uintptr_t(str));
-}
+extern JS_PUBLIC_API(Zone*)
+GetStringZone(JSString* str);
 
 extern JS_PUBLIC_API(Zone*)
 GetObjectZone(JSObject* obj);

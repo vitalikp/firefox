@@ -8347,10 +8347,10 @@ JS::AssertGCThingMustBeTenured(JSObject* obj)
 }
 
 JS_FRIEND_API(void)
-JS::AssertGCThingIsNotAnObjectSubclass(Cell* cell)
+JS::AssertGCThingIsNotNurseryAllocable(Cell* cell)
 {
     MOZ_ASSERT(cell);
-    MOZ_ASSERT(!cell->is<JSObject>());
+    MOZ_ASSERT(!cell->is<JSObject>() && !cell->is<JSString>());
 }
 
 JS_FRIEND_API(void)
@@ -8364,7 +8364,8 @@ js::gc::AssertGCThingHasType(js::gc::Cell* cell, JS::TraceKind kind)
     MOZ_ASSERT(IsCellPointerValid(cell));
 
     if (IsInsideNursery(cell)) {
-        MOZ_ASSERT(kind == JS::TraceKind::Object);
+        MOZ_ASSERT(kind == (JSString::nurseryCellIsString(cell) ? JS::TraceKind::String
+                                                                : JS::TraceKind::Object));
         return;
     }
 
