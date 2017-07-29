@@ -8666,7 +8666,7 @@ EstablishPreconditions(JSContext* cx, AsmJSParser& parser)
         return Warn(parser, JSMSG_USE_ASM_TYPE_FAIL, "Disabled by arrow function context");
 
     // Class constructors are also methods
-    if (parser.pc->isMethod())
+    if (parser.pc->isMethod() || parser.pc->isGetterOrSetter())
         return Warn(parser, JSMSG_USE_ASM_TYPE_FAIL, "Disabled by class constructor or method context");
 
     return true;
