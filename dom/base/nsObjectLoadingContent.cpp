@@ -87,7 +87,7 @@
 #include "mozilla/EventStates.h"
 #include "mozilla/IntegerPrintfMacros.h"
 #include "mozilla/dom/HTMLObjectElementBinding.h"
-#include "mozilla/dom/HTMLSharedObjectElement.h"
+#include "mozilla/dom/HTMLEmbedElement.h"
 #include "mozilla/dom/HTMLObjectElement.h"
 
 #ifdef XP_WIN
@@ -2781,8 +2781,7 @@ nsObjectLoadingContent::LoadFallback(FallbackType aType, bool aNotify) {
         aType = eFallbackAlternate;
       }
       if (thisIsObject) {
-        if (child->IsHTMLElement(nsGkAtoms::embed)) {
-          HTMLSharedObjectElement* embed = static_cast<HTMLSharedObjectElement*>(child);
+        if (auto embed = HTMLEmbedElement::FromContent(child)) {
           embed->StartObjectLoad(true, true);
           skipChildDescendants = true;
         } else if (auto object = HTMLObjectElement::FromContent(child)) {
