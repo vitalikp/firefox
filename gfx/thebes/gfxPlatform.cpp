@@ -603,8 +603,12 @@ gfxPlatform::Init()
         gfxVars::SetPDMWMFDisableD3D11Dlls(nsCString());
         gfxVars::SetPDMWMFDisableD3D9Dlls(nsCString());
       } else {
-        gfxVars::SetPDMWMFDisableD3D11Dlls(Preferences::GetCString("media.wmf.disable-d3d11-for-dlls"));
-        gfxVars::SetPDMWMFDisableD3D9Dlls(Preferences::GetCString("media.wmf.disable-d3d9-for-dlls"));
+        nsAutoCString d3d11;
+        Preferences::GetCString("media.wmf.disable-d3d11-for-dlls", d3d11);
+        gfxVars::SetPDMWMFDisableD3D11Dlls(d3d11);
+        nsAutoCString d3d9;
+        Preferences::GetCString("media.wmf.disable-d3d9-for-dlls", d3d9);
+        gfxVars::SetPDMWMFDisableD3D9Dlls(d3d9);
       }
     }
 
@@ -1760,9 +1764,10 @@ gfxPlatform::GetPlatformCMSOutputProfile(void *&mem, size_t &size)
 void
 gfxPlatform::GetCMSOutputProfileData(void *&mem, size_t &size)
 {
-    nsAdoptingCString fname = Preferences::GetCString("gfx.color_management.display_profile");
+    nsAutoCString fname;
+    Preferences::GetCString("gfx.color_management.display_profile", fname);
     if (!fname.IsEmpty()) {
-        qcms_data_from_path(fname, &mem, &size);
+        qcms_data_from_path(fname.get(), &mem, &size);
     }
     else {
         gfxPlatform::GetPlatform()->GetPlatformCMSOutputProfile(mem, size);

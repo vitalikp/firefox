@@ -196,9 +196,10 @@ SandboxBrokerPolicyFactory::GetContentPolicy(int aPid)
   // Now read any extra paths, this requires accessing user preferences
   // so we can only do it now. Our constructor is initialized before
   // user preferences are read in.
-  nsAdoptingCString extraPathString =
-    Preferences::GetCString("security.sandbox.content.write_path_whitelist");
-  if (extraPathString) {
+  nsAutoCString extraPathString;
+  nsresult rv =
+    Preferences::GetCString("security.sandbox.content.write_path_whitelist", extraPathString);
+  if (NS_SUCCEEDED(rv)) {
     for (const nsACString& path : extraPathString.Split(',')) {
       nsCString trimPath(path);
       trimPath.Trim(" ", true, true);

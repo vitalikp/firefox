@@ -5069,9 +5069,11 @@ nsDocShell::DisplayLoadError(nsresult aError, nsIURI* aURI,
         }
 
         // See if an alternate cert error page is registered
-        nsAdoptingCString alternateErrorPage =
-          Preferences::GetCString("security.alternate_certificate_error_page");
-        if (alternateErrorPage) {
+        nsAutoCString alternateErrorPage;
+        nsresult rv =
+          Preferences::GetCString("security.alternate_certificate_error_page",
+                                  alternateErrorPage);
+        if (NS_SUCCEEDED(rv)) {
           errorPage.Assign(alternateErrorPage);
         }
 

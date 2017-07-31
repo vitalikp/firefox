@@ -67,8 +67,8 @@ static PRLibrary* LoadApitraceLibrary()
     if (sApitraceLibrary)
         return sApitraceLibrary;
 
-    nsCString logFile = Preferences::GetCString("gfx.apitrace.logfile");
-
+    nsAutoCString logFile;
+    Preferences::GetCString("gfx.apitrace.logfile", logFile);
     if (logFile.IsEmpty()) {
         logFile = "firefox.trace";
     }
