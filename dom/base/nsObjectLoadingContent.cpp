@@ -3283,8 +3283,8 @@ nsObjectLoadingContent::FavorFallbackMode(bool aIsPluginClickToPlay) {
     return false;
   }
 
-  nsCString prefString;
-  if (NS_SUCCEEDED(Preferences::GetCString(kPrefFavorFallbackMode, &prefString))) {
+  nsAutoCString prefString;
+  if (NS_SUCCEEDED(Preferences::GetCString(kPrefFavorFallbackMode, prefString))) {
     if (aIsPluginClickToPlay &&
         prefString.EqualsLiteral("follow-ctp")) {
       return true;
@@ -3310,8 +3310,8 @@ nsObjectLoadingContent::HasGoodFallback() {
   }
 
   nsTArray<nsCString> rulesList;
-  nsCString prefString;
-  if (NS_SUCCEEDED(Preferences::GetCString(kPrefFavorFallbackRules, &prefString))) {
+  nsAutoCString prefString;
+  if (NS_SUCCEEDED(Preferences::GetCString(kPrefFavorFallbackRules, prefString))) {
       ParseString(prefString, ',', rulesList);
   }
 

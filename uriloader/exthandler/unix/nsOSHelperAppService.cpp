@@ -186,7 +186,7 @@ nsOSHelperAppService::GetFileLocation(const char* aPrefName,
     pref.  If we do not, we don't care.
   */
   if (Preferences::HasUserValue(aPrefName) &&
-      NS_SUCCEEDED(Preferences::GetString(aPrefName, &aFileLocation))) {
+      NS_SUCCEEDED(Preferences::GetString(aPrefName, aFileLocation))) {
     return NS_OK;
   }
 
@@ -211,7 +211,7 @@ nsOSHelperAppService::GetFileLocation(const char* aPrefName,
     }
   }
 
-  return Preferences::GetString(aPrefName, &aFileLocation);
+  return Preferences::GetString(aPrefName, aFileLocation);
 }
 
 
