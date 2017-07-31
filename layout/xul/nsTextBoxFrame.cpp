@@ -141,12 +141,13 @@ nsTextBoxFrame::DestroyFrom(nsIFrame* aDestructRoot)
 bool
 nsTextBoxFrame::AlwaysAppendAccessKey()
 {
-  if (!gAccessKeyPrefInitialized) 
+  if (!gAccessKeyPrefInitialized)
   {
     gAccessKeyPrefInitialized = true;
 
     const char* prefName = "intl.menuitems.alwaysappendaccesskeys";
-    nsAdoptingString val = Preferences::GetLocalizedString(prefName);
+    nsAutoString val;
+    Preferences::GetLocalizedString(prefName, val);
     gAlwaysAppendAccessKey = val.EqualsLiteral("true");
   }
   return gAlwaysAppendAccessKey;
@@ -160,7 +161,8 @@ nsTextBoxFrame::InsertSeparatorBeforeAccessKey()
     gInsertSeparatorPrefInitialized = true;
 
     const char* prefName = "intl.menuitems.insertseparatorbeforeaccesskeys";
-    nsAdoptingString val = Preferences::GetLocalizedString(prefName);
+    nsAutoString val;
+    Preferences::GetLocalizedString(prefName, val);
     gInsertSeparatorBeforeAccessKey = val.EqualsLiteral("true");
   }
   return gInsertSeparatorBeforeAccessKey;

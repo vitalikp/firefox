@@ -347,8 +347,8 @@ ReportAnalysis(nsIDocument* aDocument,
   // - Comma-separater list of ids -> Allow if aReportStringId (from
   //                                  dom.properties) is one of them.
   // - Nothing (missing or empty) -> Disable everything.
-  nsAdoptingCString filter =
-    Preferences::GetCString("media.decoder-doctor.notifications-allowed");
+  nsAutoCString filter;
+  Preferences::GetCString("media.decoder-doctor.notifications-allowed", filter);
   filter.StripWhitespace();
   if (filter.EqualsLiteral("*")
       || StringListContains(filter, aNotification.mReportStringId)) {
@@ -464,8 +464,8 @@ DecoderDoctorDocumentWatcher::SynthesizeAnalysis()
       nsAutoCString formatsPref("media.decoder-doctor.");
       formatsPref += id->mReportStringId;
       formatsPref += ".formats";
-      nsAdoptingString formatsWithIssues =
-        Preferences::GetString(formatsPref.Data());
+      nsAutoString formatsWithIssues;
+      Preferences::GetString(formatsPref.Data(), formatsWithIssues);
       if (formatsWithIssues.IsEmpty()) {
         continue;
       }

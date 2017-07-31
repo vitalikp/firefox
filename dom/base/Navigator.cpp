@@ -358,8 +358,8 @@ Navigator::GetAcceptLanguages(nsTArray<nsString>& aLanguages)
   aLanguages.Clear();
 
   // E.g. "de-de, en-us,en".
-  const nsAdoptingString& acceptLang =
-    Preferences::GetLocalizedString("intl.accept_languages");
+  nsAutoString acceptLang;
+  Preferences::GetLocalizedString("intl.accept_languages", acceptLang);
 
   // Split values on commas.
   nsCharSeparatedTokenizer langTokenizer(acceptLang, ',');
@@ -452,10 +452,9 @@ Navigator::GetOscpu(nsAString& aOSCPU, CallerType aCallerType,
       return;
     }
 
-    const nsAdoptingString& override =
-      Preferences::GetString("general.oscpu.override");
-
-    if (override) {
+    nsAutoString override;
+    nsresult rv = Preferences::GetString("general.oscpu.override", override);
+    if (NS_SUCCEEDED(rv)) {
       aOSCPU = override;
       return;
     }
@@ -632,10 +631,9 @@ Navigator::GetBuildID(nsAString& aBuildID, CallerType aCallerType,
       aBuildID.AssignLiteral(LEGACY_BUILD_ID);
       return;
     }
-    const nsAdoptingString& override =
-      Preferences::GetString("general.buildID.override");
-
-    if (override) {
+    nsAutoString override;
+    nsresult rv = Preferences::GetString("general.buildID.override", override);
+    if (NS_SUCCEEDED(rv)) {
       aBuildID = override;
       return;
     }
@@ -665,7 +663,8 @@ Navigator::JavaEnabled(CallerType aCallerType, ErrorResult& aRv)
   Telemetry::AutoTimer<Telemetry::CHECK_JAVA_ENABLED> telemetryTimer;
 
   // Return true if we have a handler for the java mime
-  nsAdoptingString javaMIME = Preferences::GetString("plugin.java.mime");
+  nsAutoString javaMIME;
+  Preferences::GetString("plugin.java.mime", javaMIME);
   NS_ENSURE_TRUE(!javaMIME.IsEmpty(), false);
 
   if (!mMimeTypes) {
@@ -1621,10 +1620,11 @@ Navigator::GetPlatform(nsAString& aPlatform, bool aUsePrefOverriddenValue)
       aPlatform.AssignLiteral(SPOOFED_PLATFORM);
       return NS_OK;
     }
-    const nsAdoptingString& override =
-      mozilla::Preferences::GetString("general.platform.override");
+    nsAutoString override;
+    nsresult rv =
+      mozilla::Preferences::GetString("general.platform.override", override);
 
-    if (override) {
+    if (NS_SUCCEEDED(rv)) {
       aPlatform = override;
       return NS_OK;
     }
@@ -1672,10 +1672,11 @@ Navigator::GetAppVersion(nsAString& aAppVersion, bool aUsePrefOverriddenValue)
       aAppVersion.AssignLiteral(SPOOFED_APPVERSION);
       return NS_OK;
     }
-    const nsAdoptingString& override =
-      mozilla::Preferences::GetString("general.appversion.override");
+    nsAutoString override;
+    nsresult rv =
+      mozilla::Preferences::GetString("general.appversion.override", override);
 
-    if (override) {
+    if (NS_SUCCEEDED(rv)) {
       aAppVersion = override;
       return NS_OK;
     }
@@ -1716,10 +1717,11 @@ Navigator::AppName(nsAString& aAppName, bool aUsePrefOverriddenValue)
       return;
     }
 
-    const nsAdoptingString& override =
-      mozilla::Preferences::GetString("general.appname.override");
+    nsAutoString override;
+    nsresult rv =
+      mozilla::Preferences::GetString("general.appname.override", override);
 
-    if (override) {
+    if (NS_SUCCEEDED(rv)) {
       aAppName = override;
       return;
     }
@@ -1745,10 +1747,11 @@ Navigator::GetUserAgent(nsPIDOMWindowInner* aWindow,
   // when 'privacy.resistFingerprinting' is true.
   if (!aIsCallerChrome &&
       !nsContentUtils::ShouldResistFingerprinting()) {
-    const nsAdoptingString& override =
-      mozilla::Preferences::GetString("general.useragent.override");
+    nsAutoString override;
+    nsresult rv =
+      mozilla::Preferences::GetString("general.useragent.override", override);
 
-    if (override) {
+    if (NS_SUCCEEDED(rv)) {
       aUserAgent = override;
       return NS_OK;
     }

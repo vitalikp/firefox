@@ -1674,15 +1674,6 @@ Preferences::GetCString(const char* aPref)
 }
 
 // static
-nsAdoptingString
-Preferences::GetString(const char* aPref)
-{
-  nsAdoptingString result;
-  GetString(aPref, result);
-  return result;
-}
-
-// static
 nsresult
 Preferences::GetCString(const char* aPref, nsACString& aResult)
 {
@@ -1714,15 +1705,6 @@ Preferences::GetLocalizedCString(const char* aPref)
 {
   nsAdoptingCString result;
   GetLocalizedCString(aPref, result);
-  return result;
-}
-
-// static
-nsAdoptingString
-Preferences::GetLocalizedString(const char* aPref)
-{
-  nsAdoptingString result;
-  GetLocalizedString(aPref, result);
   return result;
 }
 
@@ -2212,29 +2194,11 @@ Preferences::GetDefaultLocalizedString(const char* aPref,
 }
 
 // static
-nsAdoptingString
-Preferences::GetDefaultString(const char* aPref)
-{
-  nsAdoptingString result;
-  GetDefaultString(aPref, result);
-  return result;
-}
-
-// static
 nsAdoptingCString
 Preferences::GetDefaultCString(const char* aPref)
 {
   nsAdoptingCString result;
   PREF_CopyCharPref(aPref, getter_Copies(result), true);
-  return result;
-}
-
-// static
-nsAdoptingString
-Preferences::GetDefaultLocalizedString(const char* aPref)
-{
-  nsAdoptingString result;
-  GetDefaultLocalizedString(aPref, result);
   return result;
 }
 

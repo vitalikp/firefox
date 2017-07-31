@@ -7879,8 +7879,8 @@ nsGlobalWindow::HomeOuter(nsIPrincipal& aSubjectPrincipal, ErrorResult& aError)
     return;
   }
 
-  nsAdoptingString homeURL =
-    Preferences::GetLocalizedString(PREF_BROWSER_STARTUP_HOMEPAGE);
+  nsAutoString homeURL;
+  Preferences::GetLocalizedString(PREF_BROWSER_STARTUP_HOMEPAGE, homeURL);
 
   if (homeURL.IsEmpty()) {
     // if all else fails, use this
