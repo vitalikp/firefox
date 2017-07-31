@@ -1929,7 +1929,7 @@ IonBuilder::inlineRegExpMatcher(CallInfo& callInfo)
     MDefinition* strArg = callInfo.getArg(1);
     MDefinition* lastIndexArg = callInfo.getArg(2);
 
-    if (rxArg->type() != MIRType::Object)
+    if (rxArg->type() != MIRType::Object && rxArg->type() != MIRType::Value)
         return InliningStatus_NotInlined;
 
     TemporaryTypeSet* rxTypes = rxArg->resultTypeSet();
@@ -1975,7 +1975,7 @@ IonBuilder::inlineRegExpSearcher(CallInfo& callInfo)
     MDefinition* strArg = callInfo.getArg(1);
     MDefinition* lastIndexArg = callInfo.getArg(2);
 
-    if (rxArg->type() != MIRType::Object)
+    if (rxArg->type() != MIRType::Object && rxArg->type() != MIRType::Value)
         return InliningStatus_NotInlined;
 
     TemporaryTypeSet* regexpTypes = rxArg->resultTypeSet();
@@ -2021,7 +2021,7 @@ IonBuilder::inlineRegExpTester(CallInfo& callInfo)
     MDefinition* strArg = callInfo.getArg(1);
     MDefinition* lastIndexArg = callInfo.getArg(2);
 
-    if (rxArg->type() != MIRType::Object)
+    if (rxArg->type() != MIRType::Object && rxArg->type() != MIRType::Value)
         return InliningStatus_NotInlined;
 
     TemporaryTypeSet* rxTypes = rxArg->resultTypeSet();
