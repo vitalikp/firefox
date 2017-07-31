@@ -392,6 +392,7 @@ class CodeGenerator final : public CodeGeneratorSpecific
     void visitIsObjectAndBranch(LIsObjectAndBranch* lir);
     void visitHasClass(LHasClass* lir);
     void visitGuardToClass(LGuardToClass* lir);
+    void visitObjectClassToString(LObjectClassToString* lir);
     void visitWasmParameter(LWasmParameter* lir);
     void visitWasmParameterI64(LWasmParameterI64* lir);
     void visitWasmReturn(LWasmReturn* ret);

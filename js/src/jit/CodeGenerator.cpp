@@ -12050,6 +12050,17 @@ CodeGenerator::visitGuardToClass(LGuardToClass* ins)
     }
 }
 
+typedef JSString* (*ObjectClassToStringFn)(JSContext*, HandleObject);
+static const VMFunction ObjectClassToStringInfo =
+    FunctionInfo<ObjectClassToStringFn>(js::ObjectClassToString, "ObjectClassToString");
+
+void
+CodeGenerator::visitObjectClassToString(LObjectClassToString* lir)
+{
+    pushArg(ToRegister(lir->object()));
+    callVM(ObjectClassToStringInfo, lir);
+}
+
 void
 CodeGenerator::visitWasmParameter(LWasmParameter* lir)
 {
