@@ -1518,6 +1518,10 @@ locked_profiler_stream_json_for_this_process(PSLockRef aLock,
 
   MOZ_RELEASE_ASSERT(CorePS::Exists() && ActivePS::Exists(aLock));
 
+  double collectionStart = profiler_time();
+
+  ProfileBuffer& buffer = ActivePS::Buffer(aLock);
+
   // Put shared library info
   aWriter.StartArrayProperty("libs");
   AppendSharedLibraries(aWriter);
@@ -1550,7 +1554,7 @@ locked_profiler_stream_json_for_this_process(PSLockRef aLock,
         continue;
       }
       double thisThreadFirstSampleTime =
-        info->StreamJSON(ActivePS::Buffer(aLock), aWriter,
+        info->StreamJSON(buffer, aWriter,
                          CorePS::ProcessStartTime(), aSinceTime);
       firstSampleTime = std::min(thisThreadFirstSampleTime, firstSampleTime);
     }
@@ -1560,8 +1564,8 @@ locked_profiler_stream_json_for_this_process(PSLockRef aLock,
       ThreadInfo* info = deadThreads.at(i);
       MOZ_ASSERT(info->IsBeingProfiled());
       double thisThreadFirstSampleTime =
-        info->StreamJSON(ActivePS::Buffer(aLock), aWriter,
-                        CorePS::ProcessStartTime(), aSinceTime);
+        info->StreamJSON(buffer, aWriter,
+                         CorePS::ProcessStartTime(), aSinceTime);
       firstSampleTime = std::min(thisThreadFirstSampleTime, firstSampleTime);
     }
 
@@ -1580,6 +1584,23 @@ locked_profiler_stream_json_for_this_process(PSLockRef aLock,
 #endif
   }
   aWriter.EndArray();
+
+  aWriter.StartArrayProperty("pausedRanges",
+                             SpliceableJSONWriter::SingleLineStyle);
+  {
+    buffer.StreamPausedRangesToJSON(aWriter, aSinceTime);
+  }
+  aWriter.EndArray();
+
+  double collectionEnd = profiler_time();
+
+  // Record timestamps for the collection into the buffer, so that consumers
+  // know why we didn't collect any samples for its duration.
+  // We put these entries into the buffer after we've collected the profile,
+  // so they'll be visible for the *next* profile collection (if they haven't
+  // been overwritten due to buffer wraparound by then).
+  buffer.AddEntry(ProfileBufferEntry::CollectionStart(collectionStart));
+  buffer.AddEntry(ProfileBufferEntry::CollectionEnd(collectionEnd));
 
   if (firstSampleTime != INFINITY) {
     return CorePS::ProcessStartTime() +
@@ -2604,6 +2625,7 @@ profiler_pause()
     }
 
     ActivePS::SetIsPaused(lock, true);
+    ActivePS::Buffer(lock).AddEntry(ProfileBufferEntry::Pause(profiler_time()));
   }
 
   // gPSMutex must be unlocked when we notify, to avoid potential deadlocks.
@@ -2625,6 +2647,7 @@ profiler_resume()
       return;
     }
 
+    ActivePS::Buffer(lock).AddEntry(ProfileBufferEntry::Resume(profiler_time()));
     ActivePS::SetIsPaused(lock, false);
   }
 
