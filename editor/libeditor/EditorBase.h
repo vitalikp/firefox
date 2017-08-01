@@ -13,6 +13,7 @@
 #include "mozilla/SelectionState.h"     // for RangeUpdater, etc.
 #include "mozilla/StyleSheet.h"         // for StyleSheet
 #include "mozilla/WeakPtr.h"            // for WeakPtr
+#include "mozilla/dom/Selection.h"
 #include "mozilla/dom/Text.h"
 #include "nsCOMPtr.h"                   // for already_AddRefed, nsCOMPtr
 #include "nsCycleCollectionParticipant.h"
@@ -128,7 +129,6 @@ namespace dom {
 class DataTransfer;
 class Element;
 class EventTarget;
-class Selection;
 class Text;
 } // namespace dom
 
@@ -783,7 +783,15 @@ public:
   static void DumpNode(nsIDOMNode* aNode, int32_t indent = 0);
 #endif
   Selection* GetSelection(SelectionType aSelectionType =
-                                          SelectionType::eNormal);
+                                          SelectionType::eNormal)
+  {
+    nsISelectionController* sc = GetSelectionController();
+    if (!sc) {
+      return nullptr;
+    }
+    Selection* selection = sc->GetDOMSelection(ToRawSelectionType(aSelectionType));
+    return selection;
+  }
 
   /**
    * Helpers to add a node to the selection.
