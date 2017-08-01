@@ -588,8 +588,8 @@ public:
                  gfxCharacterMap* aUnicodeRanges,
                  uint8_t aFontDisplay);
 
-    virtual gfxFont* CreateFontInstance(const gfxFontStyle* aFontStyle,
-                                        bool aNeedsBold);
+    gfxFont* CreateFontInstance(const gfxFontStyle* aFontStyle,
+                                bool aNeedsBold) override;
 
     gfxFontEntry* GetPlatformFontEntry() const { return mPlatformFontEntry; }
 
@@ -630,6 +630,11 @@ public:
     uint32_t GetSrcIndex() { return mSrcIndex; }
     void GetFamilyNameAndURIForLogging(nsACString& aFamilyName,
                                        nsACString& aURI);
+
+    gfxFontEntry* Clone() const override {
+        MOZ_ASSERT_UNREACHABLE("cannot Clone user fonts");
+        return nullptr;
+    }
 
 #ifdef DEBUG
     gfxUserFontSet* GetUserFontSet() const { return mFontSet; }

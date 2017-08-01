@@ -138,6 +138,14 @@ GDIFontEntry::GDIFontEntry(const nsAString& aFaceName,
     InitLogFont(aFaceName, aFontType);
 }
 
+gfxFontEntry*
+GDIFontEntry::Clone() const
+{
+    MOZ_ASSERT(!IsUserFont(), "we can only clone installed fonts!");
+    return new GDIFontEntry(Name(), mFontType, mStyle, mWeight, mStretch,
+                            nullptr, mFamilyHasItalicFace);
+}
+
 nsresult
 GDIFontEntry::ReadCMAP(FontInfoData *aFontInfoData)
 {
@@ -888,7 +896,7 @@ gfxGDIFontList::MakePlatformFont(const nsAString& aFontName,
 bool
 gfxGDIFontList::FindAndAddFamilies(const nsAString& aFamily,
                                    nsTArray<gfxFontFamily*>* aOutput,
-                                   bool aDeferOtherFamilyNamesLoading,
+                                   FindFamiliesFlags aFlags,
                                    gfxFontStyle* aStyle,
                                    gfxFloat aDevToCssSize)
 {
@@ -907,7 +915,7 @@ gfxGDIFontList::FindAndAddFamilies(const nsAString& aFamily,
 
     return gfxPlatformFontList::FindAndAddFamilies(aFamily,
                                                    aOutput,
-                                                   aDeferOtherFamilyNamesLoading,
+                                                   aFlags,
                                                    aStyle,
                                                    aDevToCssSize);
 }
@@ -1144,6 +1152,12 @@ gfxGDIFontList::CreateFontInfoData()
         new GDIFontInfo(true, NeedFullnamePostscriptNames(), loadCmaps);
 
     return fi.forget();
+}
+
+gfxFontFamily*
+gfxGDIFontList::CreateFontFamily(const nsAString& aName) const
+{
+    return new GDIFontFamily(aName);
 }
 
 #ifdef MOZ_BUNDLED_FONTS

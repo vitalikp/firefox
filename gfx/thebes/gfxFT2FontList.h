@@ -34,6 +34,8 @@ public:
 
     ~FT2FontEntry();
 
+    gfxFontEntry* Clone() const override;
+
     const nsString& GetName() const {
         return Name();
     }
@@ -143,6 +145,8 @@ public:
     }
 
     virtual void GetFontFamilyList(nsTArray<RefPtr<gfxFontFamily> >& aFamilyArray) override;
+
+    gfxFontFamily* CreateFontFamily(const nsAString& aName) const override;
 
     void WillShutdown();
 
