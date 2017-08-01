@@ -69,7 +69,6 @@ SWEEP(SCRIPT, "Sweep Script")
 SWEEP(SCOPE, "Sweep Scope")
 SWEEP(REGEXP_SHARED, "Sweep RegExpShared")
 SWEEP(SHAPE, "Sweep Shape")
-SWEEP(JITCODE, "Sweep JIT code")
 #undef SWEEP
 
 PHASE(FINALIZE_END, "Finalize End Callback", SWEEP)
