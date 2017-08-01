@@ -178,6 +178,7 @@ void nsHttpTransaction::ResumeReading()
 bool nsHttpTransaction::EligibleForThrottling()
 {
   return (mClassOfService & (nsIClassOfService::Throttleable |
+                             nsIClassOfService::DontThrottle |
                              nsIClassOfService::Leader |
                              nsIClassOfService::Unblocked)) ==
     nsIClassOfService::Throttleable;
@@ -834,6 +835,10 @@ bool nsHttpTransaction::ShouldStopReading()
         // Throttling feature is now disabled for http/2 transactions
         // because of bug 1367861.  The logic around mActivatedAsH2
         // will be removed when that is fixed
+        return false;
+    }
+
+    if (mClassOfService & nsIClassOfService::DontThrottle) {
         return false;
     }
 
