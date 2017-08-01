@@ -74,8 +74,6 @@ public:
   NS_DECL_NSISELECTION
   NS_DECL_NSISELECTIONPRIVATE
 
-  virtual Selection* AsSelection() override { return this; }
-
   nsresult EndBatchChangesInternal(int16_t aReason = nsISelectionListener::NO_REASON);
 
   nsIDocument* GetParentObject() const;
@@ -514,5 +512,11 @@ public:
 
 } // namespace dom
 } // namespace mozilla
+
+inline mozilla::dom::Selection*
+nsISelection::AsSelection()
+{
+  return static_cast<mozilla::dom::Selection*>(this);
+}
 
 #endif // mozilla_Selection_h__
