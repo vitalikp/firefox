@@ -662,6 +662,7 @@ class IonBuilder
     InliningResult inlineStrFromCharCode(CallInfo& callInfo);
     InliningResult inlineStrFromCodePoint(CallInfo& callInfo);
     InliningResult inlineStrCharAt(CallInfo& callInfo);
+    InliningResult inlineStringConvertCase(CallInfo& callInfo, MStringConvertCase::Mode mode);
 
     // String intrinsics.
     InliningResult inlineStringReplaceString(CallInfo& callInfo);

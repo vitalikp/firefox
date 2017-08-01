@@ -1969,6 +1969,16 @@ LIRGenerator::visitFromCodePoint(MFromCodePoint* ins)
 }
 
 void
+LIRGenerator::visitStringConvertCase(MStringConvertCase* ins)
+{
+    MOZ_ASSERT(ins->string()->type() == MIRType::String);
+
+    auto* lir = new(alloc()) LStringConvertCase(useRegisterAtStart(ins->string()));
+    defineReturn(lir, ins);
+    assignSafepoint(lir, ins);
+}
+
+void
 LIRGenerator::visitStart(MStart* start)
 {
     LStart* lir = new(alloc()) LStart;
