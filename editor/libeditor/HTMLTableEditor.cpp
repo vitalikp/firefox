@@ -3111,6 +3111,10 @@ HTMLEditor::SetSelectionAfterTableEdit(nsIDOMElement* aTable,
 {
   NS_ENSURE_TRUE(aTable, NS_ERROR_NOT_INITIALIZED);
 
+  if (Destroyed()) {
+    return NS_ERROR_FAILURE;
+  }
+
   RefPtr<Selection> selection = GetSelection();
 
   if (!selection) {
