@@ -641,19 +641,6 @@ EditorBase::GetSelectionController(nsISelectionController** aSel)
   return NS_OK;
 }
 
-already_AddRefed<nsISelectionController>
-EditorBase::GetSelectionController()
-{
-  nsCOMPtr<nsISelectionController> selectionController;
-  if (mSelectionController) {
-    selectionController = mSelectionController;
-  } else {
-    nsCOMPtr<nsIPresShell> presShell = GetPresShell();
-    selectionController = do_QueryInterface(presShell);
-  }
-  return selectionController.forget();
-}
-
 NS_IMETHODIMP
 EditorBase::DeleteSelection(EDirection aAction,
                             EStripWrappers aStripWrappers)
@@ -674,7 +661,7 @@ EditorBase::GetSelection(SelectionType aSelectionType,
 {
   NS_ENSURE_TRUE(aSelection, NS_ERROR_NULL_POINTER);
   *aSelection = nullptr;
-  nsCOMPtr<nsISelectionController> selcon = GetSelectionController();
+  nsISelectionController* selcon = GetSelectionController();
   if (!selcon) {
     return NS_ERROR_NOT_INITIALIZED;
   }
@@ -2317,8 +2304,7 @@ EditorBase::CloneAttributes(Element* aDest,
 nsresult
 EditorBase::ScrollSelectionIntoView(bool aScrollToAnchor)
 {
-  nsCOMPtr<nsISelectionController> selectionController =
-    GetSelectionController();
+  nsISelectionController* selectionController = GetSelectionController();
   if (!selectionController) {
     return NS_OK;
   }
@@ -5215,8 +5201,7 @@ EditorBase::GetIMESelectionStartOffsetIn(nsINode* aTextNode)
 {
   MOZ_ASSERT(aTextNode, "aTextNode must not be nullptr");
 
-  nsCOMPtr<nsISelectionController> selectionController =
-    GetSelectionController();
+  nsISelectionController* selectionController = GetSelectionController();
   if (NS_WARN_IF(!selectionController)) {
     return -1;
   }
