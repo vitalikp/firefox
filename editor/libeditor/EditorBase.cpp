@@ -165,6 +165,7 @@ NS_IMPL_CYCLE_COLLECTION_CLASS(EditorBase)
 
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(EditorBase)
  NS_IMPL_CYCLE_COLLECTION_UNLINK(mRootElement)
+ NS_IMPL_CYCLE_COLLECTION_UNLINK(mSelectionController)
  NS_IMPL_CYCLE_COLLECTION_UNLINK(mInlineSpellChecker)
  NS_IMPL_CYCLE_COLLECTION_UNLINK(mTxnMgr)
  NS_IMPL_CYCLE_COLLECTION_UNLINK(mIMETextNode)
@@ -193,6 +194,7 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(EditorBase)
    return NS_SUCCESS_INTERRUPTED_TRAVERSE;
  }
  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mRootElement)
+ NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mSelectionController)
  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mInlineSpellChecker)
  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mTxnMgr)
  NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mIMETextNode)
@@ -247,7 +249,7 @@ EditorBase::Init(nsIDOMDocument* aDOMDocument,
   // off of the presshell.
   nsCOMPtr<nsISelectionController> selectionController;
   if (aSelectionController) {
-    mSelectionControllerWeak = aSelectionController;
+    mSelectionController = aSelectionController;
     selectionController = aSelectionController;
   } else {
     nsCOMPtr<nsIPresShell> presShell = GetPresShell();
@@ -642,8 +644,8 @@ already_AddRefed<nsISelectionController>
 EditorBase::GetSelectionController()
 {
   nsCOMPtr<nsISelectionController> selectionController;
-  if (mSelectionControllerWeak) {
-    selectionController = mSelectionControllerWeak.get();
+  if (mSelectionController) {
+    selectionController = mSelectionController;
   } else {
     nsCOMPtr<nsIPresShell> presShell = GetPresShell();
     selectionController = do_QueryInterface(presShell);

@@ -915,7 +915,7 @@ public:
 
   bool HasIndependentSelection() const
   {
-    return !!mSelectionControllerWeak;
+    return !!mSelectionController;
   }
 
   bool IsModifiable() const
@@ -1019,9 +1019,7 @@ public:
   void HideCaret(bool aHide);
 
 private:
-  // Weak reference to the nsISelectionController.
-  // Use GetSelectionController() to retrieve actual pointer.
-  CachedWeakPtr<nsISelectionController> mSelectionControllerWeak;
+  nsCOMPtr<nsISelectionController> mSelectionController;
   // Weak reference to the nsIDocument.
   // Use GetDocument() to retrieve actual pointer.
   CachedWeakPtr<nsIDocument> mDocumentWeak;
