@@ -68,6 +68,8 @@
     _(MathTrunc)                    \
     _(MathCbrt)                     \
                                     \
+    _(ReflectGetPrototypeOf)        \
+                                    \
     _(RegExpMatcher)                \
     _(RegExpSearcher)               \
     _(RegExpTester)                 \

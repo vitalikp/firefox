@@ -348,6 +348,7 @@ class LIRGenerator : public LIRGeneratorSpecific
     void visitDebugCheckSelfHosted(MDebugCheckSelfHosted* ins);
     void visitFinishBoundFunctionInit(MFinishBoundFunctionInit* ins);
     void visitIsPackedArray(MIsPackedArray* ins);
+    void visitGetPrototypeOf(MGetPrototypeOf* ins);
 };
 
 } // namespace jit
