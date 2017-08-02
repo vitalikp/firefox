@@ -1398,7 +1398,7 @@ class MOZ_STACK_CLASS TokenStreamSpecific
         return true;
     }
 
-    void skipChars(uint8_t n) {
+    void skipChars(uint32_t n) {
         while (n-- > 0) {
             MOZ_ASSERT(userbuf.hasRawChars());
             mozilla::DebugOnly<int32_t> c = getCharIgnoreEOL();
