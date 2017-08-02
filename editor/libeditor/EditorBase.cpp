@@ -3505,15 +3505,6 @@ EditorBase::IsEditable(nsINode* aNode)
   }
 }
 
-bool
-EditorBase::IsMozEditorBogusNode(nsINode* element)
-{
-  return element && element->IsElement() &&
-         element->AsElement()->AttrValueIs(kNameSpaceID_None,
-             kMOZEditorBogusNodeAttrAtom, kMOZEditorBogusNodeValue,
-             eCaseMatters);
-}
-
 uint32_t
 EditorBase::CountEditableChildren(nsINode* aNode)
 {
