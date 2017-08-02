@@ -1318,7 +1318,7 @@ TextEditRules::CreateBogusNodeIfNeeded(Selection* aSelection)
   // looking for editable content. If no editable content is found, insert the
   // bogus node.
   bool bodyEditable = mTextEditor->IsEditable(body);
-  for (nsCOMPtr<nsIContent> bodyChild = body->GetFirstChild();
+  for (nsIContent* bodyChild = body->GetFirstChild();
        bodyChild;
        bodyChild = bodyChild->GetNextSibling()) {
     if (mTextEditor->IsMozEditorBogusNode(bodyChild) ||
