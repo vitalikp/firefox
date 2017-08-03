@@ -2006,7 +2006,7 @@ IsExclusiveFirstArg(MCall* call, MDefinition* def)
 }
 
 static bool
-IsRegExpHoistableCall(MCall* call, MDefinition* def)
+IsRegExpHoistableCall(CompileRuntime* runtime, MCall* call, MDefinition* def)
 {
     if (call->isConstructing())
         return false;
@@ -2029,7 +2029,6 @@ IsRegExpHoistableCall(MCall* call, MDefinition* def)
     }
 
     // Hoistable only if the RegExp is the first argument of RegExpBuiltinExec.
-    CompileRuntime* runtime = GetJitContext()->runtime;
     if (name == runtime->names().RegExpBuiltinExec ||
         name == runtime->names().UnwrapAndCallRegExpBuiltinExec ||
         name == runtime->names().RegExpMatcher ||
@@ -2157,7 +2156,7 @@ IsRegExpHoistable(MIRGenerator* mir, MDefinition* regexp, MDefinitionVector& wor
                     if (setProp->idval()->isConstant()) {
                         Value propIdVal = setProp->idval()->toConstant()->toJSValue();
                         if (propIdVal.isString()) {
-                            CompileRuntime* runtime = GetJitContext()->runtime;
+                            CompileRuntime* runtime = mir->runtime;
                             if (propIdVal.toString() == runtime->names().lastIndex)
                                 continue;
                         }
@@ -2166,7 +2165,7 @@ IsRegExpHoistable(MIRGenerator* mir, MDefinition* regexp, MDefinitionVector& wor
             }
             // MCall is safe only for some known safe functions.
             else if (useDef->isCall()) {
-                if (IsRegExpHoistableCall(useDef->toCall(), def))
+                if (IsRegExpHoistableCall(mir->runtime, useDef->toCall(), def))
                     continue;
             }
 
@@ -4179,7 +4178,7 @@ jit::AnalyzeNewScriptDefiniteProperties(JSContext* cx, HandleFunction fun,
     if (!inlineScriptTree)
         return false;
 
-    CompileInfo info(script, fun,
+    CompileInfo info(CompileRuntime::get(cx->runtime()), script, fun,
                      /* osrPc = */ nullptr,
                      Analysis_DefiniteProperties,
                      script->needsArgsObj(),
@@ -4425,7 +4424,7 @@ jit::AnalyzeArgumentsUsage(JSContext* cx, JSScript* scriptArg)
         return false;
     }
 
-    CompileInfo info(script, script->functionNonDelazifying(),
+    CompileInfo info(CompileRuntime::get(cx->runtime()), script, script->functionNonDelazifying(),
                      /* osrPc = */ nullptr,
                      Analysis_ArgumentsUsage,
                      /* needsArgsObj = */ true,
