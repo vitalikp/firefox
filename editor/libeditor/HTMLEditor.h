@@ -100,9 +100,6 @@ public:
 
   HTMLEditor();
 
-  virtual HTMLEditor* AsHTMLEditor() override { return this; }
-  virtual const HTMLEditor* AsHTMLEditor() const override { return this; }
-
   bool GetReturnInParagraphCreatesNewParagraph();
   Element* GetSelectionContainer();
 
@@ -1131,6 +1128,18 @@ private:
                               const nsAString& aAnonClass,
                               bool aIsCreatedHidden);
 };
+
+HTMLEditor*
+EditorBase::AsHTMLEditor()
+{
+  return mIsHTMLEditorClass ? static_cast<HTMLEditor*>(this) : nullptr;
+}
+
+const HTMLEditor*
+EditorBase::AsHTMLEditor() const
+{
+  return mIsHTMLEditorClass ? static_cast<const HTMLEditor*>(this) : nullptr;
+}
 
 } // namespace mozilla
 
