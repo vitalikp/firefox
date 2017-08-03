@@ -165,14 +165,7 @@ NS_IMETHODIMP nsXULWindow::GetInterface(const nsIID& aIID, void** aSink)
     domWindow.forget(aSink);
     return rv;
   }
-  if (aIID.Equals(NS_GET_IID(nsIDOMWindowInternal))) {
-    nsCOMPtr<mozIDOMWindowProxy> window = nullptr;
-    rv = GetWindowDOMWindow(getter_AddRefs(window));
-    nsCOMPtr<nsIDOMWindowInternal> domWindowInternal = do_QueryInterface(window);
-    domWindowInternal.forget(aSink);
-    return rv;
-  }
-  if (aIID.Equals(NS_GET_IID(nsIWebBrowserChrome)) && 
+  if (aIID.Equals(NS_GET_IID(nsIWebBrowserChrome)) &&
     NS_SUCCEEDED(EnsureContentTreeOwner()) &&
     NS_SUCCEEDED(mContentTreeOwner->QueryInterface(aIID, aSink)))
     return NS_OK;
