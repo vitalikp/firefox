@@ -15,7 +15,6 @@
 
 #include "mozilla/Attributes.h"
 #include "nsXMLContentSerializer.h"
-#include "nsIEntityConverter.h"
 #include "nsString.h"
 #include "nsTArray.h"
 
@@ -96,7 +95,6 @@ private:
   bool IsElementPreformatted(nsIContent* aNode);
 
 protected:
-  nsCOMPtr<nsIEntityConverter> mEntityConverter;
 
   /*
    * isHTMLParser should be set to true by the HTML parser which inherits from
