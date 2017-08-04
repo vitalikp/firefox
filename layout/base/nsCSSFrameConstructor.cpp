@@ -1786,7 +1786,7 @@ nsCSSFrameConstructor::CreateGeneratedContent(nsFrameConstructorState& aState,
           return content.forget();
         }
 
-        nsXPIDLString temp;
+        nsAutoString temp;
         nsContentUtils::GetLocalizedString(nsContentUtils::eFORMS_PROPERTIES,
                                            "Submit", temp);
         return CreateGenConTextNode(aState, temp, nullptr, nullptr);
@@ -8944,9 +8944,9 @@ nsCSSFrameConstructor::WillDestroyFrameTree()
 // XXXbz I'd really like this method to go away. Once we have inline-block and
 // I can just use that for sized broken images, that can happen, maybe.
 void
-nsCSSFrameConstructor::GetAlternateTextFor(nsIContent*    aContent,
-                                           nsIAtom*       aTag,
-                                           nsXPIDLString& aAltText)
+nsCSSFrameConstructor::GetAlternateTextFor(nsIContent* aContent,
+                                           nsIAtom* aTag,
+                                           nsAString& aAltText)
 {
   // The "alt" attribute specifies alternate text that is rendered
   // when the image can not be displayed.

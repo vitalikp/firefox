@@ -3840,7 +3840,7 @@ nsGlobalWindow::ConfirmDialogIfNeeded()
   nsAutoPopupStatePusher popupStatePusher(openAbused, true);
 
   bool disableDialog = false;
-  nsXPIDLString label, title;
+  nsAutoString label, title;
   nsContentUtils::GetLocalizedString(nsContentUtils::eCOMMON_DIALOG_PROPERTIES,
                                      "ScriptDialogLabel", label);
   nsContentUtils::GetLocalizedString(nsContentUtils::eCOMMON_DIALOG_PROPERTIES,
@@ -7385,12 +7385,10 @@ nsGlobalWindow::MakeScriptDialogTitle(nsAString& aOutTitle,
 
           NS_ConvertUTF8toUTF16 ucsPrePath(prepath);
           const char16_t *formatStrings[] = { ucsPrePath.get() };
-          nsXPIDLString tempString;
           nsContentUtils::FormatLocalizedString(nsContentUtils::eCOMMON_DIALOG_PROPERTIES,
                                                 "ScriptDlgHeading",
                                                 formatStrings,
-                                                tempString);
-          aOutTitle = tempString;
+                                                aOutTitle);
         }
       }
     }
@@ -7398,11 +7396,9 @@ nsGlobalWindow::MakeScriptDialogTitle(nsAString& aOutTitle,
 
   if (aOutTitle.IsEmpty()) {
     // We didn't find a host so use the generic heading
-    nsXPIDLString tempString;
     nsContentUtils::GetLocalizedString(nsContentUtils::eCOMMON_DIALOG_PROPERTIES,
                                        "ScriptDlgGenericHeading",
-                                       tempString);
-    aOutTitle = tempString;
+                                       aOutTitle);
   }
 
   // Just in case
@@ -7526,7 +7522,7 @@ nsGlobalWindow::AlertOrConfirm(bool aAlert,
   nsAutoSyncOperation sync(mDoc);
   if (ShouldPromptToBlockDialogs()) {
     bool disallowDialog = false;
-    nsXPIDLString label;
+    nsAutoString label;
     nsContentUtils::GetLocalizedString(nsContentUtils::eCOMMON_DIALOG_PROPERTIES,
                                        "ScriptDialogLabel", label);
 
@@ -7661,7 +7657,8 @@ nsGlobalWindow::PromptOuter(const nsAString& aMessage,
   char16_t *inoutValue = ToNewUnicode(fixedInitial);
   bool disallowDialog = false;
 
-  nsXPIDLString label;
+  nsAutoString label;
+  label.SetIsVoid(true);
   if (ShouldPromptToBlockDialogs()) {
     nsContentUtils::GetLocalizedString(nsContentUtils::eCOMMON_DIALOG_PROPERTIES,
                                        "ScriptDialogLabel", label);
@@ -7669,8 +7666,9 @@ nsGlobalWindow::PromptOuter(const nsAString& aMessage,
 
   nsAutoSyncOperation sync(mDoc);
   bool ok;
-  aError = prompt->Prompt(title.get(), fixedMessage.get(),
-                          &inoutValue, label.get(), &disallowDialog, &ok);
+  aError = prompt->Prompt(title.get(), fixedMessage.get(), &inoutValue,
+                          label.IsVoid() ? nullptr : label.get(),
+                          &disallowDialog, &ok);
 
   if (disallowDialog) {
     DisableDialogs();
@@ -8021,7 +8019,7 @@ nsGlobalWindow::PrintOuter(ErrorResult& aError)
       if (printSettingsAreGlobal) {
         printSettingsService->GetGlobalPrintSettings(getter_AddRefs(printSettings));
 
-        nsXPIDLString printerName;
+        nsAutoString printerName;
         printSettings->GetPrinterName(getter_Copies(printerName));
 
         bool shouldGetDefaultPrinterName = printerName.IsEmpty();
@@ -8037,9 +8035,10 @@ nsGlobalWindow::PrintOuter(ErrorResult& aError)
 #endif
         if (shouldGetDefaultPrinterName) {
           printSettingsService->GetDefaultPrinterName(getter_Copies(printerName));
-          printSettings->SetPrinterName(printerName);
+          printSettings->SetPrinterName(printerName.get());
         }
-        printSettingsService->InitPrintSettingsFromPrinter(printerName, printSettings);
+        printSettingsService->InitPrintSettingsFromPrinter(printerName.get(),
+                                                           printSettings);
         printSettingsService->InitPrintSettingsFromPrefs(printSettings,
                                                          true,
                                                          nsIPrintSettings::kInitSaveAll);
@@ -11707,7 +11706,7 @@ nsGlobalWindow::ShowSlowScriptDialog()
   bool showDebugButton = !!debugCallback;
 
   // Get localizable strings
-  nsXPIDLString title, msg, stopButton, waitButton, debugButton, neverShowDlg;
+  nsAutoString title, msg, stopButton, waitButton, debugButton, neverShowDlg;
 
   rv = nsContentUtils::GetLocalizedString(nsContentUtils::eDOM_PROPERTIES,
                                           "KillScriptTitle",
@@ -11734,7 +11733,6 @@ nsGlobalWindow::ShowSlowScriptDialog()
     rv = tmp;
   }
 
-
   if (showDebugButton) {
     tmp = nsContentUtils::GetLocalizedString(nsContentUtils::eDOM_PROPERTIES,
                                              "DebugScriptButton",
@@ -11759,16 +11757,14 @@ nsGlobalWindow::ShowSlowScriptDialog()
     }
   }
 
-  // GetStringFromName can return NS_OK and still give nullptr string
-  if (NS_FAILED(rv) || !title || !msg || !stopButton || !waitButton ||
-      (!debugButton && showDebugButton) || !neverShowDlg) {
+  if (NS_FAILED(rv)) {
     NS_ERROR("Failed to get localized strings.");
     return ContinueSlowScript;
   }
 
   // Append file and line number information, if available
   if (filename.get()) {
-    nsXPIDLString scriptLocation;
+    nsAutoString scriptLocation;
     // We want to drop the middle part of too-long locations.  We'll
     // define "too-long" as longer than 60 UTF-16 code units.  Just
     // have to be a bit careful about unpaired surrogates.
@@ -11801,7 +11797,7 @@ nsGlobalWindow::ShowSlowScriptDialog()
                                                formatParams,
                                                scriptLocation);
 
-    if (NS_SUCCEEDED(rv) && scriptLocation) {
+    if (NS_SUCCEEDED(rv)) {
       msg.AppendLiteral("\n\n");
       msg.Append(scriptLocation);
       msg.Append(':');
@@ -11823,9 +11819,10 @@ nsGlobalWindow::ShowSlowScriptDialog()
     // Null out the operation callback while we're re-entering JS here.
     AutoDisableJSInterruptCallback disabler(cx);
     // Open the dialog.
-    rv = prompt->ConfirmEx(title, msg, buttonFlags, waitButton, stopButton,
-                          debugButton, neverShowDlg, &neverShowDlgChk,
-                          &buttonPressed);
+    rv = prompt->ConfirmEx(title.get(), msg.get(), buttonFlags,
+                           waitButton.get(), stopButton.get(),
+                           debugButton.get(), neverShowDlg.get(),
+                           &neverShowDlgChk, &buttonPressed);
   }
 
   if (NS_SUCCEEDED(rv) && (buttonPressed == 0)) {

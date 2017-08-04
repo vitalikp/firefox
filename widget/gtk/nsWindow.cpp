@@ -167,7 +167,7 @@ static inline bool is_context_menu_key(const WidgetKeyboardEvent& inKeyEvent);
 static int    is_parent_ungrab_enter(GdkEventCrossing *aEvent);
 static int    is_parent_grab_leave(GdkEventCrossing *aEvent);
 
-static void GetBrandName(nsXPIDLString& brandName);
+static void GetBrandName(nsAString& brandName);
 
 /* callbacks from widgets */
 #if (MOZ_WIDGET_GTK == 2)
@@ -1771,7 +1771,7 @@ nsWindow::SetIcon(const nsAString& aIconSpec)
     nsAutoCString iconName;
 
     if (aIconSpec.EqualsLiteral("default")) {
-        nsXPIDLString brandName;
+        nsAutoString brandName;
         GetBrandName(brandName);
         AppendUTF16toUTF8(brandName, iconName);
         ToLowerCase(iconName);
@@ -3462,7 +3462,7 @@ nsWindow::OnTouchEvent(GdkEventTouch* aEvent)
 #endif
 
 static void
-GetBrandName(nsXPIDLString& brandName)
+GetBrandName(nsAString& aBrandName)
 {
     nsCOMPtr<nsIStringBundleService> bundleService =
         do_GetService(NS_STRINGBUNDLE_CONTRACTID);
@@ -3474,12 +3474,10 @@ GetBrandName(nsXPIDLString& brandName)
             getter_AddRefs(bundle));
 
     if (bundle)
-        bundle->GetStringFromName(
-            "brandShortName",
-            getter_Copies(brandName));
+        bundle->GetStringFromName("brandShortName", aBrandName);
 
-    if (brandName.IsEmpty())
-        brandName.AssignLiteral(u"Mozilla");
+    if (aBrandName.IsEmpty())
+        aBrandName.AssignLiteral(u"Mozilla");
 }
 
 static GdkWindow *

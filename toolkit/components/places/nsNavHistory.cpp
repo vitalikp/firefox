@@ -4169,9 +4169,8 @@ nsNavHistory::GetAgeInDaysString(int32_t aInt, const char* aName,
     nsAutoString intString;
     intString.AppendInt(aInt);
     const char16_t* strings[1] = { intString.get() };
-    nsXPIDLString value;
-    nsresult rv = bundle->FormatStringFromName(aName, strings,
-                                               1, getter_Copies(value));
+    nsAutoString value;
+    nsresult rv = bundle->FormatStringFromName(aName, strings, 1, value);
     if (NS_SUCCEEDED(rv)) {
       CopyUTF16toUTF8(value, aResult);
       return;
@@ -4185,8 +4184,8 @@ nsNavHistory::GetStringFromName(const char* aName, nsACString& aResult)
 {
   nsIStringBundle *bundle = GetBundle();
   if (bundle) {
-    nsXPIDLString value;
-    nsresult rv = bundle->GetStringFromName(aName, getter_Copies(value));
+    nsAutoString value;
+    nsresult rv = bundle->GetStringFromName(aName, value);
     if (NS_SUCCEEDED(rv)) {
       CopyUTF16toUTF8(value, aResult);
       return;

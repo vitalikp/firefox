@@ -233,10 +233,8 @@ nsNSSComponent::PIPBundleFormatStringFromName(const char* name,
   nsresult rv = NS_ERROR_FAILURE;
 
   if (mPIPNSSBundle && name) {
-    nsXPIDLString result;
-    rv = mPIPNSSBundle->FormatStringFromName(name,
-                                             params, numParams,
-                                             getter_Copies(result));
+    nsAutoString result;
+    rv = mPIPNSSBundle->FormatStringFromName(name, params, numParams, result);
     if (NS_SUCCEEDED(rv)) {
       outString = result;
     }
@@ -252,8 +250,8 @@ nsNSSComponent::GetPIPNSSBundleString(const char* name, nsAString& outString)
 
   outString.SetLength(0);
   if (mPIPNSSBundle && name) {
-    nsXPIDLString result;
-    rv = mPIPNSSBundle->GetStringFromName(name, getter_Copies(result));
+    nsAutoString result;
+    rv = mPIPNSSBundle->GetStringFromName(name, result);
     if (NS_SUCCEEDED(rv)) {
       outString = result;
       rv = NS_OK;
@@ -271,8 +269,8 @@ nsNSSComponent::GetNSSBundleString(const char* name, nsAString& outString)
 
   outString.SetLength(0);
   if (mNSSErrorsBundle && name) {
-    nsXPIDLString result;
-    rv = mNSSErrorsBundle->GetStringFromName(name, getter_Copies(result));
+    nsAutoString result;
+    rv = mNSSErrorsBundle->GetStringFromName(name, result);
     if (NS_SUCCEEDED(rv)) {
       outString = result;
       rv = NS_OK;

@@ -273,7 +273,7 @@ ErrorReporter::ReportUnexpected(const char *aMessage)
   if (!ShouldReportErrors()) return;
 
   nsAutoString str;
-  sStringBundle->GetStringFromName(aMessage, getter_Copies(str));
+  sStringBundle->GetStringFromName(aMessage, str);
   AddToError(str);
 }
 
@@ -288,9 +288,8 @@ ErrorReporter::ReportUnexpected(const char *aMessage,
   const char16_t *params[1] = { qparam.get() };
 
   nsAutoString str;
-  sStringBundle->FormatStringFromName(aMessage,
-                                      params, ArrayLength(params),
-                                      getter_Copies(str));
+  sStringBundle->FormatStringFromName(aMessage, params, ArrayLength(params),
+                                      str);
   AddToError(str);
 }
 
@@ -305,9 +304,8 @@ ErrorReporter::ReportUnexpected(const char *aMessage,
   const char16_t *params[1] = { tokenString.get() };
 
   nsAutoString str;
-  sStringBundle->FormatStringFromName(aMessage,
-                                      params, ArrayLength(params),
-                                      getter_Copies(str));
+  sStringBundle->FormatStringFromName(aMessage, params, ArrayLength(params),
+                                      str);
   AddToError(str);
 }
 
@@ -324,9 +322,8 @@ ErrorReporter::ReportUnexpected(const char *aMessage,
   const char16_t *params[2] = { tokenString.get(), charStr };
 
   nsAutoString str;
-  sStringBundle->FormatStringFromName(aMessage,
-                                      params, ArrayLength(params),
-                                      getter_Copies(str));
+  sStringBundle->FormatStringFromName(aMessage, params, ArrayLength(params),
+                                      str);
   AddToError(str);
 }
 
@@ -342,9 +339,8 @@ ErrorReporter::ReportUnexpected(const char *aMessage,
   const char16_t *params[2] = { qparam.get(), aValue.get() };
 
   nsAutoString str;
-  sStringBundle->FormatStringFromName(aMessage,
-                                      params, ArrayLength(params),
-                                      getter_Copies(str));
+  sStringBundle->FormatStringFromName(aMessage, params, ArrayLength(params),
+                                      str);
   AddToError(str);
 }
 
@@ -354,13 +350,12 @@ ErrorReporter::ReportUnexpectedEOF(const char *aMessage)
   if (!ShouldReportErrors()) return;
 
   nsAutoString innerStr;
-  sStringBundle->GetStringFromName(aMessage, getter_Copies(innerStr));
+  sStringBundle->GetStringFromName(aMessage, innerStr);
   const char16_t *params[1] = { innerStr.get() };
 
   nsAutoString str;
-  sStringBundle->FormatStringFromName("PEUnexpEOF2",
-                                      params, ArrayLength(params),
-                                      getter_Copies(str));
+  sStringBundle->FormatStringFromName("PEUnexpEOF2", params,
+                                      ArrayLength(params), str);
   AddToError(str);
 }
 
@@ -375,9 +370,8 @@ ErrorReporter::ReportUnexpectedEOF(char16_t aExpected)
   const char16_t *params[1] = { expectedStr };
 
   nsAutoString str;
-  sStringBundle->FormatStringFromName("PEUnexpEOF2",
-                                      params, ArrayLength(params),
-                                      getter_Copies(str));
+  sStringBundle->FormatStringFromName("PEUnexpEOF2", params,
+                                      ArrayLength(params), str);
   AddToError(str);
 }
 
