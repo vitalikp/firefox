@@ -37,6 +37,7 @@
 
 #include "jscntxtinlines.h"
 
+#include "vm/GeckoProfiler-inl.h"
 #include "vm/NativeObject-inl.h"
 #include "vm/Stack-inl.h"
 
@@ -1172,7 +1173,7 @@ SavedStacks::saveCurrentStack(JSContext* cx, MutableHandleSavedFrame frame,
         return true;
     }
 
-    AutoGeckoProfilerEntry psuedoFrame(cx, "js::SavedStacks::saveCurrentStack");
+    AutoGeckoProfilerEntry pseudoFrame(cx, "js::SavedStacks::saveCurrentStack");
     FrameIter iter(cx);
     return insertFrames(cx, iter, frame, mozilla::Move(capture));
 }
