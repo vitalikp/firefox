@@ -453,6 +453,7 @@ private:
     uint32_t mThrottleSuspendFor;
     uint32_t mThrottleResumeFor;
     uint32_t mThrottleResumeIn;
+    uint32_t mThrottleTimeWindow;
 
     bool mUrgentStartEnabled;
 

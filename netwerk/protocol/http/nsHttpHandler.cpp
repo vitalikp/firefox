@@ -195,6 +195,7 @@ nsHttpHandler::nsHttpHandler()
     , mThrottleSuspendFor(3000)
     , mThrottleResumeFor(200)
     , mThrottleResumeIn(400)
+    , mThrottleTimeWindow(3000)
     , mUrgentStartEnabled(true)
     , mRedirectionLimit(10)
     , mPhishyUserPassLength(1)
@@ -543,7 +544,8 @@ nsHttpHandler::InitConnectionMgr()
                         mThrottleEnabled,
                         mThrottleSuspendFor,
                         mThrottleResumeFor,
-                        mThrottleResumeIn);
+                        mThrottleResumeIn,
+                        mThrottleTimeWindow);
     return rv;
 }
 
@@ -1600,6 +1602,15 @@ nsHttpHandler::PrefsChanged(nsIPrefBranch *prefs, const char *pref)
             Unused << mConnMgr->UpdateParam(nsHttpConnectionMgr::THROTTLING_RESUME_IN,
                                             mThrottleResumeIn);
         }
+    }
+
+    if (PREF_CHANGED(HTTP_PREF("throttle.time-window"))) {
+      rv = prefs->GetIntPref(HTTP_PREF("throttle.time-window"), &val);
+      mThrottleTimeWindow = (uint32_t)clamped(val, 0, 120000);
+      if (NS_SUCCEEDED(rv) && mConnMgr) {
+        Unused << mConnMgr->UpdateParam(nsHttpConnectionMgr::THROTTLING_TIME_WINDOW,
+                                        mThrottleTimeWindow);
+      }
     }
 
     if (PREF_CHANGED(HTTP_PREF("on_click_priority"))) {
