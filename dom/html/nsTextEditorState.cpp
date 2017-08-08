@@ -2560,7 +2560,7 @@ nsTextEditorState::SetValue(const nsAString& aValue, const nsAString* aOldValue,
         mValueBeingSet = aValue;
         mIsCommittingComposition = true;
         RefPtr<TextEditor> textEditor = mTextEditor;
-        nsresult rv = textEditor->ForceCompositionEnd();
+        nsresult rv = textEditor->CommitComposition();
         if (!self.get()) {
           return true;
         }
