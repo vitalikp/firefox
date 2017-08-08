@@ -10,6 +10,7 @@
 #include "mozilla/ArrayUtils.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/HashFunctions.h"
+#include "mozilla/SyncRunnable.h"
 #include "mozilla/UniquePtrExtensions.h"
 
 #include "nsXULAppAPI.h"
@@ -1232,9 +1233,13 @@ Preferences::WritePrefFile(nsIFile* aFile, SaveMethod aSaveMethod)
         do_GetService(NS_STREAMTRANSPORTSERVICE_CONTRACTID, &rv);
       if (NS_SUCCEEDED(rv)) {
         bool async = aSaveMethod == SaveMethod::Asynchronous;
-        rv = target->Dispatch(new PWRunnable(aFile),
-                              async ? nsIEventTarget::DISPATCH_NORMAL :
-                                      nsIEventTarget::DISPATCH_SYNC);
+        if (async) {
+          rv = target->Dispatch(new PWRunnable(aFile),
+                                nsIEventTarget::DISPATCH_NORMAL);
+        } else {
+          // Note that we don't get the nsresult return value here
+          SyncRunnable::DispatchToThread(target, new PWRunnable(aFile), true);
+        }
         return rv;
       }
     }
