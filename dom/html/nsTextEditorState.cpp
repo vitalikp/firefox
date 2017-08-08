@@ -1552,12 +1552,13 @@ nsTextEditorState::PrepareEditor(const nsAString *aValue)
 
     // Check if the disabled attribute is set.
     // TODO: call IsDisabled() here!
-    if (content->HasAttr(kNameSpaceID_None, nsGkAtoms::disabled)) 
+    if (content->HasAttr(kNameSpaceID_None, nsGkAtoms::disabled))
       editorFlags |= nsIPlaintextEditor::eEditorDisabledMask;
 
     // Disable the selection if necessary.
-    if (editorFlags & nsIPlaintextEditor::eEditorDisabledMask)
+    if (newTextEditor->IsDisabled()) {
       mSelCon->SetDisplaySelection(nsISelectionController::SELECTION_OFF);
+    }
 
     newTextEditor->SetFlags(editorFlags);
   }
