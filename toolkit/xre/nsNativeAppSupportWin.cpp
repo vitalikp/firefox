@@ -1042,7 +1042,7 @@ nsNativeAppSupportWin::HandleDDENotification( UINT uType,       // transaction t
                             break;
                         }
                         // And from the base window we can get the title.
-                        nsXPIDLString title;
+                        nsString title;
                         if(!baseWindow) {
                             break;
                         }

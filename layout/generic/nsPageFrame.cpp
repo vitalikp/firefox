@@ -640,7 +640,7 @@ nsPageFrame::PaintHeaderFooter(nsRenderingContext& aRenderingContext,
   }
 
   // print document headers and footers
-  nsXPIDLString headerLeft, headerCenter, headerRight;
+  nsString headerLeft, headerCenter, headerRight;
   mPD->mPrintSettings->GetHeaderStrLeft(getter_Copies(headerLeft));
   mPD->mPrintSettings->GetHeaderStrCenter(getter_Copies(headerCenter));
   mPD->mPrintSettings->GetHeaderStrRight(getter_Copies(headerRight));
@@ -648,7 +648,7 @@ nsPageFrame::PaintHeaderFooter(nsRenderingContext& aRenderingContext,
                    headerLeft, headerCenter, headerRight,
                    rect, ascent, visibleHeight);
 
-  nsXPIDLString footerLeft, footerCenter, footerRight;
+  nsString footerLeft, footerCenter, footerRight;
   mPD->mPrintSettings->GetFooterStrLeft(getter_Copies(footerLeft));
   mPD->mPrintSettings->GetFooterStrCenter(getter_Copies(footerCenter));
   mPD->mPrintSettings->GetFooterStrRight(getter_Copies(footerRight));

@@ -224,7 +224,7 @@ already_AddRefed<PrintTarget> nsDeviceContextSpecWin::MakePrintTarget()
   NS_ASSERTION(mDevMode, "DevMode can't be NULL here");
 
   if (mOutputFormat == nsIPrintSettings::kOutputFormatPDF) {
-    nsXPIDLString filename;
+    nsString filename;
     mPrintSettings->GetToFileName(getter_Copies(filename));
 
     double width, height;

@@ -676,7 +676,7 @@ nsHandleSSLError(nsNSSSocketInfo* socketInfo,
 
   // We must cancel first, which sets the error code.
   socketInfo->SetCanceled(err, PlainErrorMessage);
-  nsXPIDLString errorString;
+  nsAutoString errorString;
   socketInfo->GetErrorLogMessage(err, errtype, errorString);
 
   if (!errorString.IsEmpty()) {

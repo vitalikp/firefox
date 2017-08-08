@@ -1284,7 +1284,7 @@ nsDocShell::LoadURI(nsIURI* aURI,
   uint32_t referrerPolicy = mozilla::net::RP_Unset;
   bool isSrcdoc = false;
   nsCOMPtr<nsISHEntry> shEntry;
-  nsXPIDLString target;
+  nsString target;
   nsAutoString srcdoc;
   nsCOMPtr<nsIDocShell> sourceDocShell;
   nsCOMPtr<nsIURI> baseURI;
@@ -4253,7 +4253,6 @@ nsDocShell::FindChildWithName(const nsAString& aName,
     return NS_OK;
   }
 
-  nsXPIDLString childName;
   nsTObserverArray<nsDocLoader*>::ForwardIterator iter(mChildList);
   while (iter.HasMore()) {
     nsCOMPtr<nsIDocShellTreeItem> child = do_QueryObject(iter.GetNext());

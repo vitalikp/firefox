@@ -414,8 +414,8 @@ nsHTTPIndex::OnIndexAvailable(nsIRequest* aRequest, nsISupports *aContext,
     if (NS_SUCCEEDED(rv)) {
       rv = Assert(entry, kNC_URL, lit, true);
       if (NS_FAILED(rv)) return rv;
-      
-      nsXPIDLString xpstr;
+
+      nsString xpstr;
 
       // description
       rv = aIndex->GetDescription(getter_Copies(xpstr));
