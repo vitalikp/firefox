@@ -710,9 +710,8 @@ MacroAssembler::storeUnboxedProperty(BaseIndex address, JSValueType type,
 void
 MacroAssembler::checkAllocatorState(Label* fail)
 {
-    // Don't execute the inline path if we are tracing allocations,
-    // or when the memory profiler is enabled.
-    if (js::gc::TraceEnabled() || MemProfiler::enabled())
+    // Don't execute the inline path if we are tracing allocations.
+    if (js::gc::TraceEnabled())
         jump(fail);
 
 #ifdef JS_GC_ZEAL
