@@ -37,7 +37,7 @@
 
      let SharedAll = require("resource://gre/modules/osfile/osfile_shared_allthreads.jsm");
      let SysAll = require("resource://gre/modules/osfile/osfile_win_allthreads.jsm");
-     let LOG = SharedAll.LOG.bind(SharedAll, "Unix", "back");
+     SharedAll.LOG.bind(SharedAll, "Unix", "back");
      let libc = SysAll.libc;
      let advapi32 = new SharedAll.Library("advapi32", "advapi32.dll");
      let Const = SharedAll.Constants.Win;
@@ -49,19 +49,19 @@
       */
      // FIXME: Both |init| and |aDeclareFFI| are deprecated, we should remove them
      let init = function init(aDeclareFFI) {
-       let declareFFI;
+       let declareFFI; // eslint-disable-line no-unused-vars
        if (aDeclareFFI) {
          declareFFI = aDeclareFFI.bind(null, libc);
        } else {
          declareFFI = SysAll.declareFFI;
        }
-       let declareLazyFFI = SharedAll.declareLazyFFI;
+       let declareLazyFFI = SharedAll.declareLazyFFI; // eslint-disable-line no-unused-vars
 
        // Initialize types that require additional OS-specific
        // support - either finalization or matching against
        // OS-specific constants.
        let Type = Object.create(SysAll.Type);
-       let SysFile = exports.OS.Win.File = { Type: Type };
+       let SysFile = exports.OS.Win.File = { Type };
 
        // Initialize types
 

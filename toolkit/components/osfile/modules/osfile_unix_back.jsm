@@ -21,7 +21,7 @@
        require("resource://gre/modules/osfile/osfile_shared_allthreads.jsm");
      let SysAll =
        require("resource://gre/modules/osfile/osfile_unix_allthreads.jsm");
-     let LOG = SharedAll.LOG.bind(SharedAll, "Unix", "back");
+     SharedAll.LOG.bind(SharedAll, "Unix", "back");
      let libc = SysAll.libc;
      let Const = SharedAll.Constants.libc;
 
@@ -32,19 +32,18 @@
       */
      // FIXME: Both |init| and |aDeclareFFI| are deprecated, we should remove them
      let init = function init(aDeclareFFI) {
-       let declareFFI;
        if (aDeclareFFI) {
-         declareFFI = aDeclareFFI.bind(null, libc);
+         aDeclareFFI.bind(null, libc);
        } else {
-         declareFFI = SysAll.declareFFI;
+         SysAll.declareFFI;
        }
-       let declareLazyFFI = SharedAll.declareLazyFFI;
+       SharedAll.declareLazyFFI;
 
        // Initialize types that require additional OS-specific
        // support - either finalization or matching against
        // OS-specific constants.
        let Type = Object.create(SysAll.Type);
-       let SysFile = exports.OS.Unix.File = { Type: Type };
+       let SysFile = exports.OS.Unix.File = { Type };
 
        /**
         * A file descriptor.

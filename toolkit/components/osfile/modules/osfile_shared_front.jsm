@@ -19,7 +19,7 @@ var SharedAll =
 var Path = require("resource://gre/modules/osfile/ospath.jsm");
 var Lz4 =
   require("resource://gre/modules/lz4.js");
-var LOG = SharedAll.LOG.bind(SharedAll, "Shared front-end");
+SharedAll.LOG.bind(SharedAll, "Shared front-end");
 var clone = SharedAll.clone;
 
 /**
@@ -149,7 +149,7 @@ AbstractFile.openUnique = function openUnique(path, options = {}) {
 
   try {
     return {
-      path: path,
+      path,
       file: OS.File.open(path, mode)
     };
   } catch (ex) {
