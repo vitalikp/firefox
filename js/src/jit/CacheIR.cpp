@@ -2412,6 +2412,10 @@ SetPropIRGenerator::tryAttachStub()
             return false;
 
         ObjOperandId objId = writer.guardIsObject(objValId);
+        if (IsPropertySetOp(JSOp(*pc_))) {
+            if (tryAttachMegamorphicSetElement(obj, objId, rhsValId))
+                return true;
+        }
         if (nameOrSymbol) {
             if (tryAttachNativeSetSlot(obj, objId, id, rhsValId))
                 return true;
@@ -3271,6 +3275,26 @@ SetPropIRGenerator::tryAttachProxyElement(HandleObject obj, ObjOperandId objId, 
     writer.returnFromIC();
 
     trackAttached("ProxyElement");
+    return true;
+}
+
+bool
+SetPropIRGenerator::tryAttachMegamorphicSetElement(HandleObject obj, ObjOperandId objId,
+                                                   ValOperandId rhsId)
+{
+    MOZ_ASSERT(IsPropertySetOp(JSOp(*pc_)));
+
+    if (mode_ != ICState::Mode::Megamorphic || cacheKind_ != CacheKind::SetElem)
+        return false;
+
+    // The generic proxy stubs are faster.
+    if (obj->is<ProxyObject>())
+        return false;
+
+    writer.megamorphicSetElement(objId, setElemKeyValueId(), rhsId, IsStrictSetPC(pc_));
+    writer.returnFromIC();
+
+    trackAttached("MegamorphicSetElement");
     return true;
 }
 

@@ -200,6 +200,7 @@ extern const char* CacheKindNames[];
     _(MegamorphicLoadSlotResult)          \
     _(MegamorphicLoadSlotByValueResult)   \
     _(MegamorphicStoreSlot)               \
+    _(MegamorphicSetElement)              \
     _(MegamorphicHasOwnResult)            \
                                           \
     /* See CacheIR.cpp 'DOM proxies' comment. */ \
@@ -857,6 +858,12 @@ class MOZ_RAII CacheIRWriter : public JS::CustomAutoRooter
         writeOperandId(rhs);
         buffer_.writeByte(needsTypeBarrier);
     }
+    void megamorphicSetElement(ObjOperandId obj, ValOperandId id, ValOperandId rhs, bool strict) {
+        writeOpWithOperandId(CacheOp::MegamorphicSetElement, obj);
+        writeOperandId(id);
+        writeOperandId(rhs);
+        buffer_.writeByte(uint32_t(strict));
+    }
     void megamorphicHasOwnResult(ObjOperandId obj, ValOperandId id) {
         writeOpWithOperandId(CacheOp::MegamorphicHasOwnResult, obj);
         writeOperandId(id);
@@ -1400,6 +1407,7 @@ class MOZ_RAII SetPropIRGenerator : public IRGenerator
                                   ValOperandId rhsId);
     bool tryAttachProxy(HandleObject obj, ObjOperandId objId, HandleId id, ValOperandId rhsId);
     bool tryAttachProxyElement(HandleObject obj, ObjOperandId objId, ValOperandId rhsId);
+    bool tryAttachMegamorphicSetElement(HandleObject obj, ObjOperandId objId, ValOperandId rhsId);
 
     void trackAttached(const char* name);
 

@@ -1778,5 +1778,10 @@ GetPrototypeOf(JSContext* cx, HandleObject target, MutableHandleValue rval)
     return true;
 }
 
+typedef bool (*SetObjectElementFn)(JSContext*, HandleObject, HandleValue,
+                                   HandleValue, HandleValue, bool);
+const VMFunction SetObjectElementInfo =
+    FunctionInfo<SetObjectElementFn>(js::SetObjectElement, "SetObjectElement");
+
 } // namespace jit
 } // namespace js
