@@ -410,7 +410,7 @@ nsINode::ChildNodes()
 {
   nsSlots* slots = Slots();
   if (!slots->mChildNodes) {
-    slots->mChildNodes = new nsChildContentList(this);
+    slots->mChildNodes = new nsAttrChildContentList(this);
   }
 
   return slots->mChildNodes;
