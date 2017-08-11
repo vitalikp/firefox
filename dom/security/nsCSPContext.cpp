@@ -694,7 +694,7 @@ nsCSPContext::SetRequestContext(nsIDOMDocument* aDOMDocument,
 }
 
 struct ConsoleMsgQueueElem {
-  nsXPIDLString mMsg;
+  nsString      mMsg;
   nsString      mSourceName;
   nsString      mSourceLine;
   uint32_t      mLineNumber;
