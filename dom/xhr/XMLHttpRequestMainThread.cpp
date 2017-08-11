@@ -2790,7 +2790,7 @@ XMLHttpRequestMainThread::Send(nsIVariant* aVariant)
     nsresult rv = aVariant->GetAsJSVal(&realVal);
     if (NS_SUCCEEDED(rv) && !realVal.isPrimitive()) {
       JS::Rooted<JSObject*> obj(rootingCx, realVal.toObjectOrNull());
-      RootedTypedArray<ArrayBuffer> buf(rootingCx);
+      RootedSpiderMonkeyInterface<ArrayBuffer> buf(rootingCx);
       if (buf.Init(obj)) {
         BodyExtractor<const ArrayBuffer> body(&buf);
         return SendInternal(&body);
