@@ -24,7 +24,7 @@
 #include "js/RootingAPI.h"
 #include "vm/ArgumentsObject.h"
 #include "vm/SavedFrame.h"
-#include "wasm/WasmFrameIterator.h"
+#include "wasm/WasmFrameIter.h"
 #include "wasm/WasmTypes.h"
 
 struct JSCompartment;
@@ -1766,7 +1766,7 @@ class WasmActivation : public Activation
     void* unwindPC() const;
     void* resumePC() const;
 
-    // Used by wasm::FrameIterator during stack unwinding.
+    // Used by wasm::WasmFrameIter during stack unwinding.
     void unwindExitFP(wasm::Frame* exitFP);
 };
 
@@ -1811,7 +1811,7 @@ class FrameIter
 
         jit::JitFrameIterator jitFrames_;
         unsigned ionInlineFrameNo_;
-        wasm::FrameIterator wasmFrames_;
+        wasm::WasmFrameIter wasmFrames_;
 
         Data(JSContext* cx, DebuggerEvalOption debuggerEvalOption, JSPrincipals* principals);
         Data(JSContext* cx, const CooperatingContext& target, DebuggerEvalOption debuggerEvalOption);
