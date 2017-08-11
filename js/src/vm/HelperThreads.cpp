@@ -17,6 +17,7 @@
 #include "frontend/BytecodeCompiler.h"
 #include "gc/GCInternals.h"
 #include "jit/IonBuilder.h"
+#include "js/Utility.h"
 #include "threading/CpuCount.h"
 #include "vm/Debugger.h"
 #include "vm/ErrorReporting.h"
@@ -1018,7 +1019,7 @@ struct MOZ_RAII AutoSetContextRuntime
 };
 
 static inline bool
-IsHelperThreadSimulatingOOM(js::oom::ThreadType threadType)
+IsHelperThreadSimulatingOOM(js::ThreadType threadType)
 {
 #if defined(DEBUG) || defined(JS_OOM_BREAKPOINT)
     return js::oom::targetThread == threadType;
@@ -1030,7 +1031,7 @@ IsHelperThreadSimulatingOOM(js::oom::ThreadType threadType)
 size_t
 GlobalHelperThreadState::maxIonCompilationThreads() const
 {
-    if (IsHelperThreadSimulatingOOM(js::oom::THREAD_TYPE_ION))
+    if (IsHelperThreadSimulatingOOM(js::THREAD_TYPE_ION))
         return 1;
     return threadCount;
 }
@@ -1044,7 +1045,7 @@ GlobalHelperThreadState::maxUnpausedIonCompilationThreads() const
 size_t
 GlobalHelperThreadState::maxWasmCompilationThreads() const
 {
-    if (IsHelperThreadSimulatingOOM(js::oom::THREAD_TYPE_WASM))
+    if (IsHelperThreadSimulatingOOM(js::THREAD_TYPE_WASM))
         return 1;
     return cpuCount;
 }
@@ -1052,7 +1053,7 @@ GlobalHelperThreadState::maxWasmCompilationThreads() const
 size_t
 GlobalHelperThreadState::maxParseThreads() const
 {
-    if (IsHelperThreadSimulatingOOM(js::oom::THREAD_TYPE_PARSE))
+    if (IsHelperThreadSimulatingOOM(js::THREAD_TYPE_PARSE))
         return 1;
 
     // Don't allow simultaneous off thread parses, to reduce contention on the
@@ -1065,7 +1066,7 @@ GlobalHelperThreadState::maxParseThreads() const
 size_t
 GlobalHelperThreadState::maxCompressionThreads() const
 {
-    if (IsHelperThreadSimulatingOOM(js::oom::THREAD_TYPE_COMPRESS))
+    if (IsHelperThreadSimulatingOOM(js::THREAD_TYPE_COMPRESS))
         return 1;
 
     // Compression is triggered on major GCs to compress ScriptSources. It is
@@ -1076,7 +1077,7 @@ GlobalHelperThreadState::maxCompressionThreads() const
 size_t
 GlobalHelperThreadState::maxGCHelperThreads() const
 {
-    if (IsHelperThreadSimulatingOOM(js::oom::THREAD_TYPE_GCHELPER))
+    if (IsHelperThreadSimulatingOOM(js::THREAD_TYPE_GCHELPER))
         return 1;
     return threadCount;
 }
@@ -1084,7 +1085,7 @@ GlobalHelperThreadState::maxGCHelperThreads() const
 size_t
 GlobalHelperThreadState::maxGCParallelThreads() const
 {
-    if (IsHelperThreadSimulatingOOM(js::oom::THREAD_TYPE_GCPARALLEL))
+    if (IsHelperThreadSimulatingOOM(js::THREAD_TYPE_GCPARALLEL))
         return 1;
     return threadCount;
 }
@@ -2166,7 +2167,7 @@ HelperThread::threadLoop()
     while (true) {
         MOZ_ASSERT(idle());
 
-        js::oom::ThreadType task;
+        js::ThreadType task;
         while (true) {
             if (terminate)
                 return;
@@ -2181,25 +2182,25 @@ HelperThread::threadLoop()
             // and execution is not well-defined.
 
             if (HelperThreadState().canStartGCParallelTask(lock))
-                task = js::oom::THREAD_TYPE_GCPARALLEL;
+                task = js::THREAD_TYPE_GCPARALLEL;
             else if (HelperThreadState().canStartGCHelperTask(lock))
-                task = js::oom::THREAD_TYPE_GCHELPER;
+                task = js::THREAD_TYPE_GCHELPER;
             else if (HelperThreadState().pendingIonCompileHasSufficientPriority(lock))
-                task = js::oom::THREAD_TYPE_ION;
+                task = js::THREAD_TYPE_ION;
             else if (HelperThreadState().canStartWasmCompile(lock))
-                task = js::oom::THREAD_TYPE_WASM;
+                task = js::THREAD_TYPE_WASM;
             else if (HelperThreadState().canStartPromiseTask(lock))
-                task = js::oom::THREAD_TYPE_PROMISE_TASK;
+                task = js::THREAD_TYPE_PROMISE_TASK;
             else if (HelperThreadState().canStartParseTask(lock))
-                task = js::oom::THREAD_TYPE_PARSE;
+                task = js::THREAD_TYPE_PARSE;
             else if (HelperThreadState().canStartCompressionTask(lock))
-                task = js::oom::THREAD_TYPE_COMPRESS;
+                task = js::THREAD_TYPE_COMPRESS;
             else if (HelperThreadState().canStartIonFreeTask(lock))
-                task = js::oom::THREAD_TYPE_ION_FREE;
+                task = js::THREAD_TYPE_ION_FREE;
             else
-                task = js::oom::THREAD_TYPE_NONE;
+                task = js::THREAD_TYPE_NONE;
 
-            if (task != js::oom::THREAD_TYPE_NONE)
+            if (task != js::THREAD_TYPE_NONE)
                 break;
 
             HelperThreadState().wait(lock, GlobalHelperThreadState::PRODUCER);
@@ -2207,33 +2208,33 @@ HelperThread::threadLoop()
 
         js::oom::SetThreadType(task);
         switch (task) {
-          case js::oom::THREAD_TYPE_GCPARALLEL:
+          case js::THREAD_TYPE_GCPARALLEL:
             handleGCParallelWorkload(lock);
             break;
-          case js::oom::THREAD_TYPE_GCHELPER:
+          case js::THREAD_TYPE_GCHELPER:
             handleGCHelperWorkload(lock);
             break;
-          case js::oom::THREAD_TYPE_ION:
+          case js::THREAD_TYPE_ION:
             handleIonWorkload(lock);
             break;
-          case js::oom::THREAD_TYPE_WASM:
+          case js::THREAD_TYPE_WASM:
             handleWasmWorkload(lock);
             break;
-          case js::oom::THREAD_TYPE_PROMISE_TASK:
+          case js::THREAD_TYPE_PROMISE_TASK:
             handlePromiseTaskWorkload(lock);
             break;
-          case js::oom::THREAD_TYPE_PARSE:
+          case js::THREAD_TYPE_PARSE:
             handleParseWorkload(lock);
             break;
-          case js::oom::THREAD_TYPE_COMPRESS:
+          case js::THREAD_TYPE_COMPRESS:
             handleCompressionWorkload(lock);
             break;
-          case js::oom::THREAD_TYPE_ION_FREE:
+          case js::THREAD_TYPE_ION_FREE:
             handleIonFreeWorkload(lock);
             break;
           default:
             MOZ_CRASH("No task to perform");
         }
-        js::oom::SetThreadType(js::oom::THREAD_TYPE_NONE);
+        js::oom::SetThreadType(js::THREAD_TYPE_NONE);
     }
 }
