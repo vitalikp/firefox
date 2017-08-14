@@ -53,7 +53,7 @@ using namespace dom;
 NS_IMETHODIMP
 HTMLEditor::AbsolutePositionSelection(bool aEnabled)
 {
-  AutoEditBatch beginBatching(this);
+  AutoPlaceholderBatch beginBatching(this);
   AutoRules beginRulesSniffing(this,
                                aEnabled ? EditAction::setAbsolutePosition :
                                           EditAction::removeAbsolutePosition,
@@ -180,7 +180,7 @@ HTMLEditor::SetElementZIndex(nsIDOMElement* aElement,
 NS_IMETHODIMP
 HTMLEditor::RelativeChangeZIndex(int32_t aChange)
 {
-  AutoEditBatch beginBatching(this);
+  AutoPlaceholderBatch beginBatching(this);
   AutoRules beginRulesSniffing(this,
                                (aChange < 0) ? EditAction::decreaseZIndex :
                                                EditAction::increaseZIndex,
@@ -470,7 +470,7 @@ HTMLEditor::SetFinalPosition(int32_t aX,
   y.AppendInt(newY);
 
   // we want one transaction only from a user's point of view
-  AutoEditBatch batchIt(this);
+  AutoPlaceholderBatch batchIt(this);
 
   nsCOMPtr<Element> absolutelyPositionedObject =
     do_QueryInterface(mAbsolutelyPositionedObject);
@@ -514,7 +514,7 @@ HTMLEditor::AbsolutelyPositionElement(nsIDOMElement* aElement,
   if (isPositioned == aEnabled)
     return NS_OK;
 
-  AutoEditBatch batchIt(this);
+  AutoPlaceholderBatch batchIt(this);
 
   if (aEnabled) {
     int32_t x, y;
@@ -617,7 +617,7 @@ HTMLEditor::SetElementPosition(Element& aElement,
                                int32_t aX,
                                int32_t aY)
 {
-  AutoEditBatch batchIt(this);
+  AutoPlaceholderBatch batchIt(this);
   mCSSEditUtils->SetCSSPropertyPixels(aElement, *nsGkAtoms::left, aX);
   mCSSEditUtils->SetCSSPropertyPixels(aElement, *nsGkAtoms::top, aY);
 }
