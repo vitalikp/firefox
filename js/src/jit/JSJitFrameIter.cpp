@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "jit/JitFrameIterator-inl.h"
+#include "jit/JSJitFrameIter-inl.h"
 
 #include "mozilla/SizePrintfMacros.h"
 
@@ -15,7 +15,7 @@
 using namespace js;
 using namespace js::jit;
 
-JitFrameIterator::JitFrameIterator(const JitActivation* activation)
+JSJitFrameIter::JSJitFrameIter(const JitActivation* activation)
   : current_(activation->exitFP()),
     type_(JitFrame_Exit),
     returnAddressToFp_(nullptr),
@@ -30,20 +30,20 @@ JitFrameIterator::JitFrameIterator(const JitActivation* activation)
     }
 }
 
-JitFrameIterator::JitFrameIterator(JSContext* cx)
-  : JitFrameIterator(cx->activation()->asJit())
+JSJitFrameIter::JSJitFrameIter(JSContext* cx)
+  : JSJitFrameIter(cx->activation()->asJit())
 {
 }
 
 bool
-JitFrameIterator::checkInvalidation() const
+JSJitFrameIter::checkInvalidation() const
 {
     IonScript* dummy;
     return checkInvalidation(&dummy);
 }
 
 bool
-JitFrameIterator::checkInvalidation(IonScript** ionScriptOut) const
+JSJitFrameIter::checkInvalidation(IonScript** ionScriptOut) const
 {
     JSScript* script = this->script();
     if (isBailoutJS()) {
@@ -68,13 +68,13 @@ JitFrameIterator::checkInvalidation(IonScript** ionScriptOut) const
 }
 
 CalleeToken
-JitFrameIterator::calleeToken() const
+JSJitFrameIter::calleeToken() const
 {
     return ((JitFrameLayout*) current_)->calleeToken();
 }
 
 JSFunction*
-JitFrameIterator::callee() const
+JSJitFrameIter::callee() const
 {
     MOZ_ASSERT(isScripted());
     MOZ_ASSERT(isFunctionFrame());
@@ -82,7 +82,7 @@ JitFrameIterator::callee() const
 }
 
 JSFunction*
-JitFrameIterator::maybeCallee() const
+JSJitFrameIter::maybeCallee() const
 {
     if (isScripted() && (isFunctionFrame()))
         return callee();
@@ -90,7 +90,7 @@ JitFrameIterator::maybeCallee() const
 }
 
 bool
-JitFrameIterator::isBareExit() const
+JSJitFrameIter::isBareExit() const
 {
     if (type_ != JitFrame_Exit)
         return false;
@@ -98,13 +98,13 @@ JitFrameIterator::isBareExit() const
 }
 
 bool
-JitFrameIterator::isFunctionFrame() const
+JSJitFrameIter::isFunctionFrame() const
 {
     return CalleeTokenIsFunction(calleeToken());
 }
 
 JSScript*
-JitFrameIterator::script() const
+JSJitFrameIter::script() const
 {
     MOZ_ASSERT(isScripted());
     if (isBaselineJS())
@@ -115,7 +115,7 @@ JitFrameIterator::script() const
 }
 
 void
-JitFrameIterator::baselineScriptAndPc(JSScript** scriptRes, jsbytecode** pcRes) const
+JSJitFrameIter::baselineScriptAndPc(JSScript** scriptRes, jsbytecode** pcRes) const
 {
     MOZ_ASSERT(isBaselineJS());
     JSScript* script = this->script();
@@ -139,19 +139,19 @@ JitFrameIterator::baselineScriptAndPc(JSScript** scriptRes, jsbytecode** pcRes) 
 }
 
 Value*
-JitFrameIterator::actualArgs() const
+JSJitFrameIter::actualArgs() const
 {
     return jsFrame()->argv() + 1;
 }
 
 uint8_t*
-JitFrameIterator::prevFp() const
+JSJitFrameIter::prevFp() const
 {
     return current_ + current()->prevFrameLocalSize() + current()->headerSize();
 }
 
 void
-JitFrameIterator::operator++()
+JSJitFrameIter::operator++()
 {
     MOZ_ASSERT(type_ != JitFrame_Entry);
 
@@ -171,7 +171,7 @@ JitFrameIterator::operator++()
 }
 
 uintptr_t*
-JitFrameIterator::spillBase() const
+JSJitFrameIter::spillBase() const
 {
     MOZ_ASSERT(isIonJS());
 
@@ -183,7 +183,7 @@ JitFrameIterator::spillBase() const
 }
 
 MachineState
-JitFrameIterator::machineState() const
+JSJitFrameIter::machineState() const
 {
     MOZ_ASSERT(isIonScripted());
 
@@ -218,7 +218,7 @@ JitFrameIterator::machineState() const
 }
 
 JitFrameLayout*
-JitFrameIterator::jsFrame() const
+JSJitFrameIter::jsFrame() const
 {
     MOZ_ASSERT(isScripted());
     if (isBailoutJS())
@@ -228,7 +228,7 @@ JitFrameIterator::jsFrame() const
 }
 
 IonScript*
-JitFrameIterator::ionScript() const
+JSJitFrameIter::ionScript() const
 {
     MOZ_ASSERT(isIonScripted());
     if (isBailoutJS())
@@ -241,7 +241,7 @@ JitFrameIterator::ionScript() const
 }
 
 IonScript*
-JitFrameIterator::ionScriptFromCalleeToken() const
+JSJitFrameIter::ionScriptFromCalleeToken() const
 {
     MOZ_ASSERT(isIonJS());
     MOZ_ASSERT(!checkInvalidation());
@@ -249,7 +249,7 @@ JitFrameIterator::ionScriptFromCalleeToken() const
 }
 
 const SafepointIndex*
-JitFrameIterator::safepoint() const
+JSJitFrameIter::safepoint() const
 {
     MOZ_ASSERT(isIonJS());
     if (!cachedSafepointIndex_)
@@ -258,7 +258,7 @@ JitFrameIterator::safepoint() const
 }
 
 SnapshotOffset
-JitFrameIterator::snapshotOffset() const
+JSJitFrameIter::snapshotOffset() const
 {
     MOZ_ASSERT(isIonScripted());
     if (isBailoutJS())
@@ -267,7 +267,7 @@ JitFrameIterator::snapshotOffset() const
 }
 
 const OsiIndex*
-JitFrameIterator::osiIndex() const
+JSJitFrameIter::osiIndex() const
 {
     MOZ_ASSERT(isIonJS());
     SafepointReader reader(ionScript(), safepoint());
@@ -275,13 +275,13 @@ JitFrameIterator::osiIndex() const
 }
 
 bool
-JitFrameIterator::isConstructing() const
+JSJitFrameIter::isConstructing() const
 {
     return CalleeTokenIsConstructing(calleeToken());
 }
 
 unsigned
-JitFrameIterator::numActualArgs() const
+JSJitFrameIter::numActualArgs() const
 {
     if (isScripted())
         return jsFrame()->numActualArgs();
@@ -291,7 +291,7 @@ JitFrameIterator::numActualArgs() const
 }
 
 void
-JitFrameIterator::dumpBaseline() const
+JSJitFrameIter::dumpBaseline() const
 {
     MOZ_ASSERT(isBaselineJS());
 
@@ -334,7 +334,7 @@ JitFrameIterator::dumpBaseline() const
 }
 
 void
-JitFrameIterator::dump() const
+JSJitFrameIter::dump() const
 {
     switch (type_) {
       case JitFrame_Entry:
@@ -377,7 +377,7 @@ JitFrameIterator::dump() const
 
 #ifdef DEBUG
 bool
-JitFrameIterator::verifyReturnAddressUsingNativeToBytecodeMap()
+JSJitFrameIter::verifyReturnAddressUsingNativeToBytecodeMap()
 {
     MOZ_ASSERT(returnAddressToFp_ != nullptr);
 

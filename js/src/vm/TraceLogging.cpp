@@ -234,7 +234,7 @@ TraceLoggerThread::enable(JSContext* cx)
         int32_t engine = 0;
 
         if (act->isJit()) {
-            JitFrameIterator frame(iter->asJit());
+            JSJitFrameIter frame(iter->asJit());
 
             while (!frame.isScripted() && !frame.done())
                 ++frame;
