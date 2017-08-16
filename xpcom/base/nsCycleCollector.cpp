@@ -3585,6 +3585,7 @@ void
 nsCycleCollector::ShutdownCollect()
 {
   FinishAnyIncrementalGCInProgress();
+  JS::ShutdownAsyncTasks(CycleCollectedJSContext::Get()->Context());
 
   SliceBudget unlimitedBudget = SliceBudget::unlimited();
   uint32_t i;
