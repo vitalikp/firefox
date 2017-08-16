@@ -105,7 +105,7 @@ nsGetServiceFromCategory::operator()(const nsIID& aIID,
                                      void** aInstancePtr) const
 {
   nsresult rv;
-  nsXPIDLCString value;
+  nsCString value;
   nsCOMPtr<nsICategoryManager> catman;
   nsComponentManagerImpl* compMgr = nsComponentManagerImpl::gComponentManager;
   if (!compMgr) {
@@ -132,12 +132,12 @@ nsGetServiceFromCategory::operator()(const nsIID& aIID,
   if (NS_FAILED(rv)) {
     goto error;
   }
-  if (!value) {
+  if (value.IsVoid()) {
     rv = NS_ERROR_SERVICE_NOT_AVAILABLE;
     goto error;
   }
 
-  rv = compMgr->nsComponentManagerImpl::GetServiceByContractID(value,
+  rv = compMgr->nsComponentManagerImpl::GetServiceByContractID(value.get(),
                                                                aIID,
                                                                aInstancePtr);
   if (NS_FAILED(rv)) {
