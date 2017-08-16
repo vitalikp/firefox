@@ -255,6 +255,8 @@ nsHttpHandler::nsHttpHandler()
 {
     LOG(("Creating nsHttpHandler [this=%p].\n", this));
 
+    mUserAgentOverride.SetIsVoid(true);
+
     MOZ_ASSERT(!gHttpHandler, "HTTP handler already created!");
     gHttpHandler = this;
     nsCOMPtr<nsIXULRuntime> runtime = do_GetService("@mozilla.org/xre/runtime;1");
@@ -775,7 +777,7 @@ nsHttpHandler::UserAgent()
         return mSpoofedUserAgent;
     }
 
-    if (mUserAgentOverride) {
+    if (!mUserAgentOverride.IsVoid()) {
         LOG(("using general.useragent.override : %s\n", mUserAgentOverride.get()));
         return mUserAgentOverride;
     }
@@ -1359,7 +1361,7 @@ nsHttpHandler::PrefsChanged(nsIPrefBranch *prefs, const char *pref)
                                 getter_Copies(sval));
         if (NS_SUCCEEDED(rv)) {
             if (sval.IsEmpty())
-                mDefaultSocketType.Adopt(nullptr);
+                mDefaultSocketType.SetIsVoid(true);
             else {
                 // verify that this socket type is actually valid
                 nsCOMPtr<nsISocketProviderService> sps(
