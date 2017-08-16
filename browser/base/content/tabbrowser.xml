@@ -1502,6 +1502,7 @@
             var aSameProcessAsFrameLoader;
             var aOriginPrincipal;
             var aOpener;
+            var aOpenerBrowser;
             var aCreateLazyBrowser;
             var aNextTabParentId;
             var aName;
@@ -1527,6 +1528,7 @@
               aSameProcessAsFrameLoader = params.sameProcessAsFrameLoader;
               aOriginPrincipal          = params.originPrincipal;
               aOpener                   = params.opener;
+              aOpenerBrowser            = params.openerBrowser;
               aIsPrerendered            = params.isPrerendered;
               aCreateLazyBrowser        = params.createLazyBrowser;
               aNextTabParentId          = params.nextTabParentId;
@@ -1557,6 +1559,7 @@
                                   originPrincipal: aOriginPrincipal,
                                   sameProcessAsFrameLoader: aSameProcessAsFrameLoader,
                                   opener: aOpener,
+                                  openerBrowser: aOpenerBrowser,
                                   isPrerendered: aIsPrerendered,
                                   nextTabParentId: aNextTabParentId,
                                   name: aName });
@@ -1975,11 +1978,11 @@
               b.setAttribute("remote", "true");
             }
 
-            if (aParams.opener) {
+            if (aParams.openerWindow) {
               if (aParams.remoteType) {
                 throw new Error("Cannot set opener window on a remote browser!");
               }
-              b.QueryInterface(Ci.nsIFrameLoaderOwner).presetOpenerWindow(aParams.opener);
+              b.QueryInterface(Ci.nsIFrameLoaderOwner).presetOpenerWindow(aParams.openerWindow);
             }
 
             if (!aParams.isPreloadBrowser && this.hasAttribute("autocompletepopup")) {
@@ -1996,6 +1999,9 @@
             b.setAttribute("autoscrollpopup", this._autoScrollPopup.id);
 
             if (aParams.nextTabParentId) {
+              if (!aParams.remoteType) {
+                throw new Error("Cannot have nextTabParentId without a remoteType");
+              }
               // Gecko is going to read this attribute and use it.
               b.setAttribute("nextTabParentId", aParams.nextTabParentId.toString());
             }
@@ -2210,6 +2216,7 @@
             var aOriginPrincipal;
             var aDisallowInheritPrincipal;
             var aOpener;
+            var aOpenerBrowser;
             var aCreateLazyBrowser;
             var aSkipBackgroundNotify;
             var aNextTabParentId;
@@ -2238,6 +2245,7 @@
               aOriginPrincipal          = params.originPrincipal;
               aDisallowInheritPrincipal = params.disallowInheritPrincipal;
               aOpener                   = params.opener;
+              aOpenerBrowser            = params.openerBrowser;
               aIsPrerendered            = params.isPrerendered;
               aCreateLazyBrowser        = params.createLazyBrowser;
               aSkipBackgroundNotify     = params.skipBackgroundNotify;
@@ -2314,6 +2322,12 @@
 
             this.tabContainer.updateVisibility();
 
+            // If we don't have a preferred remote type, and we have a remote
+            // opener, use the opener's remote type.
+            if (!aPreferredRemoteType && aOpenerBrowser) {
+              aPreferredRemoteType = aOpenerBrowser.remoteType;
+            }
+
             // If URI is about:blank and we don't have a preferred remote type,
             // then we need to use the referrer, if we have one, to get the
             // correct remote type for the new tab.
@@ -2350,7 +2364,7 @@
                                         uriIsAboutBlank,
                                         userContextId: aUserContextId,
                                         sameProcessAsFrameLoader: aSameProcessAsFrameLoader,
-                                        opener: aOpener,
+                                        openerWindow: aOpener,
                                         isPrerendered: aIsPrerendered,
                                         nextTabParentId: aNextTabParentId,
                                         name: aName });
