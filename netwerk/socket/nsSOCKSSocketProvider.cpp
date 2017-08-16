@@ -45,11 +45,12 @@ nsSOCKSSocketProvider::CreateV5(nsISupports *aOuter, REFNSIID aIID, void **aResu
 
 NS_IMETHODIMP
 nsSOCKSSocketProvider::NewSocket(int32_t family,
-                                 const char *host, 
+                                 const char *host,
                                  int32_t port,
                                  nsIProxyInfo *proxy,
                                  const OriginAttributes &originAttributes,
                                  uint32_t flags,
+                                 uint32_t tlsFlags,
                                  PRFileDesc **result,
                                  nsISupports **socksInfo)
 {
@@ -70,12 +71,13 @@ nsSOCKSSocketProvider::NewSocket(int32_t family,
     }
 
     nsresult rv = nsSOCKSIOLayerAddToSocket(family,
-                                            host, 
+                                            host,
                                             port,
                                             proxy,
                                             mVersion,
                                             flags,
-                                            sock, 
+                                            tlsFlags,
+                                            sock,
                                             socksInfo);
     if (NS_SUCCEEDED(rv)) {
         *result = sock;
@@ -92,18 +94,20 @@ nsSOCKSSocketProvider::AddToSocket(int32_t family,
                                    nsIProxyInfo *proxy,
                                    const OriginAttributes &originAttributes,
                                    uint32_t flags,
+                                   uint32_t tlsFlags,
                                    PRFileDesc *sock,
                                    nsISupports **socksInfo)
 {
     nsresult rv = nsSOCKSIOLayerAddToSocket(family,
-                                            host, 
+                                            host,
                                             port,
                                             proxy,
                                             mVersion,
                                             flags,
-                                            sock, 
+                                            tlsFlags,
+                                            sock,
                                             socksInfo);
-    
+
     if (NS_FAILED(rv))
         rv = NS_ERROR_SOCKET_CREATE_FAILED;
     return rv;

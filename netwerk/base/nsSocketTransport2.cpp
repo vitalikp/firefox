@@ -768,6 +768,7 @@ nsSocketTransport::nsSocketTransport()
     , mProxyTransparentResolvesHost(false)
     , mHttpsProxy(false)
     , mConnectionFlags(0)
+    , mTlsFlags(0)
     , mReuseAddrPort(false)
     , mState(STATE_CLOSED)
     , mAttached(false)
@@ -1218,7 +1219,7 @@ nsSocketTransport::BuildSocket(PRFileDesc *&fd, bool &proxyTransparent, bool &us
                                          mHttpsProxy ? mProxyHost.get() : host,
                                          mHttpsProxy ? mProxyPort : port,
                                          proxyInfo, mOriginAttributes,
-                                         controlFlags, &fd,
+                                         controlFlags, mTlsFlags, &fd,
                                          getter_AddRefs(secinfo));
 
                 if (NS_SUCCEEDED(rv) && !fd) {
@@ -1227,12 +1228,12 @@ nsSocketTransport::BuildSocket(PRFileDesc *&fd, bool &proxyTransparent, bool &us
                 }
             }
             else {
-                // the socket has already been allocated, 
+                // the socket has already been allocated,
                 // so we just want the service to add itself
                 // to the stack (such as pushing an io layer)
                 rv = provider->AddToSocket(mNetAddr.raw.family,
                                            host, port, proxyInfo,
-                                           mOriginAttributes, controlFlags, fd,
+                                           mOriginAttributes, controlFlags, mTlsFlags, fd,
                                            getter_AddRefs(secinfo));
             }
 
@@ -2983,6 +2984,20 @@ nsSocketTransport::SetConnectionFlags(uint32_t value)
 {
     mConnectionFlags = value;
     mIsPrivate = value & nsISocketTransport::NO_PERMANENT_STORAGE;
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+nsSocketTransport::GetTlsFlags(uint32_t *value)
+{
+    *value = mTlsFlags;
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+nsSocketTransport::SetTlsFlags(uint32_t value)
+{
+    mTlsFlags = value;
     return NS_OK;
 }
 

@@ -82,7 +82,8 @@ static const bool FALSE_START_REQUIRE_NPN_DEFAULT = false;
 
 extern LazyLogModule gPIPNSSLog;
 
-nsNSSSocketInfo::nsNSSSocketInfo(SharedSSLState& aState, uint32_t providerFlags)
+nsNSSSocketInfo::nsNSSSocketInfo(SharedSSLState& aState, uint32_t providerFlags,
+                                 uint32_t providerTlsFlags)
   : mFd(nullptr),
     mCertVerificationState(before_cert_verification),
     mSharedState(aState),
@@ -106,6 +107,7 @@ nsNSSSocketInfo::nsNSSSocketInfo(SharedSSLState& aState, uint32_t providerFlags)
     mMACAlgorithmUsed(nsISSLSocketControl::SSL_MAC_UNKNOWN),
     mBypassAuthentication(false),
     mProviderFlags(providerFlags),
+    mProviderTlsFlags(providerTlsFlags),
     mSocketCreationTimestamp(TimeStamp::Now()),
     mPlaintextBytesRead(0),
     mClientCert(nullptr)
@@ -126,6 +128,13 @@ NS_IMETHODIMP
 nsNSSSocketInfo::GetProviderFlags(uint32_t* aProviderFlags)
 {
   *aProviderFlags = mProviderFlags;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsNSSSocketInfo::GetProviderTlsFlags(uint32_t* aProviderTlsFlags)
+{
+  *aProviderTlsFlags = mProviderTlsFlags;
   return NS_OK;
 }
 
@@ -1821,7 +1830,8 @@ nsSSLIOLayerNewSocket(int32_t family,
                       PRFileDesc** fd,
                       nsISupports** info,
                       bool forSTARTTLS,
-                      uint32_t flags)
+                      uint32_t flags,
+                      uint32_t tlsFlags)
 {
 
   PRFileDesc* sock = PR_OpenTCPSocket(family);
@@ -1829,7 +1839,7 @@ nsSSLIOLayerNewSocket(int32_t family,
 
   nsresult rv = nsSSLIOLayerAddToSocket(family, host, port, proxy,
                                         originAttributes, sock, info,
-                                        forSTARTTLS, flags);
+                                        forSTARTTLS, flags, tlsFlags);
   if (NS_FAILED(rv)) {
     PR_Close(sock);
     return rv;
@@ -2435,6 +2445,8 @@ nsSSLIOLayerSetOptions(PRFileDesc* fd, bool forSTARTTLS,
     return NS_ERROR_FAILURE;
   }
 
+  // Use infoObject->GetProviderTlsFlags() to get the TLS flags
+
   if ((infoObject->GetProviderFlags() & nsISocketProvider::BE_CONSERVATIVE) &&
       (range.max > SSL_LIBRARY_VERSION_TLS_1_2)) {
     MOZ_LOG(gPIPNSSLog, LogLevel::Debug,
@@ -2525,6 +2537,9 @@ nsSSLIOLayerSetOptions(PRFileDesc* fd, bool forSTARTTLS,
   if (flags & nsISocketProvider::BE_CONSERVATIVE) {
     peerId.AppendLiteral("beConservative:");
   }
+
+  peerId.AppendPrintf("tlsflags0x%08x:", infoObject->GetProviderTlsFlags());
+
   peerId.Append(host);
   peerId.Append(':');
   peerId.AppendInt(port);
@@ -2547,7 +2562,8 @@ nsSSLIOLayerAddToSocket(int32_t family,
                         PRFileDesc* fd,
                         nsISupports** info,
                         bool forSTARTTLS,
-                        uint32_t providerFlags)
+                        uint32_t providerFlags,
+                        uint32_t providerTlsFlags)
 {
   nsNSSShutDownPreventionLock locker;
   PRFileDesc* layer = nullptr;
@@ -2557,7 +2573,7 @@ nsSSLIOLayerAddToSocket(int32_t family,
 
   SharedSSLState* sharedState =
     providerFlags & nsISocketProvider::NO_PERMANENT_STORAGE ? PrivateSSLState() : PublicSSLState();
-  nsNSSSocketInfo* infoObject = new nsNSSSocketInfo(*sharedState, providerFlags);
+  nsNSSSocketInfo* infoObject = new nsNSSSocketInfo(*sharedState, providerFlags, providerTlsFlags);
   if (!infoObject) return NS_ERROR_FAILURE;
 
   NS_ADDREF(infoObject);

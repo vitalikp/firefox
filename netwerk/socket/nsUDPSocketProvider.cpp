@@ -14,14 +14,15 @@ nsUDPSocketProvider::~nsUDPSocketProvider()
 {
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsUDPSocketProvider::NewSocket(int32_t aFamily,
-                               const char *aHost, 
-                               int32_t aPort, 
+                               const char *aHost,
+                               int32_t aPort,
                                nsIProxyInfo *aProxy,
                                const OriginAttributes &originAttributes,
                                uint32_t aFlags,
-                               PRFileDesc * *aFileDesc, 
+                               uint32_t aTlsFlags,
+                               PRFileDesc * *aFileDesc,
                                nsISupports **aSecurityInfo)
 {
     NS_ENSURE_ARG_POINTER(aFileDesc);
@@ -41,6 +42,7 @@ nsUDPSocketProvider::AddToSocket(int32_t aFamily,
                                  nsIProxyInfo *aProxy,
                                  const OriginAttributes &originAttributes,
                                  uint32_t aFlags,
+                                 uint32_t aTlsFlags,
                                  struct PRFileDesc * aFileDesc,
                                  nsISupports **aSecurityInfo)
 {
