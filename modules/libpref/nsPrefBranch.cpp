@@ -240,7 +240,7 @@ NS_IMETHODIMP nsPrefBranch::GetStringPref(const char *aPrefName,
                                           uint8_t _argc,
                                           nsACString& _retval)
 {
-  nsXPIDLCString utf8String;
+  nsCString utf8String;
   nsresult rv = GetCharPref(aPrefName, getter_Copies(utf8String));
   if (NS_SUCCEEDED(rv)) {
     _retval = utf8String;
@@ -298,8 +298,8 @@ NS_IMETHODIMP nsPrefBranch::GetComplexValue(const char *aPrefName, const nsIID &
 {
   NS_ENSURE_ARG(aPrefName);
 
-  nsresult       rv;
-  nsXPIDLCString utf8String;
+  nsresult rv;
+  nsCString utf8String;
 
   // we have to do this one first because it's different than all the rest
   if (aType.Equals(NS_GET_IID(nsIPrefLocalizedString))) {

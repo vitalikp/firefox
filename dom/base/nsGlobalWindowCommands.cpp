@@ -761,13 +761,13 @@ nsClipboardGetContentsCommand::DoClipboardCommand(const char *aCommandName, nsIC
 
   nsAutoCString mimeType("text/plain");
 
-  nsXPIDLCString format;    // nsICommandParams needs to use nsACString
+  nsCString format;    // nsICommandParams needs to use nsACString
   if (NS_SUCCEEDED(aParams->GetCStringValue("format", getter_Copies(format))))
     mimeType.Assign(format);
-  
+
   bool selectionOnly = false;
   aParams->GetBooleanValue("selection_only", &selectionOnly);
-  
+
   nsAutoString contents;
   nsresult rv = aEdit->GetContents(mimeType.get(), selectionOnly, contents);
   if (NS_FAILED(rv))

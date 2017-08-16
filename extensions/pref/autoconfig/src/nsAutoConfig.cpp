@@ -199,9 +199,8 @@ nsresult nsAutoConfig::downloadAutoConfig()
 {
     nsresult rv;
     nsAutoCString emailAddr;
-    nsXPIDLCString urlName;
     static bool firstTime = true;
-    
+
     if (mConfigURL.IsEmpty()) {
         MOZ_LOG(MCD, LogLevel::Debug, ("global config url is empty - did you set autoadmin.global_config_url?\n"));
         NS_WARNING("AutoConfig called without global_config_url");
@@ -452,12 +451,12 @@ nsresult nsAutoConfig::writeFailoverFile()
 
 nsresult nsAutoConfig::getEmailAddr(nsACString & emailAddr)
 {
-    
+
     nsresult rv;
-    nsXPIDLCString prefValue;
-    
+    nsCString prefValue;
+
     /* Getting an email address through set of three preferences:
-       First getting a default account with 
+       First getting a default account with
        "mail.accountmanager.defaultaccount"
        second getting an associated id with the default account
        Third getting an email address with id

@@ -755,16 +755,16 @@ ImageDocument::UpdateTitleAndCharset()
     imageLoader->GetRequest(nsIImageLoadingContent::CURRENT_REQUEST,
                             getter_AddRefs(imageRequest));
   }
-    
+
   if (imageRequest) {
-    nsXPIDLCString mimeType;
+    nsCString mimeType;
     imageRequest->GetMimeType(getter_Copies(mimeType));
     ToUpperCase(mimeType);
-    nsXPIDLCString::const_iterator start, end;
+    nsCString::const_iterator start, end;
     mimeType.BeginReading(start);
     mimeType.EndReading(end);
-    nsXPIDLCString::const_iterator iter = end;
-    if (FindInReadable(NS_LITERAL_CSTRING("IMAGE/"), start, iter) && 
+    nsCString::const_iterator iter = end;
+    if (FindInReadable(NS_LITERAL_CSTRING("IMAGE/"), start, iter) &&
         iter != end) {
       // strip out "X-" if any
       if (*iter == 'X') {

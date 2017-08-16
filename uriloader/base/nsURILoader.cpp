@@ -404,9 +404,6 @@ nsresult nsDocumentOpenInfo::DispatchContent(nsIRequest *request, nsISupports * 
 
   LOG(("  forceExternalHandling: %s", forceExternalHandling ? "yes" : "no"));
 
-  // The type or data the contentListener wants.
-  nsXPIDLCString desiredContentType;
-
   if (!forceExternalHandling)
   {
     //
@@ -682,7 +679,7 @@ nsDocumentOpenInfo::TryContentListener(nsIURIContentListener* aListener,
   NS_PRECONDITION(aChannel, "Must have a channel");
   
   bool listenerWantsContent = false;
-  nsXPIDLCString typeToUse;
+  nsCString typeToUse;
   
   if (mFlags & nsIURILoader::IS_CONTENT_PREFERRED) {
     aListener->IsPreferred(mContentType.get(),
