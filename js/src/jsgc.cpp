@@ -2971,7 +2971,7 @@ GCRuntime::maybeAllocTriggerZoneGC(Zone* zone, const AutoLockGC& lock)
     } else {
         bool wouldInterruptCollection;
         size_t igcThresholdBytes;
-        double zoneAllocThresholdFactor;
+        float zoneAllocThresholdFactor;
 
         wouldInterruptCollection = isIncrementalGCInProgress() &&
             !zone->isCollecting();
