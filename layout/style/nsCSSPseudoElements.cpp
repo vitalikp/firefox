@@ -119,7 +119,7 @@ nsCSSPseudoElements::GetPseudoAtom(Type aType)
     static_cast<CSSPseudoElementTypeBase>(aType)].mAtom;
 }
 
-/* static */ nsIAtom*
+/* static */ already_AddRefed<nsIAtom>
 nsCSSPseudoElements::GetPseudoAtom(const nsAString& aPseudoElement)
 {
   if (DOMStringIsNull(aPseudoElement) || aPseudoElement.IsEmpty() ||
@@ -149,7 +149,7 @@ nsCSSPseudoElements::GetPseudoAtom(const nsAString& aPseudoElement)
     return nullptr;
   }
 
-  return pseudo;
+  return pseudo.forget();
 }
 
 /* static */ bool
