@@ -56,7 +56,7 @@
 #include "nsIScrollableFrame.h"
 #include "nsFocusManager.h"
 
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsUnicharUtils.h"
 #include "nsReadableUtils.h"
 #include "prdtoa.h"

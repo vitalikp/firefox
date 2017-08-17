@@ -87,7 +87,7 @@ using namespace mozilla::widget;
 
 /* For SetIcon */
 #include "nsAppDirectoryServiceDefs.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 #include "nsIFile.h"
 
 /* SetCursor(imgIContainer*) */

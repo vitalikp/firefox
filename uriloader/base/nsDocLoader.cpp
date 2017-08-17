@@ -14,7 +14,7 @@
 #include "nsIWebProgressListener2.h"
 
 #include "nsIServiceManager.h"
-#include "nsXPIDLString.h"
+#include "nsString.h"
 
 #include "nsIURL.h"
 #include "nsCOMPtr.h"

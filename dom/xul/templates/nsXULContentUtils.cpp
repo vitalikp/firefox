@@ -43,7 +43,6 @@
 #include "nsNameSpaceManager.h"
 #include "nsRDFCID.h"
 #include "nsString.h"
-#include "nsXPIDLString.h"
 #include "nsGkAtoms.h"
 #include "mozilla/Logging.h"
 #include "prtime.h"
