@@ -1103,7 +1103,7 @@ var ActivityStreamProvider = {
     let items = [];
     let queryError = null;
     let conn = await PlacesUtils.promiseDBConnection();
-    await conn.executeCached(aQuery, params, aRow => {
+    await conn.executeCached(aQuery, params, (aRow, aCancel) => {
       try {
         let item = null;
         // if columns array is given construct an object
@@ -1122,7 +1122,7 @@ var ActivityStreamProvider = {
         items.push(item);
       } catch (e) {
         queryError = e;
-        throw StopIteration;
+        aCancel();
       }
     });
     if (queryError) {

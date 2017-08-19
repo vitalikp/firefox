@@ -1450,7 +1450,7 @@ Search.prototype = {
     return true;
   },
 
-  _onResultRow(row) {
+  _onResultRow(row, cancel) {
     if (this._localMatchesCount == 0) {
       TelemetryStopwatch.finish(TELEMETRY_1ST_RESULT, this);
     }
@@ -1473,7 +1473,7 @@ Search.prototype = {
     // If the search has been canceled by the user or by _addMatch, or we
     // fetched enough results, we can stop the underlying Sqlite query.
     if (!this.pending || this._localMatchesCount == Prefs.maxRichResults)
-      throw StopIteration;
+      cancel();
   },
 
   _maybeRestyleSearchMatch(match) {
