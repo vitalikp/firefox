@@ -2101,8 +2101,6 @@ PluginInstanceChild::EnsureCurrentBuffer(void)
         NS_ERROR("Cannot create helper surface");
         return false;
     }
-
-    return true;
 #elif defined(XP_MACOSX)
 
     if (!mDoubleBufferCARenderer.HasCALayer()) {
@@ -2156,6 +2154,7 @@ PluginInstanceChild::EnsureCurrentBuffer(void)
         mAccumulatedInvalidRect.UnionRect(mAccumulatedInvalidRect, toInvalidate);
     }
 #endif
+
     return true;
 }
 
