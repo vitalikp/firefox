@@ -3989,6 +3989,12 @@ Parser<SyntaxParseHandler, CharT>::asmJS(Node list)
     // encountered so that asm.js is always validated/compiled exactly once
     // during a full parse.
     JS_ALWAYS_FALSE(abortIfSyntaxParser());
+
+    // Record that the current script source constains some AsmJS, to disable
+    // any incremental encoder, as AsmJS cannot be encoded with XDR at the
+    // moment.
+    if (ss)
+        ss->setContainsAsmJS();
     return false;
 }
 
@@ -4011,6 +4017,7 @@ Parser<FullParseHandler, CharT>::asmJS(Node list)
     if (ss == nullptr)
         return true;
 
+    ss->setContainsAsmJS();
     pc->functionBox()->useAsm = true;
 
     // Attempt to validate and compile this asm.js module. On success, the
