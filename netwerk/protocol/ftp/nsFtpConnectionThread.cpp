@@ -788,7 +788,7 @@ nsFtpState::S_pass() {
             // XXX Is UTF-8 the best choice?
             AppendUTF16toUTF8(mPassword, passwordStr);
         } else {
-            nsXPIDLCString anonPassword;
+            nsCString anonPassword;
             bool useRealEmail = false;
             nsCOMPtr<nsIPrefBranch> prefs =
                     do_GetService(NS_PREFSERVICE_CONTRACTID);
@@ -800,7 +800,7 @@ nsFtpState::S_pass() {
                 }
             }
             if (!anonPassword.IsEmpty()) {
-                passwordStr.AppendASCII(anonPassword);
+                passwordStr.AppendASCII(anonPassword.get());
             } else {
                 // We need to default to a valid email address - bug 101027
                 // example.com is reserved (rfc2606), so use that

@@ -1267,24 +1267,25 @@ nsDirectoryViewerFactory::CreateInstance(const char *aCommand,
     // This is where we shunt the HTTP/Index stream into our datasource,
     // and open the directory viewer XUL file as the content stream to
     // load in its place.
-    
+
     // Create a dummy loader that will load a stub XUL document.
     nsCOMPtr<nsICategoryManager> catMan(do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv));
     if (NS_FAILED(rv))
       return rv;
-    nsXPIDLCString contractID;
+    nsCString contractID;
     rv = catMan->GetCategoryEntry("Gecko-Content-Viewers", "application/vnd.mozilla.xul+xml",
                                   getter_Copies(contractID));
     if (NS_FAILED(rv))
       return rv;
 
-    nsCOMPtr<nsIDocumentLoaderFactory> factory(do_GetService(contractID, &rv));
+    nsCOMPtr<nsIDocumentLoaderFactory>
+      factory(do_GetService(contractID.get(), &rv));
     if (NS_FAILED(rv)) return rv;
-    
+
     nsCOMPtr<nsIURI> uri;
     rv = NS_NewURI(getter_AddRefs(uri), "chrome://communicator/content/directory/directory.xul");
     if (NS_FAILED(rv)) return rv;
-    
+
     nsCOMPtr<nsIChannel> channel;
     rv = NS_NewChannel(getter_AddRefs(channel),
                        uri,
@@ -1332,15 +1333,16 @@ nsDirectoryViewerFactory::CreateInstance(const char *aCommand,
   nsCOMPtr<nsICategoryManager> catMan(do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv));
   if (NS_FAILED(rv))
     return rv;
-  nsXPIDLCString contractID;
+  nsCString contractID;
   rv = catMan->GetCategoryEntry("Gecko-Content-Viewers", "text/html",
                                 getter_Copies(contractID));
   if (NS_FAILED(rv))
     return rv;
 
-  nsCOMPtr<nsIDocumentLoaderFactory> factory(do_GetService(contractID, &rv));
+  nsCOMPtr<nsIDocumentLoaderFactory>
+    factory(do_GetService(contractID.get(), &rv));
   if (NS_FAILED(rv)) return rv;
-  
+
   nsCOMPtr<nsIStreamListener> listener;
 
   if (viewSource) {
