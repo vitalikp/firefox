@@ -894,6 +894,7 @@ jit::IonCompilationCanUseNurseryPointers()
 #endif // DEBUG
 
 MConstant::MConstant(TempAllocator& alloc, const js::Value& vp, CompilerConstraintList* constraints)
+  : MNullaryInstruction(classOpcode)
 {
     setResultType(MIRTypeFromValue(vp));
 
@@ -949,6 +950,7 @@ MConstant::MConstant(TempAllocator& alloc, const js::Value& vp, CompilerConstrai
 }
 
 MConstant::MConstant(JSObject* obj)
+  : MNullaryInstruction(classOpcode)
 {
     MOZ_ASSERT_IF(IsInsideNursery(obj), IonCompilationCanUseNurseryPointers());
     setResultType(MIRType::Object);
@@ -957,6 +959,7 @@ MConstant::MConstant(JSObject* obj)
 }
 
 MConstant::MConstant(float f)
+  : MNullaryInstruction(classOpcode)
 {
     setResultType(MIRType::Float32);
     payload_.f = f;
@@ -964,6 +967,7 @@ MConstant::MConstant(float f)
 }
 
 MConstant::MConstant(int64_t i)
+  : MNullaryInstruction(classOpcode)
 {
     setResultType(MIRType::Int64);
     payload_.i64 = i;
@@ -4898,7 +4902,8 @@ OperandIndexMap::init(TempAllocator& alloc, JSObject* templateObject)
 }
 
 MObjectState::MObjectState(MObjectState* state)
-  : numSlots_(state->numSlots_),
+  : MVariadicInstruction(classOpcode),
+    numSlots_(state->numSlots_),
     numFixedSlots_(state->numFixedSlots_),
     operandIndex_(state->operandIndex_)
 {
@@ -4908,6 +4913,7 @@ MObjectState::MObjectState(MObjectState* state)
 }
 
 MObjectState::MObjectState(JSObject *templateObject, OperandIndexMap* operandIndex)
+  : MVariadicInstruction(classOpcode)
 {
     // This instruction is only used as a summary for bailout paths.
     setResultType(MIRType::Object);
@@ -5030,6 +5036,7 @@ MObjectState::Copy(TempAllocator& alloc, MObjectState* state)
 }
 
 MArrayState::MArrayState(MDefinition* arr)
+  : MVariadicInstruction(classOpcode)
 {
     // This instruction is only used as a summary for bailout paths.
     setResultType(MIRType::Object);
@@ -5099,7 +5106,7 @@ MArgumentState::Copy(TempAllocator& alloc, MArgumentState* state)
 MNewArray::MNewArray(TempAllocator& alloc, CompilerConstraintList* constraints, uint32_t length,
                      MConstant* templateConst, gc::InitialHeap initialHeap, jsbytecode* pc,
                      bool vmCall)
-  : MUnaryInstruction(templateConst),
+  : MUnaryInstruction(classOpcode, templateConst),
     length_(length),
     initialHeap_(initialHeap),
     convertDoubleElements_(false),
