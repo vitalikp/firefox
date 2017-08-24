@@ -1580,6 +1580,7 @@ MacroAssembler::callWithPatch()
     as_bal(BOffImm16(3 * sizeof(uint32_t)));
     addPtr(Imm32(5 * sizeof(uint32_t)), ra);
     // Allocate space which will be patched by patchCall().
+    spew(".space 32bit initValue 0xffff ffff");
     writeInst(UINT32_MAX);
     as_lw(ScratchRegister, ra, -(int32_t)(5 * sizeof(uint32_t)));
     addPtr(ra, ScratchRegister);
@@ -1612,6 +1613,7 @@ MacroAssembler::farJumpWithPatch()
     as_lw(ScratchRegister, ra, 0);
     // Allocate space which will be patched by patchFarJump().
     CodeOffset farJump(currentOffset());
+    spew(".space 32bit initValue 0xffff ffff");
     writeInst(UINT32_MAX);
     addPtr(ra, ScratchRegister);
     as_jr(ScratchRegister);
