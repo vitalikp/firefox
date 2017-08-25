@@ -415,8 +415,6 @@ const ObjectOps ModuleEnvironmentObject::objectOps_ = {
 const ClassOps ModuleEnvironmentObject::classOps_ = {
     nullptr,    /* addProperty */
     nullptr,    /* delProperty */
-    nullptr,    /* getProperty */
-    nullptr,    /* setProperty */
     nullptr,    /* enumerate */
     ModuleEnvironmentObject::newEnumerate
 };

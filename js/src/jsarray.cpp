@@ -3730,8 +3730,6 @@ array_proto_finish(JSContext* cx, JS::HandleObject ctor, JS::HandleObject proto)
 static const ClassOps ArrayObjectClassOps = {
     array_addProperty,
     nullptr, /* delProperty */
-    nullptr, /* getProperty */
-    nullptr, /* setProperty */
     nullptr, /* enumerate */
     nullptr, /* resolve */
     nullptr, /* mayResolve */

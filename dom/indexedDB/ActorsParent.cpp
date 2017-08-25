@@ -25277,8 +25277,6 @@ CreateIndexOp::DoDatabaseWork(DatabaseConnection* aConnection)
 static const JSClassOps sNormalJSContextGlobalClassOps = {
   /* addProperty */ nullptr,
   /* delProperty */ nullptr,
-  /* getProperty */ nullptr,
-  /* setProperty */ nullptr,
   /* enumerate */ nullptr,
   /* newEnumerate */ nullptr,
   /* resolve */ nullptr,

@@ -3451,8 +3451,6 @@ ReadableByteStreamControllerFinalize(FreeOp* fop, JSObject* obj)
 static const ClassOps ReadableByteStreamControllerClassOps = {
     nullptr,        /* addProperty */
     nullptr,        /* delProperty */
-    nullptr,        /* getProperty */
-    nullptr,        /* setProperty */
     nullptr,        /* enumerate */
     nullptr,        /* newEnumerate */
     nullptr,        /* resolve */

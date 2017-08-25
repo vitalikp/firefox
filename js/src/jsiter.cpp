@@ -1128,8 +1128,6 @@ PropertyIteratorObject::finalize(FreeOp* fop, JSObject* obj)
 const ClassOps PropertyIteratorObject::classOps_ = {
     nullptr, /* addProperty */
     nullptr, /* delProperty */
-    nullptr, /* getProperty */
-    nullptr, /* setProperty */
     nullptr, /* enumerate */
     nullptr, /* newEnumerate */
     nullptr, /* resolve */
@@ -1541,8 +1539,6 @@ stopiter_hasInstance(JSContext* cx, HandleObject obj, MutableHandleValue v, bool
 static const ClassOps StopIterationObjectClassOps = {
     nullptr, /* addProperty */
     nullptr, /* delProperty */
-    nullptr, /* getProperty */
-    nullptr, /* setProperty */
     nullptr, /* enumerate */
     nullptr, /* enumerate */
     nullptr, /* resolve */
