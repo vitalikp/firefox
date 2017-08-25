@@ -1142,10 +1142,7 @@ GenerateInterruptExit(MacroAssembler& masm, Label* throwLabel, Offsets* offsets)
     // Reserve space to store resumePC and HeapReg.
     masm.subFromStackPtr(Imm32(2 * sizeof(intptr_t)));
     // set to zero so we can use masm.framePushed() below.
-    masm.push(Imm32(0));            // space used as return address, updated below
-    masm.setFramePushed(0);         // set to 0 now so that framePushed is offset of return address
-    masm.PushRegsInMask(AllRegsExceptSP); // save all GP/FP registers (except PC and SP)
-
+    masm.setFramePushed(0);
     static_assert(!SupportsSimd, "high lanes of SIMD registers need to be saved too.");
     // save all registers,except sp. After this stack is alligned.
     masm.PushRegsInMask(AllRegsExceptSP);
@@ -1174,6 +1171,10 @@ GenerateInterruptExit(MacroAssembler& masm, Label* throwLabel, Offsets* offsets)
 
     // This will restore stack to the address before the call.
     masm.moveToStackPtr(s0);
+
+    // Store resumePC into the reserved space.
+    masm.storePtr(ReturnReg, Address(s0, masm.framePushed()));
+
     masm.PopRegsInMask(AllRegsExceptSP);
 
     // Pop resumePC into PC. Clobber HeapReg to make the jump and restore it
