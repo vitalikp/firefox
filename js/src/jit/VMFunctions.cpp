@@ -1555,11 +1555,8 @@ GetNativeDataProperty(JSContext* cx, NativeObject* obj, jsid id, Value* vp)
 
         // Property not found. Watch out for Class hooks.
         if (MOZ_UNLIKELY(!obj->is<PlainObject>())) {
-            if (ClassMayResolveId(cx->names(), obj->getClass(), id, obj) ||
-                obj->getClass()->getGetProperty())
-            {
+            if (ClassMayResolveId(cx->names(), obj->getClass(), id, obj))
                 return false;
-            }
         }
 
         JSObject* proto = obj->staticPrototype();
@@ -1711,11 +1708,8 @@ ObjectHasGetterSetter(JSContext* cx, JSObject* objArg, Shape* propShape)
 
         // Property not found. Watch out for Class hooks.
         if (!nobj->is<PlainObject>()) {
-            if (ClassMayResolveId(cx->names(), nobj->getClass(), id, nobj) ||
-                nobj->getClass()->getGetProperty())
-            {
+            if (ClassMayResolveId(cx->names(), nobj->getClass(), id, nobj))
                 return false;
-            }
         }
 
         JSObject* proto = nobj->staticPrototype();

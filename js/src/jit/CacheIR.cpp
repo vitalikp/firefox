@@ -2846,7 +2846,6 @@ CanAttachAddElement(JSObject* obj, bool isInit)
             (clasp->getAddProperty() ||
              clasp->getResolve() ||
              clasp->getOpsLookupProperty() ||
-             clasp->getSetProperty() ||
              clasp->getOpsSetProperty()))
         {
             return false;
