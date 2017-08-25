@@ -1004,7 +1004,7 @@ var TelemetrySendImpl = {
     payloadStream.data = gzipCompressString(utf8Payload);
     Telemetry.getHistogramById("TELEMETRY_COMPRESS").add(new Date() - startTime);
     startTime = new Date();
-    request.send(payloadStream);
+    request.sendInputStream(payloadStream);
 
     return deferred.promise;
   },
