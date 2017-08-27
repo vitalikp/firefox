@@ -2272,16 +2272,6 @@ nsHTMLDocument::MatchFormControls(Element* aElement, int32_t aNamespaceID,
   return aElement->IsNodeOfType(nsIContent::eHTML_FORM_CONTROL);
 }
 
-nsContentList*
-nsHTMLDocument::GetFormControls()
-{
-  if (!mFormControls) {
-    mFormControls = new nsContentList(this, MatchFormControls, nullptr, nullptr);
-  }
-
-  return mFormControls;
-}
-
 nsresult
 nsHTMLDocument::CreateAndAddWyciwygChannel(void)
 {
