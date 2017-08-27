@@ -434,7 +434,8 @@ nsContentList::nsContentList(nsINode* aRootNode,
                              int32_t aMatchNameSpaceId,
                              nsIAtom* aHTMLMatchAtom,
                              nsIAtom* aXMLMatchAtom,
-                             bool aDeep)
+                             bool aDeep,
+                             bool aLiveList)
   : nsBaseContentList(),
     mRootNode(aRootNode),
     mMatchNameSpaceId(aMatchNameSpaceId),
@@ -446,7 +447,8 @@ nsContentList::nsContentList(nsINode* aRootNode,
     mState(LIST_DIRTY),
     mDeep(aDeep),
     mFuncMayDependOnAttr(false),
-    mIsHTMLDocument(aRootNode->OwnerDoc()->IsHTMLDocument())
+    mIsHTMLDocument(aRootNode->OwnerDoc()->IsHTMLDocument()),
+    mIsLiveList(aLiveList)
 {
   NS_ASSERTION(mRootNode, "Must have root");
   if (nsGkAtoms::_asterisk == mHTMLMatchAtom) {
@@ -456,7 +458,9 @@ nsContentList::nsContentList(nsINode* aRootNode,
   else {
     mMatchAll = false;
   }
-  mRootNode->AddMutationObserver(this);
+  if (mIsLiveList) {
+    mRootNode->AddMutationObserver(this);
+  }
 
   // We only need to flush if we're in an non-HTML document, since the
   // HTML5 parser doesn't need flushing.  Further, if we're not in a
@@ -474,7 +478,8 @@ nsContentList::nsContentList(nsINode* aRootNode,
                              bool aDeep,
                              nsIAtom* aMatchAtom,
                              int32_t aMatchNameSpaceId,
-                             bool aFuncMayDependOnAttr)
+                             bool aFuncMayDependOnAttr,
+                             bool aLiveList)
   : nsBaseContentList(),
     mRootNode(aRootNode),
     mMatchNameSpaceId(aMatchNameSpaceId),
@@ -487,10 +492,13 @@ nsContentList::nsContentList(nsINode* aRootNode,
     mMatchAll(false),
     mDeep(aDeep),
     mFuncMayDependOnAttr(aFuncMayDependOnAttr),
-    mIsHTMLDocument(false)
+    mIsHTMLDocument(false),
+    mIsLiveList(aLiveList)
 {
   NS_ASSERTION(mRootNode, "Must have root");
-  mRootNode->AddMutationObserver(this);
+  if (mIsLiveList) {
+    mRootNode->AddMutationObserver(this);
+  }
 
   // We only need to flush if we're in an non-HTML document, since the
   // HTML5 parser doesn't need flushing.  Further, if we're not in a
@@ -504,7 +512,7 @@ nsContentList::nsContentList(nsINode* aRootNode,
 nsContentList::~nsContentList()
 {
   RemoveFromHashtable();
-  if (mRootNode) {
+  if (mIsLiveList && mRootNode) {
     mRootNode->RemoveMutationObserver(this);
   }
 
@@ -658,7 +666,7 @@ void
 nsContentList::LastRelease()
 {
   RemoveFromCaches();
-  if (mRootNode) {
+  if (mIsLiveList && mRootNode) {
     mRootNode->RemoveMutationObserver(this);
     mRootNode = nullptr;
   }
@@ -1239,6 +1247,7 @@ nsLabelsNodeList::MaybeResetRoot(nsINode* aRootNode)
     return;
   }
 
+  MOZ_ASSERT(mIsLiveList, "nsLabelsNodeList is always a live list");
   if (mRootNode) {
     mRootNode->RemoveMutationObserver(this);
   }
