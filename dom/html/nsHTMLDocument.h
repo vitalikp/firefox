@@ -74,7 +74,7 @@ public:
     return mWriteLevel != uint32_t(0);
   }
 
-  virtual nsContentList* GetForms() override;
+  nsContentList* GetForms();
 
   nsContentList* GetExistingForms() const
   {
