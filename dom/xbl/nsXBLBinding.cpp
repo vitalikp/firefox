@@ -901,8 +901,7 @@ GetOrCreateClassObjectMap(JSContext *cx, JS::Handle<JSObject*> scope, const char
   // It's not there. Create and define it.
   JS::Rooted<JSObject*> map(cx, JS::NewWeakMapObject(cx));
   if (!map || !JS_DefineProperty(cx, scope, mapName, map,
-                                 JSPROP_PERMANENT | JSPROP_READONLY,
-                                 JS_STUBGETTER, JS_STUBSETTER))
+                                 JSPROP_PERMANENT | JSPROP_READONLY))
   {
     return nullptr;
   }
@@ -1073,8 +1072,7 @@ nsXBLBinding::DoInitJSClass(JSContext *cx,
     JSAutoCompartment ac3(cx, holder);
     if (!JS_WrapObject(cx, &proto) ||
         !JS_DefineUCProperty(cx, holder, aClassName.get(), -1, proto,
-                             JSPROP_READONLY | JSPROP_PERMANENT,
-                             JS_STUBGETTER, JS_STUBSETTER))
+                             JSPROP_READONLY | JSPROP_PERMANENT))
     {
       return NS_ERROR_OUT_OF_MEMORY;
     }
