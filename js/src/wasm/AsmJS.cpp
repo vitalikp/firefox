@@ -4701,7 +4701,7 @@ CheckAtomicsIsLockFree(FunctionValidator& f, ParseNode* call, Type* type)
         return f.fail(sizeArg, "Atomics.isLockFree requires an integer literal argument");
 
     *type = Type::Int;
-    return f.writeInt32Lit(AtomicOperations::isLockfree(size));
+    return f.writeInt32Lit(AtomicOperations::isLockfreeJS(size));
 }
 
 static bool
