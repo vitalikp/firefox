@@ -2796,9 +2796,6 @@ js::DefineElement(JSContext* cx, HandleObject obj, uint32_t index, HandleValue v
                   JSGetterOp getter, JSSetterOp setter, unsigned attrs,
                   ObjectOpResult& result)
 {
-    MOZ_ASSERT(getter != JS_PropertyStub);
-    MOZ_ASSERT(setter != JS_StrictPropertyStub);
-
     RootedId id(cx);
     if (!IndexToId(cx, index, &id))
         return false;
@@ -2832,9 +2829,6 @@ bool
 js::DefineElement(JSContext* cx, HandleObject obj, uint32_t index, HandleValue value,
                   JSGetterOp getter, JSSetterOp setter, unsigned attrs)
 {
-    MOZ_ASSERT(getter != JS_PropertyStub);
-    MOZ_ASSERT(setter != JS_StrictPropertyStub);
-
     RootedId id(cx);
     if (!IndexToId(cx, index, &id))
         return false;
