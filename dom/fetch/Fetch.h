@@ -17,6 +17,7 @@
 
 #include "mozilla/DebugOnly.h"
 #include "mozilla/ErrorResult.h"
+#include "mozilla/dom/AbortSignal.h"
 #include "mozilla/dom/Promise.h"
 #include "mozilla/dom/FetchStreamReader.h"
 #include "mozilla/dom/RequestBinding.h"
@@ -142,6 +143,7 @@ public:
  */
 template <class Derived>
 class FetchBody : public FetchStreamHolder
+                , public AbortSignal::Follower
 {
 public:
   friend class FetchBodyConsumer<Derived>;
@@ -243,6 +245,10 @@ public:
   virtual AbortSignal*
   GetSignal() const = 0;
 
+  // AbortSignal::Follower
+  void
+  Aborted() override;
+
 protected:
   nsCOMPtr<nsIGlobalObject> mOwner;
 
@@ -265,7 +271,7 @@ protected:
   SetMimeType();
 
   void
-  SetReadableStreamBody(JSObject* aBody);
+  SetReadableStreamBody(JSContext* aCx, JSObject* aBody);
 
 private:
   Derived*
