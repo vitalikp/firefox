@@ -8184,8 +8184,10 @@ nsRuleNode::ComputeListData(void* aStartStruct,
       break;
     }
     case eCSSUnit_Enumerated: {
-      // For compatibility with html attribute map.
-      // This branch should never be called for value from CSS.
+      // For compatibility with html attribute map. This branch should
+      // never be called for value from CSS. The values can only come
+      // from the items in EnumTable listed in HTMLLIElement.cpp and
+      // HTMLSharedListElement.cpp.
       int32_t intValue = typeValue->GetIntValue();
       nsCOMPtr<nsIAtom> name;
       switch (intValue) {
@@ -8202,8 +8204,7 @@ nsRuleNode::ComputeListData(void* aStartStruct,
           name = nsGkAtoms::upperAlpha;
           break;
         default:
-          name = NS_Atomize(nsCSSProps::ValueToKeyword(
-                  intValue, nsCSSProps::kListStyleKTable));
+          name = CounterStyleManager::GetStyleNameFromType(intValue);
           break;
       }
       setListStyleType(name);
