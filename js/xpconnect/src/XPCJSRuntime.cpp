@@ -779,7 +779,6 @@ XPCJSRuntime::CustomGCCallback(JSGCStatus status)
 /* static */ void
 XPCJSRuntime::FinalizeCallback(JSFreeOp* fop,
                                JSFinalizeStatus status,
-                               bool isZoneGC,
                                void* data)
 {
     XPCJSRuntime* self = nsXPConnect::GetRuntimeInstance();
