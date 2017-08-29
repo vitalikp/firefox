@@ -5,13 +5,13 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 EXPORTS.mozilla.dom += [
-    'FetchController.h',
-    'FetchSignal.h',
+    'AbortController.h',
+    'AbortSignal.h',
 ]
 
 UNIFIED_SOURCES += [
-    'FetchController.cpp',
-    'FetchSignal.cpp',
+    'AbortController.cpp',
+    'AbortSignal.cpp',
 ]
 
 LOCAL_INCLUDES += [
