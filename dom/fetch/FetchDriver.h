@@ -85,7 +85,7 @@ class FetchDriver final : public nsIStreamListener,
                           public nsIChannelEventSink,
                           public nsIInterfaceRequestor,
                           public nsIThreadRetargetableStreamListener,
-                          public AbortSignal::Follower
+                          public AbortFollower
 {
 public:
   NS_DECL_ISUPPORTS
@@ -113,10 +113,9 @@ public:
     mWorkerScript = aWorkerScirpt;
   }
 
-  // AbortSignal::Follower
-
+  // AbortFollower
   void
-  Aborted() override;
+  Abort() override;
 
 private:
   nsCOMPtr<nsIPrincipal> mPrincipal;

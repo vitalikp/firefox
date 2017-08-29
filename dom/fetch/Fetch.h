@@ -143,7 +143,7 @@ public:
  */
 template <class Derived>
 class FetchBody : public FetchStreamHolder
-                , public AbortSignal::Follower
+                , public AbortFollower
 {
 public:
   friend class FetchBodyConsumer<Derived>;
@@ -245,9 +245,9 @@ public:
   virtual AbortSignal*
   GetSignal() const = 0;
 
-  // AbortSignal::Follower
+  // AbortFollower
   void
-  Aborted() override;
+  Abort() override;
 
 protected:
   nsCOMPtr<nsIGlobalObject> mOwner;
