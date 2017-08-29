@@ -15,6 +15,8 @@ class nsIAsyncInputStream;
 
 namespace mozilla {
 
+struct ByteBuffer;
+
 namespace dom {
 class nsIContentChild;
 class nsIContentParent;
@@ -109,7 +111,7 @@ protected:
   Close(nsresult aRv) = 0;
 
   virtual void
-  SendData(const nsCString& aBuffer) = 0;
+  SendData(const ByteBuffer& aBuffer) = 0;
 
   void
   ActorConstructed();
@@ -121,11 +123,7 @@ private:
   virtual bool
   Notify(dom::workers::Status aStatus) override;
 
-  enum class ReadReason {
-    Starting, // We're trying to read because we just started off.
-    Notified  // We're trying to read because the streams said it's ready.
-  };
-  void DoRead(ReadReason aReadReason);
+  void DoRead();
 
   void Wait();
 

@@ -6,6 +6,8 @@ include protocol PBackground;
 include protocol PContent;
 include protocol PContentBridge;
 
+using mozilla::ByteBuffer from "mozilla/ByteBuffer.h";
+
 namespace mozilla {
 namespace ipc {
 
@@ -16,7 +18,7 @@ protocol PChildToParentStream
   manager PBackground or PContent or PContentBridge;
 
 parent:
-  async Buffer(nsCString aBuffer);
+  async Buffer(ByteBuffer aBuffer);
   async Close(nsresult aRv);
 
 child:

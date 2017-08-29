@@ -69,7 +69,7 @@ public:
   }
 
   void
-  SendData(const nsCString& aBuffer) override
+  SendData(const ByteBuffer& aBuffer) override
   {
     Unused << SendBuffer(aBuffer);
   }
@@ -159,7 +159,7 @@ private:
   }
 
   IPCResult
-  RecvBuffer(const nsCString& aBuffer) override
+  RecvBuffer(const ByteBuffer& aBuffer) override
   {
     BufferReceived(aBuffer);
     return IPC_OK();

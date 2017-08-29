@@ -14,6 +14,9 @@ class nsIAsyncInputStream;
 class nsIAsyncOutputStream;
 
 namespace mozilla {
+
+struct ByteBuffer;
+
 namespace ipc {
 
 class PChildToParentStreamParent;
@@ -55,7 +58,7 @@ protected:
   ActorDestroyed();
 
   void
-  BufferReceived(const nsCString& aBuffer);
+  BufferReceived(const ByteBuffer& aBuffer);
 
   void
   CloseReceived(nsresult aRv);
