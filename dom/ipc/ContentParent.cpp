@@ -4455,7 +4455,7 @@ ContentParent::RecvCreateWindowInDifferentProcess(
   const bool& aCalledFromJS,
   const bool& aPositionSpecified,
   const bool& aSizeSpecified,
-  const URIParams& aURIToLoad,
+  const OptionalURIParams& aURIToLoad,
   const nsCString& aFeatures,
   const nsCString& aBaseURI,
   const float& aFullZoom,
