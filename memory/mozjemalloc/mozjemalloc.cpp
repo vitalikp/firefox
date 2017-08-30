@@ -208,7 +208,7 @@ typedef long ssize_t;
 #include <sys/param.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#if !defined(MOZ_MEMORY_SOLARIS) && !defined(MOZ_MEMORY_ANDROID) && !defined(MOZ_MEMORY_LINUX)
+#if !defined(MOZ_MEMORY_SOLARIS) && !defined(MOZ_MEMORY_ANDROID) && !defined(XP_LINUX)
 #include <sys/sysctl.h>
 #endif
 #include <sys/uio.h>
@@ -256,7 +256,7 @@ typedef long ssize_t;
  * On Alpha, glibc has a bug that prevents syscall() to work for system
  * calls with 6 arguments
  */
-#if (defined(MOZ_MEMORY_LINUX) && !defined(__alpha__)) || \
+#if (defined(XP_LINUX) && !defined(__alpha__)) || \
     (defined(MOZ_MEMORY_BSD) && defined(__GLIBC__))
 #include <sys/syscall.h>
 #if defined(SYS_mmap) || defined(SYS_mmap2)
@@ -424,7 +424,7 @@ static bool malloc_initialized = false;
 /* No init lock for Windows. */
 #elif defined(XP_DARWIN)
 static malloc_mutex_t init_lock = {OS_SPINLOCK_INIT};
-#elif defined(MOZ_MEMORY_LINUX) && !defined(MOZ_MEMORY_ANDROID)
+#elif defined(XP_LINUX) && !defined(MOZ_MEMORY_ANDROID)
 static malloc_mutex_t init_lock = PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP;
 #else
 static malloc_mutex_t init_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -1080,7 +1080,7 @@ malloc_mutex_init(malloc_mutex_t *mutex)
 		return (true);
 #elif defined(XP_DARWIN)
 	mutex->lock = OS_SPINLOCK_INIT;
-#elif defined(MOZ_MEMORY_LINUX) && !defined(MOZ_MEMORY_ANDROID)
+#elif defined(XP_LINUX) && !defined(MOZ_MEMORY_ANDROID)
 	pthread_mutexattr_t attr;
 	if (pthread_mutexattr_init(&attr) != 0)
 		return (true);
@@ -1134,7 +1134,7 @@ malloc_spin_init(malloc_spinlock_t *lock)
 			return (true);
 #elif defined(XP_DARWIN)
 	lock->lock = OS_SPINLOCK_INIT;
-#elif defined(MOZ_MEMORY_LINUX) && !defined(MOZ_MEMORY_ANDROID)
+#elif defined(XP_LINUX) && !defined(MOZ_MEMORY_ANDROID)
 	pthread_mutexattr_t attr;
 	if (pthread_mutexattr_init(&attr) != 0)
 		return (true);
@@ -1869,7 +1869,7 @@ pages_purge(void *addr, size_t length, bool force_zero)
 	pages_decommit(addr, length);
 	return true;
 #else
-#  ifndef MOZ_MEMORY_LINUX
+#  ifndef XP_LINUX
 	if (force_zero)
 		memset(addr, 0, length);
 #  endif
@@ -1890,7 +1890,7 @@ pages_purge(void *addr, size_t length, bool force_zero)
 	}
 	return force_zero;
 #  else
-#    ifdef MOZ_MEMORY_LINUX
+#    ifdef XP_LINUX
 #      define JEMALLOC_MADV_PURGE MADV_DONTNEED
 #      define JEMALLOC_MADV_ZEROS true
 #    else /* FreeBSD and Darwin. */
