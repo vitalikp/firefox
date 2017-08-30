@@ -7962,9 +7962,9 @@ NewMemoryInfoObject(JSContext* cx)
 #else
         JSNative getter = pair.getter;
 #endif
-        if (!JS_DefineProperty(cx, obj, pair.name, UndefinedHandleValue,
-                               JSPROP_ENUMERATE | JSPROP_SHARED,
-                               getter, nullptr))
+        if (!JS_DefineProperty(cx, obj, pair.name,
+                               getter, nullptr,
+                               JSPROP_ENUMERATE | JSPROP_SHARED))
         {
             return nullptr;
         }
@@ -7997,9 +7997,9 @@ NewMemoryInfoObject(JSContext* cx)
 #else
         JSNative getter = pair.getter;
 #endif
-        if (!JS_DefineProperty(cx, zoneObj, pair.name, UndefinedHandleValue,
-                               JSPROP_ENUMERATE | JSPROP_SHARED,
-                               getter, nullptr))
+        if (!JS_DefineProperty(cx, zoneObj, pair.name,
+                               getter, nullptr,
+                               JSPROP_ENUMERATE | JSPROP_SHARED))
         {
             return nullptr;
         }

@@ -3055,8 +3055,7 @@ FindPath(JSContext* cx, unsigned argc, Value* vp)
         if (!cx->compartment()->wrap(cx, &wrapped))
             return false;
 
-        if (!JS_DefineProperty(cx, obj, "node", wrapped,
-                               JSPROP_ENUMERATE, nullptr, nullptr))
+        if (!JS_DefineProperty(cx, obj, "node", wrapped, JSPROP_ENUMERATE))
             return false;
 
         heaptools::EdgeName edgeName = Move(edges[i]);
@@ -3066,7 +3065,7 @@ FindPath(JSContext* cx, unsigned argc, Value* vp)
             return false;
         mozilla::Unused << edgeName.release(); // edgeStr acquired ownership
 
-        if (!JS_DefineProperty(cx, obj, "edge", edgeStr, JSPROP_ENUMERATE, nullptr, nullptr))
+        if (!JS_DefineProperty(cx, obj, "edge", edgeStr, JSPROP_ENUMERATE))
             return false;
 
         result->setDenseElement(length - i - 1, ObjectValue(*obj));
