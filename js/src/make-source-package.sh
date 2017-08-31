@@ -144,7 +144,6 @@ case $cmd in
         ${TOPSRCDIR}/memory/build \
         ${TOPSRCDIR}/memory/fallible \
         ${TOPSRCDIR}/memory/mozalloc \
-        ${TOPSRCDIR}/memory/mozjemalloc \
         ${tgtpath}/memory
 
     # remove *.pyc and *.pyo files if any
