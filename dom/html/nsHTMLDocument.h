@@ -81,11 +81,6 @@ public:
     return mForms;
   }
 
-  nsContentList* GetExistingFormControls() const
-  {
-    return mFormControls;
-  }
-
   // nsIDOMDocument interface
   using nsDocument::CreateElement;
   using nsDocument::CreateElementNS;
@@ -315,7 +310,6 @@ protected:
   RefPtr<nsContentList> mAnchors;
   RefPtr<nsContentList> mScripts;
   RefPtr<nsContentList> mForms;
-  RefPtr<nsContentList> mFormControls;
 
   RefPtr<mozilla::dom::HTMLAllCollection> mAll;
 
