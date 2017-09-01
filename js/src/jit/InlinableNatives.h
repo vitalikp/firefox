@@ -92,6 +92,7 @@
     _(IntrinsicStringReplaceString) \
     _(IntrinsicStringSplitString)   \
                                     \
+    _(Object)                       \
     _(ObjectCreate)                 \
     _(ObjectToString)               \
                                     \
