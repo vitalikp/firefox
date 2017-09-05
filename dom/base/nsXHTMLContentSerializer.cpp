@@ -15,6 +15,7 @@
 #include "nsIDOMElement.h"
 #include "nsIContent.h"
 #include "nsIDocument.h"
+#include "nsElementTable.h"
 #include "nsNameSpaceManager.h"
 #include "nsString.h"
 #include "nsUnicharUtils.h"
@@ -25,7 +26,6 @@
 #include "nsNetUtil.h"
 #include "nsEscape.h"
 #include "nsCRT.h"
-#include "nsIParserService.h"
 #include "nsContentUtils.h"
 #include "nsLWBrkCIID.h"
 #include "nsIScriptElement.h"
@@ -591,18 +591,8 @@ nsXHTMLContentSerializer::LineBreakBeforeOpen(int32_t aNamespaceID, nsIAtom* aNa
       aName == nsGkAtoms::html) {
     return true;
   }
-  else {
-    nsIParserService* parserService = nsContentUtils::GetParserService();
 
-    if (parserService) {
-      bool res;
-      parserService->
-        IsBlock(parserService->HTMLCaseSensitiveAtomTagToId(aName), res);
-      return res;
-    }
-  }
-
-  return mAddSpace;
+  return nsHTMLElement::IsBlock(nsHTMLTags::CaseSensitiveAtomTagToId(aName));
 }
 
 bool
@@ -685,18 +675,8 @@ nsXHTMLContentSerializer::LineBreakAfterClose(int32_t aNamespaceID, nsIAtom* aNa
       (aName == nsGkAtoms::div)) {
     return true;
   }
-  else {
-    nsIParserService* parserService = nsContentUtils::GetParserService();
 
-    if (parserService) {
-      bool res;
-      parserService->
-        IsBlock(parserService->HTMLCaseSensitiveAtomTagToId(aName), res);
-      return res;
-    }
-  }
-
-  return false;
+  return nsHTMLElement::IsBlock(nsHTMLTags::CaseSensitiveAtomTagToId(aName));
 }
 
 

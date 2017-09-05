@@ -81,7 +81,6 @@ class nsIMessageBroadcaster;
 class nsNameSpaceManager;
 class nsIObserver;
 class nsIParser;
-class nsIParserService;
 class nsIPresShell;
 class nsIPrincipal;
 class nsIRequest;
@@ -561,8 +560,6 @@ public:
   // Check if a node is in the document prolog, i.e. before the document
   // element.
   static bool InProlog(nsINode *aNode);
-
-  static nsIParserService* GetParserService();
 
   static nsNameSpaceManager* NameSpaceManager()
   {
@@ -3023,8 +3020,6 @@ private:
   static nsIScriptSecurityManager *sSecurityManager;
   static nsIPrincipal *sSystemPrincipal;
   static nsIPrincipal *sNullSubjectPrincipal;
-
-  static nsIParserService *sParserService;
 
   static nsNameSpaceManager *sNameSpaceManager;
 
