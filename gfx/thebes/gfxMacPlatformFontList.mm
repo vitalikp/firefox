@@ -745,6 +745,11 @@ gfxMacPlatformFontList::gfxMacPlatformFontList() :
 
 gfxMacPlatformFontList::~gfxMacPlatformFontList()
 {
+    ::CFNotificationCenterRemoveObserver(::CFNotificationCenterGetLocalCenter(),
+                                         this,
+                                         kCTFontManagerRegisteredFontsChangedNotification,
+                                         0);
+
     if (mDefaultFont) {
         ::CFRelease(mDefaultFont);
     }
