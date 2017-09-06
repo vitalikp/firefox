@@ -1766,6 +1766,18 @@ HandleLexicalCheckFailure(JSContext* cx, HandleScript outerScript, HandleScript 
         Invalidate(cx, innerScript);
 }
 
+static void
+HandleIterNextNonStringBailout(JSContext* cx, HandleScript outerScript, HandleScript innerScript)
+{
+    JitSpew(JitSpew_IonBailouts, "Non-string iterator value %s:%zu, inlined into %s:%zu",
+            innerScript->filename(), innerScript->lineno(),
+            outerScript->filename(), outerScript->lineno());
+
+    // This should only happen when legacy generators are used.
+    ForbidCompilation(cx, innerScript);
+    InvalidateAfterBailout(cx, outerScript, "non-string iterator value");
+}
+
 static bool
 CopyFromRematerializedFrame(JSContext* cx, JitActivation* act, uint8_t* fp, size_t inlineDepth,
                             BaselineFrame* frame)
@@ -2001,10 +2013,13 @@ jit::FinishBailoutToBaseline(BaselineBailoutInfo* bailoutInfo)
       case Bailout_OverflowInvalidate:
         outerScript->setHadOverflowBailout();
         MOZ_FALLTHROUGH;
-      case Bailout_NonStringInputInvalidate:
       case Bailout_DoubleOutput:
       case Bailout_ObjectIdentityOrTypeGuard:
         HandleBaselineInfoBailout(cx, outerScript, innerScript);
+        break;
+
+      case Bailout_IterNextNonString:
+        HandleIterNextNonStringBailout(cx, outerScript, innerScript);
         break;
 
       case Bailout_ArgumentCheck:

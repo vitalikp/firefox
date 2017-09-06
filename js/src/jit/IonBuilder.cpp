@@ -671,6 +671,7 @@ IonBuilder::analyzeNewLoopTypes(const CFGBlock* loopEntryBlock)
               case JSOP_DOUBLE:
                 type = MIRType::Double;
                 break;
+              case JSOP_ITERNEXT:
               case JSOP_STRING:
               case JSOP_TOSTRING:
               case JSOP_TYPEOF:
@@ -2253,6 +2254,9 @@ IonBuilder::inspectOpcode(JSOp op)
       case JSOP_TOID:
         return jsop_toid();
 
+      case JSOP_ITERNEXT:
+        return jsop_iternext();
+
       case JSOP_LAMBDA:
         return jsop_lambda(info().getFunction(pc));
 
@@ -2431,7 +2435,6 @@ IonBuilder::inspectOpcode(JSOp op)
         // Intentionally not implemented.
         break;
 
-      case JSOP_UNUSED222:
       case JSOP_UNUSED223:
       case JSOP_LIMIT:
         break;
@@ -12576,6 +12579,23 @@ IonBuilder::jsop_iterend()
     current->add(ins);
 
     return resumeAfter(ins);
+}
+
+AbortReasonOr<Ok>
+IonBuilder::jsop_iternext()
+{
+    MDefinition* def = current->pop();
+    MOZ_ASSERT(def->type() == MIRType::Value);
+
+    // The value should be a string in most cases. Legacy generators can return
+    // non-string values, so in that case bailout and give up Ion compilation
+    // of the script.
+    MInstruction* unbox = MUnbox::New(alloc(), def, MIRType::String, MUnbox::Fallible,
+                                      Bailout_IterNextNonString);
+    current->add(unbox);
+    current->push(unbox);
+
+    return Ok();
 }
 
 MDefinition*
