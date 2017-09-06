@@ -529,7 +529,7 @@ HeapCheckTracerBase::onChild(const JS::GCCellPtr& thing)
 
     // Don't trace into GC in zones being used by helper threads.
     Zone* zone = thing.is<JSObject>() ? thing.as<JSObject>().zone() : cell->asTenured().zone();
-    if (zone->group() && zone->group()->usedByHelperThread)
+    if (zone->group() && zone->group()->usedByHelperThread())
         return;
 
     WorkItem item(thing, contextName(), parentIndex);
