@@ -3462,7 +3462,8 @@ DumpStringRepresentation(JSContext* cx, unsigned argc, Value* vp)
     if (!str)
         return false;
 
-    str->dumpRepresentation(stderr, 0);
+    Fprinter out(stderr);
+    str->dumpRepresentation(out, 0);
 
     args.rval().setUndefined();
     return true;

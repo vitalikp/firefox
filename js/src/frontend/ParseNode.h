@@ -11,6 +11,7 @@
 
 #include "builtin/ModuleObject.h"
 #include "frontend/TokenStream.h"
+#include "vm/Printer.h"
 
 namespace js {
 namespace frontend {
@@ -814,8 +815,10 @@ class ParseNode
     }
 
 #ifdef DEBUG
+    // Debugger-friendly stderr printer.
     void dump();
-    void dump(int indent);
+    void dump(GenericPrinter& out);
+    void dump(GenericPrinter& out, int indent);
 #endif
 };
 
@@ -836,7 +839,7 @@ struct NullaryNode : public ParseNode
     }
 
 #ifdef DEBUG
-    void dump();
+    void dump(GenericPrinter& out);
 #endif
 };
 
@@ -849,7 +852,7 @@ struct UnaryNode : public ParseNode
     }
 
 #ifdef DEBUG
-    void dump(int indent);
+    void dump(GenericPrinter& out, int indent);
 #endif
 };
 
@@ -870,7 +873,7 @@ struct BinaryNode : public ParseNode
     }
 
 #ifdef DEBUG
-    void dump(int indent);
+    void dump(GenericPrinter& out, int indent);
 #endif
 };
 
@@ -896,7 +899,7 @@ struct TernaryNode : public ParseNode
     }
 
 #ifdef DEBUG
-    void dump(int indent);
+    void dump(GenericPrinter& out, int indent);
 #endif
 };
 
@@ -925,7 +928,7 @@ struct ListNode : public ParseNode
     }
 
 #ifdef DEBUG
-    void dump(int indent);
+    void dump(GenericPrinter& out, int indent);
 #endif
 };
 
@@ -945,7 +948,7 @@ struct CodeNode : public ParseNode
 
   public:
 #ifdef DEBUG
-    void dump(int indent);
+  void dump(GenericPrinter& out, int indent);
 #endif
 };
 
@@ -959,7 +962,7 @@ struct NameNode : public ParseNode
     }
 
 #ifdef DEBUG
-    void dump(int indent);
+    void dump(GenericPrinter& out, int indent);
 #endif
 };
 
@@ -977,7 +980,7 @@ struct LexicalScopeNode : public ParseNode
     }
 
 #ifdef DEBUG
-    void dump(int indent);
+    void dump(GenericPrinter& out, int indent);
 #endif
 };
 
@@ -1348,7 +1351,7 @@ struct ClassNode : public TernaryNode {
 };
 
 #ifdef DEBUG
-void DumpParseTree(ParseNode* pn, int indent = 0);
+void DumpParseTree(ParseNode* pn, GenericPrinter& out, int indent = 0);
 #endif
 
 class ParseNodeAllocator

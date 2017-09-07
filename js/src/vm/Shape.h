@@ -29,6 +29,7 @@
 #include "js/RootingAPI.h"
 #include "js/UbiNode.h"
 #include "vm/ObjectGroup.h"
+#include "vm/Printer.h"
 #include "vm/String.h"
 #include "vm/Symbol.h"
 
@@ -1134,8 +1135,8 @@ class Shape : public gc::TenuredCell
     }
 
 #ifdef DEBUG
-    void dump(FILE* fp) const;
-    void dumpSubtree(int level, FILE* fp) const;
+    void dump(js::GenericPrinter& out) const;
+    void dumpSubtree(int level, js::GenericPrinter& out) const;
 #endif
 
     void sweep();
