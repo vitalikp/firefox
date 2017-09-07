@@ -4466,7 +4466,7 @@ js::DefFunOperation(JSContext* cx, HandleScript script, HandleObject envChain,
 
     /* Steps 5d, 5f. */
     if (!prop || pobj != parent) {
-        if (!DefineProperty(cx, parent, name, rval, nullptr, nullptr, attrs))
+        if (!DefineDataProperty(cx, parent, name, rval, attrs))
             return false;
 
         return parent->is<GlobalObject>() ? parent->compartment()->addToVarNames(cx, name) : true;
@@ -4485,7 +4485,7 @@ js::DefFunOperation(JSContext* cx, HandleScript script, HandleObject envChain,
     if (parent->is<GlobalObject>()) {
         Shape* shape = prop.shape();
         if (shape->configurable()) {
-            if (!DefineProperty(cx, parent, name, rval, nullptr, nullptr, attrs))
+            if (!DefineDataProperty(cx, parent, name, rval, attrs))
                 return false;
         } else {
             MOZ_ASSERT(shape->isDataDescriptor());
@@ -4803,8 +4803,7 @@ js::InitGetterSetterOperation(JSContext* cx, jsbytecode* pc, HandleObject obj, H
         attrs |= JSPROP_SETTER;
     }
 
-    RootedValue scratch(cx);
-    return DefineProperty(cx, obj, id, scratch, getter, setter, attrs);
+    return DefineAccessorProperty(cx, obj, id, getter, setter, attrs);
 }
 
 bool

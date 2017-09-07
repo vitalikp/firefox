@@ -668,7 +668,7 @@ JSCompartment::getTemplateLiteralObject(JSContext* cx, HandleArrayObject rawStri
     } else {
         MOZ_ASSERT(templateObj->nonProxyIsExtensible());
         RootedValue rawValue(cx, ObjectValue(*rawStrings));
-        if (!DefineProperty(cx, templateObj, cx->names().raw, rawValue, nullptr, nullptr, 0))
+        if (!DefineDataProperty(cx, templateObj, cx->names().raw, rawValue, 0))
             return false;
         if (!FreezeObject(cx, rawStrings))
             return false;
