@@ -729,10 +729,6 @@ pref("dom.event.touch.coalescing.enabled", false);
 // the java GeckoScreenOrientationListener needs this to be defined
 pref("app.orientation.default", "");
 
-// On memory pressure, release dirty but unused pages held by jemalloc
-// back to the system.
-pref("memory.free_dirty_pages", true);
-
 pref("layout.framevisibility.numscrollportwidths", 1);
 pref("layout.framevisibility.numscrollportheights", 1);
 
