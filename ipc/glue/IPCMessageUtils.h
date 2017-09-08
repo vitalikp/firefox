@@ -213,13 +213,6 @@ struct BitFlagsEnumSerializer
                    BitFlagsEnumValidator<E, AllBits>>
 {};
 
-template <>
-struct ParamTraits<base::ChildPrivileges>
-  : public ContiguousEnumSerializer<base::ChildPrivileges,
-                                    base::PRIVILEGES_DEFAULT,
-                                    base::PRIVILEGES_LAST>
-{ };
-
 template<>
 struct ParamTraits<int8_t>
 {
