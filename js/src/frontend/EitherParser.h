@@ -253,34 +253,6 @@ class EitherParser
             matcher { mozilla::Forward<Args>(args)... };
         return parser.match(mozilla::Move(matcher));
     }
-
-  private:
-    template<typename... StoredArgs>
-    struct ReportStrictModeErrorMatcher
-    {
-        mozilla::Tuple<StoredArgs...> args;
-
-        template<typename... Args>
-        explicit ReportStrictModeErrorMatcher(Args&&... actualArgs)
-          : args { mozilla::Forward<Args>(actualArgs)... }
-        {}
-
-        template<class Parser>
-        MOZ_MUST_USE bool match(Parser* parser) {
-            return CallGenericFunction(&TokenStream::reportStrictModeErrorNumberVA,
-                                       &parser->tokenStream,
-                                       args,
-                                       typename mozilla::IndexSequenceFor<StoredArgs...>::Type());
-        }
-    };
-
-  public:
-    template<typename... Args>
-    MOZ_MUST_USE bool reportStrictModeErrorNumberVA(Args&&... args) {
-        ReportStrictModeErrorMatcher<typename mozilla::Decay<Args>::Type...>
-            matcher { mozilla::Forward<Args>(args)... };
-        return parser.match(mozilla::Move(matcher));
-    }
 };
 
 } /* namespace frontend */

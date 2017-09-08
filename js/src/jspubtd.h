@@ -85,14 +85,11 @@ enum JSProtoKey {
 /* Struct forward declarations. */
 struct JSClass;
 struct JSCompartment;
-struct JSCrossCompartmentCall;
 class JSErrorReport;
 struct JSExceptionState;
 struct JSFunctionSpec;
 struct JSLocaleCallbacks;
-struct JSObjectMap;
 struct JSPrincipals;
-struct JSPropertyName;
 struct JSPropertySpec;
 struct JSRuntime;
 struct JSSecurityCallbacks;
