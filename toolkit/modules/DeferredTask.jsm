@@ -88,10 +88,8 @@ const { classes: Cc, interfaces: Ci, utils: Cu, results: Cr } = Components;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-XPCOMUtils.defineLazyModuleGetter(this, "Promise",
-                                  "resource://gre/modules/Promise.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "Task",
-                                  "resource://gre/modules/Task.jsm");
+XPCOMUtils.defineLazyModuleGetter(this, "PromiseUtils",
+                                  "resource://gre/modules/PromiseUtils.jsm");
 
 const Timer = Components.Constructor("@mozilla.org/timer;1", "nsITimer",
                                      "initWithCallback");
@@ -102,8 +100,8 @@ const Timer = Components.Constructor("@mozilla.org/timer;1", "nsITimer",
  * Sets up a task whose execution can be triggered after a delay.
  *
  * @param aTaskFn
- *        Function or generator function to execute.  This argument is passed to
- *        the "Task.spawn" method every time the task should be executed.  This
+ *        Function to execute.  If the function returns a promise, the task is
+ *        not considered complete until that promise resolves.  This
  *        task is never re-entered while running.
  * @param aDelayMs
  *        Time between executions, in milliseconds.  Multiple attempts to run
@@ -115,6 +113,10 @@ const Timer = Components.Constructor("@mozilla.org/timer;1", "nsITimer",
 this.DeferredTask = function(aTaskFn, aDelayMs) {
   this._taskFn = aTaskFn;
   this._delayMs = aDelayMs;
+
+  if (aTaskFn.isGenerator()) {
+    Cu.reportError(new Error("Unexpected generator function passed to DeferredTask"));
+  }
 }
 
 this.DeferredTask.prototype = {
@@ -261,7 +263,7 @@ this.DeferredTask.prototype = {
    * Timer callback used to run the delayed task.
    */
   _timerCallback() {
-    let runningDeferred = Promise.defer();
+    let runningDeferred = PromiseUtils.defer();
 
     // All these state changes must occur at the same time directly inside the
     // timer callback, to prevent race conditions and to ensure that all the
@@ -301,12 +303,7 @@ this.DeferredTask.prototype = {
    */
   async _runTask() {
     try {
-      let result = this._taskFn();
-      if (Object.prototype.toString.call(result) == "[object Generator]") {
-        await Task.spawn(result); // eslint-disable-line mozilla/no-task
-      } else {
-        await result;
-      }
+      await this._taskFn();
     } catch (ex) {
       Cu.reportError(ex);
     }
