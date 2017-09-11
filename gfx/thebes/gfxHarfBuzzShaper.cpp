@@ -1271,11 +1271,9 @@ gfxHarfBuzzShaper::Initialize()
         }
         uint32_t len;
         const uint8_t* data = (const uint8_t*)hb_blob_get_data(mCmapTable, &len);
-        bool symbol;
         mCmapFormat = gfxFontUtils::
             FindPreferredSubtable(data, len,
-                                  &mSubtableOffset, &mUVSTableOffset,
-                                  &symbol);
+                                  &mSubtableOffset, &mUVSTableOffset);
         if (mCmapFormat <= 0) {
             return false;
         }
