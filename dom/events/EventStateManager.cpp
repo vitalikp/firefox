@@ -1725,8 +1725,7 @@ EventStateManager::GenerateDragGesture(nsPresContext* aPresContext,
         new DataTransfer(window, eDragStart, false, -1);
       auto protectDataTransfer = MakeScopeExit([&] {
         if (dataTransfer) {
-          dataTransfer->SetMode(DataTransfer::Mode::Protected);
-          dataTransfer->ClearAll();
+          dataTransfer->Disconnect();
         }
       });
 
