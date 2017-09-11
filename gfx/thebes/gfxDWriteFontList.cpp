@@ -330,6 +330,19 @@ gfxDWriteFontFamily::LocalizedName(nsAString &aLocalizedName)
     aLocalizedName = nsDependentString(famName.Elements());
 }
 
+bool
+gfxDWriteFontFamily::IsSymbolFontFamily() const
+{
+    // Just check the first font in the family
+    if (mDWFamily->GetFontCount() > 0) {
+        RefPtr<IDWriteFont> font;
+        if (SUCCEEDED(mDWFamily->GetFont(0, getter_AddRefs(font)))) {
+            return font->IsSymbolFont();
+        }
+    }
+    return false;
+}
+
 void
 gfxDWriteFontFamily::AddSizeOfExcludingThis(MallocSizeOf aMallocSizeOf,
                                             FontListSizes* aSizes) const
@@ -359,16 +372,6 @@ gfxDWriteFontEntry::Clone() const
 
 gfxDWriteFontEntry::~gfxDWriteFontEntry()
 {
-}
-
-bool
-gfxDWriteFontEntry::IsSymbolFont()
-{
-    if (mFont) {
-        return mFont->IsSymbolFont();
-    } else {
-        return false;
-    }
 }
 
 static bool
