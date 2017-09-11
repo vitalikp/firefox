@@ -945,18 +945,6 @@ InitJSContextForWorker(WorkerPrivate* aWorkerPrivate, JSContext* aWorkerCx)
   JSSettings settings;
   aWorkerPrivate->CopyJSSettings(settings);
 
-  {
-    JS::UniqueChars defaultLocale = aWorkerPrivate->AdoptDefaultLocale();
-    MOZ_ASSERT(defaultLocale,
-               "failure of a WorkerPrivate to have a default locale should "
-               "have made the worker fail to spawn");
-
-    if (!JS_SetDefaultLocale(aWorkerCx, defaultLocale.get())) {
-      NS_WARNING("failed to set workerCx's default locale");
-      return false;
-    }
-  }
-
   JS::ContextOptionsRef(aWorkerCx) = settings.contextOptions;
 
   JSSettings::JSGCSettingsArray& gcSettings = settings.gcSettings;
@@ -1054,6 +1042,17 @@ public:
   {
     MOZ_COUNT_CTOR_INHERITED(WorkerJSRuntime, CycleCollectedJSRuntime);
     MOZ_ASSERT(aWorkerPrivate);
+
+    {
+      JS::UniqueChars defaultLocale = aWorkerPrivate->AdoptDefaultLocale();
+      MOZ_ASSERT(defaultLocale,
+                 "failure of a WorkerPrivate to have a default locale should "
+                 "have made the worker fail to spawn");
+
+      if (!JS_SetDefaultLocale(Runtime(), defaultLocale.get())) {
+        NS_WARNING("failed to set workerCx's default locale");
+      }
+    }
   }
 
   void Shutdown(JSContext* cx) override

@@ -1038,6 +1038,7 @@ XPCJSRuntime::Shutdown(JSContext* cx)
     JS_RemoveFinalizeCallback(cx, FinalizeCallback);
     JS_RemoveWeakPointerZonesCallback(cx, WeakPointerZonesCallback);
     JS_RemoveWeakPointerCompartmentCallback(cx, WeakPointerCompartmentCallback);
+    xpc_DelocalizeRuntime(JS_GetRuntime(cx));
 
     JS::SetGCSliceCallback(cx, mPrevGCSliceCallback);
 
@@ -2868,6 +2869,8 @@ XPCJSRuntime::Initialize(JSContext* cx)
     RegisterJSMainRuntimeCompartmentsSystemDistinguishedAmount(JSMainRuntimeCompartmentsSystemDistinguishedAmount);
     RegisterJSMainRuntimeCompartmentsUserDistinguishedAmount(JSMainRuntimeCompartmentsUserDistinguishedAmount);
     mozilla::RegisterJSSizeOfTab(JSSizeOfTab);
+
+    xpc_LocalizeRuntime(JS_GetRuntime(cx));
 }
 
 bool
