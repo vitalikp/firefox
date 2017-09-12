@@ -704,19 +704,19 @@ var Impl = {
     // run various late initializers. Otherwise our gathered memory
     // footprint and other numbers would be too optimistic.
     this._delayedInitTaskDeferred = Promise.defer();
-    this._delayedInitTask = new DeferredTask(function* () {
+    this._delayedInitTask = new DeferredTask(async () => {
       try {
         // TODO: This should probably happen after all the delayed init here.
         this._initialized = true;
         TelemetryEnvironment.delayedInit();
 
-        yield TelemetrySend.setup(this._testMode);
-
         // Load the ClientID.
-        this._clientID = yield ClientID.getClientID();
+        this._clientID = await ClientID.getClientID();
+
+        await TelemetrySend.setup(this._testMode);
 
         // Perform TelemetrySession delayed init.
-        yield TelemetrySession.delayedInit();
+        await TelemetrySession.delayedInit();
         // Purge the pings archive by removing outdated pings. We don't wait for
         // this task to complete, but TelemetryStorage blocks on it during
         // shutdown.
@@ -736,7 +736,8 @@ var Impl = {
       } finally {
         this._delayedInitTask = null;
       }
-    }.bind(this), this._testMode ? TELEMETRY_TEST_DELAY : TELEMETRY_DELAY);
+    }, this._testMode ? TELEMETRY_TEST_DELAY : TELEMETRY_DELAY,
+       this._testMode ? 0 : undefined);
 
     AsyncShutdown.sendTelemetry.addBlocker("TelemetryController: shutting down",
                                            () => this.shutdown(),
