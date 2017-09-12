@@ -20,6 +20,7 @@
 #include "nsIMemoryReporter.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/MemoryReporting.h"
+#include "mozilla/Mutex.h"
 #include "mozilla/RangedArray.h"
 #include "nsLanguageAtomService.h"
 
@@ -513,6 +514,9 @@ protected:
     // Platform-specific helper for GetDefaultFont(...).
     virtual gfxFontFamily*
     GetDefaultFontForPlatform(const gfxFontStyle* aStyle) = 0;
+
+    // Protects mFontFamilies.
+    mozilla::Mutex mFontFamiliesMutex;
 
     // canonical family name ==> family entry (unique, one name per family entry)
     FontFamilyTable mFontFamilies;

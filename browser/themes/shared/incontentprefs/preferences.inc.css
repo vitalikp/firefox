@@ -363,8 +363,12 @@ description > html|a {
  */
 
 /**
- * Font dialog menulist fixes
+ * Font group and font dialog menulist fixes
  */
+
+#defaultFont {
+  width: 0;
+}
 
 #defaultFontType,
 #serif,

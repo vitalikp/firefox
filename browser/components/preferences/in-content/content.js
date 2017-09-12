@@ -146,14 +146,24 @@ var gContentPane = {
     // Force flush:
     preferences.clientHeight;
     var langGroupPref = document.getElementById("font.language.group");
-    this._selectDefaultLanguageGroup(langGroupPref.value,
-                                     this._readDefaultFontTypeForLanguage(langGroupPref.value) == "serif");
+    this._safelySelectDefaultLanguageGroup(langGroupPref.value);
   },
 
   /**
    *
    */
-  _selectDefaultLanguageGroup(aLanguageGroup, aIsSerif) {
+  _selectDefaultLanguageGroupPromise: Promise.resolve(),
+
+  async _selectDefaultLanguageGroup(aLanguageGroup, aIsSerif) {
+    // Avoid overlapping language group selections by awaiting the resolution
+    // of the previous one.  We do this because this function is re-entrant,
+    // as inserting <preference> elements into the DOM sometimes triggers a call
+    // back into this function.  And since this function is also asynchronous,
+    // that call can enter this function before the previous run has completed,
+    // which would corrupt the font menulists.  Awaiting the previous call's
+    // resolution avoids that fate.
+    await this._selectDefaultLanguageGroupPromise;
+
     const kFontNameFmtSerif         = "font.name.serif.%LANG%";
     const kFontNameFmtSansSerif     = "font.name.sans-serif.%LANG%";
     const kFontNameListFmtSerif     = "font.name-list.serif.%LANG%";
@@ -192,11 +202,18 @@ var gContentPane = {
         element.setAttribute("preference", preference.id);
 
         if (prefs[i].fonttype)
-          FontBuilder.buildFontList(aLanguageGroup, prefs[i].fonttype, element);
+          await FontBuilder.buildFontList(aLanguageGroup, prefs[i].fonttype, element);
 
         preference.setElementValue(element);
       }
     }
+  },
+
+  _safelySelectDefaultLanguageGroup(aLanguageGroup) {
+    var isSerif = this._readDefaultFontTypeForLanguage(aLanguageGroup) == "serif";
+    this._selectDefaultLanguageGroupPromise =
+      this._selectDefaultLanguageGroup(aLanguageGroup, isSerif)
+        .catch(Components.utils.reportError);
   },
 
   /**
