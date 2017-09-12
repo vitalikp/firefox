@@ -517,7 +517,7 @@ MappedArgSetter(JSContext* cx, HandleObject obj, HandleId id, MutableHandleValue
      */
     ObjectOpResult ignored;
     return NativeDeleteProperty(cx, argsobj, id, ignored) &&
-           NativeDefineProperty(cx, argsobj, id, vp, nullptr, nullptr, attrs, result);
+           NativeDefineDataProperty(cx, argsobj, id, vp, attrs, result);
 }
 
 static bool
@@ -529,7 +529,7 @@ DefineArgumentsIterator(JSContext* cx, Handle<ArgumentsObject*> argsobj)
     RootedValue val(cx);
     if (!GlobalObject::getSelfHostedFunction(cx, cx->global(), shName, name, 0, &val))
         return false;
-    return NativeDefineProperty(cx, argsobj, iteratorId, val, nullptr, nullptr, JSPROP_RESOLVING);
+    return NativeDefineDataProperty(cx, argsobj, iteratorId, val, JSPROP_RESOLVING);
 }
 
 /* static */ bool
@@ -540,7 +540,7 @@ ArgumentsObject::reifyLength(JSContext* cx, Handle<ArgumentsObject*> obj)
 
     RootedId id(cx, NameToId(cx->names().length));
     RootedValue val(cx, Int32Value(obj->initialLength()));
-    if (!NativeDefineProperty(cx, obj, id, val, nullptr, nullptr, JSPROP_RESOLVING))
+    if (!NativeDefineDataProperty(cx, obj, id, val, JSPROP_RESOLVING))
         return false;
 
     obj->markLengthOverridden();
@@ -593,11 +593,8 @@ MappedArgumentsObject::obj_resolve(JSContext* cx, HandleObject obj, HandleId id,
             return true;
     }
 
-    if (!NativeDefineProperty(cx, argsobj, id, UndefinedHandleValue,
-                              MappedArgGetter, MappedArgSetter, attrs))
-    {
+    if (!NativeDefineAccessorProperty(cx, argsobj, id, MappedArgGetter, MappedArgSetter, attrs))
         return false;
-    }
 
     *resolvedp = true;
     return true;
@@ -745,7 +742,7 @@ UnmappedArgSetter(JSContext* cx, HandleObject obj, HandleId id, MutableHandleVal
      */
     ObjectOpResult ignored;
     return NativeDeleteProperty(cx, argsobj, id, ignored) &&
-           NativeDefineProperty(cx, argsobj, id, vp, nullptr, nullptr, attrs, result);
+           NativeDefineDataProperty(cx, argsobj, id, vp, attrs, result);
 }
 
 /* static */ bool
@@ -786,7 +783,7 @@ UnmappedArgumentsObject::obj_resolve(JSContext* cx, HandleObject obj, HandleId i
     }
 
     attrs |= JSPROP_RESOLVING;
-    if (!NativeDefineProperty(cx, argsobj, id, UndefinedHandleValue, getter, setter, attrs))
+    if (!NativeDefineAccessorProperty(cx, argsobj, id, getter, setter, attrs))
         return false;
 
     *resolvedp = true;
