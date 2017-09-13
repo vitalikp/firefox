@@ -713,7 +713,7 @@ public:
     MOZ_ASSERT(parent);
 
     JS::Rooted<JS::Value> messageData(aCx);
-    ErrorResult rv;
+    IgnoredErrorResult rv;
 
     UniquePtr<AbstractTimelineMarker> start;
     UniquePtr<AbstractTimelineMarker> end;
@@ -739,12 +739,13 @@ public:
     }
 
     if (NS_WARN_IF(rv.Failed())) {
-      xpc::Throw(aCx, rv.StealNSResult());
+      DispatchError(aCx, aTarget);
       return false;
     }
 
     Sequence<OwningNonNull<MessagePort>> ports;
     if (!TakeTransferredPortsAsSequence(ports)) {
+      DispatchError(aCx, aTarget);
       return false;
     }
 
@@ -797,6 +798,21 @@ private:
 
     return DispatchDOMEvent(aCx, aWorkerPrivate, aWorkerPrivate->GlobalScope(),
                             false);
+  }
+
+  void
+  DispatchError(JSContext* aCx, DOMEventTargetHelper* aTarget)
+  {
+    RootedDictionary<MessageEventInit> init(aCx);
+    init.mBubbles = false;
+    init.mCancelable = false;
+
+    RefPtr<Event> event =
+      MessageEvent::Constructor(aTarget, NS_LITERAL_STRING("messageerror"), init);
+    event->SetTrusted(true);
+
+    bool dummy;
+    aTarget->DispatchEvent(event, &dummy);
   }
 };
 

@@ -875,6 +875,7 @@ public:
   FlushReportsToSharedWorkers(nsIConsoleReportCollector* aReporter);
 
   IMPL_EVENT_HANDLER(message)
+  IMPL_EVENT_HANDLER(messageerror)
   IMPL_EVENT_HANDLER(error)
 
   // Check whether this worker is a secure context.  For use from the parent

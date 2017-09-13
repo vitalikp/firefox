@@ -219,6 +219,7 @@ public:
   Close(JSContext* aCx);
 
   IMPL_EVENT_HANDLER(message)
+  IMPL_EVENT_HANDLER(messageerror)
 };
 
 class SharedWorkerGlobalScope final : public WorkerGlobalScope
@@ -363,6 +364,7 @@ public:
   PostMessage(const nsAString& aMessage);
 
   IMPL_EVENT_HANDLER(message)
+  IMPL_EVENT_HANDLER(messageerror)
 
   void
   SetImmediate(Function& aHandler, ErrorResult& aRv);
