@@ -1211,16 +1211,18 @@ class CallInfo
     bool ignoresReturnValue_:1;
 
     bool setter_:1;
+    bool apply_:1;
 
   public:
-    CallInfo(TempAllocator& alloc, bool constructing, bool ignoresReturnValue)
+    CallInfo(TempAllocator& alloc, jsbytecode* pc, bool constructing, bool ignoresReturnValue)
       : fun_(nullptr),
         thisArg_(nullptr),
         newTargetArg_(nullptr),
         args_(alloc),
         constructing_(constructing),
         ignoresReturnValue_(ignoresReturnValue),
-        setter_(false)
+        setter_(false),
+        apply_(JSOp(*pc) == JSOP_FUNAPPLY)
     { }
 
     MOZ_MUST_USE bool init(CallInfo& callInfo) {
@@ -1264,7 +1266,16 @@ class CallInfo
         current->popn(numFormals());
     }
 
-    void pushFormals(MBasicBlock* current) {
+    AbortReasonOr<Ok> pushFormals(MIRGenerator* mir, MBasicBlock* current) {
+        // Ensure sufficient space in the slots: needed for inlining from FUNAPPLY.
+        if (apply_) {
+            uint32_t depth = current->stackDepth() + numFormals();
+            if (depth > current->nslots()) {
+                if (!current->increaseSlots(depth - current->nslots()))
+                    return mir->abort(AbortReason::Alloc);
+            }
+        }
+
         current->push(fun());
         current->push(thisArg());
 
@@ -1273,6 +1284,8 @@ class CallInfo
 
         if (constructing())
             current->push(getNewTarget());
+
+        return Ok();
     }
 
     uint32_t argc() const {
