@@ -367,7 +367,7 @@ description > html|a {
  */
 
 #defaultFont {
-  width: 0;
+  width: 25ch;
 }
 
 #defaultFontType,
