@@ -1255,8 +1255,8 @@ ArrayBufferObject::trace(JSTracer* trc, JSObject* obj)
     buf.setSlot(DATA_SLOT, PrivateValue(view->as<InlineTransparentTypedObject>().inlineTypedMem()));
 }
 
-/* static */ void
-ArrayBufferObject::objectMoved(JSObject* obj, const JSObject* old)
+/* static */ size_t
+ArrayBufferObject::objectMoved(JSObject* obj, JSObject* old)
 {
     ArrayBufferObject& dst = obj->as<ArrayBufferObject>();
     const ArrayBufferObject& src = old->as<ArrayBufferObject>();
@@ -1264,6 +1264,8 @@ ArrayBufferObject::objectMoved(JSObject* obj, const JSObject* old)
     // Fix up possible inline data pointer.
     if (src.hasInlineData())
         dst.setSlot(DATA_SLOT, PrivateValue(dst.inlineDataPointer()));
+
+    return 0;
 }
 
 ArrayBufferViewObject*
