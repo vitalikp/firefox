@@ -539,23 +539,16 @@ class CGDOMProxyJSClass(CGThing):
         # HTMLAllCollection.  So just hardcode it here.
         if self.descriptor.interface.identifier.name == "HTMLAllCollection":
             flags.append("JSCLASS_EMULATES_UNDEFINED")
-        objectMovedHook = OBJECT_MOVED_HOOK_NAME if self.descriptor.wrapperCache else 'nullptr'
         return fill(
             """
-            static const js::ClassExtension sClassExtension = PROXY_MAKE_EXT(
-                ${objectMoved}
-            );
-
             static const DOMJSClass sClass = {
-              PROXY_CLASS_WITH_EXT("${name}",
-                                   ${flags},
-                                   &sClassExtension),
+              PROXY_CLASS_DEF("${name}",
+                              ${flags}),
               $*{descriptor}
             };
             """,
             name=self.descriptor.interface.identifier.name,
             flags=" | ".join(flags),
-            objectMoved=objectMovedHook,
             descriptor=DOMClass(self.descriptor))
 
 
@@ -1703,6 +1696,19 @@ class CGClassFinalizeHook(CGAbstractClassHook):
                             self.args[0].name, self.args[1].name).define()
 
 
+def objectMovedHook(descriptor, hookName, obj, old):
+    assert descriptor.wrapperCache
+    return fill("""
+	if (self) {
+	  UpdateWrapper(self, self, ${obj}, ${old});
+	}
+
+	return 0;
+	""",
+	obj=obj,
+	old=old)
+
+
 class CGClassObjectMovedHook(CGAbstractClassHook):
     """
     A hook for objectMovedOp, used to update the wrapper cache when an object it
@@ -1714,11 +1720,8 @@ class CGClassObjectMovedHook(CGAbstractClassHook):
                                      'size_t', args)
 
     def generate_code(self):
-        assert self.descriptor.wrapperCache
-        return CGList([
-            CGIfWrapper(CGGeneric("UpdateWrapper(self, self, obj, old);\n"),
-                        "self"),
-            CGGeneric("return 0;\n")]).define()
+        return objectMovedHook(self.descriptor, self.name,
+                               self.args[0].name, self.args[1].name)
 
 
 def JSNativeArguments():
@@ -12228,6 +12231,20 @@ class CGDOMJSProxyHandler_finalize(ClassMethod):
                              self.args[0].name, self.args[1].name).define())
 
 
+class CGDOMJSProxyHandler_objectMoved(ClassMethod):
+    def __init__(self, descriptor):
+        args = [Argument('JSObject*', 'obj'), Argument('JSObject*', 'old')]
+        ClassMethod.__init__(self, "objectMoved", "size_t", args,
+                             virtual=True, override=True, const=True)
+        self.descriptor = descriptor
+
+    def getBody(self):
+        return (("%s* self = UnwrapPossiblyNotInitializedDOMObject<%s>(obj);\n" %
+                 (self.descriptor.nativeType, self.descriptor.nativeType)) +
+                objectMovedHook(self.descriptor, OBJECT_MOVED_HOOK_NAME,
+                                self.args[0].name, self.args[1].name))
+
+
 class CGDOMJSProxyHandler_getElements(ClassMethod):
     def __init__(self, descriptor):
         assert descriptor.supportsIndexedProperties()
@@ -12403,6 +12420,8 @@ class CGDOMJSProxyHandler(CGClass):
                 raise TypeError("Need a wrapper cache to support nursery "
                                 "allocation of DOM objects")
             methods.append(CGDOMJSProxyHandler_canNurseryAllocate())
+        if descriptor.wrapperCache:
+            methods.append(CGDOMJSProxyHandler_objectMoved(descriptor))
 
         if descriptor.interface.getExtendedAttribute('OverrideBuiltins'):
             parentClass = 'ShadowingDOMProxyHandler'
@@ -12659,7 +12678,7 @@ class CGDescriptor(CGThing):
             # wants a custom hook.
             cgThings.append(CGClassFinalizeHook(descriptor))
 
-        if descriptor.concrete and descriptor.wrapperCache:
+        if descriptor.concrete and descriptor.wrapperCache and not descriptor.proxy:
             cgThings.append(CGClassObjectMovedHook(descriptor))
 
         # Generate the _ClearCachedFooValue methods before the property arrays that use them.
