@@ -3108,7 +3108,7 @@ JSScript::sizeOfData(mozilla::MallocSizeOf mallocSizeOf) const
 size_t
 JSScript::sizeOfTypeScript(mozilla::MallocSizeOf mallocSizeOf) const
 {
-    return types_->sizeOfIncludingThis(mallocSizeOf);
+    return types_ ? types_->sizeOfIncludingThis(mallocSizeOf) : 0;
 }
 
 /*
