@@ -297,7 +297,7 @@ JitRuntime::generateEnterJIT(JSContext* cx, MacroAssembler& masm)
         masm.passABIArg(r11); // BaselineFrame
         masm.passABIArg(OsrFrameReg); // InterpreterFrame
         masm.passABIArg(numStackValues);
-        masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, jit::InitBaselineFrameForOsr));
+        masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, jit::InitBaselineFrameForOsr), MoveOp::GENERAL);
 
         Register jitcode = regs.takeAny();
         masm.pop(jitcode);
@@ -424,7 +424,7 @@ JitRuntime::generateInvalidator(MacroAssembler& masm, Label* bailoutTail)
     masm.passABIArg(r0);
     masm.passABIArg(r1);
     masm.passABIArg(r2);
-    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, InvalidationBailout));
+    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, InvalidationBailout), MoveOp::GENERAL);
 
     masm.ma_ldr(DTRAddr(sp, DtrOffImm(0)), r2);
     {
@@ -637,7 +637,7 @@ GenerateBailoutThunk(MacroAssembler& masm, uint32_t frameClass, Label* bailoutTa
     masm.passABIArg(r1);
 
     // Sp % 8 == 0
-    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, Bailout));
+    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, Bailout), MoveOp::GENERAL);
     masm.ma_ldr(DTRAddr(sp, DtrOffImm(0)), r2);
     {
         ScratchRegisterScope scratch(masm);

@@ -235,7 +235,7 @@ JitRuntime::generateEnterJIT(JSContext* cx, MacroAssembler& masm)
         masm.passABIArg(framePtr); // BaselineFrame
         masm.passABIArg(OsrFrameReg); // InterpreterFrame
         masm.passABIArg(numStackValues);
-        masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, jit::InitBaselineFrameForOsr));
+        masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, jit::InitBaselineFrameForOsr), MoveOp::GENERAL);
 
         masm.pop(jitcode);
         masm.pop(framePtr);
@@ -358,7 +358,7 @@ JitRuntime::generateInvalidator(MacroAssembler& masm, Label* bailoutTail)
     masm.passABIArg(eax);
     masm.passABIArg(ebx);
     masm.passABIArg(ecx);
-    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, InvalidationBailout));
+    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, InvalidationBailout), MoveOp::GENERAL);
 
     masm.pop(ecx); // Get bailoutInfo outparam.
     masm.pop(ebx); // Get the frameSize outparam.
@@ -562,7 +562,7 @@ GenerateBailoutThunk(MacroAssembler& masm, uint32_t frameClass, Label* bailoutTa
     masm.setupUnalignedABICall(ecx);
     masm.passABIArg(eax);
     masm.passABIArg(ebx);
-    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, Bailout));
+    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, Bailout), MoveOp::GENERAL);
 
     masm.pop(ecx); // Get bailoutInfo outparam.
 

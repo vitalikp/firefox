@@ -265,7 +265,7 @@ JitRuntime::generateEnterJIT(JSContext* cx, MacroAssembler& masm)
         masm.passABIArg(BaselineFrameReg); // BaselineFrame
         masm.passABIArg(OsrFrameReg); // InterpreterFrame
         masm.passABIArg(numStackValues);
-        masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, jit::InitBaselineFrameForOsr));
+        masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, jit::InitBaselineFrameForOsr), MoveOp::GENERAL);
 
         regs.add(OsrFrameReg);
         regs.take(JSReturnOperand);
@@ -382,7 +382,7 @@ JitRuntime::generateInvalidator(MacroAssembler& masm, Label* bailoutTail)
     masm.passABIArg(a0);
     masm.passABIArg(a1);
     masm.passABIArg(a2);
-    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, InvalidationBailout));
+    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, InvalidationBailout), MoveOp::GENERAL);
 
     masm.loadPtr(Address(StackPointer, 0), a2);
     masm.loadPtr(Address(StackPointer, sizeof(uintptr_t)), a1);
@@ -606,7 +606,7 @@ GenerateBailoutThunk(MacroAssembler& masm, uint32_t frameClass, Label* bailoutTa
     masm.setupAlignedABICall();
     masm.passABIArg(a0);
     masm.passABIArg(a1);
-    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, Bailout));
+    masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, Bailout), MoveOp::GENERAL);
 
     // Get BailoutInfo pointer
     masm.loadPtr(Address(StackPointer, 0), a2);
