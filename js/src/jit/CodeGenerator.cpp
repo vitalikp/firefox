@@ -7880,7 +7880,8 @@ JitCode*
 JitRuntime::generateMallocStub(JSContext* cx)
 {
     const Register regReturn = CallTempReg0;
-    const Register regNBytes = CallTempReg0;
+    const Register regZone = CallTempReg0;
+    const Register regNBytes = CallTempReg1;
 
     MacroAssembler masm(cx);
 
@@ -7888,17 +7889,16 @@ JitRuntime::generateMallocStub(JSContext* cx)
 #ifdef JS_USE_LINK_REGISTER
     masm.pushReturnAddress();
 #endif
+    regs.takeUnchecked(regZone);
     regs.takeUnchecked(regNBytes);
     LiveRegisterSet save(regs.asLiveSet());
     masm.PushRegsInMask(save);
 
     const Register regTemp = regs.takeAnyGeneral();
-    const Register regRuntime = regTemp;
-    MOZ_ASSERT(regTemp != regNBytes);
+    MOZ_ASSERT(regTemp != regNBytes && regTemp != regZone);
 
     masm.setupUnalignedABICall(regTemp);
-    masm.movePtr(ImmPtr(cx->runtime()), regRuntime);
-    masm.passABIArg(regRuntime);
+    masm.passABIArg(regZone);
     masm.passABIArg(regNBytes);
     masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, MallocWrapper));
     masm.storeCallPointerResult(regReturn);

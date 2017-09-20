@@ -661,7 +661,7 @@ struct JSCompartment
     const JS::CompartmentBehaviors& behaviors() const { return behaviors_; }
 
     JSRuntime* runtimeFromActiveCooperatingThread() const {
-        MOZ_ASSERT(CurrentThreadCanAccessRuntime(runtime_));
+        MOZ_ASSERT(js::CurrentThreadCanAccessRuntime(runtime_));
         return runtime_;
     }
 
