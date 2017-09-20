@@ -1162,7 +1162,7 @@ GetScriptArrayObjectElements(JSContext* cx, HandleObject obj, MutableHandle<GCVe
 {
     MOZ_ASSERT(!obj->isSingleton());
     MOZ_ASSERT(obj->is<ArrayObject>() || obj->is<UnboxedArrayObject>());
-    MOZ_ASSERT(!obj->isIndexed());
+    MOZ_ASSERT_IF(obj->isNative(), !obj->as<NativeObject>().isIndexed());
 
     size_t length = GetAnyBoxedOrUnboxedArrayLength(obj);
     if (!values.appendN(MagicValue(JS_ELEMENTS_HOLE), length))
@@ -3512,7 +3512,6 @@ JSObject::dump(js::GenericPrinter& out) const
     out.put("flags:");
     if (obj->isDelegate()) out.put(" delegate");
     if (!obj->is<ProxyObject>() && !obj->nonProxyIsExtensible()) out.put(" not_extensible");
-    if (obj->isIndexed()) out.put(" indexed");
     if (obj->maybeHasInterestingSymbolProperty()) out.put(" maybe_has_interesting_symbol");
     if (obj->isBoundFunction()) out.put(" bound_function");
     if (obj->isQualifiedVarObj()) out.put(" varobj");
@@ -3521,8 +3520,6 @@ JSObject::dump(js::GenericPrinter& out) const
     if (obj->isIteratedSingleton()) out.put(" iterated_singleton");
     if (obj->isNewGroupUnknown()) out.put(" new_type_unknown");
     if (obj->hasUncacheableProto()) out.put(" has_uncacheable_proto");
-    if (obj->hadElementsAccess()) out.put(" had_elements_access");
-    if (obj->wasNewScriptCleared()) out.put(" new_script_cleared");
     if (obj->hasStaticPrototype() && obj->staticPrototypeIsImmutable())
         out.put(" immutable_prototype");
 
@@ -3532,6 +3529,12 @@ JSObject::dump(js::GenericPrinter& out) const
             out.put(" inDictionaryMode");
         if (nobj->hasShapeTable())
             out.put(" hasShapeTable");
+        if (nobj->hadElementsAccess())
+            out.put(" had_elements_access");
+        if (nobj->isIndexed())
+            out.put(" indexed");
+        if (nobj->wasNewScriptCleared())
+            out.put(" new_script_cleared");
     }
     out.putChar('\n');
 
