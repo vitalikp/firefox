@@ -17,7 +17,6 @@
 #include "jscompartment.h"
 #include "jswin.h"
 
-#include "gc/Zone.h"
 #include "vm/Runtime.h"
 
 namespace js {
