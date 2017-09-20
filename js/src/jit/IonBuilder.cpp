@@ -12066,9 +12066,11 @@ IonBuilder::setPropTryInlineAccess(bool* emitted, MDefinition* obj,
             current->add(MPostWriteBarrier::New(alloc(), obj, value));
 
         const UnboxedLayout::Property* property = group->unboxedLayout().lookup(name);
-        storeUnboxedProperty(obj, property->offset, property->type, value);
+        MInstruction* store = storeUnboxedProperty(obj, property->offset, property->type, value);
 
         current->push(value);
+
+        MOZ_TRY(resumeAfter(store));
 
         trackOptimizationOutcome(TrackedOutcome::Monomorphic);
         *emitted = true;
