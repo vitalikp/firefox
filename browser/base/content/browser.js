@@ -3390,7 +3390,7 @@ const DOMLinkHandler = {
         break;
 
       case "Link:SetIcon":
-        this.setIcon(aMsg.target, aMsg.data.url, aMsg.data.loadingPrincipal);
+        this.setIcon(aMsg.target, aMsg.data.url, aMsg.data.loadingPrincipal, aMsg.data.requestContextID);
         break;
 
       case "Link:AddSearch":
@@ -3399,7 +3399,7 @@ const DOMLinkHandler = {
     }
   },
 
-  setIcon(aBrowser, aURL, aLoadingPrincipal) {
+  setIcon(aBrowser, aURL, aLoadingPrincipal, aRequestContextID) {
     if (gBrowser.isFailedIcon(aURL))
       return false;
 
@@ -3407,7 +3407,7 @@ const DOMLinkHandler = {
     if (!tab)
       return false;
 
-    gBrowser.setIcon(tab, aURL, aLoadingPrincipal);
+    gBrowser.setIcon(tab, aURL, aLoadingPrincipal, aRequestContextID);
     return true;
   },
 

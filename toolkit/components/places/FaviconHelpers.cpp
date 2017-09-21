@@ -499,7 +499,9 @@ AsyncFetchAndSetIconForPage::AsyncFetchAndSetIconForPage(
 , bool aFaviconLoadPrivate
 , nsIFaviconDataCallback* aCallback
 , nsIPrincipal* aLoadingPrincipal
-) : mCallback(new nsMainThreadPtrHolder<nsIFaviconDataCallback>(
+, uint64_t aRequestContextID
+) : Runnable("places::AsyncFetchAndSetIconForPage")
+  , mCallback(new nsMainThreadPtrHolder<nsIFaviconDataCallback>(
       "AsyncFetchAndSetIconForPage::mCallback", aCallback))
   , mIcon(aIcon)
   , mPage(aPage)
@@ -507,6 +509,7 @@ AsyncFetchAndSetIconForPage::AsyncFetchAndSetIconForPage(
   , mLoadingPrincipal(new nsMainThreadPtrHolder<nsIPrincipal>(
       "AsyncFetchAndSetIconForPage::mLoadingPrincipal", aLoadingPrincipal))
   , mCanceled(false)
+  , mRequestContextID(aRequestContextID)
 {
   MOZ_ASSERT(NS_IsMainThread());
 }
@@ -583,6 +586,11 @@ AsyncFetchAndSetIconForPage::FetchFromNetwork() {
   nsCOMPtr<nsISupportsPriority> priorityChannel = do_QueryInterface(channel);
   if (priorityChannel) {
     priorityChannel->AdjustPriority(nsISupportsPriority::PRIORITY_LOWEST);
+  }
+
+  nsCOMPtr<nsIHttpChannel> httpChannel(do_QueryInterface(channel));
+  if (httpChannel) {
+    Unused << httpChannel->SetRequestContextID(mRequestContextID);
   }
 
   rv = channel->AsyncOpen2(this);
