@@ -167,6 +167,9 @@ var WebProgressListener = {
       json.principal = content.document.nodePrincipal;
       json.synthetic = content.document.mozSyntheticDocument;
       json.inLoadURI = WebNavigation.inLoadURI;
+      json.requestContextID = content.document.documentLoadGroup
+        ? content.document.documentLoadGroup.requestContextID
+        : null;
     }
 
     this._send("Content:LocationChange", json, objects);
