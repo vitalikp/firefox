@@ -5,6 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 DIRS += [
+    'build',
     'mozalloc',
     'fallible',
 ]
@@ -12,12 +13,8 @@ DIRS += [
 if not CONFIG['JS_STANDALONE']:
     DIRS += ['volatile']
 
-if CONFIG['MOZ_MEMORY']:
-    # NB: gtest dir is included in toolkit/toolkit.build due to its dependency
-    # on libxul.
-    DIRS += [
-        'build',
-    ]
+# NB: gtest dir is included in toolkit/toolkit.build due to its dependency
+# on libxul.
 
-    if CONFIG['MOZ_REPLACE_MALLOC']:
-        DIRS += ['replace']
+if CONFIG['MOZ_REPLACE_MALLOC']:
+    DIRS += ['replace']

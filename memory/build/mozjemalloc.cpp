@@ -5100,6 +5100,15 @@ MozJemalloc::jemalloc_free_dirty_pages(void)
   malloc_spin_unlock(&arenas_lock);
 }
 
+#define MALLOC_DECL(name, return_type, ...) \
+  template<> inline return_type \
+  MozJemalloc::name(ARGS_HELPER(TYPED_ARGS, ##__VA_ARGS__)) \
+  { \
+    return DummyArenaAllocator<MozJemalloc>::name(ARGS_HELPER(ARGS, ##__VA_ARGS__)); \
+  }
+#define MALLOC_FUNCS MALLOC_FUNCS_ARENA
+#include "malloc_decls.h"
+
 /*
  * End non-standard functions.
  */
@@ -5296,7 +5305,6 @@ init()
     } \
     return replace_malloc_table.name(ARGS_HELPER(ARGS, ##__VA_ARGS__)); \
   }
-#define MALLOC_FUNCS (MALLOC_FUNCS_MALLOC | MALLOC_FUNCS_JEMALLOC)
 #include "malloc_decls.h"
 
 MOZ_JEMALLOC_API struct ReplaceMallocBridge*
@@ -5343,6 +5351,13 @@ replace_malloc_init_funcs()
   if (!replace_malloc_table.valloc && replace_malloc_table.memalign) {
     replace_malloc_table.valloc = AlignedAllocator<ReplaceMalloc::memalign>::valloc;
   }
+  if (!replace_malloc_table.moz_create_arena && replace_malloc_table.malloc) {
+#define MALLOC_DECL(name, ...) \
+    replace_malloc_table.name = DummyArenaAllocator<ReplaceMalloc>::name;
+#define MALLOC_FUNCS MALLOC_FUNCS_ARENA
+#include "malloc_decls.h"
+  }
+
 #define MALLOC_DECL(name, ...) \
   if (!replace_malloc_table.name) { \
     replace_malloc_table.name = MozJemalloc::name; \
@@ -5372,7 +5387,7 @@ replace_malloc_init_funcs()
   GENERIC_MALLOC_DECL2(name, name, return_type, ##__VA_ARGS__)
 
 #define MALLOC_DECL(...) MOZ_JEMALLOC_API MACRO_CALL(GENERIC_MALLOC_DECL, (__VA_ARGS__))
-#define MALLOC_FUNCS MALLOC_FUNCS_JEMALLOC
+#define MALLOC_FUNCS (MALLOC_FUNCS_JEMALLOC | MALLOC_FUNCS_ARENA)
 #include "malloc_decls.h"
 /******************************************************************************/
 
