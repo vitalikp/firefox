@@ -2040,6 +2040,7 @@ imgLoader::LoadImageXPCOM(nsIURI* aURI,
                             aReferrerURI,
                             refpol,
                             aLoadingPrincipal,
+                            0,
                             aLoadGroup,
                             aObserver,
                             node,
@@ -2060,6 +2061,7 @@ imgLoader::LoadImage(nsIURI* aURI,
                      nsIURI* aReferrerURI,
                      ReferrerPolicy aReferrerPolicy,
                      nsIPrincipal* aLoadingPrincipal,
+                     uint64_t aRequestContextID,
                      nsILoadGroup* aLoadGroup,
                      imgINotificationObserver* aObserver,
                      nsINode *aContext,
@@ -2217,8 +2219,18 @@ imgLoader::LoadImage(nsIURI* aURI,
             " [request=%p]\n", this, request.get()));
 
     nsCOMPtr<nsIClassOfService> cos(do_QueryInterface(newChannel));
-    if (cos && aUseUrgentStartForChannel) {
-      cos->AddClassFlags(nsIClassOfService::UrgentStart);
+    if (cos) {
+      if (aUseUrgentStartForChannel) {
+        cos->AddClassFlags(nsIClassOfService::UrgentStart);
+      }
+
+      if (aContentPolicyType == nsIContentPolicy::TYPE_INTERNAL_IMAGE_FAVICON) {
+        cos->AddClassFlags(nsIClassOfService::Throttleable);
+        nsCOMPtr<nsIHttpChannel> httpChannel(do_QueryInterface(newChannel));
+        if (httpChannel) {
+          Unused << httpChannel->SetRequestContextID(aRequestContextID);
+        }
+      }
     }
 
     nsCOMPtr<nsILoadGroup> channelLoadGroup;
