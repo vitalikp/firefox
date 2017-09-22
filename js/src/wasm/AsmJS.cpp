@@ -1868,7 +1868,7 @@ class MOZ_STACK_CLASS ModuleValidator
             return false;
         }
 
-        return mg_.init(asmJSMetadata_.get());
+        return mg_.init(/* codeSectionSize (ignored) = */ 0, asmJSMetadata_.get());
     }
 
     JSContext* cx() const                    { return cx_; }

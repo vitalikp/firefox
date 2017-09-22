@@ -747,16 +747,11 @@ class MIPSBufferWithExecutableCopy : public MIPSBuffer
         }
     }
 
-    bool appendBuffer(const MIPSBufferWithExecutableCopy& other) {
+    bool appendRawCode(const uint8_t* code, size_t numBytes) {
         if (this->oom())
             return false;
-
-        for (Slice* cur = other.head; cur != nullptr; cur = cur->getNext()) {
-            this->putBytes(cur->length(), &cur->instructions);
-            if (this->oom())
-                return false;
-        }
-        return true;
+        this->putBytes(numBytes, code);
+        return !this->oom();
     }
 };
 
@@ -917,7 +912,7 @@ class AssemblerMIPSShared : public AssemblerShared
     bool isFinished;
   public:
     void finish();
-    bool asmMergeWith(const AssemblerMIPSShared& other);
+    bool appendRawCode(const uint8_t* code, size_t numBytes);
     void executableCopy(void* buffer, bool flushICache = true);
     void copyJumpRelocationTable(uint8_t* dest);
     void copyDataRelocationTable(uint8_t* dest);

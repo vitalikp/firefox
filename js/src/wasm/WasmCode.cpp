@@ -199,8 +199,6 @@ CodeSegment::create(Tier tier,
     uint32_t padding = ComputeByteAlignment(bytesNeeded, gc::SystemPageSize());
     uint32_t codeLength = bytesNeeded + padding;
 
-    MOZ_ASSERT(linkData.functionCodeLength < codeLength);
-
     UniqueCodeBytes codeBytes = AllocateCodeBytes(codeLength);
     if (!codeBytes)
         return nullptr;
@@ -268,10 +266,12 @@ CodeSegment::initialize(Tier tier,
                         const Metadata& metadata)
 {
     MOZ_ASSERT(bytes_ == nullptr);
+    MOZ_ASSERT(linkData.interruptOffset);
+    MOZ_ASSERT(linkData.outOfBoundsOffset);
+    MOZ_ASSERT(linkData.unalignedAccessOffset);
 
     tier_ = tier;
     bytes_ = Move(codeBytes);
-    functionLength_ = linkData.functionCodeLength;
     length_ = codeLength;
     interruptCode_ = bytes_.get() + linkData.interruptOffset;
     outOfBoundsCode_ = bytes_.get() + linkData.outOfBoundsOffset;
@@ -625,14 +625,20 @@ struct ProjectFuncIndex
     }
 };
 
-const FuncExport&
-MetadataTier::lookupFuncExport(uint32_t funcIndex) const
+FuncExport&
+MetadataTier::lookupFuncExport(uint32_t funcIndex)
 {
     size_t match;
     if (!BinarySearch(ProjectFuncIndex(funcExports), 0, funcExports.length(), funcIndex, &match))
         MOZ_CRASH("missing function export");
 
     return funcExports[match];
+}
+
+const FuncExport&
+MetadataTier::lookupFuncExport(uint32_t funcIndex) const
+{
+    return const_cast<MetadataTier*>(this)->lookupFuncExport(funcIndex);
 }
 
 bool
@@ -730,20 +736,6 @@ Code::segment(Tier tier) const
       default:
         MOZ_CRASH();
     }
-}
-
-bool
-Code::containsFunctionPC(const void* pc, const CodeSegment** segmentp) const
-{
-    for (auto t : tiers()) {
-        const CodeSegment& cs = segment(t);
-        if (cs.containsFunctionPC(pc)) {
-            if (segmentp)
-                *segmentp = &cs;
-            return true;
-        }
-    }
-    return false;
 }
 
 bool
@@ -868,7 +860,7 @@ Code::lookupMemoryAccess(void* pc, const CodeSegment** segmentp) const
         if (BinarySearch(MemoryAccessOffset(memoryAccesses), lowerBound, upperBound, target,
                          &match))
         {
-            MOZ_ASSERT(segment(t).containsFunctionPC(pc));
+            MOZ_ASSERT(segment(t).containsCodePC(pc));
             if (segmentp)
                 *segmentp = &segment(t);
             return &memoryAccesses[match];
