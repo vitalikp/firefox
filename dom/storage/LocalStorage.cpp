@@ -152,7 +152,7 @@ LocalStorage::RemoveItem(const nsAString& aKey, nsIPrincipal& aSubjectPrincipal,
   }
 
   if (!aRv.ErrorCodeIs(NS_SUCCESS_DOM_NO_OPERATION)) {
-    BroadcastChangeNotification(aKey, old, NullString());
+    BroadcastChangeNotification(aKey, old, VoidString());
   }
 }
 
@@ -170,7 +170,7 @@ LocalStorage::Clear(nsIPrincipal& aSubjectPrincipal, ErrorResult& aRv)
   }
 
   if (!aRv.ErrorCodeIs(NS_SUCCESS_DOM_NO_OPERATION)) {
-    BroadcastChangeNotification(NullString(), NullString(), NullString());
+    BroadcastChangeNotification(VoidString(), VoidString(), VoidString());
   }
 }
 

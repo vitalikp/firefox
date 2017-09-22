@@ -45,7 +45,7 @@ public:
                                   JSObject* options = nullptr)
         : OptionsBase(cx, options)
         , target(cx)
-        , charset(NullString())
+        , charset(VoidString())
         , ignoreCache(false)
         , async(false)
         , wantReturnValue(false)

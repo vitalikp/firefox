@@ -462,7 +462,7 @@ protected:
   {
   }
 
-  friend const nsTString_CharT& TNullString_CharT();
+  friend const nsTString_CharT& TVoidString_CharT();
 
   // Used by Null[C]String.
   explicit nsTString_CharT(DataFlags aDataFlags)

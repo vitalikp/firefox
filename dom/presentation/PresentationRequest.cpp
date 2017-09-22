@@ -138,7 +138,7 @@ PresentationRequest::WrapObject(JSContext* aCx,
 already_AddRefed<Promise>
 PresentationRequest::Start(ErrorResult& aRv)
 {
-  return StartWithDevice(NullString(), aRv);
+  return StartWithDevice(VoidString(), aRv);
 }
 
 already_AddRefed<Promise>

@@ -671,7 +671,7 @@ private:
   AppInfo mAppInfo;
 
   bool mIsForBrowser;
-  nsString mRemoteType = NullString();
+  nsString mRemoteType = VoidString();
   bool mIsAlive;
   nsString mProcessName;
 

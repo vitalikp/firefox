@@ -1889,7 +1889,7 @@ ServiceWorkerPrivate::SpawnWorkerIfNeeded(WakeUpReason aWhy,
   mWorkerPrivate = WorkerPrivate::Constructor(jsapi.cx(),
                                               scriptSpec,
                                               false, WorkerTypeService,
-                                              NullString(),
+                                              VoidString(),
                                               mInfo->Scope(),
                                               &info, error);
   if (NS_WARN_IF(error.Failed())) {

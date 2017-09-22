@@ -460,7 +460,7 @@ nsSHEntry::Create(nsIURI* aURI, const nsAString& aTitle,
   mShared->mExpired = false;
 
   mIsSrcdocEntry = false;
-  mSrcdocData = NullString();
+  mSrcdocData = VoidString();
 
   return NS_OK;
 }

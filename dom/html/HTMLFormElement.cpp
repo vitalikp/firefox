@@ -834,7 +834,7 @@ HTMLFormElement::SubmitSubmission(HTMLFormSubmission* aFormSubmission)
 
     rv = linkHandler->OnLinkClickSync(this, actionURI,
                                       target.get(),
-                                      NullString(),
+                                      VoidString(),
                                       postDataStream, nullptr, false,
                                       getter_AddRefs(docShell),
                                       getter_AddRefs(mSubmittingRequest));

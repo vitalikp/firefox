@@ -304,7 +304,7 @@ inline nsCString
 NullableString(const char* aString)
 {
     if (!aString) {
-        return NullCString();
+        return VoidCString();
     }
     return nsCString(aString);
 }

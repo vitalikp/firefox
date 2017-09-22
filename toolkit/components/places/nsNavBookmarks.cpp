@@ -896,10 +896,9 @@ nsNavBookmarks::InsertSeparator(int64_t aParent,
   }
 
   *aNewItemId = -1;
-  // Set a NULL title rather than an empty string.
   nsAutoCString guid(aGUID);
   PRTime dateAdded = RoundedPRNow();
-  rv = InsertBookmarkInDB(-1, SEPARATOR, aParent, index, NullCString(), dateAdded,
+  rv = InsertBookmarkInDB(-1, SEPARATOR, aParent, index, VoidCString(), dateAdded,
                           0, folderGuid, grandParentId, nullptr, aSource,
                           aNewItemId, guid);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -910,7 +909,7 @@ nsNavBookmarks::InsertSeparator(int64_t aParent,
   NOTIFY_BOOKMARKS_OBSERVERS(mCanNotify, mCacheObservers, mObservers,
                              DontSkip,
                              OnItemAdded(*aNewItemId, aParent, index, TYPE_SEPARATOR,
-                                         nullptr, NullCString(), dateAdded, guid,
+                                         nullptr, VoidCString(), dateAdded, guid,
                                          folderGuid, aSource));
 
   return NS_OK;
