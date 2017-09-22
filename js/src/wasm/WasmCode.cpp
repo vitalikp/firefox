@@ -561,8 +561,7 @@ Metadata::serializedSize() const
            SerializedPodVectorSize(tables) +
            SerializedPodVectorSize(funcNames) +
            SerializedPodVectorSize(customSections) +
-           filename.serializedSize() +
-           sizeof(hash);
+           filename.serializedSize();
 }
 
 size_t
@@ -594,7 +593,6 @@ Metadata::serialize(uint8_t* cursor) const
     cursor = SerializePodVector(cursor, funcNames);
     cursor = SerializePodVector(cursor, customSections);
     cursor = filename.serialize(cursor);
-    cursor = WriteBytes(cursor, hash, sizeof(hash));
     return cursor;
 }
 
@@ -608,8 +606,7 @@ Metadata::deserialize(const uint8_t* cursor)
     (cursor = DeserializePodVector(cursor, &tables)) &&
     (cursor = DeserializePodVector(cursor, &funcNames)) &&
     (cursor = DeserializePodVector(cursor, &customSections)) &&
-    (cursor = filename.deserialize(cursor)) &&
-    (cursor = ReadBytes(cursor, hash, sizeof(hash)));
+    (cursor = filename.deserialize(cursor));
     debugEnabled = false;
     debugFuncArgTypes.clear();
     debugFuncReturnTypes.clear();
