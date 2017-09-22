@@ -1984,8 +1984,8 @@ JSStructuredCloneReader::readSharedArrayBuffer(uint32_t nbytes, MutableHandleVal
         return false;
     }
 
-    JSObject* obj = SharedArrayBufferObject::New(context(), rawbuf);
-
+    SharedArrayRawBuffer::Lock l(rawbuf);
+    JSObject* obj = SharedArrayBufferObject::New(context(), rawbuf, rawbuf->byteLength(l));
     if (!obj) {
         rawbuf->dropReference();
         return false;
