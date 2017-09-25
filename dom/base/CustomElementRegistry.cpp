@@ -938,7 +938,7 @@ DoUpgrade(Element* aElement,
 } // anonymous namespace
 
 // https://html.spec.whatwg.org/multipage/scripting.html#upgrades
-void
+/* static */ void
 CustomElementRegistry::Upgrade(Element* aElement,
                                CustomElementDefinition* aDefinition,
                                ErrorResult& aRv)
@@ -976,8 +976,10 @@ CustomElementRegistry::Upgrade(Element* aElement,
           (attrValue.IsEmpty() ? VoidString() : attrValue),
           (namespaceURI.IsEmpty() ? VoidString() : namespaceURI)
         };
-        EnqueueLifecycleCallback(nsIDocument::eAttributeChanged, aElement,
-                                 &args, aDefinition);
+        nsContentUtils::EnqueueLifecycleCallback(aElement->OwnerDoc(),
+                                                 nsIDocument::eAttributeChanged,
+                                                 aElement,
+                                                 &args, aDefinition);
       }
     }
   }
@@ -1002,7 +1004,9 @@ CustomElementRegistry::Upgrade(Element* aElement,
   data->mState = CustomElementData::State::eCustom;
 
   // This is for old spec.
-  EnqueueLifecycleCallback(nsIDocument::eCreated, aElement, nullptr, aDefinition);
+  nsContentUtils::EnqueueLifecycleCallback(aElement->OwnerDoc(),
+                                           nsIDocument::eCreated,
+                                           aElement, nullptr, aDefinition);
 }
 
 //-----------------------------------------------------
