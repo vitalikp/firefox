@@ -7775,12 +7775,10 @@ private:
   void
   SendResults() override;
 
-#ifdef ENABLE_INTL_API
   static nsresult
   UpdateLocaleAwareIndex(mozIStorageConnection* aConnection,
                          const IndexMetadata& aIndexMetadata,
                          const nsCString& aLocale);
-#endif
 };
 
 class OpenDatabaseOp::VersionChangeOp final
@@ -20064,9 +20062,6 @@ DatabaseOperationBase::BindKeyRangeToStatement(
                                             mozIStorageStatement* aStatement,
                                             const nsCString& aLocale)
 {
-#ifndef ENABLE_INTL_API
-  return BindKeyRangeToStatement(aKeyRange, aStatement);
-#else
   MOZ_ASSERT(!IsOnBackgroundThread());
   MOZ_ASSERT(aStatement);
   MOZ_ASSERT(!aLocale.IsEmpty());
@@ -20104,7 +20099,6 @@ DatabaseOperationBase::BindKeyRangeToStatement(
   }
 
   return NS_OK;
-#endif
 }
 
 // static
@@ -22189,7 +22183,6 @@ OpenDatabaseOp::LoadDatabaseInformation(mozIStorageConnection* aConnection)
 
     indexMetadata->mCommonMetadata.multiEntry() = !!scratch;
 
-#ifdef ENABLE_INTL_API
     const bool localeAware = !stmt->IsNull(6);
     if (localeAware) {
       rv = stmt->GetUTF8String(6, indexMetadata->mCommonMetadata.locale());
@@ -22219,7 +22212,6 @@ OpenDatabaseOp::LoadDatabaseInformation(mozIStorageConnection* aConnection)
         }
       }
     }
-#endif
 
     if (NS_WARN_IF(!objectStoreMetadata->mIndexes.Put(indexId, indexMetadata,
                                                       fallible))) {
@@ -22245,7 +22237,6 @@ OpenDatabaseOp::LoadDatabaseInformation(mozIStorageConnection* aConnection)
   return NS_OK;
 }
 
-#ifdef ENABLE_INTL_API
 /* static */
 nsresult
 OpenDatabaseOp::UpdateLocaleAwareIndex(mozIStorageConnection* aConnection,
@@ -22363,7 +22354,6 @@ OpenDatabaseOp::UpdateLocaleAwareIndex(mozIStorageConnection* aConnection,
   rv = metaStmt->Execute();
   return rv;
 }
-#endif
 
 nsresult
 OpenDatabaseOp::BeginVersionChange()
@@ -28182,15 +28172,12 @@ OpenOp::GetRangeKeyInfo(bool aLowerBound, Key* aKey, bool* aOpen)
     if (range.isOnly()) {
       *aKey = range.lower();
       *aOpen = false;
-#ifdef ENABLE_INTL_API
       if (mCursor->IsLocaleAware()) {
         range.lower().ToLocaleBasedKey(*aKey, mCursor->mLocale);
       }
-#endif
     } else {
       *aKey = aLowerBound ? range.lower() : range.upper();
       *aOpen = aLowerBound ? range.lowerOpen() : range.upperOpen();
-#ifdef ENABLE_INTL_API
       if (mCursor->IsLocaleAware()) {
         if (aLowerBound) {
           range.lower().ToLocaleBasedKey(*aKey, mCursor->mLocale);
@@ -28198,7 +28185,6 @@ OpenOp::GetRangeKeyInfo(bool aLowerBound, Key* aKey, bool* aOpen)
           range.upper().ToLocaleBasedKey(*aKey, mCursor->mLocale);
         }
       }
-#endif
     }
   } else {
     *aOpen = false;
