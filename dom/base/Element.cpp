@@ -1604,13 +1604,11 @@ Element::BindToTree(nsIDocument* aDocument, nsIContent* aParent,
     SetSubtreeRootPointer(aParent->SubtreeRoot());
   }
 
-  nsIDocument* composedDoc = GetComposedDoc();
-  if (CustomElementRegistry::IsCustomElementEnabled() && composedDoc) {
+  if (CustomElementRegistry::IsCustomElementEnabled() && IsInComposedDoc()) {
     // Connected callback must be enqueued whenever a custom element becomes
     // connected.
     if (GetCustomElementData()) {
-      nsContentUtils::EnqueueLifecycleCallback(
-        composedDoc, nsIDocument::eConnected, this);
+      nsContentUtils::EnqueueLifecycleCallback(nsIDocument::eConnected, this);
     }
   }
 
@@ -1906,8 +1904,7 @@ Element::UnbindFromTree(bool aDeep, bool aNullParent)
     // the document and this document has a browsing context.
     if (GetCustomElementData() && document->GetDocShell()) {
       // Enqueue a detached callback for the custom element.
-      nsContentUtils::EnqueueLifecycleCallback(
-        document, nsIDocument::eDetached, this);
+      nsContentUtils::EnqueueLifecycleCallback(nsIDocument::eDetached, this);
     }
   }
 
@@ -2608,7 +2605,7 @@ Element::SetAttrAndNotify(int32_t aNamespaceID,
         };
 
         nsContentUtils::EnqueueLifecycleCallback(
-          OwnerDoc(), nsIDocument::eAttributeChanged, this, &args, definition);
+          nsIDocument::eAttributeChanged, this, &args, definition);
       }
     }
   }
@@ -2907,7 +2904,7 @@ Element::UnsetAttr(int32_t aNameSpaceID, nsIAtom* aName,
         };
 
         nsContentUtils::EnqueueLifecycleCallback(
-          OwnerDoc(), nsIDocument::eAttributeChanged, this, &args, definition);
+          nsIDocument::eAttributeChanged, this, &args, definition);
       }
     }
   }
