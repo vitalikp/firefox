@@ -1444,9 +1444,6 @@ XPCWrappedNativeXrayTraits::resolveNativeProperty(JSContext* cx, HandleObject wr
         if (member->IsWritableAttribute())
             attrs |= JSPROP_SETTER;
 
-        // Make the property shared on the holder so no slot is allocated
-        // for it. This avoids keeping garbage alive through that slot.
-        attrs |= JSPROP_SHARED;
         desc.setAttributes(attrs);
     } else {
         // This is a method. Clone a function for it.
@@ -1553,7 +1550,7 @@ XrayTraits::resolveOwnProperty(JSContext* cx, const Wrapper& jsWrapper,
         if (!JS_AlreadyHasOwnPropertyById(cx, holder, id, &found))
             return false;
         if (!found && !JS_DefinePropertyById(cx, holder, id, wrappedJSObject_getter, nullptr,
-                                             JSPROP_ENUMERATE | JSPROP_SHARED)) {
+                                             JSPROP_ENUMERATE)) {
             return false;
         }
         if (!JS_GetOwnPropertyDescriptorById(cx, holder, id, desc))
