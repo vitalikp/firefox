@@ -2413,13 +2413,13 @@ bool
 HasPropIRGenerator::tryAttachProxyElement(HandleObject obj, ObjOperandId objId,
                                           ValOperandId keyId)
 {
-    MOZ_ASSERT(cacheKind_ == CacheKind::HasOwn);
+    bool hasOwn = (cacheKind_ == CacheKind::HasOwn);
 
     if (!obj->is<ProxyObject>())
         return false;
 
     writer.guardIsProxy(objId);
-    writer.callProxyHasOwnResult(objId, keyId);
+    writer.callProxyHasPropResult(objId, keyId, hasOwn);
     writer.returnFromIC();
 
     trackAttached("ProxyHasProp");
@@ -2445,11 +2445,9 @@ HasPropIRGenerator::tryAttachStub()
     RootedObject obj(cx_, &val_.toObject());
     ObjOperandId objId = writer.guardIsObject(valId);
 
-    // Optimize DOM Proxies for JSOP_HASOWN
-    if (cacheKind_ == CacheKind::HasOwn) {
-        if (tryAttachProxyElement(obj, objId, keyId))
-            return true;
-    }
+    // Optimize Proxies
+    if (tryAttachProxyElement(obj, objId, keyId))
+        return true;
 
     RootedId id(cx_);
     bool nameOrSymbol;
