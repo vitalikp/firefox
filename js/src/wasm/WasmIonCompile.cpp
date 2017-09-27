@@ -2039,14 +2039,19 @@ EmitCallArgs(FunctionCompiler& f, const Sig& sig, const DefVector& args, CallCom
 }
 
 static bool
-EmitCall(FunctionCompiler& f)
+EmitCall(FunctionCompiler& f, bool asmJSFuncDef)
 {
     uint32_t lineOrBytecode = f.readCallSiteLineOrBytecode();
 
     uint32_t funcIndex = 0;
     DefVector args;
-    if (!f.iter().readCall(&funcIndex, &args))
-        return false;
+    if (asmJSFuncDef) {
+        if (!f.iter().readOldCallDirect(f.env().numFuncImports(), &funcIndex, &args))
+            return false;
+    } else {
+        if (!f.iter().readCall(&funcIndex, &args))
+            return false;
+    }
 
     if (f.inDeadCode())
         return true;
@@ -3331,7 +3336,7 @@ EmitBodyExprs(FunctionCompiler& f)
 
           // Calls
           case uint16_t(Op::Call):
-            CHECK(EmitCall(f));
+            CHECK(EmitCall(f, /* asmJSFuncDef = */ false));
           case uint16_t(Op::CallIndirect):
             CHECK(EmitCallIndirect(f, /* oldStyle = */ false));
 
@@ -3727,6 +3732,8 @@ EmitBodyExprs(FunctionCompiler& f)
                 CHECK_ASMJS(EmitBinaryMathBuiltinCall(f, SymbolicAddress::PowD, ValType::F64));
               case uint16_t(MozOp::F64Atan2):
                 CHECK_ASMJS(EmitBinaryMathBuiltinCall(f, SymbolicAddress::ATan2D, ValType::F64));
+              case uint16_t(MozOp::OldCallDirect):
+                CHECK_ASMJS(EmitCall(f, /* asmJSFuncDef = */ true));
               case uint16_t(MozOp::OldCallIndirect):
                 CHECK_ASMJS(EmitCallIndirect(f, /* oldStyle = */ true));
 
