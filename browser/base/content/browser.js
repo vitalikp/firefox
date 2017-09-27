@@ -3407,7 +3407,12 @@ const DOMLinkHandler = {
     if (!tab)
       return false;
 
-    gBrowser.setIcon(tab, aURL, aLoadingPrincipal, aRequestContextID);
+    let loadingPrincipal = aLoadingPrincipal ||
+                           Services.scriptSecurityManager.getSystemPrincipal();
+    if (aURL) {
+      gBrowser.storeIcon(aBrowser, aURL, loadingPrincipal, aRequestContextID);
+    }
+    gBrowser.setIcon(tab, aURL, loadingPrincipal, aRequestContextID);
     return true;
   },
 
