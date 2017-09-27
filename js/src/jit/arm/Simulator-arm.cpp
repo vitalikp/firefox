@@ -1538,14 +1538,14 @@ Simulator::exclusiveMonitorClear()
 }
 
 void
-Simulator::startInterrupt(WasmActivation* activation)
+Simulator::startWasmInterrupt(JitActivation* activation)
 {
     JS::ProfilingFrameIterator::RegisterState state;
     state.pc = (void*) get_pc();
     state.fp = (void*) get_register(fp);
     state.sp = (void*) get_register(sp);
     state.lr = (void*) get_register(lr);
-    activation->startInterrupt(state);
+    activation->startWasmInterrupt(state);
 }
 
 // The signal handler only redirects the PC to the interrupt stub when the PC is
@@ -1567,7 +1567,7 @@ Simulator::handleWasmInterrupt()
     if (!fp)
         return;
 
-    startInterrupt(wasm::ActivationIfInnermost(cx_));
+    startWasmInterrupt(cx_->activation()->asJit());
     set_pc(int32_t(cs->interruptCode()));
 }
 
@@ -1580,9 +1580,9 @@ Simulator::handleWasmInterrupt()
 bool
 Simulator::handleWasmFault(int32_t addr, unsigned numBytes)
 {
-    WasmActivation* act = wasm::ActivationIfInnermost(cx_);
-    if (!act)
+    if (!cx_->activation() || !cx_->activation()->isJit())
         return false;
+    JitActivation* act = cx_->activation()->asJit();
 
     void* pc = reinterpret_cast<void*>(get_pc());
     uint8_t* fp = reinterpret_cast<uint8_t*>(get_register(r11));
@@ -1600,7 +1600,7 @@ Simulator::handleWasmFault(int32_t addr, unsigned numBytes)
     const wasm::CodeSegment* segment;
     const wasm::MemoryAccess* memoryAccess = instance->code().lookupMemoryAccess(pc, &segment);
     if (!memoryAccess) {
-        startInterrupt(act);
+        startWasmInterrupt(act);
         if (!instance->code().containsCodePC(pc, &segment))
             MOZ_CRASH("Cannot map PC to trap handler");
         set_pc(int32_t(segment->outOfBoundsCode()));

@@ -375,7 +375,11 @@ struct JSContext : public JS::RootingContext,
     }
     static size_t offsetOfProfilingActivation() {
         return offsetof(JSContext, profilingActivation_);
-     }
+    }
+
+    static size_t offsetOfJitActivation() {
+        return offsetof(JSContext, jitActivation);
+    }
 
   private:
     /* Space for interpreter frames. */
