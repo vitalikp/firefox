@@ -1488,18 +1488,6 @@ ObjectGroup::allocationSiteGroup(JSContext* cx, JSScript* scriptArg, jsbytecode*
         }
     }
 
-    if (kind == JSProto_Array &&
-        (JSOp(*pc) == JSOP_NEWARRAY || IsCallPC(pc)) &&
-        cx->options().unboxedArrays())
-    {
-        PreliminaryObjectArrayWithTemplate* preliminaryObjects =
-            cx->new_<PreliminaryObjectArrayWithTemplate>(nullptr);
-        if (preliminaryObjects)
-            res->setPreliminaryObjects(preliminaryObjects);
-        else
-            cx->recoverFromOutOfMemory();
-    }
-
     if (!table->add(p, key, res)) {
         ReportOutOfMemory(cx);
         return nullptr;
@@ -1724,15 +1712,6 @@ ObjectGroupCompartment::getStringSplitStringGroup(JSContext* cx)
     group = makeGroup(cx, clasp, tagged, /* initialFlags = */ 0);
     if (!group)
         return nullptr;
-
-    if (cx->options().unboxedArrays()) {
-        PreliminaryObjectArrayWithTemplate* preliminaryObjects =
-            cx->new_<PreliminaryObjectArrayWithTemplate>(nullptr);
-        if (preliminaryObjects)
-            group->setPreliminaryObjects(preliminaryObjects);
-        else
-            cx->recoverFromOutOfMemory();
-    }
 
     groups.stringSplitStringGroup.set(group);
     return group;

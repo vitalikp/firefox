@@ -1154,7 +1154,6 @@ class JS_PUBLIC_API(ContextOptions) {
         wasmIon_(false),
         throwOnAsmJSValidationFailure_(false),
         nativeRegExp_(true),
-        unboxedArrays_(false),
         asyncStack_(true),
         throwOnDebuggeeWouldRun_(true),
         dumpStackOnDebuggeeWouldRun_(false),
@@ -1255,12 +1254,6 @@ class JS_PUBLIC_API(ContextOptions) {
         return *this;
     }
 
-    bool unboxedArrays() const { return unboxedArrays_; }
-    ContextOptions& setUnboxedArrays(bool flag) {
-        unboxedArrays_ = flag;
-        return *this;
-    }
-
     bool asyncStack() const { return asyncStack_; }
     ContextOptions& setAsyncStack(bool flag) {
         asyncStack_ = flag;
@@ -1332,7 +1325,6 @@ class JS_PUBLIC_API(ContextOptions) {
     bool wasmIon_ : 1;
     bool throwOnAsmJSValidationFailure_ : 1;
     bool nativeRegExp_ : 1;
-    bool unboxedArrays_ : 1;
     bool asyncStack_ : 1;
     bool throwOnDebuggeeWouldRun_ : 1;
     bool dumpStackOnDebuggeeWouldRun_ : 1;
