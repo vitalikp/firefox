@@ -182,11 +182,9 @@ SendCodeRangesToProfiler(const CodeSegment& cs, const Bytes& bytecode, const Met
             vtune::MarkWasm(vtune::GenerateUniqueMethodID(), name.begin(), (void*)start, size);
 #endif
     }
-
-    return;
 }
 
-/* static */ UniqueConstCodeSegment
+/* static */ UniqueCodeSegment
 CodeSegment::create(Tier tier,
                     MacroAssembler& masm,
                     const ShareableBytes& bytecode,
@@ -212,7 +210,7 @@ CodeSegment::create(Tier tier,
     return create(tier, Move(codeBytes), codeLength, bytecode, linkData, metadata);
 }
 
-/* static */ UniqueConstCodeSegment
+/* static */ UniqueCodeSegment
 CodeSegment::create(Tier tier,
                     const Bytes& unlinkedBytes,
                     const ShareableBytes& bytecode,
@@ -234,7 +232,7 @@ CodeSegment::create(Tier tier,
     return create(tier, Move(codeBytes), codeLength, bytecode, linkData, metadata);
 }
 
-/* static */ UniqueConstCodeSegment
+/* static */ UniqueCodeSegment
 CodeSegment::create(Tier tier,
                     UniqueCodeBytes codeBytes,
                     uint32_t codeLength,
@@ -254,7 +252,7 @@ CodeSegment::create(Tier tier,
     if (!cs->initialize(tier, Move(codeBytes), codeLength, bytecode, linkData, metadata))
         return nullptr;
 
-    return UniqueConstCodeSegment(cs.release());
+    return UniqueCodeSegment(cs.release());
 }
 
 bool
@@ -668,12 +666,12 @@ Metadata::getFuncName(const Bytes* maybeBytecode, uint32_t funcIndex, UTF8Bytes*
            name->append(afterFuncIndex, strlen(afterFuncIndex));
 }
 
-Code::Code(UniqueConstCodeSegment tier, const Metadata& metadata, UniqueJumpTable maybeJumpTable)
-  : segment1_(Move(tier)),
-    metadata_(&metadata),
+Code::Code(UniqueCodeSegment tier, const Metadata& metadata, UniqueJumpTable maybeJumpTable)
+  : metadata_(&metadata),
     profilingLabels_(mutexid::WasmCodeProfilingLabels, CacheableCharsVector()),
     jumpTable_(Move(maybeJumpTable))
 {
+    segment1_ = takeOwnership(Move(tier));
 }
 
 Code::Code()
@@ -682,11 +680,11 @@ Code::Code()
 }
 
 void
-Code::setTier2(UniqueConstCodeSegment segment) const
+Code::setTier2(UniqueCodeSegment segment) const
 {
     MOZ_RELEASE_ASSERT(segment->tier() == Tier::Ion && segment1_->tier() != Tier::Ion);
     MOZ_RELEASE_ASSERT(!segment2_.get());
-    segment2_ = Move(segment);
+    segment2_ = takeOwnership(Move(segment));
 }
 
 Tiers
@@ -790,11 +788,12 @@ Code::deserialize(const uint8_t* cursor, const SharedBytes& bytecode, const Link
     if (!codeSegment)
         return nullptr;
 
-    cursor = codeSegment->deserialize(cursor, *bytecode, linkData.linkData(Tier::Serialized), metadata);
+    cursor = codeSegment->deserialize(cursor, *bytecode, linkData.linkData(Tier::Serialized),
+                                      metadata);
     if (!cursor)
         return nullptr;
 
-    segment1_ = UniqueConstCodeSegment(codeSegment.release());
+    segment1_ = takeOwnership(Move(codeSegment));
     metadata_ = &metadata;
 
     return cursor;
@@ -822,16 +821,13 @@ Code::lookupCallSite(void* returnAddress, const CodeSegment** segmentp) const
 }
 
 const CodeRange*
-Code::lookupRange(void* pc, const CodeSegment** segmentp) const
+Code::lookupRange(void* pc) const
 {
     for (auto t : tiers()) {
         CodeRange::OffsetInCode target((uint8_t*)pc - segment(t).base());
         const CodeRange* result = LookupInSorted(metadata(t).codeRanges, target);
-        if (result) {
-            if (segmentp)
-                *segmentp = &segment(t);
+        if (result)
             return result;
-        }
     }
 
     return nullptr;
