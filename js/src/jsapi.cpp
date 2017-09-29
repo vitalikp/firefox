@@ -3683,7 +3683,7 @@ CloneFunctionObject(JSContext* cx, HandleObject funobj, HandleObject env, Handle
         return nullptr;
     }
 
-    if (IsAsmJSModule(fun)) {
+    if (IsAsmJSModule(fun) || wasm::IsExportedFunction(fun)) {
         JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr, JSMSG_CANT_CLONE_OBJECT);
         return nullptr;
     }
