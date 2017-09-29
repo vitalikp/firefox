@@ -835,6 +835,11 @@ xNextSystemCall(sqlite3_vfs *vfs, const char *zName)
 namespace mozilla {
 namespace storage {
 
+const char *GetVFSName()
+{
+  return "telemetry-vfs";
+}
+
 sqlite3_vfs* ConstructTelemetryVFS()
 {
 #if defined(XP_WIN)
@@ -868,7 +873,7 @@ sqlite3_vfs* ConstructTelemetryVFS()
   MOZ_ASSERT(vfs->iVersion <= LAST_KNOWN_VFS_VERSION);
   tvfs->szOsFile = sizeof(telemetry_file) - sizeof(sqlite3_file) + vfs->szOsFile;
   tvfs->mxPathname = vfs->mxPathname;
-  tvfs->zName = "telemetry-vfs";
+  tvfs->zName = GetVFSName();
   tvfs->pAppData = vfs;
   tvfs->xOpen = xOpen;
   tvfs->xDelete = xDelete;
