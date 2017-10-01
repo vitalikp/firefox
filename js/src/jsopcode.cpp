@@ -2063,9 +2063,6 @@ ExpressionDecompiler::decompilePC(jsbytecode* pc, uint8_t defIndex)
           case JSOP_RESUME:
             return write("RVAL");
 
-          case JSOP_SPREADCALLARRAY:
-            return write("[]");
-
           case JSOP_SUPERBASE:
             return write("HOMEOBJECTPROTO");
 
