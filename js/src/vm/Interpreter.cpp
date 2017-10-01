@@ -4964,7 +4964,7 @@ js::NewObjectOperation(JSContext* cx, HandleScript script, jsbytecode* pc,
             return UnboxedPlainObject::create(cx, group, newKind);
     }
 
-    RootedObject obj(cx);
+    RootedPlainObject obj(cx);
 
     if (*pc == JSOP_NEWOBJECT) {
         RootedPlainObject baseObject(cx, &script->getObject(pc)->as<PlainObject>());
@@ -5038,14 +5038,10 @@ js::NewArrayOperation(JSContext* cx, HandleScript script, jsbytecode* pc, uint32
     if (!obj)
         return nullptr;
 
-    if (newKind == SingletonObject) {
+    if (newKind == SingletonObject)
         MOZ_ASSERT(obj->isSingleton());
-    } else {
+    else
         obj->setGroup(group);
-
-        if (PreliminaryObjectArray* preliminaryObjects = group->maybePreliminaryObjects())
-            preliminaryObjects->registerNewObject(obj);
-    }
 
     return obj;
 }

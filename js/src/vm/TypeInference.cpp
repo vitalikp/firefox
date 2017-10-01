@@ -3405,7 +3405,7 @@ JSFunction::setTypeForScriptedFunction(JSContext* cx, HandleFunction fun,
 /////////////////////////////////////////////////////////////////////
 
 void
-PreliminaryObjectArray::registerNewObject(JSObject* res)
+PreliminaryObjectArray::registerNewObject(PlainObject* res)
 {
     // The preliminary object pointers are weak, and won't be swept properly
     // during nursery collections, so the preliminary objects need to be
@@ -3423,7 +3423,7 @@ PreliminaryObjectArray::registerNewObject(JSObject* res)
 }
 
 void
-PreliminaryObjectArray::unregisterObject(JSObject* obj)
+PreliminaryObjectArray::unregisterObject(PlainObject* obj)
 {
     for (size_t i = 0; i < COUNT; i++) {
         if (objects[i] == obj) {
