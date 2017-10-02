@@ -524,7 +524,8 @@ JSRope::flattenInternal(JSContext* maybecx)
         Nursery& nursery = zone()->group()->nursery();
         if (!nursery.registerMallocedBuffer(wholeChars)) {
             js_free(wholeChars);
-            ReportOutOfMemory(maybecx);
+            if (maybecx)
+                ReportOutOfMemory(maybecx);
             return nullptr;
         }
     }
