@@ -4340,7 +4340,7 @@ TryAttachInstanceOfStub(JSContext* cx, BaselineFrame* frame, ICInstanceOf_Fallba
         return true;
 
     Shape* shape = fun->lookupPure(cx->names().prototype);
-    if (!shape || !shape->hasSlot() || !shape->hasDefaultGetter())
+    if (!shape || !shape->isDataProperty())
         return true;
 
     uint32_t slot = shape->slot();

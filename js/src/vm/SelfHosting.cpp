@@ -2879,7 +2879,7 @@ GetUnclonedValue(JSContext* cx, HandleNativeObject selfHostedObject,
 
     RootedShape shape(cx, selfHostedObject->lookupPure(id));
     MOZ_ASSERT(shape);
-    MOZ_ASSERT(shape->hasSlot() && shape->hasDefaultGetter());
+    MOZ_ASSERT(shape->isDataProperty());
     vp.set(selfHostedObject->getSlot(shape->slot()));
     return true;
 }

@@ -2427,16 +2427,11 @@ NativeGetPureInline(NativeObject* pobj, jsid id, PropertyResult prop, Value* vp)
 
     // Fail if we have a custom getter.
     Shape* shape = prop.shape();
-    if (!shape->hasDefaultGetter())
+    if (!shape->isDataProperty())
         return false;
 
-    if (shape->hasSlot()) {
-        *vp = pobj->getSlot(shape->slot());
-        MOZ_ASSERT(!vp->isMagic());
-    } else {
-        vp->setUndefined();
-    }
-
+    *vp = pobj->getSlot(shape->slot());
+    MOZ_ASSERT(!vp->isMagic());
     return true;
 }
 
@@ -2536,8 +2531,8 @@ js::HasOwnDataPropertyPure(JSContext* cx, JSObject* obj, jsid id, bool* result)
     if (!LookupOwnPropertyPure(cx, obj, id, &prop))
         return false;
 
-    *result = prop && !prop.isDenseOrTypedArrayElement() && prop.shape()->hasDefaultGetter() &&
-              prop.shape()->hasSlot();
+    *result = prop && !prop.isDenseOrTypedArrayElement() &&
+              prop.shape()->isDataProperty();
     return true;
 }
 
@@ -3325,8 +3320,12 @@ GetObjectSlotNameFunctor::operator()(JS::CallbackTracer* trc, char* buf, size_t 
     Shape* shape;
     if (obj->isNative()) {
         shape = obj->as<NativeObject>().lastProperty();
-        while (shape && (!shape->hasSlot() || shape->slot() != slot))
+        while (shape && (shape->isEmptyShape() ||
+                         !shape->isDataProperty() ||
+                         shape->slot() != slot))
+        {
             shape = shape->previous();
+        }
     } else {
         shape = nullptr;
     }
@@ -3516,9 +3515,9 @@ DumpProperty(const NativeObject* obj, Shape& shape, js::GenericPrinter& out)
     else
         out.printf("unknown jsid %p", (void*) JSID_BITS(id));
 
-    uint32_t slot = shape.hasSlot() ? shape.maybeSlot() : SHAPE_INVALID_SLOT;
+    uint32_t slot = shape.isDataProperty() ? shape.maybeSlot() : SHAPE_INVALID_SLOT;
     out.printf(": slot %d", slot);
-    if (shape.hasSlot()) {
+    if (shape.isDataProperty()) {
         out.put(" = ");
         dumpValue(obj->getSlot(slot), out);
     } else if (slot != SHAPE_INVALID_SLOT) {

@@ -1240,7 +1240,7 @@ UpdateShapeTypeAndValue(JSContext* cx, NativeObject* obj, Shape* shape, jsid id,
 {
     MOZ_ASSERT(id == shape->propid());
 
-    if (shape->hasSlot()) {
+    if (shape->isDataProperty()) {
         obj->setSlotWithType(cx, shape, value, /* overwriting = */ false);
 
         // Per the acquired properties analysis, when the shape of a partially
@@ -1250,9 +1250,9 @@ UpdateShapeTypeAndValue(JSContext* cx, NativeObject* obj, Shape* shape, jsid id,
             if (newScript->initializedShape() == shape)
                 obj->setGroup(newScript->initializedGroup());
         }
-    }
-    if (!shape->hasSlot() || !shape->hasDefaultGetter() || !shape->hasDefaultSetter())
+    } else {
         MarkTypePropertyNonData(cx, obj, id);
+    }
     if (!shape->writable())
         MarkTypePropertyNonWritable(cx, obj, id);
 }
@@ -1264,7 +1264,7 @@ UpdateShapeTypeAndValueForWritableDataProp(JSContext* cx, NativeObject* obj, Sha
 {
     MOZ_ASSERT(id == shape->propid());
 
-    MOZ_ASSERT(shape->hasSlot());
+    MOZ_ASSERT(shape->isDataProperty());
     MOZ_ASSERT(shape->hasDefaultGetter());
     MOZ_ASSERT(shape->hasDefaultSetter());
     MOZ_ASSERT(shape->writable());
@@ -1318,7 +1318,7 @@ js::AddPropertyTypesAfterProtoChange(JSContext* cx, NativeObject* obj, ObjectGro
             return;
         }
 
-        Value val = shape->hasSlot() ? obj->getSlot(shape->slot()) : UndefinedValue();
+        Value val = shape->isDataProperty() ? obj->getSlot(shape->slot()) : UndefinedValue();
         UpdateShapeTypeAndValue(cx, obj, shape, id, val);
     }
 }
@@ -1544,8 +1544,7 @@ DefinePropertyIsRedundant(JSContext* cx, HandleNativeObject obj, HandleId id,
             // Get the current value of the existing property.
             RootedValue currentValue(cx);
             if (!prop.isDenseOrTypedArrayElement() &&
-                prop.shape()->hasSlot() &&
-                prop.shape()->hasDefaultGetter())
+                prop.shape()->isDataProperty())
             {
                 // Inline GetExistingPropertyValue in order to omit a type
                 // correctness assertion that's too strict for this particular
@@ -2130,7 +2129,7 @@ GetExistingProperty(JSContext* cx,
                     typename MaybeRooted<Shape*, allowGC>::HandleType shape,
                     typename MaybeRooted<Value, allowGC>::MutableHandleType vp)
 {
-    if (shape->hasSlot()) {
+    if (shape->isDataProperty()) {
         MOZ_ASSERT(shape->hasDefaultGetter());
 
         vp.set(obj->getSlot(shape->slot()));
@@ -2479,7 +2478,7 @@ NativeSetExistingDataProperty(JSContext* cx, HandleNativeObject obj, HandleShape
     MOZ_ASSERT(shape->isDataDescriptor());
 
     if (shape->hasDefaultSetter()) {
-        if (shape->hasSlot()) {
+        if (shape->isDataProperty()) {
             // The common path. Standard data property.
 
             // Global properties declared with 'var' will be initially
@@ -2704,7 +2703,7 @@ SetExistingProperty(JSContext* cx, HandleNativeObject obj, HandleId id, HandleVa
         // SpiderMonkey special case: assigning to an inherited slotless
         // property causes the setter to be called, instead of shadowing,
         // unless the existing property is JSPROP_SHADOWABLE (see bug 552432).
-        if (!shape->hasSlot() && !shape->hasShadowable()) {
+        if (!shape->isDataProperty() && !shape->hasShadowable()) {
             // Even weirder sub-special-case: inherited slotless data property
             // with default setter. Wut.
             if (shape->hasDefaultSetter())

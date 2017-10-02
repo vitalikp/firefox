@@ -2114,7 +2114,7 @@ HeapTypeSetKey::constant(CompilerConstraintList* constraints, Value* valOut)
 
     // Get the current value of the property.
     Shape* shape = obj->as<NativeObject>().lookupPure(id());
-    if (!shape || !shape->hasDefaultGetter() || !shape->hasSlot() || shape->hadOverwrite())
+    if (!shape || !shape->isDataProperty() || shape->hadOverwrite())
         return false;
 
     Value val = obj->as<NativeObject>().getSlot(shape->slot());
@@ -2599,7 +2599,7 @@ UpdatePropertyType(JSContext* cx, HeapTypeSet* types, NativeObject* obj, Shape* 
     if (shape->hasGetterValue() || shape->hasSetterValue()) {
         types->setNonDataProperty(cx);
         types->TypeSet::addType(TypeSet::UnknownType(), &cx->typeLifoAlloc());
-    } else if (shape->hasDefaultGetter() && shape->hasSlot()) {
+    } else if (shape->isDataProperty()) {
         if (!indexed && types->canSetDefinite(shape->slot()))
             types->setDefinite(shape->slot());
 
@@ -3507,11 +3507,10 @@ OnlyHasDataProperties(Shape* shape)
     MOZ_ASSERT(!shape->inDictionary());
 
     while (!shape->isEmptyShape()) {
-        if (!shape->isDataDescriptor() ||
+        if (!shape->isDataProperty() ||
             !shape->configurable() ||
             !shape->enumerable() ||
-            !shape->writable() ||
-            !shape->hasSlot())
+            !shape->writable())
         {
             return false;
         }
