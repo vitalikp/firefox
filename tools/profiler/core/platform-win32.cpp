@@ -32,10 +32,12 @@
 #include <mmsystem.h>
 #include <process.h>
 
-/* static */ Thread::tid_t
+/* static */ int
 Thread::GetCurrentId()
 {
-  return GetCurrentThreadId();
+  DWORD threadId = GetCurrentThreadId();
+  MOZ_ASSERT(threadId <= INT32_MAX, "native thread ID is > INT32_MAX");
+  return int(threadId);
 }
 
 static void
