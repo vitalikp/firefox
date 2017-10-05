@@ -120,18 +120,6 @@ GeckoChildProcessHost::GetPathToBinary(FilePath& exePath, GeckoProcessType proce
   return BinaryPathType::PluginContainer;
 }
 
-nsresult GeckoChildProcessHost::GetArchitecturesForBinary(const char *path, uint32_t *result)
-{
-  *result = 0;
-
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-uint32_t GeckoChildProcessHost::GetSupportedArchitecturesForProcessType(GeckoProcessType type)
-{
-  return base::GetCurrentProcessArchitecture();
-}
-
 // We start the unique IDs at 1 so that 0 can be used to mean that
 // a component has no unique ID assigned to it.
 uint32_t GeckoChildProcessHost::sNextUniqueID = 1;
@@ -149,33 +137,34 @@ GeckoChildProcessHost::PrepareLaunch()
 }
 
 bool
-GeckoChildProcessHost::SyncLaunch(std::vector<std::string> aExtraOpts, int aTimeoutMs, base::ProcessArchitecture arch)
+GeckoChildProcessHost::SyncLaunch(std::vector<std::string> aExtraOpts, int aTimeoutMs)
 {
   PrepareLaunch();
 
   MessageLoop* ioLoop = XRE_GetIOMessageLoop();
   NS_ASSERTION(MessageLoop::current() != ioLoop, "sync launch from the IO thread NYI");
 
-  ioLoop->PostTask(NewNonOwningRunnableMethod
-                   <std::vector<std::string>, base::ProcessArchitecture>
-                   (this, &GeckoChildProcessHost::RunPerformAsyncLaunch,
-                    aExtraOpts, arch));
+  ioLoop->PostTask(NewNonOwningRunnableMethod<std::vector<std::string>>(
+    "ipc::GeckoChildProcessHost::RunPerformAsyncLaunch",
+    this,
+    &GeckoChildProcessHost::RunPerformAsyncLaunch,
+    aExtraOpts));
 
   return WaitUntilConnected(aTimeoutMs);
 }
 
 bool
-GeckoChildProcessHost::AsyncLaunch(std::vector<std::string> aExtraOpts,
-                                   base::ProcessArchitecture arch)
+GeckoChildProcessHost::AsyncLaunch(std::vector<std::string> aExtraOpts)
 {
   PrepareLaunch();
 
   MessageLoop* ioLoop = XRE_GetIOMessageLoop();
 
-  ioLoop->PostTask(NewNonOwningRunnableMethod
-                   <std::vector<std::string>, base::ProcessArchitecture>
-                   (this, &GeckoChildProcessHost::RunPerformAsyncLaunch,
-                    aExtraOpts, arch));
+  ioLoop->PostTask(NewNonOwningRunnableMethod<std::vector<std::string>>(
+    "ipc::GeckoChildProcessHost::RunPerformAsyncLaunch",
+    this,
+    &GeckoChildProcessHost::RunPerformAsyncLaunch,
+    aExtraOpts));
 
   // This may look like the sync launch wait, but we only delay as
   // long as it takes to create the channel.
@@ -231,10 +220,11 @@ GeckoChildProcessHost::LaunchAndWaitForProcessHandle(StringVector aExtraOpts)
   PrepareLaunch();
 
   MessageLoop* ioLoop = XRE_GetIOMessageLoop();
-  ioLoop->PostTask(NewNonOwningRunnableMethod
-                   <std::vector<std::string>, base::ProcessArchitecture>
-                   (this, &GeckoChildProcessHost::RunPerformAsyncLaunch,
-                    aExtraOpts, base::GetCurrentProcessArchitecture()));
+  ioLoop->PostTask(NewNonOwningRunnableMethod<std::vector<std::string>>(
+    "ipc::GeckoChildProcessHost::RunPerformAsyncLaunch",
+    this,
+    &GeckoChildProcessHost::RunPerformAsyncLaunch,
+    aExtraOpts));
 
   MonitorAutoLock lock(mMonitor);
   while (mProcessState < PROCESS_CREATED) {
@@ -307,18 +297,14 @@ GeckoChildProcessHost::SetChildLogName(const char* varName, const char* origLogN
 }
 
 bool
-GeckoChildProcessHost::PerformAsyncLaunch(std::vector<std::string> aExtraOpts, base::ProcessArchitecture arch)
+GeckoChildProcessHost::PerformAsyncLaunch(std::vector<std::string> aExtraOpts)
 {
 #ifdef MOZ_GECKO_PROFILER
   AutoSetProfilerEnvVarsForChildProcess profilerEnvironment;
 #endif
 
-  // If NSPR log files are not requested, we're done.
   const char* origNSPRLogName = PR_GetEnv("NSPR_LOG_FILE");
   const char* origMozLogName = PR_GetEnv("MOZ_LOG_FILE");
-  if (!origNSPRLogName && !origMozLogName) {
-    return PerformAsyncLaunchInternal(aExtraOpts, arch);
-  }
 
   // - Note: this code is not called re-entrantly, nor are restoreOrig*LogName
   //   or mChildCounter touched by any other thread, so this is safe.
@@ -344,7 +330,7 @@ GeckoChildProcessHost::PerformAsyncLaunch(std::vector<std::string> aExtraOpts, b
     SetChildLogName("MOZ_LOG_FILE=", origMozLogName, mozLogName);
   }
 
-  bool retval = PerformAsyncLaunchInternal(aExtraOpts, arch);
+  bool retval = PerformAsyncLaunchInternal(aExtraOpts);
 
   // Revert to original value
   if (origNSPRLogName) {
@@ -358,12 +344,11 @@ GeckoChildProcessHost::PerformAsyncLaunch(std::vector<std::string> aExtraOpts, b
 }
 
 bool
-GeckoChildProcessHost::RunPerformAsyncLaunch(std::vector<std::string> aExtraOpts,
-                                             base::ProcessArchitecture aArch)
+GeckoChildProcessHost::RunPerformAsyncLaunch(std::vector<std::string> aExtraOpts)
 {
   InitializeChannel();
 
-  bool ok = PerformAsyncLaunch(aExtraOpts, aArch);
+  bool ok = PerformAsyncLaunch(aExtraOpts);
   if (!ok) {
     // WaitUntilConnected might be waiting for us to signal.
     // If something failed let's set the error state and notify.
@@ -418,7 +403,7 @@ AddAppDirToCommandLine(std::vector<std::string>& aCmdLine)
 }
 
 bool
-GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExtraOpts, base::ProcessArchitecture arch)
+GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExtraOpts)
 {
   // We rely on the fact that InitializeChannel() has already been processed
   // on the IO thread before this point is reached.
@@ -578,7 +563,7 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
 #if defined(OS_LINUX) || defined(OS_BSD)
                   newEnvVars,
 #endif
-                  false, &process, arch);
+                  false, &process);
 
   // We're in the parent and the child was launched. Close the child FD in the
   // parent as soon as possible, which will allow the parent to detect when the
