@@ -1791,11 +1791,10 @@ AstDecodeEnvironment(AstDecodeContext& c)
 static bool
 AstDecodeCodeSection(AstDecodeContext& c)
 {
-    uint32_t sectionStart, sectionSize;
-    if (!c.d.startSection(SectionId::Code, &c.env(), &sectionStart, &sectionSize, "code"))
+    MaybeSectionRange range;
+    if (!c.d.startSection(SectionId::Code, &c.env(), &range, "code"))
         return false;
-
-    if (sectionStart == Decoder::NotStarted) {
+    if (!range) {
         if (c.env().numFuncDefs() != 0)
             return c.d.fail("expected function bodies");
         return true;
@@ -1816,7 +1815,7 @@ AstDecodeCodeSection(AstDecodeContext& c)
             return false;
     }
 
-    return c.d.finishSection(sectionStart, sectionSize, "code");
+    return c.d.finishSection(*range, "code");
 }
 
 // Number of bytes to display in a single fragment of a data section (per line).
