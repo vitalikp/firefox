@@ -45,6 +45,7 @@
 #include "nsIWritablePropertyBag2.h"
 #include "nsIContentSecurityPolicy.h"
 #include "nsSandboxFlags.h"
+#include "mozilla/CycleCollectedJSContext.h"
 #include "mozilla/dom/ScriptSettings.h"
 #include "nsILoadInfo.h"
 #include "nsContentSecurityManager.h"
@@ -240,7 +241,7 @@ nsresult nsJSThunk::EvaluateScript(nsIChannel *aChannel,
 
     // New script entry point required, due to the "Create a script" step of
     // http://www.whatwg.org/specs/web-apps/current-work/#javascript-protocol
-    nsAutoMicroTask mt;
+    mozilla::nsAutoMicroTask mt;
     AutoEntryScript aes(innerGlobal, "javascript: URI", true);
     JSContext* cx = aes.cx();
     JS::Rooted<JSObject*> globalJSObject(cx, innerGlobal->GetGlobalJSObject());
