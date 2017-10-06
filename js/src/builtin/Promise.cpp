@@ -3400,7 +3400,7 @@ OffThreadPromiseTask::OffThreadPromiseTask(JSContext* cx, Handle<PromiseObject*>
     promise_(cx, promise),
     registered_(false)
 {
-    MOZ_ASSERT(runtime_ == promise->zone()->runtimeFromActiveCooperatingThread());
+    MOZ_ASSERT(runtime_ == promise_->zone()->runtimeFromActiveCooperatingThread());
     MOZ_ASSERT(CurrentThreadCanAccessRuntime(runtime_));
     MOZ_ASSERT(cx->runtime()->offThreadPromiseState.ref().initialized());
 }
@@ -3459,7 +3459,7 @@ OffThreadPromiseTask::run(JSContext* cx, MaybeShuttingDown maybeShuttingDown)
 }
 
 void
-OffThreadPromiseTask::dispatchResolve()
+OffThreadPromiseTask::dispatchResolveAndDestroy()
 {
     MOZ_ASSERT(registered_);
 

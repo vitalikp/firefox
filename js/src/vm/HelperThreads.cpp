@@ -1834,7 +1834,7 @@ HelperThread::handlePromiseHelperTaskWorkload(AutoLockHelperThreadState& locked)
     {
         AutoUnlockHelperThreadState unlock(locked);
         task->execute();
-        task->dispatchResolve();
+        task->dispatchResolveAndDestroy();
     }
 
     // No active thread should be waiting on the CONSUMER mutex.
@@ -2078,7 +2078,7 @@ js::CancelOffThreadCompressions(JSRuntime* runtime)
 }
 
 void
-PromiseHelperTask::executeAndResolve(JSContext* cx)
+PromiseHelperTask::executeAndResolveAndDestroy(JSContext* cx)
 {
     execute();
     run(cx, JS::Dispatchable::NotShuttingDown);
@@ -2089,7 +2089,7 @@ js::StartOffThreadPromiseHelperTask(JSContext* cx, UniquePtr<PromiseHelperTask> 
 {
     // Execute synchronously if there are no helper threads.
     if (!CanUseExtraThreads()) {
-        task.release()->executeAndResolve(cx);
+        task.release()->executeAndResolveAndDestroy(cx);
         return true;
     }
 
