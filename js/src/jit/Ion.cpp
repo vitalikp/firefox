@@ -2815,6 +2815,8 @@ jit::SetEnterJitData(JSContext* cx, EnterJitData& data, RunState& state,
 {
     data.osrFrame = nullptr;
 
+    // Note: keep this in sync with EnterBaselineAtBranch.
+
     if (state.isInvoke()) {
         const CallArgs& args = state.asInvoke()->args();
         unsigned numFormals = state.script()->functionNonDelazifying()->nargs();
@@ -2825,7 +2827,7 @@ jit::SetEnterJitData(JSContext* cx, EnterJitData& data, RunState& state,
         data.calleeToken = CalleeToToken(&args.callee().as<JSFunction>(), data.constructing);
 
         if (data.numActualArgs >= numFormals) {
-            data.maxArgv = args.base() + 1;
+            data.maxArgv = args.array() - 1; // -1 to include |this|
         } else {
             MOZ_ASSERT(vals.empty());
             unsigned numPushedArgs = Max(args.length(), numFormals);
