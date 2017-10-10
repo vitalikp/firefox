@@ -2006,6 +2006,7 @@ MacroAssemblerMIPS64Compat::handleFailureWithHandlerTail(void* handler, Label* p
     Label finally;
     Label return_;
     Label bailout;
+    Label wasm;
 
     // Already clobbered a0, so use it...
     load32(Address(StackPointer, offsetof(ResumeFromException, kind)), a0);
@@ -2016,6 +2017,7 @@ MacroAssemblerMIPS64Compat::handleFailureWithHandlerTail(void* handler, Label* p
     asMasm().branch32(Assembler::Equal, a0, Imm32(ResumeFromException::RESUME_FORCED_RETURN),
                       &return_);
     asMasm().branch32(Assembler::Equal, a0, Imm32(ResumeFromException::RESUME_BAILOUT), &bailout);
+    asMasm().branch32(Assembler::Equal, a0, Imm32(ResumeFromException::RESUME_WASM), &wasm);
 
     breakpoint(); // Invalid kind.
 
@@ -2084,6 +2086,14 @@ MacroAssemblerMIPS64Compat::handleFailureWithHandlerTail(void* handler, Label* p
     ma_li(ReturnReg, Imm32(BAILOUT_RETURN_OK));
     loadPtr(Address(sp, offsetof(ResumeFromException, target)), a1);
     jump(a1);
+
+    // If we are throwing and the innermost frame was a wasm frame, reset SP and
+    // FP; SP is pointing to the unwound return address to the wasm entry, so
+    // we can just ret().
+    bind(&wasm);
+    loadPtr(Address(StackPointer, offsetof(ResumeFromException, framePointer)), FramePointer);
+    loadPtr(Address(StackPointer, offsetof(ResumeFromException, stackPointer)), StackPointer);
+    ret();
 }
 
 template<typename T>
