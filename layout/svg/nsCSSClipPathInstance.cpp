@@ -8,7 +8,6 @@
 
 #include "gfx2DGlue.h"
 #include "gfxPlatform.h"
-#include "mozilla/dom/SVGSVGElement.h"
 #include "mozilla/gfx/2D.h"
 #include "mozilla/gfx/PathHelpers.h"
 #include "mozilla/ShapeUtils.h"

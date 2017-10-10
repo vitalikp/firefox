@@ -1097,7 +1097,20 @@ nsSVGElement::GetOwnerSVGElement(nsIDOMSVGElement * *aOwnerSVGElement)
 SVGSVGElement*
 nsSVGElement::GetOwnerSVGElement()
 {
-  return GetCtx(); // this may return nullptr
+  nsIContent* ancestor = GetFlattenedTreeParent();
+
+  while (ancestor && ancestor->IsSVGElement()) {
+    if (ancestor->IsSVGElement(nsGkAtoms::foreignObject)) {
+      return nullptr;
+    }
+    if (ancestor->IsSVGElement(nsGkAtoms::svg)) {
+      return static_cast<SVGSVGElement*>(ancestor);
+    }
+    ancestor = ancestor->GetFlattenedTreeParent();
+  }
+
+  // we don't have an ancestor <svg> element...
+  return nullptr;
 }
 
 NS_IMETHODIMP
@@ -1532,23 +1545,10 @@ nsIAtom* nsSVGElement::GetEventNameForAttr(nsIAtom* aAttr)
   return aAttr;
 }
 
-SVGSVGElement *
+SVGViewportElement *
 nsSVGElement::GetCtx() const
 {
-  nsIContent* ancestor = GetFlattenedTreeParent();
-
-  while (ancestor && ancestor->IsSVGElement()) {
-    if (ancestor->IsSVGElement(nsGkAtoms::foreignObject)) {
-      return nullptr;
-    }
-    if (ancestor->IsSVGElement(nsGkAtoms::svg)) {
-      return static_cast<SVGSVGElement*>(ancestor);
-    }
-    ancestor = ancestor->GetFlattenedTreeParent();
-  }
-
-  // we don't have an ancestor <svg> element...
-  return nullptr;
+  return SVGContentUtils::GetNearestViewportElement(this);
 }
 
 /* virtual */ gfxMatrix
@@ -1647,7 +1647,7 @@ nsSVGElement::GetAnimatedLengthValues(float *aFirst, ...)
   NS_ASSERTION(info.mLengthCount > 0,
                "GetAnimatedLengthValues on element with no length attribs");
 
-  SVGSVGElement *ctx = nullptr;
+  SVGViewportElement *ctx = nullptr;
 
   float *f = aFirst;
   uint32_t i = 0;

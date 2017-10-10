@@ -32,6 +32,7 @@ class SVGPreserveAspectRatio;
 namespace dom {
 class Element;
 class SVGSVGElement;
+class SVGViewportElement;
 } // namespace dom
 
 namespace gfx {
@@ -241,8 +242,8 @@ public:
    */
   static bool EstablishesViewport(nsIContent *aContent);
 
-  static nsSVGElement*
-  GetNearestViewportElement(nsIContent *aContent);
+  static mozilla::dom::SVGViewportElement*
+  GetNearestViewportElement(const nsIContent *aContent);
 
   /* enum for specifying coordinate direction for ObjectSpace/UserSpace */
   enum ctxDirection { X, Y, XY };
