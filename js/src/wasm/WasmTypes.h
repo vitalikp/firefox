@@ -1092,6 +1092,9 @@ class CodeRange
     bool isTrapExit() const {
         return kind() == TrapExit;
     }
+    bool isDebugTrap() const {
+        return kind() == DebugTrap;
+    }
     bool isThunk() const {
         return kind() == FarJumpIsland;
     }
@@ -1101,7 +1104,7 @@ class CodeRange
     // the return instruction to calculate the frame pointer.
 
     bool hasReturn() const {
-        return isFunction() || isImportExit() || isTrapExit();
+        return isFunction() || isImportExit() || isTrapExit() || isDebugTrap();
     }
     uint32_t ret() const {
         MOZ_ASSERT(hasReturn());
