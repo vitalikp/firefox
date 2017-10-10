@@ -4249,15 +4249,18 @@ js::gc::MarkingValidator::nonIncrementalMark(AutoLockForExclusiveAccess& lock)
     gc->waitBackgroundSweepEnd();
 
     /* Save existing mark bits. */
-    for (auto chunk = gc->allNonEmptyChunks(); !chunk.done(); chunk.next()) {
-        ChunkBitmap* bitmap = &chunk->bitmap;
-        ChunkBitmap* entry = js_new<ChunkBitmap>();
-        if (!entry)
-            return;
+    {
+        AutoLockGC lock(runtime);
+        for (auto chunk = gc->allNonEmptyChunks(lock); !chunk.done(); chunk.next()) {
+            ChunkBitmap* bitmap = &chunk->bitmap;
+            ChunkBitmap* entry = js_new<ChunkBitmap>();
+            if (!entry)
+                return;
 
-        memcpy((void*)entry->bitmap, (void*)bitmap->bitmap, sizeof(bitmap->bitmap));
-        if (!map.putNew(chunk, entry))
-            return;
+            memcpy((void*)entry->bitmap, (void*)bitmap->bitmap, sizeof(bitmap->bitmap));
+            if (!map.putNew(chunk, entry))
+                return;
+        }
     }
 
     /*
@@ -4313,7 +4316,8 @@ js::gc::MarkingValidator::nonIncrementalMark(AutoLockForExclusiveAccess& lock)
             MOZ_ASSERT(gcmarker->isDrained());
             gcmarker->reset();
 
-            for (auto chunk = gc->allNonEmptyChunks(); !chunk.done(); chunk.next())
+            AutoLockGC lock(runtime);
+            for (auto chunk = gc->allNonEmptyChunks(lock); !chunk.done(); chunk.next())
                 chunk->bitmap.clear();
         }
     }
@@ -4355,10 +4359,13 @@ js::gc::MarkingValidator::nonIncrementalMark(AutoLockForExclusiveAccess& lock)
     }
 
     /* Take a copy of the non-incremental mark state and restore the original. */
-    for (auto chunk = gc->allNonEmptyChunks(); !chunk.done(); chunk.next()) {
-        ChunkBitmap* bitmap = &chunk->bitmap;
-        ChunkBitmap* entry = map.lookup(chunk)->value();
-        Swap(*entry, *bitmap);
+    {
+        AutoLockGC lock(runtime);
+        for (auto chunk = gc->allNonEmptyChunks(lock); !chunk.done(); chunk.next()) {
+            ChunkBitmap* bitmap = &chunk->bitmap;
+            ChunkBitmap* entry = map.lookup(chunk)->value();
+            Swap(*entry, *bitmap);
+        }
     }
 
     for (GCZonesIter zone(runtime); !zone.done(); zone.next()) {
@@ -4393,7 +4400,8 @@ js::gc::MarkingValidator::validate()
 
     gc->waitBackgroundSweepEnd();
 
-    for (auto chunk = gc->allNonEmptyChunks(); !chunk.done(); chunk.next()) {
+    AutoLockGC lock(gc->rt);
+    for (auto chunk = gc->allNonEmptyChunks(lock); !chunk.done(); chunk.next()) {
         BitmapMap::Ptr ptr = map.lookup(chunk);
         if (!ptr)
             continue;  /* Allocated after we did the non-incremental mark. */
