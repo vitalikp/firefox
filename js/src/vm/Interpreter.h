@@ -232,8 +232,8 @@ class RunState
 
     JS::HandleScript script() const { return script_; }
 
-    virtual InterpreterFrame* pushInterpreterFrame(JSContext* cx) = 0;
-    virtual void setReturnValue(const Value& v) = 0;
+    InterpreterFrame* pushInterpreterFrame(JSContext* cx);
+    inline void setReturnValue(const Value& v);
 
     bool maybeCreateThisForConstructor(JSContext* cx);
 
@@ -270,9 +270,9 @@ class ExecuteState : public RunState
     JSObject* environmentChain() const { return envChain_; }
     bool isDebuggerEval() const { return !!evalInFrame_; }
 
-    virtual InterpreterFrame* pushInterpreterFrame(JSContext* cx);
+    InterpreterFrame* pushInterpreterFrame(JSContext* cx);
 
-    virtual void setReturnValue(const Value& v) {
+    void setReturnValue(const Value& v) {
         if (result_)
             *result_ = v;
     }
@@ -299,12 +299,21 @@ class InvokeState final : public RunState
     bool constructing() const { return construct_; }
     const CallArgs& args() const { return args_; }
 
-    virtual InterpreterFrame* pushInterpreterFrame(JSContext* cx);
+    InterpreterFrame* pushInterpreterFrame(JSContext* cx);
 
-    virtual void setReturnValue(const Value& v) {
+    void setReturnValue(const Value& v) {
         args_.rval().set(v);
     }
 };
+
+inline void
+RunState::setReturnValue(const Value& v)
+{
+    if (isInvoke())
+        asInvoke()->setReturnValue(v);
+    else
+        asExecute()->setReturnValue(v);
+}
 
 extern bool
 RunScript(JSContext* cx, RunState& state);
