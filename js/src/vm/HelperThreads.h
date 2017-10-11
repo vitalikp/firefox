@@ -487,7 +487,8 @@ StartOffThreadPromiseHelperTask(PromiseHelperTask* task);
  * generated and read everything needed from the VM state.
  */
 bool
-StartOffThreadIonCompile(JSContext* cx, jit::IonBuilder* builder);
+StartOffThreadIonCompile(JSContext* cx, jit::IonBuilder* builder,
+                         const AutoLockHelperThreadState& lock);
 
 /*
  * Schedule deletion of Ion compilation data.
@@ -540,12 +541,6 @@ inline void
 CancelOffThreadIonCompilesUsingNurseryPointers(JSRuntime* runtime)
 {
     CancelOffThreadIonCompile(CompilationSelector(CompilationsUsingNursery{runtime}), true);
-}
-
-inline void
-CancelOffThreadIonCompile()
-{
-    CancelOffThreadIonCompile(CompilationSelector(AllCompilations()), false);
 }
 
 #ifdef DEBUG
