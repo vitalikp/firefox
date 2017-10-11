@@ -46,6 +46,7 @@
   _(WasmModuleTieringLock,       500) \
   _(WasmCompileTaskState,        500) \
                                       \
+  _(WasmCodeSegmentMap,          600) \
   _(TraceLoggerGraphState,       600) \
   _(VTuneLock,                   600)
 
