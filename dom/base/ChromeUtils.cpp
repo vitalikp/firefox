@@ -7,6 +7,7 @@
 
 #include "mozilla/Base64.h"
 #include "mozilla/BasePrincipal.h"
+#include "mozilla/dom/UnionTypes.h"
 
 namespace mozilla {
 namespace dom {
