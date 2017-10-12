@@ -639,6 +639,7 @@ struct JSCompartment
     js::ReadBarrieredGlobalObject global_;
 
     unsigned                     enterCompartmentDepth;
+    unsigned                     globalHolds;
 
   public:
     js::PerformanceGroupHolder performanceMonitoring;
@@ -649,7 +650,16 @@ struct JSCompartment
     void leave() {
         enterCompartmentDepth--;
     }
-    bool hasBeenEntered() { return !!enterCompartmentDepth; }
+    bool hasBeenEntered() const { return !!enterCompartmentDepth; }
+
+    void holdGlobal() {
+        globalHolds++;
+    }
+    void releaseGlobal() {
+        MOZ_ASSERT(globalHolds > 0);
+        globalHolds--;
+    }
+    bool shouldTraceGlobal() const { return globalHolds > 0 || hasBeenEntered(); }
 
     JS::Zone* zone() { return zone_; }
     const JS::Zone* zone() const { return zone_; }

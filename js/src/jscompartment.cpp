@@ -61,6 +61,7 @@ JSCompartment::JSCompartment(Zone* zone, const JS::CompartmentOptions& options =
 #endif
     global_(nullptr),
     enterCompartmentDepth(0),
+    globalHolds(0),
     performanceMonitoring(runtime_),
     data(nullptr),
     realmData(nullptr),
@@ -748,7 +749,7 @@ JSCompartment::traceRoots(JSTracer* trc, js::gc::GCRuntime::TraceOrMarkRuntime t
         //
         // If a compartment is on-stack, we mark its global so that
         // JSContext::global() remains valid.
-        if (enterCompartmentDepth && global_.unbarrieredGet())
+        if (shouldTraceGlobal() && global_.unbarrieredGet())
             TraceRoot(trc, global_.unsafeUnbarrieredForTracing(), "on-stack compartment global");
     }
 
