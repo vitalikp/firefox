@@ -3122,9 +3122,6 @@ CASE(JSOP_FUNCALL)
 
         if (!activation.pushInlineFrame(args, funScript, construct))
             goto error;
-
-        if (createSingleton)
-            REGS.fp()->setCreateSingleton();
     }
 
     SET_SCRIPT(REGS.fp()->script());
