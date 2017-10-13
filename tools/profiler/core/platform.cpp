@@ -1585,8 +1585,7 @@ locked_profiler_stream_json_for_this_process(PSLockRef aLock,
   }
   aWriter.EndArray();
 
-  aWriter.StartArrayProperty("pausedRanges",
-                             SpliceableJSONWriter::SingleLineStyle);
+  aWriter.StartArrayProperty("pausedRanges");
   {
     buffer.StreamPausedRangesToJSON(aWriter, aSinceTime);
   }
@@ -2253,7 +2252,7 @@ profiler_get_profile(double aSinceTime, bool aIsShuttingDown)
   MOZ_RELEASE_ASSERT(CorePS::Exists());
 
   SpliceableChunkedJSONWriter b;
-  b.Start(SpliceableJSONWriter::SingleLineStyle);
+  b.Start();
   {
     if (!profiler_stream_json_for_this_process(b, aSinceTime,
                                                aIsShuttingDown)) {
@@ -2314,7 +2313,7 @@ locked_profiler_save_profile_to_file(PSLockRef aLock, const char* aFilename,
   stream.open(aFilename);
   if (stream.is_open()) {
     SpliceableJSONWriter w(MakeUnique<OStreamJSONWriteFunc>(stream));
-    w.Start(SpliceableJSONWriter::SingleLineStyle);
+    w.Start();
     {
       locked_profiler_stream_json_for_this_process(aLock, w, /* sinceTime */ 0,
                                                    aIsShuttingDown);
