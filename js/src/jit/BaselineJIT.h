@@ -541,9 +541,6 @@ MethodStatus
 CanEnterBaselineAtBranch(JSContext* cx, InterpreterFrame* fp, bool newType);
 
 JitExecStatus
-EnterBaselineMethod(JSContext* cx, RunState& state);
-
-JitExecStatus
 EnterBaselineAtBranch(JSContext* cx, InterpreterFrame* fp, jsbytecode* pc);
 
 void
@@ -625,6 +622,8 @@ MarkActiveBaselineScripts(Zone* zone);
 
 MethodStatus
 BaselineCompile(JSContext* cx, JSScript* script, bool forceDebugInstrumentation = false);
+
+static const unsigned BASELINE_MAX_ARGS_LENGTH = 20000;
 
 } // namespace jit
 } // namespace js
