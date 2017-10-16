@@ -1638,12 +1638,10 @@ function InitializeCollator(collator, locales, options) {
     // Steps 4-5.
     //
     // If we ever need more speed here at startup, we should try to detect the
-    // case where |options === undefined| and Object.prototype hasn't been
-    // mucked with.  (|options| is fully consumed in this method, so it's not a
-    // concern that Object.prototype might be touched between now and when
-    // |resolveCollatorInternals| is called.)  For now, just keep it simple.
+    // case where |options === undefined| and then directly use the default
+    // value for each option.  For now, just keep it simple.
     if (options === undefined)
-        options = {};
+        options = std_Object_create(null);
     else
         options = ToObject(options);
 
@@ -2125,12 +2123,10 @@ function InitializeNumberFormat(numberFormat, thisValue, locales, options) {
     // Steps 4-5.
     //
     // If we ever need more speed here at startup, we should try to detect the
-    // case where |options === undefined| and Object.prototype hasn't been
-    // mucked with.  (|options| is fully consumed in this method, so it's not a
-    // concern that Object.prototype might be touched between now and when
-    // |resolveNumberFormatInternals| is called.)  For now just keep it simple.
+    // case where |options === undefined| and then directly use the default
+    // value for each option.  For now, just keep it simple.
     if (options === undefined)
-        options = {};
+        options = std_Object_create(null);
     else
         options = ToObject(options);
 
@@ -3395,7 +3391,7 @@ function InitializePluralRules(pluralRules, locales, options) {
 
     // Steps 4-5.
     if (options === undefined)
-        options = {};
+        options = std_Object_create(null);
     else
         options = ToObject(options);
 
@@ -3611,7 +3607,7 @@ function InitializeRelativeTimeFormat(relativeTimeFormat, locales, options) {
 
     // Steps 4-5.
     if (options === undefined)
-        options = {};
+        options = std_Object_create(null);
     else
         options = ToObject(options);
 
@@ -3831,8 +3827,8 @@ function Intl_getDisplayNames(locales, options) {
 
     // 2. If options is undefined, then
     if (options === undefined)
-        // a. Let options be ObjectCreate(%ObjectPrototype%).
-        options = {};
+        // a. Let options be ObjectCreate(null).
+        options = std_Object_create(null);
     // 3. Else,
     else
         // a. Let options be ? ToObject(options).
