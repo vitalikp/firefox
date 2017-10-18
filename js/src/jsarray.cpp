@@ -630,7 +630,7 @@ array_length_setter(JSContext* cx, HandleObject obj, HandleId id, HandleValue v,
         return DefineDataProperty(cx, obj, id, v, JSPROP_ENUMERATE, result);
     }
 
-    Rooted<ArrayObject*> arr(cx, &obj->as<ArrayObject>());
+    HandleArrayObject arr = obj.as<ArrayObject>();
     MOZ_ASSERT(arr->lengthIsWritable(),
                "setter shouldn't be called if property is non-writable");
 
@@ -941,7 +941,7 @@ js::WouldDefinePastNonwritableLength(HandleNativeObject obj, uint32_t index)
 static bool
 array_addProperty(JSContext* cx, HandleObject obj, HandleId id, HandleValue v)
 {
-    Rooted<ArrayObject*> arr(cx, &obj->as<ArrayObject>());
+    ArrayObject* arr = &obj->as<ArrayObject>();
 
     uint32_t index;
     if (!IdIsIndex(id, &index))
@@ -1063,17 +1063,16 @@ IsArraySpecies(JSContext* cx, HandleObject origArray)
     if (origArray->is<NativeObject>() && !origArray->is<ArrayObject>())
         return true;
 
-    RootedValue ctor(cx);
-    if (!GetPropertyPure(cx, origArray, NameToId(cx->names().constructor), ctor.address()))
+    Value ctor;
+    if (!GetPropertyPure(cx, origArray, NameToId(cx->names().constructor), &ctor))
         return false;
 
     if (!IsArrayConstructor(ctor))
         return ctor.isUndefined();
 
-    RootedObject ctorObj(cx, &ctor.toObject());
-    RootedId speciesId(cx, SYMBOL_TO_JSID(cx->wellKnownSymbols().species));
+    jsid speciesId = SYMBOL_TO_JSID(cx->wellKnownSymbols().species);
     JSFunction* getter;
-    if (!GetGetterPure(cx, ctorObj, speciesId, &getter))
+    if (!GetGetterPure(cx, &ctor.toObject(), speciesId, &getter))
         return false;
 
     if (!getter)
@@ -2226,7 +2225,7 @@ js::intrinsic_ArrayNativeSort(JSContext* cx, unsigned argc, Value* vp)
 bool
 js::NewbornArrayPush(JSContext* cx, HandleObject obj, const Value& v)
 {
-    Rooted<ArrayObject*> arr(cx, &obj->as<ArrayObject>());
+    HandleArrayObject arr = obj.as<ArrayObject>();
 
     MOZ_ASSERT(!v.isMagic());
     MOZ_ASSERT(arr->lengthIsWritable());
@@ -2745,8 +2744,7 @@ array_splice_impl(JSContext* cx, unsigned argc, Value* vp, bool returnValueIsUse
     } else {
         /* Steps 7.b. */
         double deleteCountDouble;
-        RootedValue cnt(cx, args[1]);
-        if (!ToInteger(cx, cnt, &deleteCountDouble))
+        if (!ToInteger(cx, args[1], &deleteCountDouble))
             return false;
 
         /* Step 7.c. */
@@ -2924,7 +2922,7 @@ array_splice_impl(JSContext* cx, unsigned argc, Value* vp, bool returnValueIsUse
             !ObjectMayHaveExtraIndexedProperties(obj) &&
             len <= UINT32_MAX)
         {
-            Rooted<ArrayObject*> arr(cx, &obj->as<ArrayObject>());
+            HandleArrayObject arr = obj.as<ArrayObject>();
             if (arr->lengthIsWritable()) {
                 DenseElementResult result =
                     arr->ensureDenseElements(cx, uint32_t(len), itemCount - deleteCount);
