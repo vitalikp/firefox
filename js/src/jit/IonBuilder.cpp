@@ -2183,6 +2183,18 @@ IonBuilder::inspectOpcode(JSOp op)
          return Ok();
       }
 
+      case JSOP_SUPERBASE:
+        return jsop_superbase();
+
+      case JSOP_GETPROP_SUPER:
+      {
+        PropertyName* name = info().getAtom(pc)->asPropertyName();
+        return jsop_getprop_super(name);
+      }
+
+      case JSOP_GETELEM_SUPER:
+        return jsop_getelem_super();
+
       case JSOP_GETPROP:
       case JSOP_CALLPROP:
       {
@@ -2378,10 +2390,7 @@ IonBuilder::inspectOpcode(JSOp op)
       case JSOP_CHECKTHISREINIT:
 
       // Super
-      case JSOP_SUPERBASE:
       case JSOP_SETPROP_SUPER:
-      case JSOP_GETPROP_SUPER:
-      case JSOP_GETELEM_SUPER:
       case JSOP_SETELEM_SUPER:
       case JSOP_STRICTSETPROP_SUPER:
       case JSOP_STRICTSETELEM_SUPER:
@@ -9766,6 +9775,59 @@ IonBuilder::jsop_not()
     current->add(ins);
     current->push(ins);
     return Ok();
+}
+
+AbortReasonOr<Ok>
+IonBuilder::jsop_superbase()
+{
+    JSFunction* fun = info().funMaybeLazy();
+    if (!fun || !fun->allowSuperProperty())
+        return abort(AbortReason::Disable, "super only supported directly in methods");
+
+    auto* homeObject = MHomeObject::New(alloc(), getCallee());
+    current->add(homeObject);
+
+    auto* superBase = MHomeObjectSuperBase::New(alloc(), homeObject);
+    current->add(superBase);
+    current->push(superBase);
+
+    MOZ_TRY(resumeAfter(superBase));
+    return Ok();
+}
+
+
+AbortReasonOr<Ok>
+IonBuilder::jsop_getprop_super(PropertyName* name)
+{
+    MDefinition* obj = current->pop();
+    MDefinition* receiver = current->pop();
+
+    MConstant* id = constant(StringValue(name));
+    auto* ins = MGetPropSuperCache::New(alloc(), obj, receiver, id);
+    current->add(ins);
+    current->push(ins);
+
+    MOZ_TRY(resumeAfter(ins));
+
+    TemporaryTypeSet* types = bytecodeTypes(pc);
+    return pushTypeBarrier(ins, types, BarrierKind::TypeSet);
+}
+
+AbortReasonOr<Ok>
+IonBuilder::jsop_getelem_super()
+{
+    MDefinition* obj = current->pop();
+    MDefinition* receiver = current->pop();
+    MDefinition* id = current->pop();
+
+    auto* ins = MGetPropSuperCache::New(alloc(), obj, receiver, id);
+    current->add(ins);
+    current->push(ins);
+
+    MOZ_TRY(resumeAfter(ins));
+
+    TemporaryTypeSet* types = bytecodeTypes(pc);
+    return pushTypeBarrier(ins, types, BarrierKind::TypeSet);
 }
 
 NativeObject*

@@ -322,6 +322,9 @@
     _(FunctionEnvironment)          \
     _(NewLexicalEnvironmentObject)  \
     _(CopyLexicalEnvironmentObject) \
+    _(HomeObject)                   \
+    _(HomeObjectSuperBase)          \
+    _(GetPropSuperCacheV)           \
     _(GetPropertyCacheV)            \
     _(GetPropertyCacheT)            \
     _(GetPropertyPolymorphicV)      \
