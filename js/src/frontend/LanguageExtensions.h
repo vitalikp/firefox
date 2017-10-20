@@ -23,7 +23,7 @@ namespace js {
  */
 enum class DeprecatedLanguageExtension
 {
-    ForEach = 0, // JS 1.6+
+    // NO LONGER USING 0
     // NO LONGER USING 1
     LegacyGenerator = 2, // JS 1.7+
     ExpressionClosure = 3, // Added in JS 1.8

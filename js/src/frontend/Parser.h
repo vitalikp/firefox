@@ -240,16 +240,7 @@ class ParserBase : public StrictModeGetter
     void addTelemetry(DeprecatedLanguageExtension e);
 
     bool warnOnceAboutExprClosure();
-    bool warnOnceAboutForEach();
     bool warnOnceAboutLegacyGenerator();
-
-    bool allowsForEachIn() {
-#if !JS_HAS_FOR_EACH_IN
-        return false;
-#else
-        return options().forEachStatementOption && versionNumber() >= JSVERSION_1_6;
-#endif
-    }
 
     bool hasValidSimpleStrictParameterNames();
 
