@@ -2341,6 +2341,7 @@ nsRange::CutContents(DocumentFragment** aFragment)
       {
         nsCOMPtr<nsINode> n = do_QueryInterface(commonCloneAncestor);
         n->AppendChild(*farthestAncestor, res);
+        res.WouldReportJSException();
         if (NS_WARN_IF(res.Failed())) {
           return res.StealNSResult();
         }
@@ -2353,6 +2354,7 @@ nsRange::CutContents(DocumentFragment** aFragment)
       } else {
         commonCloneAncestor->AppendChild(*nodeToResult, res);
       }
+      res.WouldReportJSException();
       if (NS_WARN_IF(res.Failed())) {
         return res.StealNSResult();
       }
