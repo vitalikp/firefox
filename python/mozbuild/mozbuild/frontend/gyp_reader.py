@@ -140,7 +140,7 @@ def read_from_gyp(config, path, output, vars, non_unified_sources = set()):
         spec = targets[target]
 
         # Derive which gyp configuration to use based on MOZ_DEBUG.
-        c = 'Debug' if config.substs['MOZ_DEBUG'] else 'Release'
+        c = 'Debug' if config.substs.get('MOZ_DEBUG') else 'Release'
         if c not in spec['configurations']:
             raise RuntimeError('Missing %s gyp configuration for target %s '
                                'in %s' % (c, target_name, build_file))
