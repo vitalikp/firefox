@@ -1112,11 +1112,6 @@ public:
     return false;
   }
 
-  bool watch(JSContext *cx, JS::Handle<JSObject*> proxy,
-             JS::Handle<jsid> id, JS::Handle<JSObject*> callable) const override;
-  bool unwatch(JSContext *cx, JS::Handle<JSObject*> proxy,
-               JS::Handle<jsid> id) const override;
-
   static const nsOuterWindowProxy singleton;
 
 protected:
@@ -1489,20 +1484,6 @@ nsOuterWindowProxy::AppendIndexedPropertyNames(JSContext *cx, JSObject *proxy,
   }
 
   return true;
-}
-
-bool
-nsOuterWindowProxy::watch(JSContext *cx, JS::Handle<JSObject*> proxy,
-                          JS::Handle<jsid> id, JS::Handle<JSObject*> callable) const
-{
-  return js::WatchGuts(cx, proxy, id, callable);
-}
-
-bool
-nsOuterWindowProxy::unwatch(JSContext *cx, JS::Handle<JSObject*> proxy,
-                            JS::Handle<jsid> id) const
-{
-  return js::UnwatchGuts(cx, proxy, id);
 }
 
 size_t
