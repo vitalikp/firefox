@@ -8707,13 +8707,6 @@ StateName(State state)
 }
 
 void
-AutoAssertHeapBusy::checkCondition(JSRuntime *rt)
-{
-    this->rt = rt;
-    MOZ_ASSERT(JS::CurrentThreadIsHeapBusy());
-}
-
-void
 AutoAssertEmptyNursery::checkCondition(JSContext* cx) {
     if (!noAlloc)
         noAlloc.emplace();
