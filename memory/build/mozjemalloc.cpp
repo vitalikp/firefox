@@ -2065,18 +2065,20 @@ RETURN:
 }
 
 static void
-chunk_ensure_zero(void* ptr, size_t size, bool zeroed)
+chunk_ensure_zero(void* aPtr, size_t aSize, bool aZeroed)
 {
-	if (zeroed == false)
-		memset(ptr, 0, size);
+  if (aZeroed == false) {
+    memset(aPtr, 0, aSize);
+  }
 #ifdef MOZ_DEBUG
-	else {
-		size_t i;
-		size_t *p = (size_t *)(uintptr_t)ret;
+  else {
+    size_t i;
+    size_t* p = (size_t*)(uintptr_t)aPtr;
 
-		for (i = 0; i < size / sizeof(size_t); i++)
-			MOZ_ASSERT(p[i] == 0);
-	}
+    for (i = 0; i < aSize / sizeof(size_t); i++) {
+      MOZ_ASSERT(p[i] == 0);
+    }
+  }
 #endif
 }
 
