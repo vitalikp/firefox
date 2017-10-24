@@ -14,12 +14,13 @@
 #include "jsfriendapi.h"
 
 #include "gc/AtomMarking.h"
+#include "gc/GCHelperState.h"
 #include "gc/GCMarker.h"
+#include "gc/GCParallelTask.h"
 #include "gc/Nursery.h"
 #include "gc/Statistics.h"
 #include "gc/StoreBuffer.h"
 #include "gc/Tracer.h"
-#include "gc/GCParallelTask.h"
 #include "js/GCAnnotations.h"
 
 namespace js {
@@ -1475,7 +1476,7 @@ class GCRuntime
     BackgroundAllocTask allocTask;
     BackgroundDecommitTask decommitTask;
 
-    GCHelperState helperState;
+    js::GCHelperState helperState;
 
     /*
      * During incremental sweeping, this field temporarily holds the arenas of
