@@ -2489,8 +2489,6 @@ SetPropIRGenerator::tryAttachStub()
 
     if (lhsVal_.isObject()) {
         RootedObject obj(cx_, &lhsVal_.toObject());
-        if (obj->watched())
-            return false;
 
         ObjOperandId objId = writer.guardIsObject(objValId);
         if (IsPropertySetOp(JSOp(*pc_))) {
@@ -3443,8 +3441,6 @@ SetPropIRGenerator::tryAttachAddSlotStub(HandleObjectGroup oldGroup, HandleShape
         return false;
 
     RootedObject obj(cx_, &lhsVal_.toObject());
-    if (obj->watched())
-        return false;
 
     PropertyResult prop;
     JSObject* holder;

@@ -546,7 +546,6 @@ struct IteratorHashPolicy
 namespace js {
 class DebugEnvironments;
 class ObjectWeakMap;
-class WatchpointMap;
 class WeakMapBase;
 } // namespace js
 
@@ -626,7 +625,6 @@ struct JSCompartment
     bool                         warnedAboutExprClosure : 1;
     bool                         warnedAboutForEach : 1;
     bool                         warnedAboutLegacyGenerator : 1;
-    bool                         warnedAboutObjectWatch : 1;
     uint32_t                     warnedAboutStringGenericsMethods;
 
 #ifdef DEBUG
@@ -957,7 +955,6 @@ struct JSCompartment
     void sweepNativeIterators();
     void sweepTemplateObjects();
     void sweepVarNames();
-    void sweepWatchpoints();
 
     void purge();
     void clearTables();
@@ -1146,8 +1143,6 @@ struct JSCompartment
     void sweepBreakpoints(js::FreeOp* fop);
 
   public:
-    js::WatchpointMap* watchpointMap;
-
     js::ScriptCountsMap* scriptCountsMap;
     js::ScriptNameMap* scriptNameMap;
 
