@@ -310,15 +310,6 @@ static pthread_key_t tlsIndex;
 #endif
 #include "rb.h"
 
-#ifdef MOZ_DEBUG
-   /* Disable inlining to make debugging easier. */
-#ifdef inline
-#undef inline
-#endif
-
-#  define inline
-#endif
-
 /* Size of stack-allocated buffer passed to strerror_r(). */
 #define	STRERROR_BUF		64
 
