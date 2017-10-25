@@ -2308,6 +2308,7 @@ class CompileStreamTask : public PromiseHelperTask, public JS::StreamConsumer
               case Closed:
                 MOZ_CRASH("streamClosed() in Closed state");
             }
+            break;
           case JS::StreamConsumer::Error:
             switch (streamState_.lock().get()) {
               case Env:
@@ -2320,6 +2321,7 @@ class CompileStreamTask : public PromiseHelperTask, public JS::StreamConsumer
               case Closed:
                 MOZ_CRASH("streamClosed() in Closed state");
             }
+            break;
         }
         MOZ_CRASH("unreachable");
     }
