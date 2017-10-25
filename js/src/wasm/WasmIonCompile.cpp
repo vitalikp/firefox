@@ -921,8 +921,8 @@ class FunctionCompiler
         }
 
         MWasmLoadTls* memoryBase = maybeLoadMemoryBase();
-        MInstruction* cas = MAsmJSCompareExchangeHeap::New(alloc(), bytecodeOffset(), memoryBase,
-                                                           base, *access, oldv, newv, tlsPointer_);
+        MInstruction* cas = MWasmCompareExchangeHeap::New(alloc(), bytecodeOffset(), memoryBase,
+                                                          base, *access, oldv, newv, tlsPointer_);
         curBlock_->add(cas);
 
         if (isSmallerAccessForI64(result, access)) {
@@ -948,8 +948,8 @@ class FunctionCompiler
         }
 
         MWasmLoadTls* memoryBase = maybeLoadMemoryBase();
-        MInstruction* xchg = MAsmJSAtomicExchangeHeap::New(alloc(), bytecodeOffset(), memoryBase,
-                                                           base, *access, value, tlsPointer_);
+        MInstruction* xchg = MWasmAtomicExchangeHeap::New(alloc(), bytecodeOffset(), memoryBase,
+                                                          base, *access, value, tlsPointer_);
         curBlock_->add(xchg);
 
         if (isSmallerAccessForI64(result, access)) {
@@ -975,8 +975,8 @@ class FunctionCompiler
         }
 
         MWasmLoadTls* memoryBase = maybeLoadMemoryBase();
-        MInstruction* binop = MAsmJSAtomicBinopHeap::New(alloc(), bytecodeOffset(), op, memoryBase,
-                                                         base, *access, value, tlsPointer_);
+        MInstruction* binop = MWasmAtomicBinopHeap::New(alloc(), bytecodeOffset(), op, memoryBase,
+                                                        base, *access, value, tlsPointer_);
         curBlock_->add(binop);
 
         if (isSmallerAccessForI64(result, access)) {

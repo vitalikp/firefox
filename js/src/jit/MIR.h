@@ -14459,15 +14459,15 @@ class MAsmJSStoreHeap
     }
 };
 
-class MAsmJSCompareExchangeHeap
+class MWasmCompareExchangeHeap
   : public MVariadicInstruction,
     public NoTypePolicy::Data
 {
     wasm::MemoryAccessDesc access_;
     wasm::BytecodeOffset bytecodeOffset_;
 
-    explicit MAsmJSCompareExchangeHeap(const wasm::MemoryAccessDesc& access,
-                                       wasm::BytecodeOffset bytecodeOffset)
+    explicit MWasmCompareExchangeHeap(const wasm::MemoryAccessDesc& access,
+                                      wasm::BytecodeOffset bytecodeOffset)
       : MVariadicInstruction(classOpcode),
         access_(access),
         bytecodeOffset_(bytecodeOffset)
@@ -14477,18 +14477,18 @@ class MAsmJSCompareExchangeHeap
     }
 
   public:
-    INSTRUCTION_HEADER(AsmJSCompareExchangeHeap)
+    INSTRUCTION_HEADER(WasmCompareExchangeHeap)
 
-    static MAsmJSCompareExchangeHeap* New(TempAllocator& alloc,
-                                          wasm::BytecodeOffset bytecodeOffset,
-                                          MDefinition* memoryBase,
-                                          MDefinition* base,
-                                          const wasm::MemoryAccessDesc& access,
-                                          MDefinition* oldv,
-                                          MDefinition* newv,
-                                          MDefinition* tls)
+    static MWasmCompareExchangeHeap* New(TempAllocator& alloc,
+                                         wasm::BytecodeOffset bytecodeOffset,
+                                         MDefinition* memoryBase,
+                                         MDefinition* base,
+                                         const wasm::MemoryAccessDesc& access,
+                                         MDefinition* oldv,
+                                         MDefinition* newv,
+                                         MDefinition* tls)
     {
-        MAsmJSCompareExchangeHeap* cas = new(alloc) MAsmJSCompareExchangeHeap(access, bytecodeOffset);
+        MWasmCompareExchangeHeap* cas = new(alloc) MWasmCompareExchangeHeap(access, bytecodeOffset);
         if (!cas->init(alloc, 4 + !!memoryBase))
             return nullptr;
         cas->initOperand(0, base);
@@ -14514,15 +14514,15 @@ class MAsmJSCompareExchangeHeap
     }
 };
 
-class MAsmJSAtomicExchangeHeap
+class MWasmAtomicExchangeHeap
   : public MVariadicInstruction,
     public NoTypePolicy::Data
 {
     wasm::MemoryAccessDesc access_;
     wasm::BytecodeOffset bytecodeOffset_;
 
-    explicit MAsmJSAtomicExchangeHeap(const wasm::MemoryAccessDesc& access,
-                                      wasm::BytecodeOffset bytecodeOffset)
+    explicit MWasmAtomicExchangeHeap(const wasm::MemoryAccessDesc& access,
+                                     wasm::BytecodeOffset bytecodeOffset)
       : MVariadicInstruction(classOpcode),
         access_(access),
         bytecodeOffset_(bytecodeOffset)
@@ -14532,17 +14532,17 @@ class MAsmJSAtomicExchangeHeap
     }
 
   public:
-    INSTRUCTION_HEADER(AsmJSAtomicExchangeHeap)
+    INSTRUCTION_HEADER(WasmAtomicExchangeHeap)
 
-    static MAsmJSAtomicExchangeHeap* New(TempAllocator& alloc,
-                                         wasm::BytecodeOffset bytecodeOffset,
-                                         MDefinition* memoryBase,
-                                         MDefinition* base,
-                                         const wasm::MemoryAccessDesc& access,
-                                         MDefinition* value,
-                                         MDefinition* tls)
+    static MWasmAtomicExchangeHeap* New(TempAllocator& alloc,
+                                        wasm::BytecodeOffset bytecodeOffset,
+                                        MDefinition* memoryBase,
+                                        MDefinition* base,
+                                        const wasm::MemoryAccessDesc& access,
+                                        MDefinition* value,
+                                        MDefinition* tls)
     {
-        MAsmJSAtomicExchangeHeap* xchg = new(alloc) MAsmJSAtomicExchangeHeap(access, bytecodeOffset);
+        MWasmAtomicExchangeHeap* xchg = new(alloc) MWasmAtomicExchangeHeap(access, bytecodeOffset);
         if (!xchg->init(alloc, 3 + !!memoryBase))
             return nullptr;
 
@@ -14568,7 +14568,7 @@ class MAsmJSAtomicExchangeHeap
     }
 };
 
-class MAsmJSAtomicBinopHeap
+class MWasmAtomicBinopHeap
   : public MVariadicInstruction,
     public NoTypePolicy::Data
 {
@@ -14576,8 +14576,8 @@ class MAsmJSAtomicBinopHeap
     wasm::MemoryAccessDesc access_;
     wasm::BytecodeOffset bytecodeOffset_;
 
-    explicit MAsmJSAtomicBinopHeap(AtomicOp op, const wasm::MemoryAccessDesc& access,
-                                   wasm::BytecodeOffset bytecodeOffset)
+    explicit MWasmAtomicBinopHeap(AtomicOp op, const wasm::MemoryAccessDesc& access,
+                                  wasm::BytecodeOffset bytecodeOffset)
       : MVariadicInstruction(classOpcode),
         op_(op),
         access_(access),
@@ -14588,18 +14588,18 @@ class MAsmJSAtomicBinopHeap
     }
 
   public:
-    INSTRUCTION_HEADER(AsmJSAtomicBinopHeap)
+    INSTRUCTION_HEADER(WasmAtomicBinopHeap)
 
-    static MAsmJSAtomicBinopHeap* New(TempAllocator& alloc,
-                                      wasm::BytecodeOffset bytecodeOffset,
-                                      AtomicOp op,
-                                      MDefinition* memoryBase,
-                                      MDefinition* base,
-                                      const wasm::MemoryAccessDesc& access,
-                                      MDefinition* v,
-                                      MDefinition* tls)
+    static MWasmAtomicBinopHeap* New(TempAllocator& alloc,
+                                     wasm::BytecodeOffset bytecodeOffset,
+                                     AtomicOp op,
+                                     MDefinition* memoryBase,
+                                     MDefinition* base,
+                                     const wasm::MemoryAccessDesc& access,
+                                     MDefinition* v,
+                                     MDefinition* tls)
     {
-        MAsmJSAtomicBinopHeap* binop = new(alloc) MAsmJSAtomicBinopHeap(op, access, bytecodeOffset);
+        MWasmAtomicBinopHeap* binop = new(alloc) MWasmAtomicBinopHeap(op, access, bytecodeOffset);
         if (!binop->init(alloc, 3 + !!memoryBase))
             return nullptr;
 
