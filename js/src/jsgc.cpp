@@ -1394,6 +1394,12 @@ GCSchedulingTunables::setParameter(JSGCParamKey key, uint32_t value, const AutoL
 }
 
 void
+GCSchedulingTunables::setMaxMallocBytes(size_t value)
+{
+    maxMallocBytes_ = value;
+}
+
+void
 GCSchedulingTunables::setHighFrequencyLowLimit(uint64_t newLimit)
 {
     highFrequencyLowLimitBytes_ = newLimit;
@@ -1431,6 +1437,7 @@ GCSchedulingTunables::setMaxEmptyChunkCount(uint32_t value)
 
 GCSchedulingTunables::GCSchedulingTunables()
   : gcMaxBytes_(0),
+    maxMallocBytes_(TuningDefaults::MaxMallocBytes),
     gcMaxNurseryBytes_(0),
     gcZoneAllocThresholdBase_(TuningDefaults::GCZoneAllocThresholdBase),
     allocThresholdFactor_(TuningDefaults::AllocThresholdFactor),
@@ -1812,9 +1819,10 @@ js::RemoveRawValueRoot(JSContext* cx, Value* vp)
 void
 GCRuntime::setMaxMallocBytes(size_t value, const AutoLockGC& lock)
 {
+    tunables.setMaxMallocBytes(value);
     mallocCounter.setMax(value, lock);
     for (ZonesIter zone(rt, WithAtoms); !zone.done(); zone.next())
-        zone->setGCMaxMallocBytes(value * 0.9, lock);
+        zone->setGCMaxMallocBytes(value, lock);
 }
 
 double
@@ -1909,7 +1917,6 @@ ZoneHeapThreshold::updateForRemovedArena(const GCSchedulingTunables& tunables)
 MemoryCounter::MemoryCounter()
   : bytes_(0),
     maxBytes_(0),
-    initialMaxBytes_(0),
     triggered_(NoTrigger)
 {}
 
@@ -1929,7 +1936,7 @@ MemoryCounter::updateOnGCEnd(const GCSchedulingTunables& tunables, const AutoLoc
     if (shouldTriggerGC(tunables))
         maxBytes_ *= 2;
     else
-        maxBytes_ = std::max(initialMaxBytes_.ref(), size_t(maxBytes_ * 0.9));
+        maxBytes_ = std::max(tunables.maxMallocBytes(), size_t(maxBytes_ * 0.9));
     bytes_ -= bytesAtStartOfGC_;
     triggered_ = NoTrigger;
 }
@@ -1937,8 +1944,7 @@ MemoryCounter::updateOnGCEnd(const GCSchedulingTunables& tunables, const AutoLoc
 void
 MemoryCounter::setMax(size_t newMax, const AutoLockGC& lock)
 {
-    initialMaxBytes_ = newMax;
-    maxBytes_ = initialMaxBytes_;
+    maxBytes_ = newMax;
     reset();
 }
 
