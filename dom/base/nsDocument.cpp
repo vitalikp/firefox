@@ -1511,7 +1511,8 @@ nsIDocument::nsIDocument()
     mUseCounters(0),
     mChildDocumentUseCounters(0),
     mNotifiedPageForUseCounter(0),
-    mUserHasInteracted(false)
+    mUserHasInteracted(false),
+    mThrowOnDynamicMarkupInsertionCounter(0)
 {
   SetIsInDocument();
 }
