@@ -75,6 +75,7 @@ enum class DeclarationKind : uint8_t
     ForOfVar,
     Let,
     Const,
+    Class, // Handled as same as `let` after parsing.
     Import,
     BodyLevelFunction,
     ModuleBodyLevelFunction,
@@ -102,6 +103,7 @@ DeclarationKindToBindingKind(DeclarationKind kind)
         return BindingKind::Var;
 
       case DeclarationKind::Let:
+      case DeclarationKind::Class:
       case DeclarationKind::LexicalFunction:
       case DeclarationKind::SloppyLexicalFunction:
       case DeclarationKind::SimpleCatchParameter:
