@@ -104,7 +104,6 @@ EXPORTS.mozilla += [
     'HoldDropJSObjects.h',
     'IntentionalCrash.h',
     'JSObjectHolder.h',
-    'LinuxUtils.h',
     'Logging.h',
     'MemoryReportingProcess.h',
     'nsMemoryInfoDumper.h',
@@ -112,7 +111,6 @@ EXPORTS.mozilla += [
     'OwningNonNull.h',
     'StaticMutex.h',
     'StaticPtr.h',
-    'SystemMemoryReporter.h',
 ]
 
 # nsDebugImpl isn't unified because we disable PGO so that NS_ABORT_OOM isn't
@@ -166,12 +164,6 @@ UNIFIED_SOURCES += [
     'nsVersionComparatorImpl.cpp',
     'nsWeakReference.cpp',
 ]
-
-if CONFIG['OS_ARCH'] == 'Linux':
-    SOURCES += [
-        'LinuxUtils.cpp',
-        'SystemMemoryReporter.cpp',
-    ]
 
 if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
     SOURCES += [
