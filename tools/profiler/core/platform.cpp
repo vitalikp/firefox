@@ -627,7 +627,7 @@ static const char* const kMainThreadName = "GeckoMain";
 class Registers
 {
 public:
-  Registers() {}
+  Registers() : mPC{nullptr}, mSP{nullptr}, mFP{nullptr}, mLR{nullptr} {}
 
 #if defined(HAVE_NATIVE_UNWIND)
   // Fills in mPC, mSP, mFP, mLR, and mContext for a synchronous sample.
@@ -664,7 +664,7 @@ struct NativeStack
   size_t mCount;  // Number of entries filled.
 
   NativeStack()
-    : mCount(0)
+    : mPCs(), mSPs(), mCount(0)
   {}
 };
 
