@@ -53,7 +53,7 @@ ExpectedOwnerForChild(const nsIFrame& aFrame)
   }
 
   if (aFrame.IsBulletFrame()) {
-    return aFrame.GetParent();
+    return FirstContinuationOrPartOfIBSplit(aFrame.GetParent());
   }
 
   const nsIFrame* parent = FirstContinuationOrPartOfIBSplit(aFrame.GetParent());
