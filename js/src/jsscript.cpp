@@ -325,7 +325,6 @@ js::XDRScript(XDRState<mode>* xdr, HandleScope scriptEnclosingScope,
         HasMappedArgsObj,
         FunctionHasThisBinding,
         FunctionHasExtraBodyVarScope,
-        IsLegacyGenerator,
         IsStarGenerator,
         IsAsync,
         HasRest,
@@ -437,8 +436,6 @@ js::XDRScript(XDRState<mode>* xdr, HandleScope scriptEnclosingScope,
         MOZ_ASSERT_IF(sourceObjectArg, sourceObjectArg->source() == script->scriptSource());
         if (!sourceObjectArg)
             scriptBits |= (1 << OwnSource);
-        if (script->isLegacyGenerator())
-            scriptBits |= (1 << IsLegacyGenerator);
         if (script->isStarGenerator())
             scriptBits |= (1 << IsStarGenerator);
         if (script->asyncKind() == AsyncFunction)
@@ -610,13 +607,8 @@ js::XDRScript(XDRState<mode>* xdr, HandleScope scriptEnclosingScope,
             script->isDerivedClassConstructor_ = true;
         if (scriptBits & (1 << IsDefaultClassConstructor))
             script->isDefaultClassConstructor_ = true;
-
-        if (scriptBits & (1 << IsLegacyGenerator)) {
-            MOZ_ASSERT(!(scriptBits & (1 << IsStarGenerator)));
-            script->setGeneratorKind(LegacyGenerator);
-        } else if (scriptBits & (1 << IsStarGenerator))
+        if (scriptBits & (1 << IsStarGenerator))
             script->setGeneratorKind(StarGenerator);
-
         if (scriptBits & (1 << IsAsync))
             script->setAsyncKind(AsyncFunction);
         if (scriptBits & (1 << HasRest))
@@ -4153,7 +4145,6 @@ JSScript::argumentsOptimizationFailed(JSContext* cx, HandleScript script)
         return true;
 
     MOZ_ASSERT(!script->isStarGenerator());
-    MOZ_ASSERT(!script->isLegacyGenerator());
     MOZ_ASSERT(!script->isAsync());
 
     script->needsArgsObj_ = true;

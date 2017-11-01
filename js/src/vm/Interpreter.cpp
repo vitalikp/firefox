@@ -1315,7 +1315,7 @@ js::HandleClosingGeneratorReturn(JSContext* cx, AbstractFramePtr frame, bool ok)
     if (cx->isClosingGenerator()) {
         cx->clearPendingException();
         ok = true;
-        SetReturnValueForClosingGenerator(cx, frame);
+        SetGeneratorClosed(cx, frame);
     }
     return ok;
 }
@@ -4093,12 +4093,7 @@ CASE(JSOP_FINALYIELDRVAL)
 {
     ReservedRooted<JSObject*> gen(&rootObject0, &REGS.sp[-1].toObject());
     REGS.sp--;
-
-    if (!GeneratorObject::finalSuspend(cx, gen)) {
-        interpReturnOK = false;
-        goto return_continuation;
-    }
-
+    GeneratorObject::finalSuspend(cx, gen);
     goto successful_return_continuation;
 }
 

@@ -126,7 +126,7 @@ IsSloppyNormalFunction(JSFunction* fun)
         if (fun->isBuiltin() || fun->isBoundFunction())
             return false;
 
-        if (fun->isStarGenerator() || fun->isLegacyGenerator() || fun->isAsync())
+        if (fun->isStarGenerator() || fun->isAsync())
             return false;
 
         MOZ_ASSERT(fun->isInterpreted());
@@ -472,7 +472,7 @@ JSFunction::needsPrototypeProperty()
     if (isBuiltin())
         return IsWrappedAsyncGenerator(this);
 
-    return isConstructor() || isStarGenerator() || isLegacyGenerator() || isAsync();
+    return isConstructor() || isStarGenerator() || isAsync();
 }
 
 static bool
@@ -1751,7 +1751,6 @@ CreateDynamicFunction(JSContext* cx, const CallArgs& args, GeneratorKind generat
 
     bool isStarGenerator = generatorKind == StarGenerator;
     bool isAsync = asyncKind == AsyncFunction;
-    MOZ_ASSERT(generatorKind != LegacyGenerator);
 
     RootedScript maybeScript(cx);
     const char* filename;
