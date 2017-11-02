@@ -183,7 +183,6 @@ pref("browser.customizemode.tip0.learnMoreUrl", "https://support.mozilla.org/1/f
 pref("keyword.enabled", true);
 pref("browser.fixup.domainwhitelist.localhost", true);
 
-pref("general.useragent.locale", "@AB_CD@");
 pref("general.skins.selectedSkin", "classic/1.0");
 
 pref("general.smoothScroll", true);
@@ -444,6 +443,8 @@ pref("javascript.options.showInConsole",          true);
 #ifdef DEBUG
 pref("general.warnOnAboutConfig",                 false);
 #endif
+
+pref("intl.locale.requested", "@AB_CD@");
 
 // This is the pref to control the location bar, change this to true to
 // force this - this makes the origin of popup windows more obvious to avoid

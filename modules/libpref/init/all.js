@@ -22,7 +22,6 @@
 pref("preferences.allow.omt-write", true);
 
 pref("keyword.enabled", false);
-pref("general.useragent.locale", "chrome://global/locale/intl.properties");
 
 // This pref exists only for testing purposes. In order to disable all
 // overrides by default, don't initialize UserAgentOverrides.jsm.
@@ -2077,7 +2076,6 @@ pref("intl.charset.detector",               "chrome://global/locale/intl.propert
 pref("intl.charset.fallback.override",      "");
 pref("intl.charset.fallback.tld",           true);
 pref("intl.ellipsis",                       "chrome://global-platform/locale/intl.properties");
-pref("intl.locale.matchOS",                 false);
 // this pref allows user to request that all internationalization formatters
 // like date/time formatting, unit formatting, calendars etc. should use
 // OS locale set instead of the app locale set.
