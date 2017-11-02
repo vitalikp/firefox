@@ -463,7 +463,7 @@ FunctionBox::FunctionBox(JSContext* cx, LifoAlloc& alloc, ObjectBox* traceListHe
     toStringStart(toStringStart),
     toStringEnd(0),
     length(0),
-    generatorKindBits_(GeneratorKindAsBits(generatorKind)),
+    generatorKind_(GeneratorKindAsBit(generatorKind)),
     asyncKindBits_(AsyncKindAsBits(asyncKind)),
     hasDestructuringArgs(false),
     hasParameterExprs(false),
@@ -2507,7 +2507,7 @@ Parser<SyntaxParseHandler, char16_t>::finishFunction(bool isStandaloneFunction /
 static YieldHandling
 GetYieldHandling(GeneratorKind generatorKind)
 {
-    if (generatorKind == NotGenerator)
+    if (generatorKind == GeneratorKind::NotGenerator)
         return YieldIsName;
     return YieldIsKeyword;
 }
@@ -2545,7 +2545,7 @@ Parser<FullParseHandler, char16_t>::standaloneFunction(HandleFunction fun,
 
     if (!tokenStream.getToken(&tt))
         return null();
-    if (generatorKind == StarGenerator) {
+    if (generatorKind == GeneratorKind::Generator) {
         MOZ_ASSERT(tt == TOK_MUL);
         if (!tokenStream.getToken(&tt))
             return null();
@@ -2737,11 +2737,11 @@ Parser<ParseHandler, CharT>::functionBody(InHandling inHandling, YieldHandling y
     }
 
     switch (pc->generatorKind()) {
-      case NotGenerator:
+      case GeneratorKind::NotGenerator:
         MOZ_ASSERT_IF(!pc->isAsync(), pc->lastYieldOffset == startYieldOffset);
         break;
 
-      case StarGenerator:
+      case GeneratorKind::Generator:
         MOZ_ASSERT(kind != Arrow);
         MOZ_ASSERT(type == StatementListBody);
         break;
@@ -2787,7 +2787,7 @@ ParserBase::newFunction(HandleAtom atom, FunctionSyntaxKind kind,
 #endif
     switch (kind) {
       case Expression:
-        flags = (generatorKind == NotGenerator && asyncKind == SyncFunction
+        flags = (generatorKind == GeneratorKind::NotGenerator && asyncKind == SyncFunction
                  ? JSFunction::INTERPRETED_LAMBDA
                  : JSFunction::INTERPRETED_LAMBDA_GENERATOR_OR_ASYNC);
         break;
@@ -2796,8 +2796,7 @@ ParserBase::newFunction(HandleAtom atom, FunctionSyntaxKind kind,
         allocKind = gc::AllocKind::FUNCTION_EXTENDED;
         break;
       case Method:
-        MOZ_ASSERT(generatorKind == NotGenerator || generatorKind == StarGenerator);
-        flags = (generatorKind == NotGenerator && asyncKind == SyncFunction
+        flags = (generatorKind == GeneratorKind::NotGenerator && asyncKind == SyncFunction
                  ? JSFunction::INTERPRETED_METHOD
                  : JSFunction::INTERPRETED_METHOD_GENERATOR_OR_ASYNC);
         allocKind = gc::AllocKind::FUNCTION_EXTENDED;
@@ -2825,7 +2824,7 @@ ParserBase::newFunction(HandleAtom atom, FunctionSyntaxKind kind,
             allocKind = gc::AllocKind::FUNCTION_EXTENDED;
         }
 #endif
-        flags = (generatorKind == NotGenerator && asyncKind == SyncFunction
+        flags = (generatorKind == GeneratorKind::NotGenerator && asyncKind == SyncFunction
                  ? JSFunction::INTERPRETED_NORMAL
                  : JSFunction::INTERPRETED_GENERATOR_OR_ASYNC);
     }
@@ -3354,7 +3353,7 @@ Parser<ParseHandler, CharT>::functionDefinition(Node pn, uint32_t toStringStart,
     }
 
     RootedObject proto(context);
-    if (generatorKind == StarGenerator || asyncKind == AsyncFunction) {
+    if (generatorKind == GeneratorKind::Generator || asyncKind == AsyncFunction) {
         // If we are off thread, the generator meta-objects have
         // already been created by js::StartOffThreadParseTask, so cx will not
         // be necessary.
@@ -3426,8 +3425,12 @@ Parser<FullParseHandler, char16_t>::trySyntaxParseInnerFunction(ParseNode* pn, H
         // parse to avoid the overhead of a lazy syntax-only parse. Although
         // the prediction may be incorrect, IIFEs are common enough that it
         // pays off for lots of code.
-        if (pn->isLikelyIIFE() && generatorKind == NotGenerator && asyncKind == SyncFunction)
+        if (pn->isLikelyIIFE() &&
+            generatorKind == GeneratorKind::NotGenerator &&
+            asyncKind == SyncFunction)
+        {
             break;
+        }
 
         if (!syntaxParser_)
             break;
@@ -3704,7 +3707,7 @@ Parser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling inHandli
     uint32_t openedPos = 0;
     if (tt != TOK_LC) {
         if (kind != Arrow) {
-            if (funbox->isStarGenerator() || funbox->isAsync() || kind == Method ||
+            if (funbox->isGenerator() || funbox->isAsync() || kind == Method ||
                 kind == GetterNoExpressionClosure || kind == SetterNoExpressionClosure ||
                 IsConstructorKind(kind))
             {
@@ -3833,9 +3836,9 @@ Parser<ParseHandler, CharT>::functionStmt(uint32_t toStringStart, YieldHandling 
     if (!tokenStream.getToken(&tt))
         return null();
 
-    GeneratorKind generatorKind = NotGenerator;
+    GeneratorKind generatorKind = GeneratorKind::NotGenerator;
     if (tt == TOK_MUL) {
-        generatorKind = StarGenerator;
+        generatorKind = GeneratorKind::Generator;
         if (!tokenStream.getToken(&tt))
             return null();
     }
@@ -3860,9 +3863,11 @@ Parser<ParseHandler, CharT>::functionStmt(uint32_t toStringStart, YieldHandling 
         MOZ_ASSERT(declaredInStmt->kind() != StatementKind::Label);
         MOZ_ASSERT(StatementKindIsBraced(declaredInStmt->kind()));
 
-        kind = !pc->sc()->strict() && generatorKind == NotGenerator && asyncKind == SyncFunction
-               ? DeclarationKind::SloppyLexicalFunction
-               : DeclarationKind::LexicalFunction;
+        kind = (!pc->sc()->strict() &&
+                generatorKind == GeneratorKind::NotGenerator &&
+                asyncKind == SyncFunction)
+                ? DeclarationKind::SloppyLexicalFunction
+                : DeclarationKind::LexicalFunction;
     } else {
         kind = pc->atModuleLevel()
                ? DeclarationKind::ModuleBodyLevelFunction
@@ -3898,13 +3903,13 @@ Parser<ParseHandler, CharT>::functionExpr(uint32_t toStringStart, InvokedPredict
     MOZ_ASSERT(tokenStream.isCurrentTokenType(TOK_FUNCTION));
 
     AutoAwaitIsKeyword<Parser> awaitIsKeyword(this, GetAwaitHandling(asyncKind));
-    GeneratorKind generatorKind = NotGenerator;
+    GeneratorKind generatorKind = GeneratorKind::NotGenerator;
     TokenKind tt;
     if (!tokenStream.getToken(&tt))
         return null();
 
     if (tt == TOK_MUL) {
-        generatorKind = StarGenerator;
+        generatorKind = GeneratorKind::Generator;
         if (!tokenStream.getToken(&tt))
             return null();
     }
@@ -6569,56 +6574,48 @@ Parser<ParseHandler, CharT>::yieldExpression(InHandling inHandling)
     MOZ_ASSERT(tokenStream.isCurrentTokenType(TOK_YIELD));
     uint32_t begin = pos().begin;
 
-    switch (pc->generatorKind()) {
-      case StarGenerator:
-      {
-        MOZ_ASSERT(pc->isFunctionBox());
+    MOZ_ASSERT(pc->isGenerator());
+    MOZ_ASSERT(pc->isFunctionBox());
 
-        pc->lastYieldOffset = begin;
+    pc->lastYieldOffset = begin;
 
-        Node exprNode;
-        ParseNodeKind kind = PNK_YIELD;
-        TokenKind tt = TOK_EOF;
-        if (!tokenStream.peekTokenSameLine(&tt, TokenStream::Operand))
-            return null();
-        switch (tt) {
-          // TOK_EOL is special; it implements the [no LineTerminator here]
-          // quirk in the grammar.
-          case TOK_EOL:
-          // The rest of these make up the complete set of tokens that can
-          // appear after any of the places where AssignmentExpression is used
-          // throughout the grammar.  Conveniently, none of them can also be the
-          // start an expression.
-          case TOK_EOF:
-          case TOK_SEMI:
-          case TOK_RC:
-          case TOK_RB:
-          case TOK_RP:
-          case TOK_COLON:
-          case TOK_COMMA:
-          case TOK_IN:
-            // No value.
-            exprNode = null();
-            tokenStream.addModifierException(TokenStream::NoneIsOperand);
-            break;
-          case TOK_MUL:
-            kind = PNK_YIELD_STAR;
-            tokenStream.consumeKnownToken(TOK_MUL, TokenStream::Operand);
-            MOZ_FALLTHROUGH;
-          default:
-            exprNode = assignExpr(inHandling, YieldIsKeyword, TripledotProhibited);
-            if (!exprNode)
-                return null();
-        }
-        if (kind == PNK_YIELD_STAR)
-            return handler.newYieldStarExpression(begin, exprNode);
-        return handler.newYieldExpression(begin, exprNode);
-      }
-      case NotGenerator:
+    Node exprNode;
+    ParseNodeKind kind = PNK_YIELD;
+    TokenKind tt = TOK_EOF;
+    if (!tokenStream.peekTokenSameLine(&tt, TokenStream::Operand))
+        return null();
+    switch (tt) {
+      // TOK_EOL is special; it implements the [no LineTerminator here]
+      // quirk in the grammar.
+      case TOK_EOL:
+      // The rest of these make up the complete set of tokens that can
+      // appear after any of the places where AssignmentExpression is used
+      // throughout the grammar.  Conveniently, none of them can also be the
+      // start an expression.
+      case TOK_EOF:
+      case TOK_SEMI:
+      case TOK_RC:
+      case TOK_RB:
+      case TOK_RP:
+      case TOK_COLON:
+      case TOK_COMMA:
+      case TOK_IN:
+        // No value.
+        exprNode = null();
+        tokenStream.addModifierException(TokenStream::NoneIsOperand);
         break;
+      case TOK_MUL:
+        kind = PNK_YIELD_STAR;
+        tokenStream.consumeKnownToken(TOK_MUL, TokenStream::Operand);
+        MOZ_FALLTHROUGH;
+      default:
+        exprNode = assignExpr(inHandling, YieldIsKeyword, TripledotProhibited);
+        if (!exprNode)
+            return null();
     }
-
-    MOZ_CRASH("yieldExpr");
+    if (kind == PNK_YIELD_STAR)
+        return handler.newYieldStarExpression(begin, exprNode);
+    return handler.newYieldExpression(begin, exprNode);
 }
 
 template <class ParseHandler, typename CharT>
@@ -8094,7 +8091,7 @@ Parser<ParseHandler, CharT>::assignExpr(InHandling inHandling, YieldHandling yie
             return null();
 
         return functionDefinition(pn, toStringStart, inHandling, yieldHandling, nullptr,
-                                  Arrow, NotGenerator, asyncKind);
+                                  Arrow, GeneratorKind::NotGenerator, asyncKind);
       }
 
       default:
@@ -9589,8 +9586,8 @@ Parser<ParseHandler, CharT>::methodDefinition(uint32_t toStringStart, PropertyTy
 
     GeneratorKind generatorKind = (propType == PropertyType::GeneratorMethod ||
                                    propType == PropertyType::AsyncGeneratorMethod)
-                                  ? StarGenerator
-                                  : NotGenerator;
+                                  ? GeneratorKind::Generator
+                                  : GeneratorKind::NotGenerator;
 
     FunctionAsyncKind asyncKind = (propType == PropertyType::AsyncMethod ||
                                    propType == PropertyType::AsyncGeneratorMethod)

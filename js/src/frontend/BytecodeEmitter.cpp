@@ -410,7 +410,7 @@ class BytecodeEmitter::EmitterScope : public Nestable<BytecodeEmitter::EmitterSc
         if (nextFrameSlot_ > bce->maxFixedSlots)
             bce->maxFixedSlots = nextFrameSlot_;
         MOZ_ASSERT_IF(bce->sc->isFunctionBox() &&
-                      (bce->sc->asFunctionBox()->isStarGenerator() ||
+                      (bce->sc->asFunctionBox()->isGenerator() ||
                        bce->sc->asFunctionBox()->isAsync()),
                       bce->maxFixedSlots == 0);
     }
@@ -4829,7 +4829,7 @@ BytecodeEmitter::isRunOnceLambda()
 
     FunctionBox* funbox = sc->asFunctionBox();
     return !funbox->argumentsHasLocalBinding() &&
-           !funbox->isStarGenerator() &&
+           !funbox->isGenerator() &&
            !funbox->isAsync() &&
            !funbox->function()->explicitName();
 }
@@ -7917,7 +7917,7 @@ BytecodeEmitter::emitFunction(ParseNode* pn, bool needsProto)
         if (funbox->isAsync()) {
             MOZ_ASSERT(!needsProto);
             return emitAsyncWrapper(index, funbox->needsHomeObject(), fun->isArrow(),
-                                    fun->isStarGenerator());
+                                    fun->isGenerator());
         }
 
         if (fun->isArrow()) {
@@ -7973,7 +7973,7 @@ BytecodeEmitter::emitFunction(ParseNode* pn, bool needsProto)
             switchToPrologue();
             if (funbox->isAsync()) {
                 if (!emitAsyncWrapper(index, fun->isMethod(), fun->isArrow(),
-                                      fun->isStarGenerator()))
+                                      fun->isGenerator()))
                 {
                     return false;
                 }
@@ -7992,12 +7992,12 @@ BytecodeEmitter::emitFunction(ParseNode* pn, bool needsProto)
         // initialize the binding name of the function in the current scope.
 
         bool isAsync = funbox->isAsync();
-        bool isStarGenerator = funbox->isStarGenerator();
-        auto emitLambda = [index, isAsync, isStarGenerator](BytecodeEmitter* bce,
-                                                            const NameLocation&, bool) {
+        bool isGenerator = funbox->isGenerator();
+        auto emitLambda = [index, isAsync, isGenerator](BytecodeEmitter* bce,
+                                                        const NameLocation&, bool) {
             if (isAsync) {
                 return bce->emitAsyncWrapper(index, /* needsHomeObject = */ false,
-                                             /* isArrow = */ false, isStarGenerator);
+                                             /* isArrow = */ false, isGenerator);
             }
             return bce->emitIndexOp(JSOP_LAMBDA, index);
         };
@@ -8033,7 +8033,7 @@ BytecodeEmitter::emitAsyncWrapperLambda(unsigned index, bool isArrow) {
 
 bool
 BytecodeEmitter::emitAsyncWrapper(unsigned index, bool needsHomeObject, bool isArrow,
-                                  bool isStarGenerator)
+                                  bool isGenerator)
 {
     // needsHomeObject can be true for propertyList for extended class.
     // In that case push both unwrapped and wrapped function, in order to
@@ -8065,7 +8065,7 @@ BytecodeEmitter::emitAsyncWrapper(unsigned index, bool needsHomeObject, bool isA
         if (!emit1(JSOP_DUP))
             return false;
     }
-    if (isStarGenerator) {
+    if (isGenerator) {
         if (!emit1(JSOP_TOASYNCGEN))
             return false;
     } else {
@@ -8319,7 +8319,7 @@ BytecodeEmitter::emitReturn(ParseNode* pn)
             return false;
 
         bool isAsyncGenerator = sc->asFunctionBox()->isAsync() &&
-                                sc->asFunctionBox()->isStarGenerator();
+                                sc->asFunctionBox()->isGenerator();
         if (isAsyncGenerator) {
             if (!emitAwait())
                 return false;
@@ -8483,7 +8483,7 @@ bool
 BytecodeEmitter::emitYieldStar(ParseNode* iter)
 {
     MOZ_ASSERT(sc->isFunctionBox());
-    MOZ_ASSERT(sc->asFunctionBox()->isStarGenerator());
+    MOZ_ASSERT(sc->asFunctionBox()->isGenerator());
 
     bool isAsyncGenerator = sc->asFunctionBox()->isAsync();
 

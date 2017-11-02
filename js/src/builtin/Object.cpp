@@ -354,7 +354,7 @@ js::ObjectToSource(JSContext* cx, HandleObject obj)
                         return false;
                 }
 
-                if (fun->isStarGenerator()) {
+                if (fun->isGenerator()) {
                     if (!buf.append('*'))
                         return false;
                 }
