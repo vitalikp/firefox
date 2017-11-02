@@ -854,7 +854,7 @@ intrinsic_StarGeneratorObjectIsClosed(JSContext* cx, unsigned argc, Value* vp)
     MOZ_ASSERT(args.length() == 1);
     MOZ_ASSERT(args[0].isObject());
 
-    StarGeneratorObject* genObj = &args[0].toObject().as<StarGeneratorObject>();
+    GeneratorObject* genObj = &args[0].toObject().as<GeneratorObject>();
     args.rval().setBoolean(genObj->isClosed());
     return true;
 }
@@ -865,12 +865,12 @@ js::intrinsic_IsSuspendedStarGenerator(JSContext* cx, unsigned argc, Value* vp)
     CallArgs args = CallArgsFromVp(argc, vp);
     MOZ_ASSERT(args.length() == 1);
 
-    if (!args[0].isObject() || !args[0].toObject().is<StarGeneratorObject>()) {
+    if (!args[0].isObject() || !args[0].toObject().is<GeneratorObject>()) {
         args.rval().setBoolean(false);
         return true;
     }
 
-    StarGeneratorObject& genObj = args[0].toObject().as<StarGeneratorObject>();
+    GeneratorObject& genObj = args[0].toObject().as<GeneratorObject>();
     args.rval().setBoolean(!genObj.isClosed() && genObj.isSuspended());
     return true;
 }
@@ -2307,7 +2307,7 @@ static const JSFunctionSpec intrinsic_functions[] = {
           CallNonGenericSelfhostedMethod<Is<StringIteratorObject>>,     2,0),
 
     JS_FN("IsStarGeneratorObject",
-          intrinsic_IsInstanceOfBuiltin<StarGeneratorObject>,           1,0),
+          intrinsic_IsInstanceOfBuiltin<GeneratorObject>,               1,0),
     JS_FN("StarGeneratorObjectIsClosed", intrinsic_StarGeneratorObjectIsClosed, 1,0),
     JS_FN("IsSuspendedStarGenerator",intrinsic_IsSuspendedStarGenerator,1,0),
 
@@ -2380,7 +2380,7 @@ static const JSFunctionSpec intrinsic_functions[] = {
           CallNonGenericSelfhostedMethod<Is<TypedArrayObject>>, 2, 0),
 
     JS_FN("CallStarGeneratorMethodIfWrapped",
-          CallNonGenericSelfhostedMethod<Is<StarGeneratorObject>>, 2, 0),
+          CallNonGenericSelfhostedMethod<Is<GeneratorObject>>, 2, 0),
 
     JS_INLINABLE_FN("GuardToMapObject", intrinsic_GuardToBuiltin<MapObject>, 1, 0,
                     IntrinsicGuardToMapObject),
