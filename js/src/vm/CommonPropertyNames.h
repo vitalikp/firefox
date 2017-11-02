@@ -156,6 +156,9 @@
     macro(gcCycleNumber, gcCycleNumber, "gcCycleNumber") \
     macro(Generator, Generator, "Generator") \
     macro(GeneratorFunction, GeneratorFunction, "GeneratorFunction") \
+    macro(GeneratorNext, GeneratorNext, "GeneratorNext") \
+    macro(GeneratorReturn, GeneratorReturn, "GeneratorReturn") \
+    macro(GeneratorThrow, GeneratorThrow, "GeneratorThrow") \
     macro(get, get, "get") \
     macro(getInternals, getInternals, "getInternals") \
     macro(getOwnPropertyDescriptor, getOwnPropertyDescriptor, "getOwnPropertyDescriptor") \
@@ -375,9 +378,6 @@
     macro(SpeciesConstructor, SpeciesConstructor, "SpeciesConstructor") \
     macro(stack, stack, "stack") \
     macro(star, star, "*") \
-    macro(StarGeneratorNext, StarGeneratorNext, "StarGeneratorNext") \
-    macro(StarGeneratorReturn, StarGeneratorReturn, "StarGeneratorReturn") \
-    macro(StarGeneratorThrow, StarGeneratorThrow, "StarGeneratorThrow") \
     macro(start, start, "start") \
     macro(startTimestamp, startTimestamp, "startTimestamp") \
     macro(state, state, "state") \
