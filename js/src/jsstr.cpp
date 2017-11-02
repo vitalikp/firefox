@@ -3852,7 +3852,12 @@ js::DuplicateString(JSContext* cx, const char16_t* s)
 UniqueChars
 js::DuplicateString(const char* s)
 {
-    return UniqueChars(js_strdup(s));
+    size_t n = strlen(s) + 1;
+    UniqueChars ret(js_pod_malloc<char>(n));
+    if (!ret)
+        return ret;
+    PodCopy(ret.get(), s, n);
+    return ret;
 }
 
 UniqueChars
@@ -3881,6 +3886,12 @@ js::DuplicateString(const char16_t* s, size_t n)
     PodCopy(ret.get(), s, n);
     ret[n] = 0;
     return ret;
+}
+
+JS_PUBLIC_API(char*)
+js_strdup(const char* s)
+{
+    return DuplicateString(s).release();
 }
 
 template <typename CharT>
