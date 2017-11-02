@@ -1157,8 +1157,8 @@ js::ValueToIterator(JSContext* cx, unsigned flags, HandleValue vp)
     return GetIterator(cx, obj, flags);
 }
 
-bool
-js::CloseIterator(JSContext* cx, HandleObject obj)
+void
+js::CloseIterator(JSObject* obj)
 {
     if (obj->is<PropertyIteratorObject>()) {
         /* Remove enumerators from the active list, which is a stack. */
@@ -1177,22 +1177,6 @@ js::CloseIterator(JSContext* cx, HandleObject obj)
             ni->props_cursor = ni->props_array;
         }
     }
-
-    return true;
-}
-
-bool
-js::UnwindIteratorForException(JSContext* cx, HandleObject obj)
-{
-    RootedValue v(cx);
-    bool getOk = cx->getPendingException(&v);
-    cx->clearPendingException();
-    if (!CloseIterator(cx, obj))
-        return false;
-    if (!getOk)
-        return false;
-    cx->setPendingException(v);
-    return true;
 }
 
 bool
