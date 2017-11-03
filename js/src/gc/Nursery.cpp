@@ -130,13 +130,18 @@ js::Nursery::Nursery(JSRuntime* rt)
   , previousPromotionRate_(0)
   , profileThreshold_(0)
   , enableProfiling_(false)
+  , canAllocateStrings_(false)
   , reportTenurings_(0)
   , minorGCTriggerReason_(JS::gcreason::NO_REASON)
   , freeMallocedBuffersTask(nullptr)
 #ifdef JS_GC_ZEAL
   , lastCanary_(nullptr)
 #endif
-{}
+{
+    const char* env = getenv("MOZ_ENABLE_NURSERY_STRINGS");
+    if (env && *env)
+        canAllocateStrings_ = true;
+}
 
 bool
 js::Nursery::init(uint32_t maxNurseryBytes, AutoLockGCBgAlloc& lock)
@@ -240,6 +245,20 @@ js::Nursery::disable()
     currentEnd_ = 0;
 
     runtime()->gc.storeBuffer().disable();
+}
+
+void
+js::Nursery::enableStrings()
+{
+    MOZ_ASSERT(isEmpty());
+    canAllocateStrings_ = true;
+}
+
+void
+js::Nursery::disableStrings()
+{
+    MOZ_ASSERT(isEmpty());
+    canAllocateStrings_ = false;
 }
 
 bool
@@ -1175,4 +1194,21 @@ js::Nursery::sweepDictionaryModeObjects()
             Forwarded(obj)->updateDictionaryListPointerAfterMinorGC(obj);
     }
     dictionaryModeObjects_.clear();
+}
+
+
+JS_PUBLIC_API(void)
+JS::EnableNurseryStrings(JSContext* cx)
+{
+    AutoEmptyNursery empty(cx);
+    ReleaseAllJITCode(cx->runtime()->defaultFreeOp());
+    cx->runtime()->gc.nursery().enableStrings();
+}
+
+JS_PUBLIC_API(void)
+JS::DisableNurseryStrings(JSContext* cx)
+{
+    AutoEmptyNursery empty(cx);
+    ReleaseAllJITCode(cx->runtime()->defaultFreeOp());
+    cx->runtime()->gc.nursery().disableStrings();
 }
