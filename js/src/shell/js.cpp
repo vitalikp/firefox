@@ -5487,7 +5487,7 @@ struct BufferStreamState
     }
 };
 
-ExclusiveWaitableData<BufferStreamState> bufferStreamState(mutexid::BufferStreamState);
+static ExclusiveWaitableData<BufferStreamState> bufferStreamState(mutexid::BufferStreamState);
 
 static void
 BufferStreamMain(BufferStreamJob* job)
@@ -5562,15 +5562,6 @@ ConsumeBufferSource(JSContext* cx, JS::HandleObject obj, JS::MimeType, JS::Strea
     }
 
     return jobPtr->thread.init(BufferStreamMain, jobPtr);
-}
-
-static void
-ShutdownBufferStreams()
-{
-    auto state = bufferStreamState.lock();
-    state->shutdown = true;
-    while (!state->jobs.empty())
-        state.wait(/* jobs empty */);
 }
 
 static bool
@@ -8381,6 +8372,13 @@ SetOutputFile(const char* const envVar,
 int
 main(int argc, char** argv, char** envp)
 {
+    auto shutdownBufferStreams = MakeScopeExit([] {
+        auto state = bufferStreamState.lock();
+        state->shutdown = true;
+        while (!state->jobs.empty())
+            state.wait(/* jobs empty */);
+    });
+
     sArgc = argc;
     sArgv = argv;
 
@@ -8717,7 +8715,6 @@ main(int argc, char** argv, char** envp)
 
     KillWorkerThreads(cx);
 
-    ShutdownBufferStreams();
     DestructSharedArrayBufferMailbox();
 
     JS_DestroyContext(cx);
