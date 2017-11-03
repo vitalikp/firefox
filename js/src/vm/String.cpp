@@ -156,6 +156,13 @@ JSString::dump()
 void
 JSString::dump(js::GenericPrinter& out)
 {
+    dumpNoNewline(out);
+    out.putChar('\n');
+}
+
+void
+JSString::dumpNoNewline(js::GenericPrinter& out)
+{
     if (JSLinearString* linear = ensureLinear(nullptr)) {
         AutoCheckCannotGC nogc;
         if (hasLatin1Chars()) {
@@ -172,7 +179,6 @@ JSString::dump(js::GenericPrinter& out)
     } else {
         out.put("(oom in JSString::dump)");
     }
-    out.putChar('\n');
 }
 
 
