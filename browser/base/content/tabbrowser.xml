@@ -5747,8 +5747,6 @@
         document.getElementById("tabContextMenu");
       </field>
 
-      <field name="mTabstripWidth">0</field>
-
       <field name="mTabstrip">
         document.getAnonymousElementByAttribute(this, "anonid", "arrowscrollbox");
       </field>
@@ -6249,13 +6247,8 @@
                 break;
 
               TabsInTitlebar.updateAppearance();
-
-              var width = this.mTabstrip.boxObject.width;
-              if (width != this.mTabstripWidth) {
-                this.adjustTabstrip();
-                this._handleTabSelect(true);
-                this.mTabstripWidth = width;
-              }
+              this.adjustTabstrip();
+              this._handleTabSelect(true);
               break;
             case "mouseout":
               // If the "related target" (the node to which the pointer went) is not
