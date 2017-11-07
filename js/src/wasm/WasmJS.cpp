@@ -50,6 +50,8 @@ using mozilla::IsSame;
 using mozilla::Nothing;
 using mozilla::RangedPtr;
 
+extern mozilla::Atomic<bool> fuzzingSafe;
+
 bool
 wasm::HasCompilerSupport(JSContext* cx)
 {
@@ -542,7 +544,7 @@ WasmModuleObject::imports(JSContext* cx, unsigned argc, Value* vp)
             return false;
         props.infallibleAppend(IdValuePair(NameToId(names.kind), StringValue(kindStr)));
 
-        if (JitOptions.wasmTestMode && import.kind == DefinitionKind::Function) {
+        if (fuzzingSafe && import.kind == DefinitionKind::Function) {
             JSString* sigStr = SigToString(cx, funcImports[numFuncImport++].sig());
             if (!sigStr)
                 return false;
@@ -600,7 +602,7 @@ WasmModuleObject::exports(JSContext* cx, unsigned argc, Value* vp)
             return false;
         props.infallibleAppend(IdValuePair(NameToId(names.kind), StringValue(kindStr)));
 
-        if (JitOptions.wasmTestMode && exp.kind() == DefinitionKind::Function) {
+        if (fuzzingSafe && exp.kind() == DefinitionKind::Function) {
             JSString* sigStr = SigToString(cx, funcExports[numFuncExport++].sig());
             if (!sigStr)
                 return false;
