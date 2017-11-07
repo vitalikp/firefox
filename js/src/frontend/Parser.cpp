@@ -8766,7 +8766,7 @@ GeneralParser<ParseHandler, CharT>::checkLabelOrIdentifierReference(PropertyName
         return true;
     if (TokenKindIsContextualKeyword(tt)) {
         if (tt == TOK_YIELD) {
-            if (yieldHandling == YieldIsKeyword || versionNumber() >= JSVERSION_1_7) {
+            if (yieldHandling == YieldIsKeyword) {
                 errorAt(offset, JSMSG_RESERVED_ID, "yield");
                 return false;
             }
