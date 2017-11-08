@@ -961,6 +961,9 @@ MMathFunction::writeRecoverData(CompactBufferWriter& writer) const
 {
     MOZ_ASSERT(canRecoverOnBailout());
     switch (function_) {
+      case Floor:
+        writer.writeUnsigned(uint32_t(RInstruction::Recover_Floor));
+        return true;
       case Round:
         writer.writeUnsigned(uint32_t(RInstruction::Recover_Round));
         return true;

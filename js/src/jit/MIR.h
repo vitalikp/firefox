@@ -7011,6 +7011,7 @@ class MMathFunction
         switch(function_) {
           case Sin:
           case Log:
+          case Floor:
           case Round:
             return true;
           default:
