@@ -916,6 +916,8 @@ class AstModule : public AstNode
     AstElemSegmentVector elemSegments_;
     AstGlobalVector      globals_;
 
+    size_t numGlobalImports_;
+
   public:
     explicit AstModule(LifoAlloc& lifo)
       : lifo_(lifo),
@@ -929,7 +931,8 @@ class AstModule : public AstNode
         funcs_(lifo),
         dataSegments_(lifo),
         elemSegments_(lifo),
-        globals_(lifo)
+        globals_(lifo),
+        numGlobalImports_(0)
     {}
     bool init() {
         return sigMap_.init();
@@ -1019,9 +1022,9 @@ class AstModule : public AstNode
                 return false;
             break;
           case DefinitionKind::Global:
+            numGlobalImports_++;
             break;
         }
-
         return imports_.append(imp);
     }
     const ImportVector& imports() const {
@@ -1044,6 +1047,9 @@ class AstModule : public AstNode
     }
     const AstGlobalVector& globals() const {
         return globals_;
+    }
+    size_t numGlobalImports() const {
+        return numGlobalImports_;
     }
 };
 
