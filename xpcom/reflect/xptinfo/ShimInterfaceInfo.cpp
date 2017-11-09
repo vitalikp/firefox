@@ -82,7 +82,6 @@
 #include "nsIDOMHTMLParagraphElement.h"
 #include "nsIDOMHTMLPreElement.h"
 #include "nsIDOMHTMLQuoteElement.h"
-#include "nsIDOMHTMLScriptElement.h"
 #include "nsIDOMHTMLSelectElement.h"
 #include "nsIDOMHTMLSourceElement.h"
 #include "nsIDOMHTMLStyleElement.h"
@@ -208,7 +207,6 @@
 #include "mozilla/dom/HTMLParagraphElementBinding.h"
 #include "mozilla/dom/HTMLPreElementBinding.h"
 #include "mozilla/dom/HTMLQuoteElementBinding.h"
-#include "mozilla/dom/HTMLScriptElementBinding.h"
 #include "mozilla/dom/HTMLSelectElementBinding.h"
 #include "mozilla/dom/HTMLSourceElementBinding.h"
 #include "mozilla/dom/HTMLStyleElementBinding.h"
@@ -393,7 +391,6 @@ const ComponentsInterfaceShimEntry kComponentsInterfaceShimMap[] =
   DEFINE_SHIM(HTMLParagraphElement),
   DEFINE_SHIM(HTMLPreElement),
   DEFINE_SHIM(HTMLQuoteElement),
-  DEFINE_SHIM(HTMLScriptElement),
   DEFINE_SHIM(HTMLSelectElement),
   DEFINE_SHIM(HTMLSourceElement),
   DEFINE_SHIM(HTMLStyleElement),
