@@ -135,8 +135,7 @@ Instance::callImport(JSContext* cx, uint32_t funcImportIndex, unsigned argc, con
     if (!args.init(cx, argc))
         return false;
 
-    bool hasI64ArgOrRet = fi.sig().hasI64ArgOrRet();
-    if (!JitOptions.wasmTestMode && hasI64ArgOrRet) {
+    if (fi.sig().hasI64ArgOrRet()) {
         JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr, JSMSG_WASM_BAD_I64_TYPE);
         return false;
     }
@@ -153,14 +152,7 @@ Instance::callImport(JSContext* cx, uint32_t funcImportIndex, unsigned argc, con
           case ValType::F64:
             args[i].set(JS::CanonicalizedDoubleValue(*(double*)&argv[i]));
             break;
-          case ValType::I64: {
-            MOZ_ASSERT(JitOptions.wasmTestMode);
-            RootedObject obj(cx, CreateI64Object(cx, *(int64_t*)&argv[i]));
-            if (!obj)
-                return false;
-            args[i].set(ObjectValue(*obj));
-            break;
-          }
+          case ValType::I64:
           case ValType::I8x16:
           case ValType::I16x8:
           case ValType::I32x4:
@@ -179,12 +171,6 @@ Instance::callImport(JSContext* cx, uint32_t funcImportIndex, unsigned argc, con
     RootedValue thisv(cx, UndefinedValue());
     if (!Call(cx, fval, thisv, args, rval))
         return false;
-
-    // Don't try to optimize if the function has at least one i64 arg or if
-    // it returns an int64. GenerateJitExit relies on this, as does the
-    // type inference code below in this function.
-    if (hasI64ArgOrRet)
-        return true;
 
     // The import may already have become optimized.
     for (auto t : code().tiers()) {
@@ -229,9 +215,9 @@ Instance::callImport(JSContext* cx, uint32_t funcImportIndex, unsigned argc, con
         TypeSet::Type type = TypeSet::UnknownType();
         switch (importArgs[i]) {
           case ValType::I32:   type = TypeSet::Int32Type(); break;
-          case ValType::I64:   MOZ_CRASH("can't happen because of above guard");
           case ValType::F32:   type = TypeSet::DoubleType(); break;
           case ValType::F64:   type = TypeSet::DoubleType(); break;
+          case ValType::I64:   MOZ_CRASH("NYI");
           case ValType::I8x16: MOZ_CRASH("NYI");
           case ValType::I16x8: MOZ_CRASH("NYI");
           case ValType::I32x4: MOZ_CRASH("NYI");
@@ -286,11 +272,8 @@ Instance::callImport_i32(Instance* instance, int32_t funcImportIndex, int32_t ar
 Instance::callImport_i64(Instance* instance, int32_t funcImportIndex, int32_t argc, uint64_t* argv)
 {
     JSContext* cx = TlsContext.get();
-    RootedValue rval(cx);
-    if (!instance->callImport(cx, funcImportIndex, argc, argv, &rval))
-        return false;
-
-    return ReadI64Object(cx, rval, (int64_t*)argv);
+    JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr, JSMSG_WASM_BAD_I64_TYPE);
+    return false;
 }
 
 /* static */ int32_t
@@ -587,7 +570,7 @@ Instance::callExport(JSContext* cx, uint32_t funcIndex, CallArgs args)
 
     const FuncExport& func = metadata(tier).lookupFuncExport(funcIndex);
 
-    if (!JitOptions.wasmTestMode && func.sig().hasI64ArgOrRet()) {
+    if (func.sig().hasI64ArgOrRet()) {
         JS_ReportErrorNumberUTF8(cx, GetErrorMessage, nullptr, JSMSG_WASM_BAD_I64_TYPE);
         return false;
     }
@@ -613,10 +596,7 @@ Instance::callExport(JSContext* cx, uint32_t funcIndex, CallArgs args)
                 return false;
             break;
           case ValType::I64:
-            MOZ_ASSERT(JitOptions.wasmTestMode);
-            if (!ReadI64Object(cx, v, (int64_t*)&exportArgs[i]))
-                return false;
-            break;
+            MOZ_CRASH("unexpected i64 flowing into callExport");
           case ValType::F32:
             if (!RoundFloat32(cx, v, (float*)&exportArgs[i]))
                 return false;
@@ -713,11 +693,7 @@ Instance::callExport(JSContext* cx, uint32_t funcIndex, CallArgs args)
         args.rval().set(Int32Value(*(int32_t*)retAddr));
         break;
       case ExprType::I64:
-        MOZ_ASSERT(JitOptions.wasmTestMode);
-        retObj = CreateI64Object(cx, *(int64_t*)retAddr);
-        if (!retObj)
-            return false;
-        break;
+        MOZ_CRASH("unexpected i64 flowing from callExport");
       case ExprType::F32:
         args.rval().set(NumberValue(*(float*)retAddr));
         break;
