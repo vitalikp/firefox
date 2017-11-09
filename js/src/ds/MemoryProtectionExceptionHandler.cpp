@@ -522,15 +522,12 @@ struct ExceptionHandlerState
 
     /* Each Mach exception handler runs in its own thread. */
     Thread handlerThread;
-
-    /* Ensure that the exception handler thread is terminated before we quit. */
-    ~ExceptionHandlerState() { MemoryProtectionExceptionHandler::uninstall(); }
 };
 
 /* This choice of ID is arbitrary, but must not match our exception ID. */
 static const mach_msg_id_t sIDQuit = 42;
 
-static ExceptionHandlerState sMachExceptionState;
+static ExceptionHandlerState* sMachExceptionState = nullptr;
 
 /*
  * The meat of our exception handler. This thread waits for an exception
@@ -541,8 +538,8 @@ static void
 MachExceptionHandler()
 {
     kern_return_t ret;
-    MachExceptionParameters& current = sMachExceptionState.current;
-    MachExceptionParameters& previous = sMachExceptionState.previous;
+    MachExceptionParameters& current = sMachExceptionState->current;
+    MachExceptionParameters& previous = sMachExceptionState->previous;
 
     // We use the simplest kind of 64-bit exception message here.
     ExceptionRequest64 request = {};
@@ -669,7 +666,7 @@ TerminateMachExceptionHandlerThread()
     mach_msg_header_t msg;
     msg.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, 0);
     msg.msgh_size = static_cast<mach_msg_size_t>(sizeof(msg));
-    msg.msgh_remote_port = sMachExceptionState.current.port;
+    msg.msgh_remote_port = sMachExceptionState->current.port;
     msg.msgh_local_port = MACH_PORT_NULL;
     msg.msgh_reserved = 0;
     msg.msgh_id = sIDQuit;
@@ -677,7 +674,7 @@ TerminateMachExceptionHandlerThread()
                                  MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
 
     if (ret == MACH_MSG_SUCCESS)
-        sMachExceptionState.handlerThread.join();
+        sMachExceptionState->handlerThread.join();
     else
         MOZ_CRASH("MachExceptionHandler: Handler thread failed to terminate!");
 }
@@ -686,17 +683,22 @@ bool
 MemoryProtectionExceptionHandler::install()
 {
     MOZ_ASSERT(!sExceptionHandlerInstalled);
+    MOZ_ASSERT(!sMachExceptionState);
 
     // If the exception handler is disabled, report success anyway.
     if (MemoryProtectionExceptionHandler::isDisabled())
         return true;
 
+    sMachExceptionState = js_new<ExceptionHandlerState>();
+    if (!sMachExceptionState)
+        return false;
+
     kern_return_t ret;
     mach_port_t task = mach_task_self();
 
     // Allocate a new exception port with receive rights.
-    sMachExceptionState.current = {};
-    MachExceptionParameters& current = sMachExceptionState.current;
+    sMachExceptionState->current = {};
+    MachExceptionParameters& current = sMachExceptionState->current;
     ret = mach_port_allocate(task, MACH_PORT_RIGHT_RECEIVE, &current.port);
     if (ret != KERN_SUCCESS)
         return false;
@@ -710,7 +712,7 @@ MemoryProtectionExceptionHandler::install()
     }
 
     // Start the thread that will receive the messages from our exception port.
-    if (!sMachExceptionState.handlerThread.init(MachExceptionHandler)) {
+    if (!sMachExceptionState->handlerThread.init(MachExceptionHandler)) {
         mach_port_deallocate(task, current.port);
         current = {};
         return false;
@@ -722,8 +724,8 @@ MemoryProtectionExceptionHandler::install()
     current.flavor = THREAD_STATE_NONE;
 
     // Tell the task to use our exception handler, and save the previous one.
-    sMachExceptionState.previous = {};
-    MachExceptionParameters& previous = sMachExceptionState.previous;
+    sMachExceptionState->previous = {};
+    MachExceptionParameters& previous = sMachExceptionState->previous;
     mach_msg_type_number_t previousCount = 1;
     ret = task_swap_exception_ports(task, current.mask, current.port, current.behavior,
                                     current.flavor, &previous.mask, &previousCount,
@@ -747,20 +749,25 @@ void
 MemoryProtectionExceptionHandler::uninstall()
 {
     if (sExceptionHandlerInstalled) {
+        MOZ_ASSERT(sMachExceptionState);
+
         mach_port_t task = mach_task_self();
 
         // Restore the previous exception handler.
-        MachExceptionParameters& previous = sMachExceptionState.previous;
+        MachExceptionParameters& previous = sMachExceptionState->previous;
         task_set_exception_ports(task, previous.mask, previous.port,
                                  previous.behavior, previous.flavor);
 
         TerminateMachExceptionHandlerThread();
 
         // Release the Mach IPC port we used.
-        mach_port_deallocate(task, sMachExceptionState.current.port);
+        mach_port_deallocate(task, sMachExceptionState->current.port);
 
-        sMachExceptionState.current = {};
-        sMachExceptionState.previous = {};
+        sMachExceptionState->current = {};
+        sMachExceptionState->previous = {};
+
+        js_delete(sMachExceptionState);
+        sMachExceptionState = nullptr;
 
         sExceptionHandlerInstalled = false;
     }
