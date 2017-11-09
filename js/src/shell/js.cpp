@@ -5539,7 +5539,7 @@ struct BufferStreamState
     }
 };
 
-static ExclusiveWaitableData<BufferStreamState> bufferStreamState(mutexid::BufferStreamState);
+static ExclusiveWaitableData<BufferStreamState>* bufferStreamState;
 
 static void
 BufferStreamMain(BufferStreamJob* job)
@@ -5557,7 +5557,7 @@ BufferStreamMain(BufferStreamJob* job)
         size_t delayMillis;
         size_t chunkSize;
         {
-            auto state = bufferStreamState.lock();
+            auto state = bufferStreamState->lock();
             shutdown = state->shutdown;
             delayMillis = state->delayMillis;
             chunkSize = state->chunkSize;
@@ -5578,7 +5578,7 @@ BufferStreamMain(BufferStreamJob* job)
         byteOffset += chunkSize;
     }
 
-    auto state = bufferStreamState.lock();
+    auto state = bufferStreamState->lock();
     size_t jobIndex = 0;
     while (state->jobs[jobIndex].get() != job)
         jobIndex++;
@@ -5607,7 +5607,7 @@ ConsumeBufferSource(JSContext* cx, JS::HandleObject obj, JS::MimeType, JS::Strea
     BufferStreamJob* jobPtr = job.get();
 
     {
-        auto state = bufferStreamState.lock();
+        auto state = bufferStreamState->lock();
         MOZ_ASSERT(!state->shutdown);
         if (!state->jobs.append(Move(job)))
             return false;
@@ -5632,13 +5632,23 @@ SetBufferStreamParams(JSContext* cx, unsigned argc, Value* vp)
         return false;
 
     {
-        auto state = bufferStreamState.lock();
+        auto state = bufferStreamState->lock();
         state->delayMillis = delayMillis;
         state->chunkSize = chunkSize;
     }
 
     args.rval().setUndefined();
     return true;
+}
+
+static void
+ShutdownBufferStreams()
+{
+    auto state = bufferStreamState->lock();
+    state->shutdown = true;
+    while (!state->jobs.empty())
+        state.wait(/* jobs empty */);
+    state->jobs.clearAndFree();
 }
 
 class SprintOptimizationTypeInfoOp : public JS::ForEachTrackedOptimizationTypeInfoOp
@@ -8471,14 +8481,6 @@ SetOutputFile(const char* const envVar,
 int
 main(int argc, char** argv, char** envp)
 {
-    auto shutdownBufferStreams = MakeScopeExit([] {
-        auto state = bufferStreamState.lock();
-        state->shutdown = true;
-        while (!state->jobs.empty())
-            state.wait(/* jobs empty */);
-        state->jobs.clearAndFree();
-    });
-
     sArgc = argc;
     sArgv = argv;
 
@@ -8766,6 +8768,15 @@ main(int argc, char** argv, char** envp)
     JS_AddInterruptCallback(cx, ShellInterruptCallback);
     JS::SetBuildIdOp(cx, ShellBuildId);
     JS::SetAsmJSCacheOps(cx, &asmJSCacheOps);
+
+    bufferStreamState =
+        js_new<ExclusiveWaitableData<BufferStreamState>>(mutexid::BufferStreamState);
+    if (!bufferStreamState)
+        return 1;
+    auto shutdownBufferStreams = MakeScopeExit([] {
+        ShutdownBufferStreams();
+        js_delete(bufferStreamState);
+    });
     JS::InitConsumeStreamCallback(cx, ConsumeBufferSource);
 
     gOffThreadState = js_new<OffThreadState>();
