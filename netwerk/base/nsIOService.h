@@ -7,7 +7,7 @@
 #define nsIOService_h__
 
 #include "nsStringFwd.h"
-#include "nsIIOService2.h"
+#include "nsIIOService.h"
 #include "nsTArray.h"
 #include "nsCOMPtr.h"
 #include "nsWeakPtr.h"
@@ -45,7 +45,7 @@ namespace net {
 class NeckoChild;
 class nsAsyncRedirectVerifyHelper;
 
-class nsIOService final : public nsIIOService2
+class nsIOService final : public nsIIOService
                         , public nsIObserver
                         , public nsINetUtil
                         , public nsISpeculativeConnect
@@ -55,7 +55,6 @@ class nsIOService final : public nsIIOService2
 public:
     NS_DECL_THREADSAFE_ISUPPORTS
     NS_DECL_NSIIOSERVICE
-    NS_DECL_NSIIOSERVICE2
     NS_DECL_NSIOBSERVER
     NS_DECL_NSINETUTIL
     NS_DECL_NSISPECULATIVECONNECT
