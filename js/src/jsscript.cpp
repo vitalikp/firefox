@@ -325,7 +325,6 @@ js::XDRScript(XDRState<mode>* xdr, HandleScope scriptEnclosingScope,
         HasMappedArgsObj,
         FunctionHasThisBinding,
         FunctionHasExtraBodyVarScope,
-        IsGeneratorExp,
         IsLegacyGenerator,
         IsStarGenerator,
         IsAsync,
@@ -438,8 +437,6 @@ js::XDRScript(XDRState<mode>* xdr, HandleScope scriptEnclosingScope,
         MOZ_ASSERT_IF(sourceObjectArg, sourceObjectArg->source() == script->scriptSource());
         if (!sourceObjectArg)
             scriptBits |= (1 << OwnSource);
-        if (script->isGeneratorExp())
-            scriptBits |= (1 << IsGeneratorExp);
         if (script->isLegacyGenerator())
             scriptBits |= (1 << IsLegacyGenerator);
         if (script->isStarGenerator())
@@ -599,8 +596,6 @@ js::XDRScript(XDRState<mode>* xdr, HandleScope scriptEnclosingScope,
             script->functionHasThisBinding_ = true;
         if (scriptBits & (1 << FunctionHasExtraBodyVarScope))
             script->functionHasExtraBodyVarScope_ = true;
-        if (scriptBits & (1 << IsGeneratorExp))
-            script->isGeneratorExp_ = true;
         if (scriptBits & (1 << HasSingleton))
             script->hasSingletons_ = true;
         if (scriptBits & (1 << TreatAsRunOnce))
@@ -2923,7 +2918,6 @@ JSScript::initFromFunctionBox(JSContext* cx, HandleScript script,
 
     script->funLength_ = funbox->length;
 
-    script->isGeneratorExp_ = funbox->isGenexpLambda;
     script->setGeneratorKind(funbox->generatorKind());
     script->setAsyncKind(funbox->asyncKind());
     if (funbox->hasRest())
@@ -2948,7 +2942,6 @@ JSScript::initFromModuleContext(JSContext* cx, HandleScript script,
     script->isDerivedClassConstructor_ = false;
     script->funLength_ = 0;
 
-    script->isGeneratorExp_ = false;
     script->setGeneratorKind(NotGenerator);
 
     // Since modules are only run once, mark the script so that initializers
@@ -3590,7 +3583,6 @@ js::detail::CopyScript(JSContext* cx, HandleScript src, HandleScript dst,
     dst->hasSingletons_ = src->hasSingletons();
     dst->treatAsRunOnce_ = src->treatAsRunOnce();
     dst->hasInnerFunctions_ = src->hasInnerFunctions();
-    dst->isGeneratorExp_ = src->isGeneratorExp();
     dst->setGeneratorKind(src->generatorKind());
     dst->isDerivedClassConstructor_ = src->isDerivedClassConstructor();
     dst->needsHomeObject_ = src->needsHomeObject();

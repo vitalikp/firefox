@@ -1974,6 +1974,7 @@ CASE(JSOP_NOP_DESTRUCTURING)
 CASE(JSOP_TRY_DESTRUCTURING_ITERCLOSE)
 CASE(JSOP_ITERNEXT)
 CASE(JSOP_UNUSED126)
+CASE(JSOP_UNUSED206)
 CASE(JSOP_UNUSED223)
 CASE(JSOP_CONDSWITCH)
 {
@@ -4100,15 +4101,6 @@ CASE(JSOP_FINALYIELDRVAL)
 
     goto successful_return_continuation;
 }
-
-CASE(JSOP_ARRAYPUSH)
-{
-    ReservedRooted<JSObject*> obj(&rootObject0, &REGS.sp[-1].toObject());
-    if (!NewbornArrayPush(cx, obj, REGS.sp[-2]))
-        goto error;
-    REGS.sp -= 2;
-}
-END_CASE(JSOP_ARRAYPUSH)
 
 CASE(JSOP_CHECKCLASSHERITAGE)
 {
