@@ -724,7 +724,8 @@ frontend::CompileStandaloneFunction(JSContext* cx, MutableHandleFunction fun,
         scope = &cx->global()->emptyGlobalScope();
 
     BytecodeCompiler compiler(cx, cx->tempLifoAlloc(), options, srcBuf, scope);
-    return compiler.compileStandaloneFunction(fun, GeneratorKind::NotGenerator, SyncFunction,
+    return compiler.compileStandaloneFunction(fun, GeneratorKind::NotGenerator,
+                                              FunctionAsyncKind::SyncFunction,
                                               parameterListEnd);
 }
 
@@ -737,7 +738,8 @@ frontend::CompileStandaloneGenerator(JSContext* cx, MutableHandleFunction fun,
     RootedScope emptyGlobalScope(cx, &cx->global()->emptyGlobalScope());
 
     BytecodeCompiler compiler(cx, cx->tempLifoAlloc(), options, srcBuf, emptyGlobalScope);
-    return compiler.compileStandaloneFunction(fun, GeneratorKind::Generator, SyncFunction,
+    return compiler.compileStandaloneFunction(fun, GeneratorKind::Generator,
+                                              FunctionAsyncKind::SyncFunction,
                                               parameterListEnd);
 }
 
@@ -750,7 +752,8 @@ frontend::CompileStandaloneAsyncFunction(JSContext* cx, MutableHandleFunction fu
     RootedScope emptyGlobalScope(cx, &cx->global()->emptyGlobalScope());
 
     BytecodeCompiler compiler(cx, cx->tempLifoAlloc(), options, srcBuf, emptyGlobalScope);
-    return compiler.compileStandaloneFunction(fun, GeneratorKind::NotGenerator, AsyncFunction,
+    return compiler.compileStandaloneFunction(fun, GeneratorKind::NotGenerator,
+                                              FunctionAsyncKind::AsyncFunction,
                                               parameterListEnd);
 }
 
@@ -763,6 +766,7 @@ frontend::CompileStandaloneAsyncGenerator(JSContext* cx, MutableHandleFunction f
     RootedScope emptyGlobalScope(cx, &cx->global()->emptyGlobalScope());
 
     BytecodeCompiler compiler(cx, cx->tempLifoAlloc(), options, srcBuf, emptyGlobalScope);
-    return compiler.compileStandaloneFunction(fun, GeneratorKind::Generator, AsyncFunction,
+    return compiler.compileStandaloneFunction(fun, GeneratorKind::Generator,
+                                              FunctionAsyncKind::AsyncFunction,
                                               parameterListEnd);
 }
