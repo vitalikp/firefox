@@ -1022,7 +1022,7 @@ class JSScript : public js::gc::TenuredCell
     // see Parser::selfHostingMode.
     bool selfHosted_:1;
 
-    // See FunctionContextFlags.
+    // See FunctionBox.
     bool bindingsAccessedDynamically_:1;
     bool funHasExtensibleScope_:1;
 
