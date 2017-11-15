@@ -2760,10 +2760,11 @@ CodeGenerator::emitLambdaInit(Register output, Register envChain,
     u.s.nargs = info.nargs;
     u.s.flags = info.flags;
 
-    MOZ_ASSERT(JSFunction::offsetOfFlags() == JSFunction::offsetOfNargs() + 2);
+    static_assert(JSFunction::offsetOfFlags() == JSFunction::offsetOfNargs() + 2,
+                  "the code below needs to be adapted");
     masm.store32(Imm32(u.word), Address(output, JSFunction::offsetOfNargs()));
     masm.storePtr(ImmGCPtr(info.scriptOrLazyScript),
-                  Address(output, JSFunction::offsetOfNativeOrScript()));
+                  Address(output, JSFunction::offsetOfScriptOrLazyScript()));
     masm.storePtr(envChain, Address(output, JSFunction::offsetOfEnvironment()));
     masm.storePtr(ImmGCPtr(info.fun->displayAtom()), Address(output, JSFunction::offsetOfAtom()));
 }
@@ -4201,7 +4202,7 @@ CodeGenerator::visitCallGeneric(LCallGeneric* call)
     }
 
     // Knowing that calleereg is a non-native function, load the JSScript.
-    masm.loadPtr(Address(calleereg, JSFunction::offsetOfNativeOrScript()), objreg);
+    masm.loadPtr(Address(calleereg, JSFunction::offsetOfScript()), objreg);
 
     // Load script jitcode.
     masm.loadBaselineOrIonRaw(objreg, objreg, &invoke);
@@ -4313,7 +4314,7 @@ CodeGenerator::visitCallKnown(LCallKnown* call)
     masm.branchIfFunctionHasNoScript(calleereg, &uncompiled);
 
     // Knowing that calleereg is a non-native function, load the JSScript.
-    masm.loadPtr(Address(calleereg, JSFunction::offsetOfNativeOrScript()), objreg);
+    masm.loadPtr(Address(calleereg, JSFunction::offsetOfScript()), objreg);
 
     // Load script jitcode.
     if (call->mir()->needsArgCheck())
@@ -4619,7 +4620,7 @@ CodeGenerator::emitApplyGeneric(T* apply)
                             calleereg, objreg, &invoke);
 
     // Knowing that calleereg is a non-native function, load the JSScript.
-    masm.loadPtr(Address(calleereg, JSFunction::offsetOfNativeOrScript()), objreg);
+    masm.loadPtr(Address(calleereg, JSFunction::offsetOfScript()), objreg);
 
     // Load script jitcode.
     masm.loadBaselineOrIonRaw(objreg, objreg, &invoke);
@@ -12725,7 +12726,7 @@ CodeGenerator::visitFinishBoundFunctionInit(LFinishBoundFunctionInit* lir)
     masm.bind(&isInterpreted);
     {
         // Load the length property of an interpreted function.
-        masm.loadPtr(Address(target, JSFunction::offsetOfNativeOrScript()), temp1);
+        masm.loadPtr(Address(target, JSFunction::offsetOfScript()), temp1);
         masm.load16ZeroExtend(Address(temp1, JSScript::offsetOfFunLength()), temp1);
     }
     masm.bind(&lengthLoaded);

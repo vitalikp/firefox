@@ -928,7 +928,7 @@ IonCacheIRCompiler::emitCallScriptedGetterResult()
     // code when discarding all JIT code in the Zone, so we can assume it'll
     // still have JIT code.
     MOZ_ASSERT(target->hasJITCode());
-    masm.loadPtr(Address(scratch, JSFunction::offsetOfNativeOrScript()), scratch);
+    masm.loadPtr(Address(scratch, JSFunction::offsetOfScript()), scratch);
     masm.loadBaselineOrIonRaw(scratch, scratch, nullptr);
     masm.callJit(scratch);
     masm.storeCallResultValue(output);
@@ -1943,7 +1943,7 @@ IonCacheIRCompiler::emitCallScriptedSetter()
     // code when discarding all JIT code in the Zone, so we can assume it'll
     // still have JIT code.
     MOZ_ASSERT(target->hasJITCode());
-    masm.loadPtr(Address(scratch, JSFunction::offsetOfNativeOrScript()), scratch);
+    masm.loadPtr(Address(scratch, JSFunction::offsetOfScript()), scratch);
     masm.loadBaselineOrIonRaw(scratch, scratch, nullptr);
     masm.callJit(scratch);
 
