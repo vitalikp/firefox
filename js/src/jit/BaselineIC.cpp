@@ -3119,15 +3119,13 @@ ICCallScriptedCompiler::generateStubCode(MacroAssembler& masm)
         }
     }
 
-    // Load the JSScript.
-    masm.loadPtr(Address(callee, JSFunction::offsetOfScript()), callee);
-
     // Load the start of the target JitCode.
     Register code;
     if (!isConstructing_) {
         code = regs.takeAny();
-        masm.loadBaselineOrIonRaw(callee, code, &failure);
+        masm.loadJitCodeRaw(callee, code, &failure);
     } else {
+        masm.loadPtr(Address(callee, JSFunction::offsetOfScript()), callee);
         Address scriptCode(callee, JSScript::offsetOfBaselineOrIonRaw());
         masm.branchPtr(Assembler::Equal, scriptCode, ImmPtr(nullptr), &failure);
     }
@@ -3218,10 +3216,9 @@ ICCallScriptedCompiler::generateStubCode(MacroAssembler& masm)
         callee = masm.extractObject(R0, ExtractTemp0);
         regs.add(R0);
         regs.takeUnchecked(callee);
-        masm.loadPtr(Address(callee, JSFunction::offsetOfScript()), callee);
 
         code = regs.takeAny();
-        masm.loadBaselineOrIonRaw(callee, code, &failureLeaveStubFrame);
+        masm.loadJitCodeRaw(callee, code, &failureLeaveStubFrame);
 
         // Release callee register, but don't add ExtractTemp0 back into the pool
         // ExtractTemp0 is used later, and if it's allocated to some other register at that
@@ -3528,7 +3525,6 @@ ICCall_Native::Compiler::generateStubCode(MacroAssembler& masm)
     else
         pushCallArguments(masm, regs, argcReg, /* isJitCall = */ false, isConstructing_);
 
-
     // Native functions have the signature:
     //
     //    bool (*)(JSContext*, unsigned, Value* vp)
@@ -3741,8 +3737,7 @@ ICCall_ScriptedApplyArray::Compiler::generateStubCode(MacroAssembler& masm)
 
     // Load nargs into scratch for underflow check, and then load jitcode pointer into target.
     masm.load16ZeroExtend(Address(target, JSFunction::offsetOfNargs()), scratch);
-    masm.loadPtr(Address(target, JSFunction::offsetOfScript()), target);
-    masm.loadBaselineOrIonRaw(target, target, nullptr);
+    masm.loadJitCodeRaw(target, target, nullptr);
 
     // Handle arguments underflow.
     Label noUnderflow;
@@ -3830,8 +3825,7 @@ ICCall_ScriptedApplyArguments::Compiler::generateStubCode(MacroAssembler& masm)
 
     // Load nargs into scratch for underflow check, and then load jitcode pointer into target.
     masm.load16ZeroExtend(Address(target, JSFunction::offsetOfNargs()), scratch);
-    masm.loadPtr(Address(target, JSFunction::offsetOfScript()), target);
-    masm.loadBaselineOrIonRaw(target, target, nullptr);
+    masm.loadJitCodeRaw(target, target, nullptr);
 
     // Handle arguments underflow.
     Label noUnderflow;
@@ -3896,11 +3890,10 @@ ICCall_ScriptedFunCall::Compiler::generateStubCode(MacroAssembler& masm)
     masm.branchIfFunctionHasNoScript(callee, &failure);
     masm.branchFunctionKind(Assembler::Equal, JSFunction::ClassConstructor,
                             callee, regs.getAny(), &failure);
-    masm.loadPtr(Address(callee, JSFunction::offsetOfScript()), callee);
 
     // Load the start of the target JitCode.
     Register code = regs.takeAny();
-    masm.loadBaselineOrIonRaw(callee, code, &failure);
+    masm.loadJitCodeRaw(callee, code, &failure);
 
     // We no longer need R1.
     regs.add(R1);
