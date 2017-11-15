@@ -902,7 +902,7 @@ class ICCall_Native : public ICMonitoredStub
     uint32_t pcOffset_;
 
 #ifdef JS_SIMULATOR
-    void *native_;
+    void* native_;
 #endif
 
     ICCall_Native(JitCode* stubCode, ICStub* firstMonitorStub,
