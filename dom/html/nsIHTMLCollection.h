@@ -10,7 +10,7 @@
 #include "nsIDOMHTMLCollection.h"
 #include "nsTArrayForwardDeclare.h"
 #include "nsWrapperCache.h"
-#include "js/GCAPI.h"
+#include "js/RootingAPI.h"
 #include "js/TypeDecls.h"
 
 class nsINode;
