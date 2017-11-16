@@ -574,7 +574,7 @@ class MacroAssemblerMIPS64Compat : public MacroAssemblerMIPS64
     }
     void pushValue(const Address& addr);
 
-    void handleFailureWithHandlerTail(void* handler);
+    void handleFailureWithHandlerTail(void* handler, Label* profilerExitTail);
 
     /////////////////////////////////////////////////////////////////
     // Common interface.

@@ -1820,7 +1820,7 @@ MacroAssembler::restoreFrameAlignmentForICArguments(AfterICSaveLive& aic)
 }
 
 void
-MacroAssemblerMIPSCompat::handleFailureWithHandlerTail(void* handler)
+MacroAssemblerMIPSCompat::handleFailureWithHandlerTail(void* handler, Label* profilerExitTail)
 {
     // Reserve space for exception information.
     int size = (sizeof(ResumeFromException) + ABIStackAlignment) & ~(ABIStackAlignment - 1);
@@ -1902,7 +1902,7 @@ MacroAssemblerMIPSCompat::handleFailureWithHandlerTail(void* handler)
         AbsoluteAddress addressOfEnabled(GetJitContext()->runtime->geckoProfiler().addressOfEnabled());
         asMasm().branch32(Assembler::Equal, addressOfEnabled, Imm32(0),
                           &skipProfilingInstrumentation);
-        profilerExitFrame();
+        jump(profilerExitTail);
         bind(&skipProfilingInstrumentation);
     }
 
@@ -2048,7 +2048,7 @@ MacroAssemblerMIPSCompat::profilerEnterFrame(Register framePtr, Register scratch
 void
 MacroAssemblerMIPSCompat::profilerExitFrame()
 {
-    branch(GetJitContext()->runtime->jitRuntime()->getProfilerExitFrameTail());
+    jump(GetJitContext()->runtime->jitRuntime()->getProfilerExitFrameTail());
 }
 
 void

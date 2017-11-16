@@ -83,6 +83,12 @@ MacroAssembler::PushWithPatch(ImmPtr imm)
 // Simple call functions.
 
 void
+MacroAssembler::call(TrampolinePtr code)
+{
+    call(ImmPtr(code.value));
+}
+
+void
 MacroAssembler::call(const wasm::CallSiteDesc& desc, const Register reg)
 {
     CodeOffset l = call(reg);
@@ -220,7 +226,7 @@ MacroAssembler::callJit(JitCode* callee)
 }
 
 uint32_t
-MacroAssembler::callJit(ImmPtr code)
+MacroAssembler::callJit(TrampolinePtr code)
 {
     AutoProfilerCallInstrumentation profiler(*this);
     call(code);
@@ -291,14 +297,6 @@ MacroAssembler::buildFakeExitFrame(Register scratch)
 // Exit frame footer.
 
 void
-MacroAssembler::PushStubCode()
-{
-    // Make sure that we do not erase an existing self-reference.
-    MOZ_ASSERT(!hasSelfReference());
-    selfReferencePatch_ = PushWithPatch(ImmWord(-1));
-}
-
-void
 MacroAssembler::enterExitFrame(Register cxreg, Register scratch, const VMFunction* f)
 {
     MOZ_ASSERT(f);
@@ -325,12 +323,6 @@ void
 MacroAssembler::leaveExitFrame(size_t extraFrame)
 {
     freeStack(ExitFooterFrame::Size() + extraFrame);
-}
-
-bool
-MacroAssembler::hasSelfReference() const
-{
-    return selfReferencePatch_.bound();
 }
 
 // ===============================================================

@@ -4186,9 +4186,6 @@ CodeGenerator::visitCallGeneric(LCallGeneric* call)
     // Known-target case is handled by LCallKnown.
     MOZ_ASSERT(!call->hasSingleTarget());
 
-    // Generate an ArgumentsRectifier.
-    JitCode* argumentsRectifier = gen->jitRuntime()->getArgumentsRectifier();
-
     masm.checkStackAlignment();
 
     // Guard that calleereg is actually a function object.
@@ -4231,8 +4228,8 @@ CodeGenerator::visitCallGeneric(LCallGeneric* call)
     // Argument fixed needed. Load the ArgumentsRectifier.
     masm.bind(&thunk);
     {
-        masm.movePtr(ImmGCPtr(argumentsRectifier), objreg); // Necessary for GC marking.
-        masm.loadPtr(Address(objreg, JitCode::offsetOfCode()), objreg);
+        TrampolinePtr argumentsRectifier = gen->jitRuntime()->getArgumentsRectifier();
+        masm.movePtr(argumentsRectifier, objreg);
     }
 
     // Finally call the function in objreg.
@@ -4660,10 +4657,8 @@ CodeGenerator::emitApplyGeneric(T* apply)
             masm.bind(&underflow);
 
             // Hardcode the address of the argumentsRectifier code.
-            JitCode* argumentsRectifier = gen->jitRuntime()->getArgumentsRectifier();
-
-            masm.movePtr(ImmGCPtr(argumentsRectifier), objreg); // Necessary for GC marking.
-            masm.loadPtr(Address(objreg, JitCode::offsetOfCode()), objreg);
+            TrampolinePtr argumentsRectifier = gen->jitRuntime()->getArgumentsRectifier();
+            masm.movePtr(argumentsRectifier, objreg);
         }
 
         masm.bind(&rejoin);
@@ -7878,14 +7873,14 @@ JitCompartment::generateStringConcatStub(JSContext* cx)
     return code;
 }
 
-JitCode*
-JitRuntime::generateMallocStub(JSContext* cx)
+void
+JitRuntime::generateMallocStub(MacroAssembler& masm)
 {
     const Register regReturn = CallTempReg0;
     const Register regZone = CallTempReg0;
     const Register regNBytes = CallTempReg1;
 
-    MacroAssembler masm(cx);
+    mallocStubOffset_ = startTrampolineCode(masm);
 
     AllocatableRegisterSet regs(RegisterSet::Volatile());
 #ifdef JS_USE_LINK_REGISTER
@@ -7907,27 +7902,15 @@ JitRuntime::generateMallocStub(JSContext* cx)
 
     masm.PopRegsInMask(save);
     masm.ret();
-
-    Linker linker(masm);
-    AutoFlushICache afc("MallocStub");
-    JitCode* code = linker.newCode<NoGC>(cx, OTHER_CODE);
-
-#ifdef JS_ION_PERF
-    writePerfSpewerJitCodeProfile(code, "MallocStub");
-#endif
-#ifdef MOZ_VTUNE
-    vtune::MarkStub(code, "MallocStub");
-#endif
-
-    return code;
 }
 
-JitCode*
-JitRuntime::generateFreeStub(JSContext* cx)
+void
+JitRuntime::generateFreeStub(MacroAssembler& masm)
 {
     const Register regSlots = CallTempReg0;
 
-    MacroAssembler masm(cx);
+    freeStubOffset_ = startTrampolineCode(masm);
+
 #ifdef JS_USE_LINK_REGISTER
     masm.pushReturnAddress();
 #endif
@@ -7946,26 +7929,13 @@ JitRuntime::generateFreeStub(JSContext* cx)
     masm.PopRegsInMask(save);
 
     masm.ret();
-
-    Linker linker(masm);
-    AutoFlushICache afc("FreeStub");
-    JitCode* code = linker.newCode<NoGC>(cx, OTHER_CODE);
-
-#ifdef JS_ION_PERF
-    writePerfSpewerJitCodeProfile(code, "FreeStub");
-#endif
-#ifdef MOZ_VTUNE
-    vtune::MarkStub(code, "FreeStub");
-#endif
-
-    return code;
 }
 
-
-JitCode*
-JitRuntime::generateLazyLinkStub(JSContext* cx)
+void
+JitRuntime::generateLazyLinkStub(MacroAssembler& masm)
 {
-    MacroAssembler masm(cx);
+    lazyLinkStubOffset_ = startTrampolineCode(masm);
+
 #ifdef JS_USE_LINK_REGISTER
     masm.pushReturnAddress();
 #endif
@@ -7975,13 +7945,12 @@ JitRuntime::generateLazyLinkStub(JSContext* cx)
 
     masm.loadJSContext(temp0);
     masm.enterFakeExitFrame(temp0, temp0, ExitFrameType::LazyLink);
-    masm.PushStubCode();
 
     masm.setupUnalignedABICall(temp0);
     masm.passABIArg(temp0);
     masm.callWithABI(JS_FUNC_TO_DATA_PTR(void*, LazyLinkTopActivation));
 
-    masm.leaveExitFrame(/* stub code */ sizeof(JitCode*));
+    masm.leaveExitFrame();
 
 #ifdef JS_USE_LINK_REGISTER
     // Restore the return address such that the emitPrologue function of the
@@ -7990,17 +7959,7 @@ JitRuntime::generateLazyLinkStub(JSContext* cx)
 #endif
     masm.jump(ReturnReg);
 
-    Linker linker(masm);
-    AutoFlushICache afc("LazyLinkStub");
-    JitCode* code = linker.newCode<NoGC>(cx, OTHER_CODE);
-
-#ifdef JS_ION_PERF
-    writePerfSpewerJitCodeProfile(code, "LazyLinkStub");
-#endif
-#ifdef MOZ_VTUNE
-    vtune::MarkStub(code, "LazyLinkStub");
-#endif
-    return code;
+    lazyLinkStubEndOffset_ = masm.currentOffset();
 }
 
 bool
@@ -9489,11 +9448,8 @@ CodeGenerator::generate()
     // creating the actual frame.
     generateArgumentsChecks();
 
-    if (frameClass_ != FrameSizeClass::None()) {
-        deoptTable_ = gen->jitRuntime()->getBailoutTable(frameClass_);
-        if (!deoptTable_)
-            return false;
-    }
+    if (frameClass_ != FrameSizeClass::None())
+        deoptTable_.emplace(gen->jitRuntime()->getBailoutTable(frameClass_));
 
     // Skip over the alternative entry to IonScript code.
     Label skipPrologue;
@@ -9860,8 +9816,6 @@ CodeGenerator::link(JSContext* cx, CompilerConstraintList* constraints)
     ionScript->setOsrPc(gen->info().osrPc());
     ionScript->setOsrEntryOffset(getOsrEntryOffset());
     ionScript->setInvalidationEpilogueOffset(invalidate_.offset());
-
-    ionScript->setDeoptTable(deoptTable_);
 
 #if defined(JS_ION_PERF)
     if (PerfEnabled())
