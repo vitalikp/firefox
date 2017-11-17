@@ -1608,7 +1608,7 @@ nsMessageManagerScriptExecutor::TryCacheLoadAndCompileScript(
       return;
     }
 
-    JS::CompileOptions options(cx, JSVERSION_DEFAULT);
+    JS::CompileOptions options(cx);
     options.setFileAndLine(url.get(), 1);
     options.setNoScriptRval(true);
 
@@ -1673,7 +1673,6 @@ nsMessageManagerScriptExecutor::InitChildGlobalInternal(
 
   JS::CompartmentOptions options;
   options.creationOptions().setSystemZone();
-  options.behaviors().setVersion(JSVERSION_DEFAULT);
 
   if (xpc::SharedMemoryEnabled()) {
     options.creationOptions().setSharedMemoryAndAtomicsEnabled(true);

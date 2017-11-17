@@ -995,7 +995,7 @@ ScriptPreloader::DecodeNextBatch(size_t chunkSize)
     MOZ_RELEASE_ASSERT(jsapi.Init(xpc::CompilationScope()));
     JSContext* cx = jsapi.cx();
 
-    JS::CompileOptions options(cx, JSVERSION_DEFAULT);
+    JS::CompileOptions options(cx);
     options.setNoScriptRval(true)
            .setSourceIsLazy(true);
 

@@ -344,7 +344,7 @@ js::XDRScript(XDRState<mode>* xdr, HandleScope scriptEnclosingScope,
     uint32_t length, lineno, column, nfixed, nslots;
     uint32_t natoms, nsrcnotes, i;
     uint32_t nconsts, nobjects, nscopes, nregexps, ntrynotes, nscopenotes, nyieldoffsets;
-    uint32_t prologueLength, version;
+    uint32_t prologueLength;
     uint32_t funLength = 0;
     uint32_t nTypeSets = 0;
     uint32_t scriptBits = 0;
@@ -381,8 +381,6 @@ js::XDRScript(XDRState<mode>* xdr, HandleScope scriptEnclosingScope,
 
     if (mode == XDR_ENCODE) {
         prologueLength = script->mainOffset();
-        MOZ_ASSERT(script->getVersion() != JSVERSION_UNKNOWN);
-        version = script->getVersion();
         lineno = script->lineno();
         column = script->column();
         nfixed = script->nfixed();
@@ -463,8 +461,6 @@ js::XDRScript(XDRState<mode>* xdr, HandleScope scriptEnclosingScope,
 
     if (!xdr->codeUint32(&prologueLength))
         return false;
-    if (!xdr->codeUint32(&version))
-        return false;
 
     // To fuse allocations, we need lengths of all embedded arrays early.
     if (!xdr->codeUint32(&natoms))
@@ -494,24 +490,20 @@ js::XDRScript(XDRState<mode>* xdr, HandleScope scriptEnclosingScope,
     RootedScriptSource sourceObject(cx, sourceObjectArg);
 
     if (mode == XDR_DECODE) {
-        JSVersion version_ = JSVersion(version);
-        MOZ_ASSERT((version_ & VersionFlags::MASK) == unsigned(version_));
-
-        // When loading from the bytecode cache, we get the CompileOption from
-        // the document, which specify the version to use. If the version does
-        // not match, then we should fail. This only applies to the top-level,
-        // and not its inner functions.
+        // When loading from the bytecode cache, we get the CompileOptions from
+        // the document. If the noScriptRval or selfHostingMode flag doesn't
+        // match, we should fail. This only applies to the top-level and not
+        // its inner functions.
         mozilla::Maybe<CompileOptions> options;
         if (xdr->hasOptions() && (scriptBits & (1 << OwnSource))) {
             options.emplace(xdr->cx(), xdr->options());
-            if (options->version != version_ ||
-                options->noScriptRval != !!(scriptBits & (1 << NoScriptRval)) ||
+            if (options->noScriptRval != !!(scriptBits & (1 << NoScriptRval)) ||
                 options->selfHostingMode != !!(scriptBits & (1 << SelfHosted)))
             {
                 return xdr->fail(JS::TranscodeResult_Failure_WrongCompileOption);
             }
         } else {
-            options.emplace(xdr->cx(), version_);
+            options.emplace(xdr->cx());
             (*options).setNoScriptRval(!!(scriptBits & (1 << NoScriptRval)))
                       .setSelfHostingMode(!!(scriptBits & (1 << SelfHosted)));
         }
@@ -2673,9 +2665,6 @@ JSScript::Create(JSContext* cx, const ReadOnlyCompileOptions& options,
     script->noScriptRval_ = options.noScriptRval;
     script->treatAsRunOnce_ = options.isRunOnce;
 
-    script->version = options.version;
-    MOZ_ASSERT(script->getVersion() == options.version);     // assert that no overflow occurred
-
     script->setSourceObject(sourceObject);
     if (cx->runtime()->lcovOutput().isEnabled() && !script->initScriptName(cx))
         return nullptr;
@@ -3651,8 +3640,7 @@ CreateEmptyScriptForClone(JSContext* cx, HandleScript src)
     CompileOptions options(cx);
     options.setMutedErrors(src->mutedErrors())
            .setSelfHostingMode(src->selfHosted())
-           .setNoScriptRval(src->noScriptRval())
-           .setVersion(src->getVersion());
+           .setNoScriptRval(src->noScriptRval());
 
     return JSScript::Create(cx, options, sourceObject, src->sourceStart(), src->sourceEnd(),
                             src->toStringStart(), src->toStringEnd());
@@ -4308,7 +4296,6 @@ LazyScript::CreateRaw(JSContext* cx, HandleFunction fun,
 LazyScript::Create(JSContext* cx, HandleFunction fun,
                    const frontend::AtomVector& closedOverBindings,
                    Handle<GCVector<JSFunction*, 8>> innerFunctions,
-                   JSVersion version,
                    uint32_t begin, uint32_t end,
                    uint32_t toStringStart, uint32_t lineno, uint32_t column)
 {
@@ -4317,7 +4304,6 @@ LazyScript::Create(JSContext* cx, HandleFunction fun,
         uint64_t packedFields;
     };
 
-    p.version = version;
     p.shouldDeclareArguments = false;
     p.hasThisBinding = false;
     p.isAsync = false;
@@ -4347,7 +4333,6 @@ LazyScript::Create(JSContext* cx, HandleFunction fun,
     for (size_t i = 0; i < res->numInnerFunctions(); i++)
         resInnerFunctions[i].init(innerFunctions[i]);
 
-    MOZ_ASSERT_IF(res, res->version() == version);
     return res;
 }
 

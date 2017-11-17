@@ -992,8 +992,6 @@ class JSScript : public js::gc::TenuredCell
                                        * forcibly discarded. The counter is reset when
                                        * a script is successfully jit-compiled. */
 
-    uint16_t        version;    /* JS version under which script was compiled */
-
     uint16_t        funLength_; /* ES6 function length */
 
     uint16_t        nTypeSets_; /* number of type sets used in this script for
@@ -1138,7 +1136,7 @@ class JSScript : public js::gc::TenuredCell
     // instead of private to suppress -Wunused-private-field compiler warnings.
   protected:
 #if JS_BITS_PER_WORD == 32
-    // Currently no padding is needed.
+    uint32_t padding_;
 #endif
 
     //
@@ -1188,8 +1186,6 @@ class JSScript : public js::gc::TenuredCell
 
     JSCompartment* compartment() const { return compartment_; }
     JSCompartment* maybeCompartment() const { return compartment(); }
-
-    void setVersion(JSVersion v) { version = v; }
 
     js::SharedScriptData* scriptData() {
         return scriptData_;
@@ -1916,10 +1912,6 @@ class JSScript : public js::gc::TenuredCell
         return getScope(GET_UINT32_INDEX(pc));
     }
 
-    JSVersion getVersion() const {
-        return JSVersion(version);
-    }
-
     inline JSFunction* getFunction(size_t index);
     JSFunction* function() const {
         if (functionNonDelazifying())
@@ -2091,9 +2083,6 @@ class LazyScript : public gc::TenuredCell
     static const uint32_t NumInnerFunctionsBits = 20;
 
     struct PackedView {
-        // Assorted bits that should really be in ScriptSourceObject.
-        uint32_t version : 8;
-
         uint32_t shouldDeclareArguments : 1;
         uint32_t hasThisBinding : 1;
         uint32_t isAsync : 1;
@@ -2157,7 +2146,7 @@ class LazyScript : public gc::TenuredCell
     static LazyScript* Create(JSContext* cx, HandleFunction fun,
                               const frontend::AtomVector& closedOverBindings,
                               Handle<GCVector<JSFunction*, 8>> innerFunctions,
-                              JSVersion version, uint32_t begin, uint32_t end,
+                              uint32_t begin, uint32_t end,
                               uint32_t toStringStart, uint32_t lineno, uint32_t column);
 
     // Create a LazyScript and initialize the closedOverBindings and the
@@ -2206,10 +2195,6 @@ class LazyScript : public gc::TenuredCell
     ScriptSource* maybeForwardedScriptSource() const;
     bool mutedErrors() const {
         return scriptSource()->mutedErrors();
-    }
-    JSVersion version() const {
-        JS_STATIC_ASSERT(JSVERSION_UNKNOWN == -1);
-        return (p_.version == JS_BIT(8) - 1) ? JSVERSION_UNKNOWN : JSVersion(p_.version);
     }
 
     void setEnclosingScopeAndSource(Scope* enclosingScope, ScriptSourceObject* sourceObject);

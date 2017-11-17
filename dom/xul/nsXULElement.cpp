@@ -2661,8 +2661,7 @@ nsXULPrototypeScript::Compile(JS::SourceBufferHolder& aSrcBuf,
     // Ok, compile it to create a prototype script object!
     JS::CompileOptions options(cx);
     options.setIntroductionType("scriptElement")
-           .setFileAndLine(urlspec.get(), aLineNo)
-           .setVersion(JSVersion(mLangVersion));
+           .setFileAndLine(urlspec.get(), aLineNo);
     // If the script was inline, tell the JS parser to save source for
     // Function.prototype.toSource(). If it's out of line, we retrieve the
     // source from the files on demand.

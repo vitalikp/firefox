@@ -284,7 +284,7 @@ RegExpObject*
 RegExpObject::create(JSContext* cx, HandleAtom source, RegExpFlag flags, LifoAlloc& alloc,
                      NewObjectKind newKind)
 {
-    CompileOptions dummyOptions(cx, JSVERSION_DEFAULT);
+    CompileOptions dummyOptions(cx);
     TokenStream dummyTokenStream(cx, dummyOptions, (const char16_t*) nullptr, 0, nullptr);
 
     if (!irregexp::ParsePatternSyntax(dummyTokenStream, alloc, source, flags & UnicodeFlag))
@@ -1021,7 +1021,7 @@ RegExpShared::compile(JSContext* cx, MutableHandleRegExpShared re, HandleAtom pa
     if (!re->ignoreCase() && !StringHasRegExpMetaChars(pattern))
         re->canStringMatch = true;
 
-    CompileOptions options(cx, JSVERSION_DEFAULT);
+    CompileOptions options(cx);
     frontend::TokenStream dummyTokenStream(cx, options, nullptr, 0, nullptr);
 
     LifoAllocScope scope(&cx->tempLifoAlloc());

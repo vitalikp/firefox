@@ -433,8 +433,7 @@ nsXBLProtoImplField::InstallField(JS::Handle<JSObject*> aBoundNode,
 
   JS::Rooted<JS::Value> result(cx);
   JS::CompileOptions options(cx);
-  options.setFileAndLine(uriSpec.get(), mLineNumber)
-         .setVersion(JSVERSION_DEFAULT);
+  options.setFileAndLine(uriSpec.get(), mLineNumber);
   JS::AutoObjectVector scopeChain(cx);
   if (!nsJSUtils::GetScopeChainForXBL(cx, boundElement, aProtoBinding, scopeChain)) {
     return NS_ERROR_OUT_OF_MEMORY;
