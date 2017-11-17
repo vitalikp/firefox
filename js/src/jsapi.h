@@ -1076,9 +1076,6 @@ class MOZ_RAII JSAutoRequest
 #endif
 };
 
-extern JS_PUBLIC_API(JSVersion)
-JS_GetVersion(JSContext* cx);
-
 extern JS_PUBLIC_API(const char*)
 JS_VersionToString(JSVersion version);
 
