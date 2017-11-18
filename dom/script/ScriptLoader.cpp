@@ -683,7 +683,7 @@ ScriptLoader::StartFetchingModuleAndDependencies(ModuleLoadRequest* aRequest,
   MOZ_ASSERT(aURI);
 
   RefPtr<ModuleLoadRequest> childRequest =
-    new ModuleLoadRequest(aRequest->mElement, aRequest->mJSVersion,
+    new ModuleLoadRequest(aRequest->mElement, aRequest->mValidJSVersion,
                             aRequest->mCORSMode, aRequest->mIntegrity, this);
 
   childRequest->mIsTopLevel = false;
@@ -1000,7 +1000,7 @@ ScriptLoader::StartLoad(ScriptLoadRequest* aRequest)
   aRequest->mCacheInfo = nullptr;
   nsCOMPtr<nsICacheInfoChannel> cic(do_QueryInterface(channel));
   if (cic && nsContentUtils::IsBytecodeCacheEnabled() &&
-      aRequest->mJSVersion == JSVERSION_DEFAULT) {
+      aRequest->mValidJSVersion == ValidJSVersion::Valid) {
     if (!aRequest->IsLoadingSource()) {
       // Inform the HTTP cache that we prefer to have information coming from the
       // bytecode cache instead of the sources, if such entry is already registered.
@@ -1109,37 +1109,28 @@ public:
 };
 
 /**
- * Returns the JSVersion for a string of the form '1.n', n = 0, ..., 8, and
- * JSVERSION_UNKNOWN for other strings.
+ * Returns ValidJSVersion::Valid if aVersionStr is a string of the form
+ * '1.n', n = 0, ..., 8, and ValidJSVersion::Invalid for other strings.
  */
-static JSVersion
+static ValidJSVersion
 ParseJavascriptVersion(const nsAString& aVersionStr)
 {
   if (aVersionStr.Length() != 3 || aVersionStr[0] != '1' ||
       aVersionStr[1] != '.') {
-    return JSVERSION_UNKNOWN;
+    return ValidJSVersion::Invalid;
   }
-
-  switch (aVersionStr[2]) {
-  case '0': /* fall through */
-  case '1': /* fall through */
-  case '2': /* fall through */
-  case '3': /* fall through */
-  case '4': /* fall through */
-  case '5': return JSVERSION_DEFAULT;
-  case '6': return JSVERSION_1_6;
-  case '7': return JSVERSION_1_7;
-  case '8': return JSVERSION_1_8;
-  default:  return JSVERSION_UNKNOWN;
+  if ('0' <= aVersionStr[2] && aVersionStr[2] <= '8') {
+    return ValidJSVersion::Valid;
   }
+  return ValidJSVersion::Invalid;
 }
 
 static inline bool
-ParseTypeAttribute(const nsAString& aType, JSVersion* aVersion)
+ParseTypeAttribute(const nsAString& aType, ValidJSVersion* aVersion)
 {
   MOZ_ASSERT(!aType.IsEmpty());
   MOZ_ASSERT(aVersion);
-  MOZ_ASSERT(*aVersion == JSVERSION_DEFAULT);
+  MOZ_ASSERT(*aVersion == ValidJSVersion::Valid);
 
   nsContentTypeParser parser(aType);
 
@@ -1199,16 +1190,22 @@ CSPAllowsInlineScript(nsIScriptElement* aElement, nsIDocument* aDocument)
 ScriptLoadRequest*
 ScriptLoader::CreateLoadRequest(ScriptKind aKind,
                                 nsIScriptElement* aElement,
-                                uint32_t aVersion, CORSMode aCORSMode,
+                                ValidJSVersion aValidJSVersion,
+                                CORSMode aCORSMode,
                                 const SRIMetadata& aIntegrity)
 {
   if (aKind == ScriptKind::Classic) {
-    return new ScriptLoadRequest(aKind, aElement, aVersion, aCORSMode,
+    ScriptLoadRequest* slr = new ScriptLoadRequest(aKind, aElement,
+                                 aValidJSVersion, aCORSMode,
                                  aIntegrity);
+
+    LOG(("ScriptLoader %p creates ScriptLoadRequest %p", this, slr));
+    return slr;
   }
 
   MOZ_ASSERT(aKind == ScriptKind::Module);
-  return new ModuleLoadRequest(aElement, aVersion, aCORSMode, aIntegrity, this);
+  return new ModuleLoadRequest(aElement, aValidJSVersion, aCORSMode,
+                               aIntegrity, this);
 }
 
 bool
@@ -1231,7 +1228,7 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
     return false;
   }
 
-  JSVersion version = JSVERSION_DEFAULT;
+  ValidJSVersion validJSVersion = ValidJSVersion::Valid;
 
   // Check the type attribute to determine language and version.
   // If type exists, it trumps the deprecated 'language='
@@ -1243,7 +1240,7 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
     if (ModuleScriptsEnabled() && type.LowerCaseEqualsASCII("module")) {
       scriptKind = ScriptKind::Module;
     } else {
-      NS_ENSURE_TRUE(ParseTypeAttribute(type, &version), false);
+      NS_ENSURE_TRUE(ParseTypeAttribute(type, &validJSVersion), false);
     }
   } else if (!hasType) {
     // no 'type=' element
@@ -1340,7 +1337,7 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
         }
       }
 
-      request = CreateLoadRequest(scriptKind, aElement, version, ourCORSMode,
+      request = CreateLoadRequest(scriptKind, aElement, validJSVersion, ourCORSMode,
                                   sriMetadata);
       request->mURI = scriptURI;
       request->mIsInline = false;
@@ -1385,7 +1382,7 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
     NS_ASSERTION(!request->InCompilingStage(),
                  "Request should not yet be in compiling stage.");
 
-    request->mJSVersion = version;
+    request->mValidJSVersion = validJSVersion;
 
     if (aElement->GetScriptAsync()) {
       request->mIsAsync = true;
@@ -1486,9 +1483,9 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
   }
 
   // Inline scripts ignore ther CORS mode and are always CORS_NONE
-  request = CreateLoadRequest(scriptKind, aElement, version, CORS_NONE,
+  request = CreateLoadRequest(scriptKind, aElement, validJSVersion, CORS_NONE,
                               SRIMetadata()); // SRI doesn't apply
-  request->mJSVersion = version;
+  request->mValidJSVersion = validJSVersion;
   request->mIsInline = true;
   request->mURI = mDocument->GetDocumentURI();
   request->mLineNo = aElement->GetScriptLineNumber();
@@ -2085,8 +2082,7 @@ ScriptLoader::EvaluateScript(ScriptLoadRequest* aRequest)
     return NS_ERROR_FAILURE;
   }
 
-  JSVersion version = JSVersion(aRequest->mJSVersion);
-  if (version == JSVERSION_UNKNOWN) {
+  if (aRequest->mValidJSVersion == ValidJSVersion::Invalid) {
     return NS_OK;
   }
 
@@ -2981,7 +2977,7 @@ ScriptLoader::PreloadURI(nsIURI* aURI, const nsAString& aCharset,
   }
 
   RefPtr<ScriptLoadRequest> request =
-    CreateLoadRequest(ScriptKind::Classic, nullptr, 0,
+    CreateLoadRequest(ScriptKind::Classic, nullptr, ValidJSVersion::Valid,
                       Element::StringToCORSMode(aCrossOrigin), sriMetadata);
   request->mURI = aURI;
   request->mIsInline = false;
