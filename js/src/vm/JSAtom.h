@@ -10,7 +10,6 @@
 #include "mozilla/Maybe.h"
 
 #include "gc/Rooting.h"
-#include "js/Result.h"
 #include "js/TypeDecls.h"
 #include "vm/CommonPropertyNames.h"
 
@@ -53,10 +52,6 @@ FOR_EACH_COMMON_PROPERTYNAME(DECLARE_CONST_CHAR_STR)
 extern const char js_getter_str[];
 extern const char js_send_str[];
 extern const char js_setter_str[];
-
-namespace JS {
-enum TranscodeResult : uint8_t;
-}
 
 namespace js {
 
@@ -101,19 +96,11 @@ template <AllowGC allowGC>
 extern JSAtom*
 ToAtom(JSContext* cx, typename MaybeRooted<JS::Value, allowGC>::HandleType v);
 
-enum XDRMode {
-    XDR_ENCODE,
-    XDR_DECODE
-};
-
-template <XDRMode mode>
-class XDRState;
-
-using XDRResult = mozilla::Result<mozilla::Ok, JS::TranscodeResult>;
-
-template<XDRMode mode>
-XDRResult
-XDRAtom(XDRState<mode>* xdr, js::MutableHandleAtom atomp);
+// These functions are declared in vm/Xdr.h
+//
+// template<XDRMode mode>
+// XDRResult
+// XDRAtom(XDRState<mode>* xdr, js::MutableHandleAtom atomp);
 
 extern JS::Handle<PropertyName*>
 ClassName(JSProtoKey key, JSContext* cx);
