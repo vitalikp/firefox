@@ -2467,9 +2467,7 @@ JSScript::shareScriptData(JSContext* cx)
 
     AutoLockForExclusiveAccess lock(cx);
 
-    ScriptBytecodeHasher::Lookup l(ssd);
-
-    ScriptDataTable::AddPtr p = cx->scriptDataTable(lock).lookupForAdd(l);
+    ScriptDataTable::AddPtr p = cx->scriptDataTable(lock).lookupForAdd(*ssd);
     if (p) {
         MOZ_ASSERT(ssd != *p);
         freeScriptData();
