@@ -609,6 +609,11 @@ JS::InitSelfHostedCode(JSContext* cx)
     if (!rt->initializeAtoms(cx))
         return false;
 
+#ifndef JS_CODEGEN_NONE
+    if (!rt->getJitRuntime(cx))
+        return false;
+#endif
+
     if (!rt->initSelfHosting(cx))
         return false;
 
