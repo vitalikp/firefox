@@ -5045,7 +5045,7 @@ MObjectState::initFromTemplateObject(TempAllocator& alloc, MDefinition* undefine
 
         for (size_t i = 0; i < properties.length(); i++) {
             Value val = unboxedObject.getValue(properties[i], /* maybeUninitialized = */ true);
-            MDefinition *def = undefinedVal;
+            MDefinition* def = undefinedVal;
             if (!val.isUndefined()) {
                 MConstant* ins = val.isObject() ?
                     MConstant::NewConstraintlessObject(alloc, &val.toObject()) :
@@ -5111,7 +5111,8 @@ MArrayState::MArrayState(MDefinition* arr)
     // This instruction is only used as a summary for bailout paths.
     setResultType(MIRType::Object);
     setRecoveredOnBailout();
-    numElements_ = arr->toNewArray()->length();
+    numElements_ = arr->isNewArray() ? arr->toNewArray()->length()
+                   : arr->toNewArrayCopyOnWrite()->length();
 }
 
 bool
@@ -5126,6 +5127,37 @@ MArrayState::init(TempAllocator& alloc, MDefinition* obj, MDefinition* len)
     return true;
 }
 
+bool
+MArrayState::initFromTemplateObject(TempAllocator& alloc, MDefinition* undefinedVal)
+{
+    if (!array()->isNewArrayCopyOnWrite()) {
+        for (size_t i = 0; i < numElements(); i++)
+            initElement(i, undefinedVal);
+
+        return true;
+    }
+
+    ArrayObject* obj = array()->toNewArrayCopyOnWrite()->templateObject();
+    MOZ_ASSERT(obj->length() == numElements());
+
+    // Initialize all the elements of the object state with the value contained in
+    // the template object.
+    for (size_t i = 0; i < numElements(); i++) {
+        Value val = obj->getDenseElement(i);
+        MDefinition* def = undefinedVal;
+        if (!val.isUndefined()) {
+            MConstant* ins = val.isObject() ?
+                MConstant::NewConstraintlessObject(alloc, &val.toObject()) :
+                MConstant::New(alloc, val);
+            block()->insertBefore(this, ins);
+            def = ins;
+        }
+        initElement(i, def);
+    }
+
+    return true;
+}
+
 MArrayState*
 MArrayState::New(TempAllocator& alloc, MDefinition* arr, MDefinition* undefinedVal,
                  MDefinition* initLength)
@@ -5133,8 +5165,6 @@ MArrayState::New(TempAllocator& alloc, MDefinition* arr, MDefinition* undefinedV
     MArrayState* res = new(alloc) MArrayState(arr);
     if (!res || !res->init(alloc, arr, initLength))
         return nullptr;
-    for (size_t i = 0; i < res->numElements(); i++)
-        res->initElement(i, undefinedVal);
     return res;
 }
 
