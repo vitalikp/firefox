@@ -3068,16 +3068,14 @@ class BaseCompiler final : public BaseCompilerInterface
             ABIArg argLoc = call.abi.next(MIRType::Int64);
             if (argLoc.kind() == ABIArg::Stack) {
                 ScratchI32 scratch(*this);
-#if defined(JS_CODEGEN_X64)
+#ifdef JS_PUNBOX64
                 loadI64(arg, fromI32(scratch));
-                masm.movq(scratch, Operand(masm.getStackPointer(), argLoc.offsetFromArgBase()));
-#elif defined(JS_CODEGEN_X86) || defined(JS_CODEGEN_ARM)
+                masm.storePtr(scratch, Address(masm.getStackPointer(), argLoc.offsetFromArgBase()));
+#else
                 loadI64Low(arg, scratch);
                 masm.store32(scratch, LowWord(Address(masm.getStackPointer(), argLoc.offsetFromArgBase())));
                 loadI64High(arg, scratch);
                 masm.store32(scratch, HighWord(Address(masm.getStackPointer(), argLoc.offsetFromArgBase())));
-#else
-                MOZ_CRASH("BaseCompiler platform hook: passArg I64");
 #endif
             } else {
                 loadI64(arg, RegI64(argLoc.gpr64()));
@@ -3476,11 +3474,13 @@ class BaseCompiler final : public BaseCompilerInterface
 #endif
     }
 
-    bool rotate64NeedsTemp() const {
+    RegI32 needRotate64Temp() {
 #if defined(JS_CODEGEN_X86)
-        return true;
+        return needI32();
+#elif defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_ARM)
+        return RegI32::Invalid();
 #else
-        return false;
+        MOZ_CRASH("BaseCompiler platform hook: needRotate64Temp");
 #endif
     }
 
@@ -3490,23 +3490,23 @@ class BaseCompiler final : public BaseCompilerInterface
 #endif
     }
 
-    bool popcnt32NeedsTemp() const {
+    RegI32 needPopcnt32Temp() {
 #if defined(JS_CODEGEN_X86) || defined(JS_CODEGEN_X64)
-        return !AssemblerX86Shared::HasPOPCNT();
+        return AssemblerX86Shared::HasPOPCNT() ? RegI32::Invalid() : needI32();
 #elif defined(JS_CODEGEN_ARM)
-        return true;
+        return needI32();
 #else
-        MOZ_CRASH("BaseCompiler platform hook: popcnt32NeedsTemp");
+        MOZ_CRASH("BaseCompiler platform hook: needPopcnt32Temp");
 #endif
     }
 
-    bool popcnt64NeedsTemp() const {
+    RegI32 needPopcnt64Temp() {
 #if defined(JS_CODEGEN_X86) || defined(JS_CODEGEN_X64)
-        return !AssemblerX86Shared::HasPOPCNT();
+        return AssemblerX86Shared::HasPOPCNT() ? RegI32::Invalid() : needI32();
 #elif defined(JS_CODEGEN_ARM)
-        return true;
+        return needI32();
 #else
-        MOZ_CRASH("BaseCompiler platform hook: popcnt64NeedsTemp");
+        MOZ_CRASH("BaseCompiler platform hook: needPopcnt64Temp");
 #endif
     }
 
@@ -3695,14 +3695,15 @@ class BaseCompiler final : public BaseCompilerInterface
 #endif // RABALDR_FLOAT_TO_I64_CALLOUT
 
 #ifndef RABALDR_I64_TO_FLOAT_CALLOUT
-    bool convertI64ToFloatNeedsTemp(ValType to, bool isUnsigned) const {
+    RegI32 needConvertI64ToFloatTemp(ValType to, bool isUnsigned) {
 # if defined(JS_CODEGEN_X86)
-        return isUnsigned &&
-               ((to == ValType::F64 && AssemblerX86Shared::HasSSE3()) ||
-               to == ValType::F32);
+        bool needs = isUnsigned &&
+                     ((to == ValType::F64 && AssemblerX86Shared::HasSSE3()) ||
+                      to == ValType::F32);
 # else
-        return isUnsigned;
+        bool needs = isUnsigned;
 # endif
+        return needs ? needI32() : RegI32::Invalid();
     }
 
     void convertI64ToF32(RegI64 src, bool isUnsigned, RegF32 dest, RegI32 temp) {
@@ -4018,11 +4019,12 @@ class BaseCompiler final : public BaseCompilerInterface
         return true;
     }
 
-    void needStoreTemps(const MemoryAccessDesc& access, ValType srcType, RegI32* tmp) {
+    RegI32 needStoreTemp(const MemoryAccessDesc& access, ValType srcType) {
 #if defined(JS_CODEGEN_ARM)
         if (IsUnaligned(access) && srcType != ValType::I32)
-            *tmp = needI32();
+            return needI32();
 #endif
+        return RegI32::Invalid();
     }
 
     // ptr and src must not be the same register.
@@ -4161,17 +4163,18 @@ class BaseCompiler final : public BaseCompilerInterface
 #endif
     }
 
-    void needAtomicRMWTemps(AtomicOp op, MemoryAccessDesc* access, RegI32* tmp) {
+    RegI32 needAtomicRMWTemp(AtomicOp op, MemoryAccessDesc* access) {
 #if defined(JS_CODEGEN_X86)
         // Handled specially in atomicRMW
         if (access->byteSize() == 1)
-            return;
+            return RegI32::Invalid();
 #endif
 #if defined(JS_CODEGEN_X86) || defined(JS_CODEGEN_X64)
         if (op != AtomicFetchAddOp && op != AtomicFetchSubOp)
-            *tmp = needI32();
+            return needI32();
+        return RegI32::Invalid();
 #elif defined(JS_CODEGEN_ARM)
-        *tmp = needI32();
+        return needI32();
 #else
         MOZ_CRASH("BaseCompiler platform hook: atomicRMWTemps");
 #endif
@@ -4234,14 +4237,15 @@ class BaseCompiler final : public BaseCompilerInterface
         }
     }
 
-    void needAtomicRMW64Temps(AtomicOp op, RegI64* tmp) {
+    RegI64 needAtomicRMW64Temp(AtomicOp op) {
 #if defined(JS_CODEGEN_X86)
         MOZ_CRASH("Do not call on x86");
 #elif defined(JS_CODEGEN_X64)
         if (op != AtomicFetchAddOp && op != AtomicFetchSubOp)
-            *tmp = needI64();
+            return needI64();
+        return RegI64::Invalid();
 #elif defined(JS_CODEGEN_ARM)
-        *tmp = needI64Pair();
+        return needI64Pair();
 #else
         MOZ_CRASH("BaseCompiler platform hook: atomicRMW64Temps");
 #endif
@@ -5478,9 +5482,7 @@ BaseCompiler::emitRotrI64()
     int64_t c;
     if (popConstI64(c)) {
         RegI64 r = popI64();
-        RegI32 temp;
-        if (rotate64NeedsTemp())
-            temp = needI32();
+        RegI32 temp = needRotate64Temp();
         masm.rotateRight64(Imm32(c & 63), r, r, temp);
         maybeFreeI32(temp);
         pushI64(r);
@@ -5516,9 +5518,7 @@ BaseCompiler::emitRotlI64()
     int64_t c;
     if (popConstI64(c)) {
         RegI64 r = popI64();
-        RegI32 temp;
-        if (rotate64NeedsTemp())
-            temp = needI32();
+        RegI32 temp = needRotate64Temp();
         masm.rotateLeft64(Imm32(c & 63), r, r, temp);
         maybeFreeI32(temp);
         pushI64(r);
@@ -5593,13 +5593,9 @@ void
 BaseCompiler::emitPopcntI32()
 {
     RegI32 r0 = popI32();
-    if (popcnt32NeedsTemp()) {
-        RegI32 tmp = needI32();
-        masm.popcnt32(r0, r0, tmp);
-        freeI32(tmp);
-    } else {
-        masm.popcnt32(r0, r0, RegI32::Invalid());
-    }
+    RegI32 tmp = needPopcnt32Temp();
+    masm.popcnt32(r0, r0, tmp);
+    maybeFreeI32(tmp);
     pushI32(r0);
 }
 
@@ -5607,13 +5603,9 @@ void
 BaseCompiler::emitPopcntI64()
 {
     RegI64 r0 = popI64();
-    if (popcnt64NeedsTemp()) {
-        RegI32 tmp = needI32();
-        masm.popcnt64(r0, r0, tmp);
-        freeI32(tmp);
-    } else {
-        masm.popcnt64(r0, r0, RegI32::Invalid());
-    }
+    RegI32 tmp = needPopcnt64Temp();
+    masm.popcnt64(r0, r0, tmp);
+    maybeFreeI32(tmp);
     pushI64(r0);
 }
 
@@ -5866,9 +5858,7 @@ BaseCompiler::emitConvertU64ToF32()
 {
     RegI64 r0 = popI64();
     RegF32 f0 = needF32();
-    RegI32 temp;
-    if (convertI64ToFloatNeedsTemp(ValType::F32, IsUnsigned(true)))
-        temp = needI32();
+    RegI32 temp = needConvertI64ToFloatTemp(ValType::F32, IsUnsigned(true));
     convertI64ToF32(r0, IsUnsigned(true), f0, temp);
     maybeFreeI32(temp);
     freeI64(r0);
@@ -5922,9 +5912,7 @@ BaseCompiler::emitConvertU64ToF64()
 {
     RegI64 r0 = popI64();
     RegF64 d0 = needF64();
-    RegI32 temp;
-    if (convertI64ToFloatNeedsTemp(ValType::F64, IsUnsigned(true)))
-        temp = needI32();
+    RegI32 temp = needConvertI64ToFloatTemp(ValType::F64, IsUnsigned(true));
     convertI64ToF64(r0, IsUnsigned(true), d0, temp);
     maybeFreeI32(temp);
     freeI64(r0);
@@ -7330,8 +7318,8 @@ BaseCompiler::storeCommon(MemoryAccessDesc* access, ValType resultType)
 {
     AccessCheck check;
 
-    RegI32 tls, tmp;
-    needStoreTemps(*access, resultType, &tmp);
+    RegI32 tls;
+    RegI32 tmp = needStoreTemp(*access, resultType);
 
     switch (resultType) {
       case ValType::I32: {
@@ -7838,8 +7826,7 @@ BaseCompiler::emitAtomicRMW(ValType type, Scalar::Type viewType, AtomicOp op)
         MOZ_CRASH("BaseCompiler porting interface: atomic rmw");
 #endif
         RegI32 tls = maybeLoadTlsForAccess(check);
-        RegI32 tmp;
-        needAtomicRMWTemps(op, &access, &tmp);
+        RegI32 tmp = needAtomicRMWTemp(op, &access);
 
         atomicRMW(op, &access, &check, tls, rp, rv, output, tmp);
 
@@ -7921,8 +7908,7 @@ BaseCompiler::emitAtomicRMW(ValType type, Scalar::Type viewType, AtomicOp op)
 # endif
 
     RegI32 tls = maybeLoadTlsForAccess(check);
-    RegI64 tmp;
-    needAtomicRMW64Temps(op, &tmp);
+    RegI64 tmp = needAtomicRMW64Temp(op);
 
     prepareMemoryAccess(&access, &check, tls, rp);
     ATOMIC_PTR(srcAddr, &access, tls, rp);
