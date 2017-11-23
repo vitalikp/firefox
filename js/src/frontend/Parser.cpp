@@ -2782,7 +2782,8 @@ ParserBase::newFunction(HandleAtom atom, FunctionSyntaxKind kind,
     bool isGlobalSelfHostedBuiltin = false;
 #endif
     switch (kind) {
-      case Expression:
+      case AssignmentExpression:
+      case PrimaryExpression:
         flags = (generatorKind == GeneratorKind::NotGenerator &&
                  asyncKind == FunctionAsyncKind::SyncFunction
                  ? JSFunction::INTERPRETED_LAMBDA
@@ -3760,15 +3761,17 @@ Parser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling inHandli
     }
 
     // Revalidate the function name when we transitioned to strict mode.
-    if ((kind == Statement || kind == Expression) && fun->explicitName()
-        && !inheritedStrict && pc->sc()->strict())
+    if ((kind == Statement || IsFunctionExpression(kind)) &&
+        fun->explicitName() &&
+        !inheritedStrict &&
+        pc->sc()->strict())
     {
         MOZ_ASSERT(pc->sc()->hasExplicitUseStrict(),
                    "strict mode should only change when a 'use strict' directive is present");
 
         PropertyName* propertyName = fun->explicitName()->asPropertyName();
         YieldHandling nameYieldHandling;
-        if (kind == Expression) {
+        if (IsFunctionExpression(kind)) {
             // Named lambda has binding inside it.
             nameYieldHandling = bodyYieldHandling;
         } else {
@@ -3942,7 +3945,11 @@ Parser<ParseHandler, CharT>::functionExpr(uint32_t toStringStart, InvokedPredict
     if (invoked)
         pn = handler.setLikelyIIFE(pn);
 
-    return functionDefinition(pn, toStringStart, InAllowed, yieldHandling, name, Expression,
+    // This is PrimaryExpression for now because the parser hasn't been changed
+    // to use AssignmentExpression yet.
+    FunctionSyntaxKind kind = PrimaryExpression;
+
+    return functionDefinition(pn, toStringStart, InAllowed, yieldHandling, name, kind,
                               generatorKind, asyncKind);
 }
 
