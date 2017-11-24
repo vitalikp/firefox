@@ -6944,6 +6944,7 @@ GCRuntime::incrementalCollectSlice(SliceBudget& budget, JS::gcreason::Reason rea
         if (!hasBufferedGrayRoots()) {
             budget.makeUnlimited();
             isIncremental = false;
+            stats().nonincremental(AbortReason::GrayRootBufferingFailed);
         }
 
         if (drainMarkStack(budget, gcstats::PhaseKind::MARK) == NotFinished)
