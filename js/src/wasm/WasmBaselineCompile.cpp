@@ -188,7 +188,7 @@ class BaseStackFrame;
 enum class UseABI { Wasm, System };
 enum class InterModule { False = false, True = true };
 
-#if defined(JS_CODEGEN_ARM64) || defined(JS_CODEGEN_NONE)
+#if defined(JS_CODEGEN_NONE)
 # define RABALDR_SCRATCH_I32
 # define RABALDR_SCRATCH_F32
 # define RABALDR_SCRATCH_F64
@@ -196,6 +196,26 @@ enum class InterModule { False = false, True = true };
 static const Register RabaldrScratchI32 = Register::Invalid();
 static const FloatRegister RabaldrScratchF32 = InvalidFloatReg;
 static const FloatRegister RabaldrScratchF64 = InvalidFloatReg;
+#endif
+
+#ifdef JS_CODEGEN_ARM64
+# define RABALDR_CHUNKY_STACK
+# define RABALDR_SCRATCH_I32
+# define RABALDR_SCRATCH_F32
+# define RABALDR_SCRATCH_F64
+# define RABALDR_SCRATCH_F32_ALIASES_F64
+
+static const Register RabaldrScratchI32 = Register::FromCode(15);
+
+// Note, the float scratch regs cannot be registers that are used for parameter
+// passing in any ABI we use.  Argregs tend to be low-numbered; register 30
+// should be safe.
+
+static constexpr FloatRegister RabaldrScratchF32 = FloatRegister(30, FloatRegisters::Single);
+static constexpr FloatRegister RabaldrScratchF64 = FloatRegister(30, FloatRegisters::Double);
+
+static_assert(RabaldrScratchF32 != ScratchFloat32Reg, "Too busy");
+static_assert(RabaldrScratchF64 != ScratchDoubleReg, "Too busy");
 #endif
 
 #ifdef JS_CODEGEN_X86
@@ -246,6 +266,12 @@ static const Register RabaldrScratchI32 = CallTempReg2;
 #ifdef JS_CODEGEN_MIPS64
 # define RABALDR_SCRATCH_I32
 static const Register RabaldrScratchI32 = CallTempReg2;
+#endif
+
+#ifdef RABALDR_SCRATCH_F32_ALIASES_F64
+# if !defined(RABALDR_SCRATCH_F32) || !defined(RABALDR_SCRATCH_F64)
+#  error "Bad configuration"
+# endif
 #endif
 
 template<MIRType t>
@@ -402,6 +428,8 @@ struct SpecificRegs
       : abiReturnRegI64(ReturnReg64)
     {}
 };
+#elif defined(JS_CODEGEN_ARM64)
+struct SpecificRegs {};
 #elif defined(JS_CODEGEN_MIPS32)
 struct SpecificRegs
 {
@@ -605,19 +633,31 @@ class BaseRegAlloc
     {
         RegisterAllocator::takeWasmRegisters(availGPR);
 
-        // Allocate any private scratch registers.  For now we assume none of
-        // these registers alias.
+        // Allocate any private scratch registers.
 #if defined(RABALDR_SCRATCH_I32)
         if (RabaldrScratchI32 != RegI32::Invalid())
             availGPR.take(RabaldrScratchI32);
 #endif
-#if defined(RABALDR_SCRATCH_F32)
+
+#ifdef RABALDR_SCRATCH_F32_ALIASES_F64
+        MOZ_ASSERT(RabaldrScratchF32 != InvalidFloatReg, "Float reg definition");
+        MOZ_ASSERT(RabaldrScratchF64 != InvalidFloatReg, "Float reg definition");
+#endif
+
+#if defined(RABALDR_SCRATCH_F32) && !defined(RABALDR_SCRATCH_F32_ALIASES_F64)
         if (RabaldrScratchF32 != RegF32::Invalid())
             availFPU.take(RabaldrScratchF32);
 #endif
+
 #if defined(RABALDR_SCRATCH_F64)
+# ifdef RABALDR_SCRATCH_F32_ALIASES_F64
+        MOZ_ASSERT(availFPU.has(RabaldrScratchF32));
+# endif
         if (RabaldrScratchF64 != RegF64::Invalid())
             availFPU.take(RabaldrScratchF64);
+# ifdef RABALDR_SCRATCH_F32_ALIASES_F64
+        MOZ_ASSERT(!availFPU.has(RabaldrScratchF32));
+# endif
 #endif
 
 #ifdef DEBUG
@@ -3649,6 +3689,17 @@ class BaseCompiler final : public BaseCompilerInterface
         masm.addCodeLabel(tableCl);
 
         masm.branchToComputedAddress(BaseIndex(scratch, switchValue, ScalePointer));
+#elif defined(JS_CODEGEN_ARM64)
+        masm.flush();
+
+        ScratchI32 scratch(*this);
+
+        ARMRegister s(scratch, 64);
+        ARMRegister v(switchValue, 64);
+        masm.Adr(s, theTable);
+        masm.Add(s, s, Operand(v, vixl::LSL, 3));
+        masm.Ldr(s, MemOperand(s, 0));
+        masm.Br(s);
 #else
         MOZ_CRASH("BaseCompiler platform hook: tableSwitch");
 #endif
@@ -3767,6 +3818,13 @@ class BaseCompiler final : public BaseCompilerInterface
         else
             masm.as_ddiv(srcDest.reg, rhs.reg);
         masm.as_mflo(srcDest.reg);
+# elif defined(JS_CODEGEN_ARM64)
+        ARMRegister sd(srcDest.reg, 64);
+        ARMRegister r(rhs.reg, 64);
+        if (isUnsigned)
+            masm.Udiv(sd, sd, r);
+        else
+            masm.Sdiv(sd, sd, r);
 # else
         MOZ_CRASH("BaseCompiler platform hook: quotientI64");
 # endif
@@ -3803,6 +3861,18 @@ class BaseCompiler final : public BaseCompilerInterface
         else
             masm.as_ddiv(srcDest.reg, rhs.reg);
         masm.as_mfhi(srcDest.reg);
+# elif defined(JS_CODEGEN_ARM64)
+        MOZ_ASSERT(reserved.isInvalid());
+        ARMRegister sd(srcDest.reg, 64);
+        ARMRegister r(rhs.reg, 64);
+        ScratchI32 temp(*this);
+        ARMRegister t(temp, 64);
+        if (isUnsigned)
+            masm.Udiv(t, sd, r);
+        else
+            masm.Sdiv(t, sd, r);
+        masm.Mul(t, t, r);
+        masm.Sub(sd, sd, t);
 # else
         MOZ_CRASH("BaseCompiler platform hook: remainderI64");
 # endif
@@ -3813,7 +3883,8 @@ class BaseCompiler final : public BaseCompilerInterface
     RegI32 needRotate64Temp() {
 #if defined(JS_CODEGEN_X86)
         return needI32();
-#elif defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_ARM) || \
+#elif defined(JS_CODEGEN_X64) || \
+      defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64) || \
       defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
         return RegI32::Invalid();
 #else
@@ -3830,7 +3901,8 @@ class BaseCompiler final : public BaseCompilerInterface
     RegI32 needPopcnt32Temp() {
 #if defined(JS_CODEGEN_X86) || defined(JS_CODEGEN_X64)
         return AssemblerX86Shared::HasPOPCNT() ? RegI32::Invalid() : needI32();
-#elif defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
+#elif defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64) || \
+      defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
         return needI32();
 #else
         MOZ_CRASH("BaseCompiler platform hook: needPopcnt32Temp");
@@ -3840,7 +3912,8 @@ class BaseCompiler final : public BaseCompilerInterface
     RegI32 needPopcnt64Temp() {
 #if defined(JS_CODEGEN_X86) || defined(JS_CODEGEN_X64)
         return AssemblerX86Shared::HasPOPCNT() ? RegI32::Invalid() : needI32();
-#elif defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
+#elif defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64) || \
+      defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
         return needI32();
 #else
         MOZ_CRASH("BaseCompiler platform hook: needPopcnt64Temp");
@@ -4196,7 +4269,8 @@ class BaseCompiler final : public BaseCompilerInterface
 #endif
     }
 
-#if defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_ARM) || \
+#if defined(JS_CODEGEN_X64) || \
+    defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64) || \
     defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
     BaseIndex prepareAtomicMemoryAccess(MemoryAccessDesc* access, AccessCheck* check, RegI32 tls,
                                         RegI32 ptr)
@@ -4312,6 +4386,11 @@ class BaseCompiler final : public BaseCompilerInterface
             else
                 masm.wasmLoad(*access, HeapReg, ptr, ptr, dest.any());
         }
+#elif defined(JS_CODEGEN_ARM64)
+        if (dest.tag == AnyReg::I64)
+            masm.wasmLoadI64(*access, HeapReg, ptr, ptr, dest.i64());
+        else
+            masm.wasmLoad(*access, HeapReg, ptr, ptr, dest.any());
 #else
         MOZ_CRASH("BaseCompiler platform hook: load");
 #endif
@@ -4416,6 +4495,12 @@ class BaseCompiler final : public BaseCompilerInterface
             else
                 masm.wasmStore(*access, src.any(), HeapReg, ptr, ptr);
         }
+#elif defined(JS_CODEGEN_ARM64)
+        MOZ_ASSERT(temp.isInvalid());
+        if (access->type() == Scalar::Int64)
+            masm.wasmStoreI64(*access, src.i64(), HeapReg, ptr, ptr);
+        else
+            masm.wasmStore(*access, src.any(), HeapReg, ptr, ptr);
 #else
         MOZ_CRASH("BaseCompiler platform hook: store");
 #endif
@@ -4613,14 +4698,18 @@ class BaseCompiler final : public BaseCompilerInterface
         *temp = needI32();
 #elif defined(JS_CODEGEN_MIPS64)
         pop2xI64(r0, r1);
-#else
+#elif defined(JS_CODEGEN_ARM)
         pop2xI64(r0, r1);
         *temp = needI32();
+#elif defined(JS_CODEGEN_ARM64)
+        pop2xI64(r0, r1);
+#else
+        MOZ_CRASH("BaseCompiler porting interface: pop2xI64ForMulI64");
 #endif
     }
 
     void pop2xI64ForDivI64(RegI64* r0, RegI64* r1, RegI64* reserved) {
-#ifdef JS_CODEGEN_X64
+#if defined(JS_CODEGEN_X64)
         // r0 must be rax, and rdx will be clobbered.
         need2xI64(specific.rax, specific.rdx);
         *r1 = popI64();
@@ -4722,7 +4811,9 @@ class BaseCompiler final : public BaseCompilerInterface
 
       public:
 #if defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_X86)
-        explicit PopAtomicCmpXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType) : Base(bc) {
+        explicit PopAtomicCmpXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType)
+          : Base(bc)
+        {
             // For cmpxchg, the expected value and the result are both in eax.
             bc->needI32(bc->specific.eax);
             if (type == ValType::I64) {
@@ -4737,8 +4828,10 @@ class BaseCompiler final : public BaseCompilerInterface
         ~PopAtomicCmpXchg32Regs() {
             bc->freeI32(rnew);
         }
-#elif defined(JS_CODEGEN_ARM)
-        explicit PopAtomicCmpXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType) : Base(bc) {
+#elif defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64)
+        explicit PopAtomicCmpXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType)
+          : Base(bc)
+        {
             if (type == ValType::I64) {
                 rnew = bc->popI64ToI32();
                 rexpect = bc->popI64ToI32();
@@ -4753,7 +4846,9 @@ class BaseCompiler final : public BaseCompilerInterface
             bc->freeI32(rexpect);
         }
 #elif defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
-        explicit PopAtomicCmpXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType) : Base(bc) {
+        explicit PopAtomicCmpXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType)
+          : Base(bc)
+        {
             if (type == ValType::I64) {
                 rnew = bc->popI64ToI32();
                 rexpect = bc->popI64ToI32();
@@ -4771,7 +4866,9 @@ class BaseCompiler final : public BaseCompilerInterface
             temps.maybeFree(bc);
         }
 #else
-        explicit PopAtomicCmpXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType) : Base(bc) {
+        explicit PopAtomicCmpXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType)
+            : Base(bc)
+        {
             MOZ_CRASH("BaseCompiler porting interface: PopAtomicCmpXchg32Regs");
         }
 #endif
@@ -4827,7 +4924,7 @@ class BaseCompiler final : public BaseCompilerInterface
             bc->freeI64(rexpect);
             bc->freeI64(rnew);
         }
-#elif defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
+#elif defined(JS_CODEGEN_ARM64) || defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
         explicit PopAtomicCmpXchg64Regs(BaseCompiler* bc) : Base(bc) {
             rnew = bc->popI64();
             rexpect = bc->popI64();
@@ -4953,7 +5050,7 @@ class BaseCompiler final : public BaseCompilerInterface
                 bc->freeI32(rv);
             temps.maybeFree(bc);
         }
-#elif defined(JS_CODEGEN_ARM)
+#elif defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64)
         explicit PopAtomicRMW32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType,
                                     AtomicOp op)
           : Base(bc)
@@ -5055,7 +5152,7 @@ class BaseCompiler final : public BaseCompilerInterface
             bc->freeI64(rv);
             bc->freeI64(temp);
         }
-#elif defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
+#elif defined(JS_CODEGEN_ARM64) || defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
         explicit PopAtomicRMW64Regs(BaseCompiler* bc, AtomicOp) : Base(bc) {
             rv = bc->popI64();
             temp = bc->needI64();
@@ -5094,13 +5191,17 @@ class BaseCompiler final : public BaseCompilerInterface
 
       public:
 #if defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_X86)
-        explicit PopAtomicXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType) : Base(bc) {
+        explicit PopAtomicXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType)
+          : Base(bc)
+        {
             // The xchg instruction reuses rv as rd.
             rv = (type == ValType::I64) ? bc->popI64ToI32() : bc->popI32();
             setRd(rv);
         }
-#elif defined(JS_CODEGEN_ARM)
-        explicit PopAtomicXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType) : Base(bc) {
+#elif defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64)
+        explicit PopAtomicXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType)
+          : Base(bc)
+        {
             rv = (type == ValType::I64) ? bc->popI64ToI32() : bc->popI32();
             setRd(bc->needI32());
         }
@@ -5108,7 +5209,9 @@ class BaseCompiler final : public BaseCompilerInterface
             bc->freeI32(rv);
         }
 #elif defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
-        explicit PopAtomicXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType) : Base(bc) {
+        explicit PopAtomicXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType)
+          : Base(bc)
+        {
             rv = (type == ValType::I64) ? bc->popI64ToI32() : bc->popI32();
             if (Scalar::byteSize(viewType) < 4)
                 temps.allocate(bc);
@@ -5119,7 +5222,9 @@ class BaseCompiler final : public BaseCompilerInterface
             bc->freeI32(rv);
         }
 #else
-        explicit PopAtomicXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType) : Base(bc) {
+        explicit PopAtomicXchg32Regs(BaseCompiler* bc, ValType type, Scalar::Type viewType)
+          : Base(bc)
+        {
             MOZ_CRASH("BaseCompiler porting interface: PopAtomicXchg32Regs");
         }
 #endif
@@ -5137,10 +5242,18 @@ class BaseCompiler final : public BaseCompilerInterface
         RegI64 rv;
 
       public:
-#ifdef JS_CODEGEN_X64
+#if defined(JS_CODEGEN_X64)
         explicit PopAtomicXchg64Regs(BaseCompiler* bc) : Base(bc) {
             rv = bc->popI64();
             setRd(rv);
+        }
+#elif defined(JS_CODEGEN_ARM64)
+        explicit PopAtomicXchg64Regs(BaseCompiler* bc) : Base(bc) {
+            rv = bc->popI64();
+            setRd(bc->needI64());
+        }
+        ~PopAtomicXchg64Regs() {
+            bc->freeI64(rv);
         }
 #elif defined(JS_CODEGEN_X86)
         // We'll use cmpxchg8b, so rv must be in ecx:ebx, and rd must be
@@ -9751,8 +9864,8 @@ js::wasm::BaselineCanCompile()
         return false;
 #endif
 
-#if defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_X86) || \\
-    defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64) || \\
+#if defined(JS_CODEGEN_X64) || defined(JS_CODEGEN_X86) || \
+    defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64) || \
     defined(JS_CODEGEN_MIPS32) || defined(JS_CODEGEN_MIPS64)
     return true;
 #else
@@ -9774,6 +9887,10 @@ js::wasm::BaselineCompileFunctions(const ModuleEnvironment& env, LifoAlloc& lifo
     JitContext jitContext(&alloc);
     MOZ_ASSERT(IsCompilingWasm());
     MacroAssembler masm(MacroAssembler::WasmToken(), alloc);
+
+#ifdef JS_CODEGEN_ARM64
+    masm.SetStackPointer64(sp);
+#endif
 
     // Swap in already-allocated empty vectors to avoid malloc/free.
     MOZ_ASSERT(code->empty());
