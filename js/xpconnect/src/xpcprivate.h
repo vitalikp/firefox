@@ -1664,12 +1664,6 @@ public:
                  XPCNativeInterface* Interface,
                  XPCWrappedNative** wrapper);
 
-    static nsresult
-    GetUsedOnly(nsISupports* Object,
-                XPCWrappedNativeScope* Scope,
-                XPCNativeInterface* Interface,
-                XPCWrappedNative** wrapper);
-
     void FlatJSObjectFinalized();
     void FlatJSObjectMoved(JSObject* obj, const JSObject* old);
 
