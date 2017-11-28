@@ -1344,8 +1344,6 @@ class XPCNativeSet final
 
     inline XPCNativeInterface* FindInterfaceWithIID(const nsIID& iid) const;
 
-    inline XPCNativeInterface* FindNamedInterface(jsid name) const;
-
     uint16_t GetMemberCount() const {
         return mMemberCount;
     }
