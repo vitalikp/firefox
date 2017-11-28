@@ -3543,6 +3543,7 @@ function resolveRelativeTimeFormatInternals(lazyRelativeTimeFormatData) {
     // Step 17.
     internalProps.locale = r.locale;
     internalProps.style = lazyRelativeTimeFormatData.style;
+    internalProps.type = lazyRelativeTimeFormatData.type;
 
     return internalProps;
 }
@@ -3589,6 +3590,7 @@ function InitializeRelativeTimeFormat(relativeTimeFormat, locales, options) {
     //   {
     //     requestedLocales: List of locales,
     //     style: "long" / "short" / "narrow",
+    //     type: "numeric" / "text",
     //
     //     opt: // opt object computer in InitializeRelativeTimeFormat
     //       {
@@ -3623,6 +3625,11 @@ function InitializeRelativeTimeFormat(relativeTimeFormat, locales, options) {
     // Steps 13-14.
     const style = GetOption(options, "style", "string", ["long", "short", "narrow"], "long");
     lazyRelativeTimeFormatData.style = style;
+
+    // This option is in the process of being added to the spec.
+    // See: https://github.com/tc39/proposal-intl-relative-time/issues/9
+    const type = GetOption(options, "type", "string", ["numeric", "text"], "numeric");
+    lazyRelativeTimeFormatData.type = type;
 
     initializeIntlObject(relativeTimeFormat, "RelativeTimeFormat", lazyRelativeTimeFormatData);
 }
@@ -3706,6 +3713,7 @@ function Intl_RelativeTimeFormat_resolvedOptions() {
     var result = {
         locale: internals.locale,
         style: internals.style,
+        type: internals.type,
     };
 
     return result;
