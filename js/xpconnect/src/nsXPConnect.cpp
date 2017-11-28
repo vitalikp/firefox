@@ -1018,13 +1018,6 @@ SetLocationForGlobal(JSObject* global, nsIURI* locationURI)
 
 } // namespace xpc
 
-NS_IMETHODIMP
-nsXPConnect::NotifyDidPaint()
-{
-    JS::NotifyDidPaint(XPCJSContext::Get()->Context());
-    return NS_OK;
-}
-
 static nsresult
 WriteScriptOrFunction(nsIObjectOutputStream* stream, JSContext* cx,
                       JSScript* scriptArg, HandleObject functionObj)
