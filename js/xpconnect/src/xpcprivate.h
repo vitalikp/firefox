@@ -279,9 +279,6 @@ public:
     nsresult GetInfoForIID(const nsIID * aIID, nsIInterfaceInfo** info);
     nsresult GetInfoForName(const char * name, nsIInterfaceInfo** info);
 
-    virtual nsIPrincipal* GetPrincipal(JSObject* obj,
-                                       bool allowShortCircuit) const override;
-
     void RecordTraversal(void* p, nsISupports* s);
 
 protected:
@@ -1557,8 +1554,6 @@ public:
     NS_DECL_NSIXPCONNECTWRAPPEDNATIVE
 
     NS_DECL_CYCLE_COLLECTION_CLASS(XPCWrappedNative)
-
-    nsIPrincipal* GetObjectPrincipal() const;
 
     bool
     IsValid() const { return mFlatJSObject.hasFlag(FLAT_JS_OBJECT_VALID); }
