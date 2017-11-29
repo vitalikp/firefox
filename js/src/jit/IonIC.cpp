@@ -354,7 +354,6 @@ IonGetIteratorIC::update(JSContext* cx, HandleScript outerScript, IonGetIterator
                          HandleValue value)
 {
     IonScript* ionScript = outerScript->ionScript();
-    jsbytecode* pc = ic->pc();
 
     if (ic->state().maybeTransition())
         ic->discardStubs(cx->zone());
@@ -362,7 +361,7 @@ IonGetIteratorIC::update(JSContext* cx, HandleScript outerScript, IonGetIterator
     if (ic->state().canAttachStub()) {
         bool attached = false;
         RootedScript script(cx, ic->script());
-        GetIteratorIRGenerator gen(cx, script, pc, ic->state().mode(), value);
+        GetIteratorIRGenerator gen(cx, script, ic->pc(), ic->state().mode(), value);
         if (gen.tryAttachStub())
             ic->attachCacheIRStub(cx, gen.writerRef(), gen.cacheKind(), ionScript, &attached);
 
@@ -370,8 +369,7 @@ IonGetIteratorIC::update(JSContext* cx, HandleScript outerScript, IonGetIterator
             ic->state().trackNotAttached();
     }
 
-    uint8_t flags = GET_UINT8(pc);
-    return ValueToIterator(cx, flags, value);
+    return ValueToIterator(cx, value);
 }
 
 /* static */ bool

@@ -6387,12 +6387,10 @@ GeneralParser<ParseHandler, CharT>::forStatement(YieldHandling yieldHandling)
         Node target = startNode;
 
         // Parse the rest of the for-in/of head.
-        if (headKind == PNK_FORIN) {
+        if (headKind == PNK_FORIN)
             stmt.refineForKind(StatementKind::ForInLoop);
-            iflags |= JSITER_ENUMERATE;
-        } else {
+        else
             stmt.refineForKind(StatementKind::ForOfLoop);
-        }
 
         // Parser::declaration consumed everything up to the closing ')'.  That
         // token follows an {Assignment,}Expression and so must be interpreted
