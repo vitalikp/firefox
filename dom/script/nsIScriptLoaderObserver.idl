@@ -20,7 +20,8 @@ interface nsIScriptLoaderObserver : nsISupports {
    *        a script. If this is a failure code, script evaluation
    *        will not occur.
    * @param aElement The element being processed.
-   * @param aIsInline Is this an inline script or externally loaded?
+   * @param aIsInline Is this an inline classic script (as opposed to an
+   *        externally loaded classic script or module script)?
    * @param aURI What is the URI of the script (the document URI if
    *        it is inline).
    * @param aLineNo At what line does the script appear (generally 1
@@ -28,7 +29,7 @@ interface nsIScriptLoaderObserver : nsISupports {
    */
   void scriptAvailable(in nsresult aResult,
                        in nsIScriptElement aElement,
-                       in boolean aIsInline,
+                       in boolean aIsInlineClassicScript,
                        in nsIURI aURI,
                        in int32_t aLineNo);
 
@@ -43,5 +44,4 @@ interface nsIScriptLoaderObserver : nsISupports {
   void scriptEvaluated(in nsresult aResult,
                        in nsIScriptElement aElement,
                        in boolean aIsInline);
-
 };
