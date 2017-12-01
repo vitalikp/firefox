@@ -1230,7 +1230,6 @@ DoUnaryArithFallback(JSContext* cx, void* payload, ICUnaryArith_Fallback* stub_,
 {
     SharedStubInfo info(cx, payload, stub_->icEntry());
     ICStubCompiler::Engine engine = info.engine();
-    HandleScript script = info.innerScript();
 
     // This fallback stub may trigger debug mode toggling.
     DebugModeOSRVolatileStub<ICUnaryArith_Fallback*> stub(engine, info.maybeFrame(), stub_);
@@ -1248,7 +1247,7 @@ DoUnaryArithFallback(JSContext* cx, void* payload, ICUnaryArith_Fallback* stub_,
         break;
       }
       case JSOP_NEG:
-        if (!NegOperation(cx, script, pc, val, res))
+        if (!NegOperation(cx, val, res))
             return false;
         break;
       default:

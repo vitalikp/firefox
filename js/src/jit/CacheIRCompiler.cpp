@@ -2097,7 +2097,7 @@ CacheIRCompiler::emitLoadTypedElementResult()
 
 void
 CacheIRCompiler::emitLoadTypedObjectResultShared(const Address& fieldAddr, Register scratch,
-                                                 TypedThingLayout layout, uint32_t typeDescr,
+                                                 uint32_t typeDescr,
                                                  const AutoOutputRegister& output)
 {
     MOZ_ASSERT(output.hasValue());

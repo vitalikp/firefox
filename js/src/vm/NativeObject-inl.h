@@ -273,8 +273,7 @@ NativeObject::moveDenseElementsNoPreBarrier(uint32_t dstStart, uint32_t srcStart
 }
 
 inline void
-NativeObject::ensureDenseInitializedLengthNoPackedCheck(JSContext* cx, uint32_t index,
-                                                        uint32_t extra)
+NativeObject::ensureDenseInitializedLengthNoPackedCheck(uint32_t index, uint32_t extra)
 {
     MOZ_ASSERT(!denseElementsAreCopyOnWrite());
     MOZ_ASSERT(!denseElementsAreFrozen());
@@ -305,7 +304,7 @@ NativeObject::ensureDenseInitializedLength(JSContext* cx, uint32_t index, uint32
 {
     if (writeToIndexWouldMarkNotPacked(index))
         markDenseElementsNotPacked(cx);
-    ensureDenseInitializedLengthNoPackedCheck(cx, index, extra);
+    ensureDenseInitializedLengthNoPackedCheck(index, extra);
 }
 
 DenseElementResult
@@ -365,7 +364,7 @@ NativeObject::ensureDenseElements(JSContext* cx, uint32_t index, uint32_t extra)
     if (extra == 1) {
         /* Optimize for the common case. */
         if (index < currentCapacity) {
-            ensureDenseInitializedLengthNoPackedCheck(cx, index, 1);
+            ensureDenseInitializedLengthNoPackedCheck(index, 1);
             return DenseElementResult::Success;
         }
         requiredCapacity = index + 1;
@@ -380,7 +379,7 @@ NativeObject::ensureDenseElements(JSContext* cx, uint32_t index, uint32_t extra)
             return DenseElementResult::Incomplete;
         }
         if (requiredCapacity <= currentCapacity) {
-            ensureDenseInitializedLengthNoPackedCheck(cx, index, extra);
+            ensureDenseInitializedLengthNoPackedCheck(index, extra);
             return DenseElementResult::Success;
         }
     }
@@ -389,7 +388,7 @@ NativeObject::ensureDenseElements(JSContext* cx, uint32_t index, uint32_t extra)
     if (result != DenseElementResult::Success)
         return result;
 
-    ensureDenseInitializedLengthNoPackedCheck(cx, index, extra);
+    ensureDenseInitializedLengthNoPackedCheck(index, extra);
     return DenseElementResult::Success;
 }
 

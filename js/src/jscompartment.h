@@ -816,9 +816,6 @@ struct JSCompartment
     js::TemplateRegistry templateLiteralMap_;
 
   public:
-    /* During GC, stores the index of this compartment in rt->compartments. */
-    unsigned                     gcIndex;
-
     /*
      * During GC, stores the head of a list of incoming pointers from gray cells.
      *
