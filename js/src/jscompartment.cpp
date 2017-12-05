@@ -67,6 +67,7 @@ JSCompartment::JSCompartment(Zone* zone, const JS::CompartmentOptions& options =
     allocationMetadataBuilder(nullptr),
     lastAnimationTime(0),
     regExps(),
+    arraySpeciesLookup(),
     globalWriteBarriered(0),
     detachedTypedObjects(0),
     objectMetadataState(ImmediateMetadata()),
@@ -1082,6 +1083,7 @@ JSCompartment::purge()
     newProxyCache.purge();
     objectGroups.purge();
     iteratorCache.clearAndShrink();
+    arraySpeciesLookup.purge();
 }
 
 void
