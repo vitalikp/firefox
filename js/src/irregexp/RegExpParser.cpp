@@ -228,7 +228,7 @@ RegExpBuilder::AddQuantifierToAtom(int min, int max,
 // RegExpParser
 
 template <typename CharT>
-RegExpParser<CharT>::RegExpParser(frontend::TokenStream& ts, LifoAlloc* alloc,
+RegExpParser<CharT>::RegExpParser(frontend::TokenStreamAnyChars& ts, LifoAlloc* alloc,
                                   const CharT* chars, const CharT* end, bool multiline_mode,
                                   bool unicode, bool ignore_case)
   : ts(ts),
@@ -1892,7 +1892,8 @@ template class irregexp::RegExpParser<char16_t>;
 
 template <typename CharT>
 static bool
-ParsePattern(frontend::TokenStream& ts, LifoAlloc& alloc, const CharT* chars, size_t length,
+ParsePattern(frontend::TokenStreamAnyChars& ts, LifoAlloc& alloc,
+             const CharT* chars, size_t length,
              bool multiline, bool match_only, bool unicode, bool ignore_case,
              bool global, bool sticky, RegExpCompileData* data)
 {
@@ -1931,7 +1932,7 @@ ParsePattern(frontend::TokenStream& ts, LifoAlloc& alloc, const CharT* chars, si
 }
 
 bool
-irregexp::ParsePattern(frontend::TokenStream& ts, LifoAlloc& alloc, JSAtom* str,
+irregexp::ParsePattern(frontend::TokenStreamAnyChars& ts, LifoAlloc& alloc, JSAtom* str,
                        bool multiline, bool match_only, bool unicode, bool ignore_case,
                        bool global, bool sticky, RegExpCompileData* data)
 {
@@ -1945,8 +1946,8 @@ irregexp::ParsePattern(frontend::TokenStream& ts, LifoAlloc& alloc, JSAtom* str,
 
 template <typename CharT>
 static bool
-ParsePatternSyntax(frontend::TokenStream& ts, LifoAlloc& alloc, const CharT* chars, size_t length,
-                   bool unicode)
+ParsePatternSyntax(frontend::TokenStreamAnyChars& ts, LifoAlloc& alloc,
+                   const CharT* chars, size_t length, bool unicode)
 {
     LifoAllocScope scope(&alloc);
 
@@ -1955,7 +1956,7 @@ ParsePatternSyntax(frontend::TokenStream& ts, LifoAlloc& alloc, const CharT* cha
 }
 
 bool
-irregexp::ParsePatternSyntax(frontend::TokenStream& ts, LifoAlloc& alloc, JSAtom* str,
+irregexp::ParsePatternSyntax(frontend::TokenStreamAnyChars& ts, LifoAlloc& alloc, JSAtom* str,
                              bool unicode)
 {
     JS::AutoCheckCannotGC nogc;
@@ -1965,7 +1966,7 @@ irregexp::ParsePatternSyntax(frontend::TokenStream& ts, LifoAlloc& alloc, JSAtom
 }
 
 bool
-irregexp::ParsePatternSyntax(frontend::TokenStream& ts, LifoAlloc& alloc,
+irregexp::ParsePatternSyntax(frontend::TokenStreamAnyChars& ts, LifoAlloc& alloc,
                              const mozilla::Range<const char16_t> chars, bool unicode)
 {
     return ::ParsePatternSyntax(ts, alloc, chars.begin().get(), chars.length(), unicode);

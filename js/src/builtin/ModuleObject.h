@@ -23,7 +23,7 @@ class ModuleObject;
 
 namespace frontend {
 class ParseNode;
-class TokenStream;
+class TokenStreamAnyChars;
 } /* namespace frontend */
 
 typedef Rooted<ModuleObject*> RootedModuleObject;
@@ -343,7 +343,7 @@ class MOZ_STACK_CLASS ModuleBuilder
 {
   public:
     explicit ModuleBuilder(JSContext* cx, HandleModuleObject module,
-                           const frontend::TokenStream& tokenStream);
+                           const frontend::TokenStreamAnyChars& tokenStream);
     bool init();
 
     bool processImport(frontend::ParseNode* pn);
@@ -373,7 +373,7 @@ class MOZ_STACK_CLASS ModuleBuilder
 
     JSContext* cx_;
     RootedModuleObject module_;
-    const frontend::TokenStream& tokenStream_;
+    const frontend::TokenStreamAnyChars& tokenStream_;
     RootedAtomSet requestedModuleSpecifiers_;
     RootedRequestedModuleVector requestedModules_;
     RootedAtomVector importedBoundNames_;
