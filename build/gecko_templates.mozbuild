@@ -53,7 +53,8 @@ def GeckoBinary(linkage='dependent', mozglue=None):
         else:
             error('`mozglue` must be "program" or "library"')
 
-    if not CONFIG['JS_STANDALONE']:
+    if not CONFIG['JS_STANDALONE'] and CONFIG['OS_TARGET'] == 'Android':
+        # Keep a dummy library until bug 1423802 is fixed.
         USE_LIBS += [
             'fallible',
         ]
