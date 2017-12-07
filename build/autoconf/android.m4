@@ -122,7 +122,7 @@ if test "$OS_TARGET" = "Android"; then
 fi
 MOZ_ANDROID_CXX_STL=$android_cxx_stl
 AC_SUBST([MOZ_ANDROID_CXX_STL])
-AC_SUBST([STLPORT_LIBS])
+AC_SUBST_LIST([STLPORT_LIBS])
 
 ])
 
