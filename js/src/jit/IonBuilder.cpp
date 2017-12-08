@@ -3730,7 +3730,7 @@ IonBuilder::inlineScriptedCall(CallInfo& callInfo, JSFunction* target)
     }
 
     // Capture formals in the outer resume point.
-    MOZ_TRY(callInfo.pushFormals(this, current));
+    MOZ_TRY(callInfo.pushCallStack(this, current));
 
     MResumePoint* outerResumePoint =
         MResumePoint::New(alloc(), current, pc, MResumePoint::Outer);
@@ -3739,7 +3739,7 @@ IonBuilder::inlineScriptedCall(CallInfo& callInfo, JSFunction* target)
     current->setOuterResumePoint(outerResumePoint);
 
     // Pop formals again, except leave |fun| on stack for duration of call.
-    callInfo.popFormals(current);
+    callInfo.popCallStack(current);
     current->push(callInfo.fun());
 
     JSScript* calleeScript = target->nonLazyScript();
@@ -4396,7 +4396,7 @@ IonBuilder::inlineGenericFallback(JSFunction* target, CallInfo& callInfo, MBasic
     CallInfo fallbackInfo(alloc(), pc, callInfo.constructing(), callInfo.ignoresReturnValue());
     if (!fallbackInfo.init(callInfo))
         return abort(AbortReason::Alloc);
-    fallbackInfo.popFormals(fallbackBlock);
+    fallbackInfo.popCallStack(fallbackBlock);
 
     // Generate an MCall, which uses stateful |current|.
     MOZ_TRY(setCurrentAndSpecializePhis(fallbackBlock));
@@ -4453,7 +4453,7 @@ IonBuilder::inlineObjectGroupFallback(CallInfo& callInfo, MBasicBlock* dispatchB
     MBasicBlock* prepBlock;
     MOZ_TRY_VAR(prepBlock, newBlock(dispatchBlock, pc));
     graph().addBlock(prepBlock);
-    fallbackInfo.popFormals(prepBlock);
+    fallbackInfo.popCallStack(prepBlock);
 
     // Construct a block into which the MGetPropertyCache can be moved.
     // This is subtle: the pc and resume point are those of the MGetPropertyCache!
@@ -4516,7 +4516,7 @@ IonBuilder::inlineCalls(CallInfo& callInfo, const InliningTargets& targets, Bool
 
     MBasicBlock* dispatchBlock = current;
     callInfo.setImplicitlyUsedUnchecked();
-    MOZ_TRY(callInfo.pushFormals(this, dispatchBlock));
+    MOZ_TRY(callInfo.pushCallStack(this, dispatchBlock));
 
     // Patch any InlinePropertyTable to only contain functions that are
     // inlineable. The InlinePropertyTable will also be patched at the end to
@@ -4549,7 +4549,7 @@ IonBuilder::inlineCalls(CallInfo& callInfo, const InliningTargets& targets, Bool
 
     // Set up stack, used to manually create a post-call resume point.
     returnBlock->inheritSlots(dispatchBlock);
-    callInfo.popFormals(returnBlock);
+    callInfo.popCallStack(returnBlock);
 
     MPhi* retPhi = MPhi::New(alloc());
     returnBlock->addPhi(retPhi);
@@ -4612,7 +4612,7 @@ IonBuilder::inlineCalls(CallInfo& callInfo, const InliningTargets& targets, Bool
         CallInfo inlineInfo(alloc(), pc, callInfo.constructing(), callInfo.ignoresReturnValue());
         if (!inlineInfo.init(callInfo))
             return abort(AbortReason::Alloc);
-        inlineInfo.popFormals(inlineBlock);
+        inlineInfo.popCallStack(inlineBlock);
         inlineInfo.setFun(funcDef);
 
         if (maybeCache) {
@@ -5252,6 +5252,20 @@ IonBuilder::jsop_funapplyarray(uint32_t argc)
 }
 
 AbortReasonOr<Ok>
+CallInfo::savePriorCallStack(MIRGenerator* mir, MBasicBlock* current, size_t peekDepth)
+{
+    MOZ_ASSERT(priorArgs_.empty());
+    if (!priorArgs_.reserve(peekDepth))
+        return mir->abort(AbortReason::Alloc);
+    while (peekDepth) {
+        priorArgs_.infallibleAppend(current->peek(0 - int32_t(peekDepth)));
+        peekDepth--;
+    }
+    return Ok();
+}
+
+
+AbortReasonOr<Ok>
 IonBuilder::jsop_funapplyarguments(uint32_t argc)
 {
     // Stack for JSOP_FUNAPPLY:
@@ -5306,6 +5320,7 @@ IonBuilder::jsop_funapplyarguments(uint32_t argc)
 
     CallInfo callInfo(alloc(), pc, /* constructing = */ false,
                       /* ignoresReturnValue = */ BytecodeIsPopped(pc));
+    MOZ_TRY(callInfo.savePriorCallStack(this, current, 4));
 
     // Vp
     MDefinition* vp = current->pop();
