@@ -335,6 +335,7 @@ class PerHandlerParser
 
     bool finishFunctionScopes(bool isStandaloneFunction);
     Node finishLexicalScope(ParseContext::Scope& scope, Node body);
+    bool finishFunction(bool isStandaloneFunction = false);
 
     bool declareFunctionThis();
 
@@ -527,6 +528,7 @@ class GeneralParser
   private:
     using Base::declareDotGeneratorName;
     using Base::declareFunctionThis;
+    using Base::finishFunction;
     using Base::hasUsedName;
     using Base::newDotGeneratorName;
     using Base::newInternalDotName;
@@ -1009,8 +1011,6 @@ class GeneralParser
 
     bool declareFunctionArgumentsObject();
 
-    inline bool finishFunction(bool isStandaloneFunction = false);
-
     bool leaveInnerFunction(ParseContext* outerpc);
 
   private:
@@ -1193,8 +1193,6 @@ class Parser<SyntaxParseHandler, CharT> final
     bool skipLazyInnerFunction(Node funcNode, uint32_t toStringStart, FunctionSyntaxKind kind,
                                bool tryAnnexB);
 
-    bool finishFunction(bool isStandaloneFunction = false);
-
     bool asmJS(Node list);
 
     // Functions present only in Parser<SyntaxParseHandler, CharT>.
@@ -1309,8 +1307,6 @@ class Parser<FullParseHandler, CharT> final
 
     bool skipLazyInnerFunction(Node funcNode, uint32_t toStringStart, FunctionSyntaxKind kind,
                                bool tryAnnexB);
-
-    bool finishFunction(bool isStandaloneFunction = false);
 
     // Functions present only in Parser<FullParseHandler, CharT>.
 
