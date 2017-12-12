@@ -351,6 +351,8 @@ class PerHandlerParser
     Node newThisName();
     Node newDotGeneratorName();
 
+    inline bool processExport(Node node);
+
     // If ParseHandler is SyntaxParseHandler:
     //   Do nothing.
     // If ParseHandler is FullParseHandler:
@@ -543,6 +545,7 @@ class GeneralParser
     using Base::noteDestructuredPositionalFormalParameter;
     using Base::noteUsedName;
     using Base::prefixAccessorName;
+    using Base::processExport;
 
   private:
     inline FinalParser* asFinalParser();
@@ -848,7 +851,6 @@ class GeneralParser
     Node lexicalDeclaration(YieldHandling yieldHandling, DeclarationKind kind);
 
     inline Node importDeclaration();
-    inline bool processExport(Node node);
     inline bool processExportFrom(Node node);
 
     Node exportFrom(uint32_t begin, Node specList);
@@ -1177,7 +1179,6 @@ class Parser<SyntaxParseHandler, CharT> final
     Node moduleBody(ModuleSharedContext* modulesc);
 
     inline Node importDeclaration();
-    inline bool processExport(Node node);
     inline bool processExportFrom(Node node);
     inline bool checkLocalExportNames(Node node);
     inline bool checkExportedName(JSAtom* exportName);
@@ -1292,7 +1293,6 @@ class Parser<FullParseHandler, CharT> final
     Node moduleBody(ModuleSharedContext* modulesc);
 
     Node importDeclaration();
-    bool processExport(Node node);
     bool processExportFrom(Node node);
     bool checkLocalExportNames(Node node);
     bool checkExportedName(JSAtom* exportName);
