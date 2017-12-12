@@ -244,6 +244,11 @@ class ParserBase
     enum InvokedPrediction { PredictUninvoked = false, PredictInvoked = true };
     enum ForInitLocation { InForInit, NotInForInit };
 
+    // While on a |let| TOK_NAME token, examine |next| (which must already be
+    // gotten).  Indicate whether |next|, the next token already gotten with
+    // modifier TokenStream::None, continues a LexicalDeclaration.
+    bool nextTokenContinuesLetDeclaration(TokenKind next);
+
     bool noteUsedNameInternal(HandlePropertyName name);
     bool hasUsedName(HandlePropertyName name);
     bool hasUsedFunctionSpecialName(HandlePropertyName name);
@@ -543,6 +548,7 @@ class GeneralParser
     using Base::newDotGeneratorName;
     using Base::newInternalDotName;
     using Base::newThisName;
+    using Base::nextTokenContinuesLetDeclaration;
     using Base::noteDestructuredPositionalFormalParameter;
     using Base::noteUsedName;
     using Base::prefixAccessorName;
@@ -844,11 +850,6 @@ class GeneralParser
 
     Node ifStatement(YieldHandling yieldHandling);
     Node consequentOrAlternative(YieldHandling yieldHandling);
-
-    // While on a |let| TOK_NAME token, examine |next|.  Indicate whether
-    // |next|, the next token already gotten with modifier TokenStream::None,
-    // continues a LexicalDeclaration.
-    bool nextTokenContinuesLetDeclaration(TokenKind next);
 
     Node lexicalDeclaration(YieldHandling yieldHandling, DeclarationKind kind);
 
