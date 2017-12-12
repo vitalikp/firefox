@@ -162,6 +162,8 @@ class ParserBase : public StrictModeGetter
                UsedNameTracker& usedNames);
     ~ParserBase();
 
+    bool checkOptions();
+
     JSVersion versionNumber() const { return anyChars.versionNumber(); }
     const char* getFilename() const { return anyChars.getFilename(); }
     TokenPos pos() const { return anyChars.currentToken().pos; }
@@ -516,11 +518,8 @@ class GeneralParser
                   const CharT* chars, size_t length, bool foldConstants,
                   UsedNameTracker& usedNames, SyntaxParser* syntaxParser,
                   LazyScript* lazyOuterFunction);
-    ~GeneralParser();
 
     inline void setAwaitHandling(AwaitHandling awaitHandling);
-
-    bool checkOptions();
 
     friend void js::frontend::TraceParser(JSTracer* trc, JS::AutoGCRooter* parser);
 
