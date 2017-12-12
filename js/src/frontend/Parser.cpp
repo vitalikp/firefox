@@ -2232,8 +2232,7 @@ Parser<FullParseHandler, CharT>::moduleBody(ModuleSharedContext* modulesc)
     if (!mn)
         return null();
 
-    AutoAwaitIsKeyword<GeneralParser<FullParseHandler, CharT>> awaitIsKeyword(this,
-                                                                              AwaitIsModuleKeyword);
+    AutoAwaitIsKeyword<FullParseHandler, CharT> awaitIsKeyword(this, AwaitIsModuleKeyword);
     ParseNode* pn = statementList(YieldIsName);
     if (!pn)
         return null();
@@ -2577,7 +2576,7 @@ Parser<FullParseHandler, CharT>::standaloneFunction(HandleFunction fun,
 
     YieldHandling yieldHandling = GetYieldHandling(generatorKind);
     AwaitHandling awaitHandling = GetAwaitHandling(asyncKind);
-    AutoAwaitIsKeyword<GeneralParser<FullParseHandler, CharT>> awaitIsKeyword(this, awaitHandling);
+    AutoAwaitIsKeyword<FullParseHandler, CharT> awaitIsKeyword(this, awaitHandling);
     if (!functionFormalParametersAndBody(InAllowed, yieldHandling, fn, Statement,
                                          parameterListEnd, /* isStandaloneFunction = */ true))
     {
@@ -3705,7 +3704,7 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
         AwaitHandling awaitHandling = funbox->isAsync() || (kind == Arrow && awaitIsKeyword())
                                       ? AwaitIsKeyword
                                       : AwaitIsName;
-        AutoAwaitIsKeyword<GeneralParser<ParseHandler, CharT>> awaitIsKeyword(this, awaitHandling);
+        AutoAwaitIsKeyword<ParseHandler, CharT> awaitIsKeyword(this, awaitHandling);
         if (!functionArguments(yieldHandling, kind, pn))
             return false;
     }
@@ -3780,8 +3779,7 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
     bool inheritedStrict = pc->sc()->strict();
     Node body;
     {
-        AutoAwaitIsKeyword<GeneralParser<ParseHandler, CharT>> awaitIsKeyword(this,
-                                                                              bodyAwaitHandling);
+        AutoAwaitIsKeyword<ParseHandler, CharT> awaitIsKeyword(this, bodyAwaitHandling);
         body = functionBody(inHandling, bodyYieldHandling, kind, bodyType);
         if (!body)
             return false;
@@ -3945,8 +3943,7 @@ GeneralParser<ParseHandler, CharT>::functionExpr(uint32_t toStringStart,
 {
     MOZ_ASSERT(anyChars.isCurrentTokenType(TOK_FUNCTION));
 
-    AutoAwaitIsKeyword<GeneralParser<ParseHandler, CharT>> awaitIsKeyword(this,
-                                                                          GetAwaitHandling(asyncKind));
+    AutoAwaitIsKeyword<ParseHandler, CharT> awaitIsKeyword(this, GetAwaitHandling(asyncKind));
     GeneratorKind generatorKind = GeneratorKind::NotGenerator;
     TokenKind tt;
     if (!tokenStream.getToken(&tt))
