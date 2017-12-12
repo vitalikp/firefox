@@ -327,6 +327,8 @@ class PerHandlerParser
 
     static Node null() { return ParseHandler::null(); }
 
+    Node stringLiteral();
+
     const char* nameIsArgumentsOrEval(Node node);
 
     bool noteDestructuredPositionalFormalParameter(Node fn, Node destruct);
@@ -526,6 +528,7 @@ class GeneralParser
     using Base::pos;
     using Base::propagateFreeNamesAndMarkClosedOverBindings;
     using Base::setLocalStrictMode;
+    using Base::stringLiteral;
     using Base::traceListHead;
     using Base::yieldExpressionsSupported;
 
@@ -1074,8 +1077,6 @@ class GeneralParser
     }
 
   protected:
-    Node stringLiteral();
-
     // Match the current token against the BindingIdentifier production with
     // the given Yield parameter.  If there is no match, report a syntax
     // error.
