@@ -2885,9 +2885,8 @@ ParserBase::leaveInnerFunction(ParseContext* outerpc)
     return true;
 }
 
-template <class ParseHandler, typename CharT>
 JSAtom*
-GeneralParser<ParseHandler, CharT>::prefixAccessorName(PropertyType propType, HandleAtom propAtom)
+ParserBase::prefixAccessorName(PropertyType propType, HandleAtom propAtom)
 {
     RootedAtom prefix(context);
     if (propType == PropertyType::Setter || propType == PropertyType::SetterNoExpressionClosure) {

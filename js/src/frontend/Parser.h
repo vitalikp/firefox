@@ -251,6 +251,8 @@ class ParserBase
     bool declareDotGeneratorName();
 
     bool leaveInnerFunction(ParseContext* outerpc);
+
+    JSAtom* prefixAccessorName(PropertyType propType, HandleAtom propAtom);
 };
 
 inline
@@ -540,6 +542,7 @@ class GeneralParser
     using Base::newThisName;
     using Base::noteDestructuredPositionalFormalParameter;
     using Base::noteUsedName;
+    using Base::prefixAccessorName;
 
   private:
     inline FinalParser* asFinalParser();
@@ -1087,8 +1090,6 @@ class GeneralParser
     bool noteDeclaredName(HandlePropertyName name, DeclarationKind kind, TokenPos pos);
 
   private:
-    JSAtom* prefixAccessorName(PropertyType propType, HandleAtom propAtom);
-
     inline bool asmJS(Node list);
 };
 
