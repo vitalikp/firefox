@@ -292,6 +292,8 @@ class PerHandlerParser
     /* State specific to the kind of parse being performed. */
     ParseHandler handler;
 
+    static Node null() { return ParseHandler::null(); }
+
     const char* nameIsArgumentsOrEval(Node node);
 
     bool noteDestructuredPositionalFormalParameter(Node fn, Node destruct);
@@ -310,6 +312,13 @@ class PerHandlerParser
     bool propagateFreeNamesAndMarkClosedOverBindings(ParseContext::Scope& scope);
 
     bool declareFunctionThis();
+
+    inline Node newName(PropertyName* name);
+    inline Node newName(PropertyName* name, TokenPos pos);
+
+    Node newInternalDotName(HandlePropertyName name);
+    Node newThisName();
+    Node newDotGeneratorName();
 
   public:
     bool isValidSimpleAssignmentTarget(Node node,
@@ -375,6 +384,8 @@ class GeneralParser
     using Base::nameIsArgumentsOrEval;
     using Base::newFunction;
     using Base::newFunctionBox;
+    using Base::newName;
+    using Base::null;
     using Base::options;
     using Base::pos;
     using Base::propagateFreeNamesAndMarkClosedOverBindings;
@@ -393,6 +404,9 @@ class GeneralParser
   private:
     using Base::declareFunctionThis;
     using Base::hasUsedName;
+    using Base::newDotGeneratorName;
+    using Base::newInternalDotName;
+    using Base::newThisName;
     using Base::noteDestructuredPositionalFormalParameter;
     using Base::noteUsedName;
 
@@ -873,9 +887,6 @@ class GeneralParser
     bool matchInOrOf(bool* isForInp, bool* isForOfp);
 
     bool declareFunctionArgumentsObject();
-    Node newInternalDotName(HandlePropertyName name);
-    Node newThisName();
-    Node newDotGeneratorName();
     bool declareDotGeneratorName();
 
     inline bool finishFunction(bool isStandaloneFunction = false);
@@ -934,12 +945,7 @@ class GeneralParser
     }
 
   protected:
-    static Node null() { return ParseHandler::null(); }
-
     Node stringLiteral();
-
-    inline Node newName(PropertyName* name);
-    inline Node newName(PropertyName* name, TokenPos pos);
 
     // Match the current token against the BindingIdentifier production with
     // the given Yield parameter.  If there is no match, report a syntax
