@@ -313,6 +313,7 @@ class PerHandlerParser
     // Required on Scope exit.
     bool propagateFreeNamesAndMarkClosedOverBindings(ParseContext::Scope& scope);
 
+    bool finishFunctionScopes(bool isStandaloneFunction);
     Node finishLexicalScope(ParseContext::Scope& scope, Node body);
 
     bool declareFunctionThis();
@@ -379,6 +380,7 @@ class GeneralParser
 #if DEBUG
     using Base::checkOptionsCalled;
 #endif
+    using Base::finishFunctionScopes;
     using Base::finishLexicalScope;
     using Base::foldConstants;
     using Base::getFilename;
@@ -965,8 +967,6 @@ class GeneralParser
                        FunctionSyntaxKind kind, GeneratorKind generatorKind,
                        FunctionAsyncKind asyncKind, bool tryAnnexB, Directives inheritedDirectives,
                        Directives* newDirectives);
-
-    bool finishFunctionScopes(bool isStandaloneFunction);
 
     bool matchOrInsertSemicolon();
 
