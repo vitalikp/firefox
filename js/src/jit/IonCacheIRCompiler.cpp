@@ -1230,7 +1230,6 @@ IonCacheIRCompiler::emitCallProxyHasPropResult()
     return true;
 }
 
-
 bool
 IonCacheIRCompiler::emitLoadUnboxedPropertyResult()
 {
