@@ -247,6 +247,8 @@ class ParserBase
     bool noteUsedNameInternal(HandlePropertyName name);
     bool hasUsedName(HandlePropertyName name);
     bool hasUsedFunctionSpecialName(HandlePropertyName name);
+
+    bool declareDotGeneratorName();
 };
 
 inline
@@ -402,6 +404,7 @@ class GeneralParser
     using Base::usedNames;
 
   private:
+    using Base::declareDotGeneratorName;
     using Base::declareFunctionThis;
     using Base::hasUsedName;
     using Base::newDotGeneratorName;
@@ -887,7 +890,6 @@ class GeneralParser
     bool matchInOrOf(bool* isForInp, bool* isForOfp);
 
     bool declareFunctionArgumentsObject();
-    bool declareDotGeneratorName();
 
     inline bool finishFunction(bool isStandaloneFunction = false);
 
