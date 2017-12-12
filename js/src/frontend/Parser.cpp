@@ -8859,9 +8859,9 @@ GeneralParser<ParseHandler, CharT>::bindingIdentifier(YieldHandling yieldHandlin
     return ident;
 }
 
-template <class ParseHandler, typename CharT>
+template <class ParseHandler>
 typename ParseHandler::Node
-GeneralParser<ParseHandler, CharT>::identifierReference(Handle<PropertyName*> name)
+PerHandlerParser<ParseHandler>::identifierReference(Handle<PropertyName*> name)
 {
     Node pn = newName(name);
     if (!pn)
