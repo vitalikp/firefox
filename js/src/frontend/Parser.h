@@ -246,6 +246,7 @@ class ParserBase
 
     bool noteUsedNameInternal(HandlePropertyName name);
     bool hasUsedName(HandlePropertyName name);
+    bool hasUsedFunctionSpecialName(HandlePropertyName name);
 };
 
 inline
@@ -365,6 +366,7 @@ class GeneralParser
 #endif
     using Base::foldConstants;
     using Base::getFilename;
+    using Base::hasUsedFunctionSpecialName;
     using Base::hasValidSimpleStrictParameterNames;
     using Base::isUnexpectedEOF_;
     using Base::keepAtoms;
@@ -867,7 +869,6 @@ class GeneralParser
     // so, consume it.
     bool matchInOrOf(bool* isForInp, bool* isForOfp);
 
-    bool hasUsedFunctionSpecialName(HandlePropertyName name);
     bool declareFunctionArgumentsObject();
     bool declareFunctionThis();
     Node newInternalDotName(HandlePropertyName name);
