@@ -8880,9 +8880,9 @@ PerHandlerParser<ParseHandler>::stringLiteral()
     return handler.newStringLiteral(anyChars.currentToken().atom(), pos());
 }
 
-template <class ParseHandler, typename CharT>
+template <class ParseHandler>
 typename ParseHandler::Node
-GeneralParser<ParseHandler, CharT>::noSubstitutionTaggedTemplate()
+PerHandlerParser<ParseHandler>::noSubstitutionTaggedTemplate()
 {
     if (anyChars.hasInvalidTemplateEscape()) {
         anyChars.clearInvalidTemplateEscape();
