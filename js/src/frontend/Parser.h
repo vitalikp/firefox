@@ -309,6 +309,8 @@ class PerHandlerParser
     // Required on Scope exit.
     bool propagateFreeNamesAndMarkClosedOverBindings(ParseContext::Scope& scope);
 
+    bool declareFunctionThis();
+
   public:
     bool isValidSimpleAssignmentTarget(Node node,
                                        FunctionCallBehavior behavior = ForbidAssignmentToFunctionCalls);
@@ -389,6 +391,7 @@ class GeneralParser
     using Base::usedNames;
 
   private:
+    using Base::declareFunctionThis;
     using Base::hasUsedName;
     using Base::noteDestructuredPositionalFormalParameter;
     using Base::noteUsedName;
@@ -870,7 +873,6 @@ class GeneralParser
     bool matchInOrOf(bool* isForInp, bool* isForOfp);
 
     bool declareFunctionArgumentsObject();
-    bool declareFunctionThis();
     Node newInternalDotName(HandlePropertyName name);
     Node newThisName();
     Node newDotGeneratorName();
