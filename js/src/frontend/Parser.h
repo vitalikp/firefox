@@ -305,6 +305,9 @@ class PerHandlerParser
         return ParserBase::noteUsedNameInternal(name);
     }
 
+    // Required on Scope exit.
+    bool propagateFreeNamesAndMarkClosedOverBindings(ParseContext::Scope& scope);
+
   public:
     bool isValidSimpleAssignmentTarget(Node node,
                                        FunctionCallBehavior behavior = ForbidAssignmentToFunctionCalls);
@@ -370,6 +373,7 @@ class GeneralParser
     using Base::newFunctionBox;
     using Base::options;
     using Base::pos;
+    using Base::propagateFreeNamesAndMarkClosedOverBindings;
     using Base::setLocalStrictMode;
     using Base::traceListHead;
     using Base::yieldExpressionsSupported;
@@ -955,9 +959,6 @@ class GeneralParser
     bool matchOrInsertSemicolon();
 
     bool noteDeclaredName(HandlePropertyName name, DeclarationKind kind, TokenPos pos);
-
-    // Required on Scope exit.
-    bool propagateFreeNamesAndMarkClosedOverBindings(ParseContext::Scope& scope);
 
   private:
     JSAtom* prefixAccessorName(PropertyType propType, HandleAtom propAtom);
