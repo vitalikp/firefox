@@ -338,6 +338,7 @@ class PerHandlerParser
     bool finishFunction(bool isStandaloneFunction = false);
 
     bool declareFunctionThis();
+    bool declareFunctionArgumentsObject();
 
     inline Node newName(PropertyName* name);
     inline Node newName(PropertyName* name, TokenPos pos);
@@ -527,6 +528,7 @@ class GeneralParser
 
   private:
     using Base::declareDotGeneratorName;
+    using Base::declareFunctionArgumentsObject;
     using Base::declareFunctionThis;
     using Base::finishFunction;
     using Base::hasUsedName;
@@ -1008,8 +1010,6 @@ class GeneralParser
     // Indicate if the next token (tokenized as Operand) is |in| or |of|.  If
     // so, consume it.
     bool matchInOrOf(bool* isForInp, bool* isForOfp);
-
-    bool declareFunctionArgumentsObject();
 
     bool leaveInnerFunction(ParseContext* outerpc);
 
