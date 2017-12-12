@@ -8472,12 +8472,12 @@ GeneralParser<ParseHandler, CharT>::argumentList(YieldHandling yieldHandling, No
     return true;
 }
 
-template <class ParseHandler, typename CharT>
 bool
-GeneralParser<ParseHandler, CharT>::checkAndMarkSuperScope()
+ParserBase::checkAndMarkSuperScope()
 {
     if (!pc->sc()->allowSuperProperty())
         return false;
+
     pc->setSuperScopeNeedsHomeObject();
     return true;
 }
