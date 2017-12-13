@@ -4431,7 +4431,7 @@ void
 GCRuntime::markGrayReferences(gcstats::PhaseKind phase)
 {
     gcstats::AutoPhase ap(stats(), phase);
-    if (hasBufferedGrayRoots()) {
+    if (hasValidGrayRootsBuffer()) {
         for (ZoneIterT zone(rt); !zone.done(); zone.next())
             markBufferedGrayRoots(zone);
     } else {
@@ -6941,7 +6941,7 @@ GCRuntime::incrementalCollectSlice(SliceBudget& budget, JS::gcreason::Reason rea
             AutoGCRooter::traceAllWrappers(target, &marker);
 
         /* If we needed delayed marking for gray roots, then collect until done. */
-        if (isIncremental && !hasBufferedGrayRoots()) {
+        if (isIncremental && !hasValidGrayRootsBuffer()) {
             budget.makeUnlimited();
             isIncremental = false;
             stats().nonincremental(AbortReason::GrayRootBufferingFailed);

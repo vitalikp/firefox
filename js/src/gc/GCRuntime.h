@@ -1269,7 +1269,7 @@ class GCRuntime
         Failed
     };
     ActiveThreadOrGCTaskData<GrayBufferState> grayBufferState;
-    bool hasBufferedGrayRoots() const { return grayBufferState == GrayBufferState::Okay; }
+    bool hasValidGrayRootsBuffer() const { return grayBufferState == GrayBufferState::Okay; }
 
     // Clear each zone's gray buffers, but do not change the current state.
     void resetBufferedGrayRoots() const;
