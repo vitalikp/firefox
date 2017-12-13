@@ -1276,6 +1276,20 @@ class TypeScript
 #endif
 };
 
+// Ensures no TypeScripts are purged in the current zone.
+class MOZ_RAII AutoKeepTypeScripts
+{
+    TypeZone& zone_;
+    bool prev_;
+
+    AutoKeepTypeScripts(const AutoKeepTypeScripts&) = delete;
+    void operator=(const AutoKeepTypeScripts&) = delete;
+
+  public:
+    explicit inline AutoKeepTypeScripts(JSContext* cx);
+    inline ~AutoKeepTypeScripts();
+};
+
 void
 FillBytecodeTypeMap(JSScript* script, uint32_t* bytecodeMap);
 
@@ -1354,6 +1368,9 @@ class TypeZone
     static const size_t TYPE_LIFO_ALLOC_PRIMARY_CHUNK_SIZE = 8 * 1024;
     ZoneGroupData<LifoAlloc> typeLifoAlloc_;
 
+    TypeZone(const TypeZone&) = delete;
+    void operator=(const TypeZone&) = delete;
+
   public:
     // Current generation for sweeping.
     ZoneGroupOrGCTaskOrIonCompileData<uint32_t> generation;
@@ -1379,6 +1396,8 @@ class TypeZone
     ZoneGroupData<bool> sweepReleaseTypes;
 
     ZoneGroupData<bool> sweepingTypes;
+
+    ZoneGroupData<bool> keepTypeScripts;
 
     // The topmost AutoEnterAnalysis on the stack, if there is one.
     ZoneGroupData<AutoEnterAnalysis*> activeAnalysis;
