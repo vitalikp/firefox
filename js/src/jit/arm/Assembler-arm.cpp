@@ -3050,7 +3050,7 @@ InstIsArtificialGuard(Instruction* inst, const PoolHeader** ph)
 
 // If the instruction points to a artificial pool guard then skip the pool.
 Instruction*
-Instruction::skipPool()
+Instruction::maybeSkipAutomaticInstructions()
 {
     const PoolHeader* ph;
     // If this is a guard, and the next instruction is a header, always work
@@ -3059,15 +3059,15 @@ Instruction::skipPool()
         // Don't skip a natural guard.
         if (ph->isNatural())
             return this;
-        return (this + 1 + ph->size())->skipPool();
+        return (this + 1 + ph->size())->maybeSkipAutomaticInstructions();
     }
     if (InstIsBNop(this))
-        return (this + 1)->skipPool();
+        return (this + 1)->maybeSkipAutomaticInstructions();
     return this;
 }
 
 void
-BufferInstructionIterator::skipPool()
+BufferInstructionIterator::maybeSkipAutomaticInstructions()
 {
     // If this is a guard, and the next instruction is a header, always work
     // around the pool. If it isn't a guard, then start looking ahead.
@@ -3078,13 +3078,13 @@ BufferInstructionIterator::skipPool()
         if (ph->isNatural())
             return;
         advance(sizeof(Instruction) * (1 + ph->size()));
-        skipPool();
+        maybeSkipAutomaticInstructions();
         return;
     }
 
     if (InstIsBNop(cur())) {
         next();
-        skipPool();
+        maybeSkipAutomaticInstructions();
     }
 }
 
@@ -3127,10 +3127,10 @@ Instruction::next()
     // If this is a guard, and the next instruction is a header, always work
     // around the pool. If it isn't a guard, then start looking ahead.
     if (InstIsGuard(this, &ph))
-        return (ret + ph->size())->skipPool();
+        return (ret + ph->size())->maybeSkipAutomaticInstructions();
     if (InstIsArtificialGuard(ret, &ph))
-        return (ret + 1 + ph->size())->skipPool();
-    return ret->skipPool();
+        return (ret + 1 + ph->size())->maybeSkipAutomaticInstructions();
+    return ret->maybeSkipAutomaticInstructions();
 }
 
 void
@@ -3174,8 +3174,7 @@ void
 Assembler::ToggleCall(CodeLocationLabel inst_, bool enabled)
 {
     Instruction* inst = (Instruction*)inst_.raw();
-    // Skip a pool with an artificial guard.
-    inst = inst->skipPool();
+    inst = inst->maybeSkipAutomaticInstructions();
     MOZ_ASSERT(inst->is<InstMovW>() || inst->is<InstLDR>());
 
     if (inst->is<InstMovW>()) {
@@ -3205,8 +3204,7 @@ size_t
 Assembler::ToggledCallSize(uint8_t* code)
 {
     Instruction* inst = (Instruction*)code;
-    // Skip a pool with an artificial guard.
-    inst = inst->skipPool();
+    inst = inst->maybeSkipAutomaticInstructions();
     MOZ_ASSERT(inst->is<InstMovW>() || inst->is<InstLDR>());
 
     if (inst->is<InstMovW>()) {
@@ -3226,7 +3224,7 @@ Assembler::BailoutTableStart(uint8_t* code)
 {
     Instruction* inst = (Instruction*)code;
     // Skip a pool with an artificial guard or NOP fill.
-    inst = inst->skipPool();
+    inst = inst->maybeSkipAutomaticInstructions();
     MOZ_ASSERT(inst->is<InstBLImm>());
     return (uint8_t*) inst;
 }
