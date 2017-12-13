@@ -1148,7 +1148,6 @@ PatchBackedge(CodeLocationJump& jump_, CodeLocationLabel label, JitZoneGroup::Ba
     PatchJump(jump_, label);
 }
 
-class InstructionIterator;
 class Assembler;
 typedef js::jit::AssemblerBufferWithConstantPools<1024, 4, Instruction, Assembler> ARMBuffer;
 
@@ -2296,13 +2295,24 @@ class InstructionIterator
     }
 };
 
+// Compile-time iterator over instructions, with a safe interface that
+// references not-necessarily-linear Instructions by linear BufferOffset.
 class BufferInstructionIterator : public ARMBuffer::AssemblerBufferInstIterator
 {
   public:
     BufferInstructionIterator(BufferOffset bo, ARMBuffer* buffer)
       : ARMBuffer::AssemblerBufferInstIterator(bo, buffer)
     {}
-    void maybeSkipAutomaticInstructions();
+
+    // Advances the buffer to the next intentionally-inserted instruction.
+    Instruction* next() {
+        advance(cur()->size());
+        maybeSkipAutomaticInstructions();
+        return cur();
+    }
+
+    // Advances the BufferOffset past any automatically-inserted instructions.
+    Instruction* maybeSkipAutomaticInstructions();
 };
 
 static const uint32_t NumIntArgRegs = 4;
