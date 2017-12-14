@@ -4143,8 +4143,7 @@ class BaseCompiler final : public BaseCompilerInterface
     }
 
     template<typename T>
-    void
-    atomicRMW32(T srcAddr, Scalar::Type viewType, AtomicOp op, RegI32 rv, RegI32 rd, RegI32 temp)
+    void atomicRMW32(T srcAddr, Scalar::Type viewType, AtomicOp op, RegI32 rv, RegI32 rd, RegI32 temp)
     {
         switch (viewType) {
           case Scalar::Uint8: {
@@ -4196,9 +4195,9 @@ class BaseCompiler final : public BaseCompilerInterface
 
     // On x86, V is Address.  On other platforms, it is Register64.
     // T is BaseIndex or Address.
-    template <typename T, typename V>
-    void
-    atomicRMW64(const T& srcAddr, AtomicOp op, V value, Register64 temp, Register64 rd) {
+    template<typename T, typename V>
+    void atomicRMW64(const T& srcAddr, AtomicOp op, V value, Register64 temp, Register64 rd)
+    {
         switch (op) {
           case AtomicFetchAddOp: masm.atomicFetchAdd64(value, srcAddr, temp, rd); break;
           case AtomicFetchSubOp: masm.atomicFetchSub64(value, srcAddr, temp, rd); break;
@@ -4210,8 +4209,7 @@ class BaseCompiler final : public BaseCompilerInterface
     }
 
     template<typename T>
-    void
-    atomicCmpXchg32(T srcAddr, Scalar::Type viewType, RegI32 rexpect, RegI32 rnew, RegI32 rd)
+    void atomicCmpXchg32(T srcAddr, Scalar::Type viewType, RegI32 rexpect, RegI32 rnew, RegI32 rd)
     {
         switch (viewType) {
           case Scalar::Uint8: {
@@ -4240,8 +4238,7 @@ class BaseCompiler final : public BaseCompilerInterface
     }
 
     template<typename T>
-    void
-    atomicXchg32(T srcAddr, Scalar::Type viewType, RegI32 rv, RegI32 rd)
+    void atomicXchg32(T srcAddr, Scalar::Type viewType, RegI32 rv, RegI32 rd)
     {
         switch (viewType) {
           case Scalar::Uint8: {
@@ -4518,16 +4515,14 @@ class BaseCompiler final : public BaseCompilerInterface
 
 #ifdef JS_CODEGEN_X86
         template<typename T>
-        void
-        atomicCmpXchg64(T srcAddr, RegI32 ebx) {
+        void atomicCmpXchg64(T srcAddr, RegI32 ebx) {
             MOZ_ASSERT(ebx == js::jit::ebx);
             bc->masm.move32(rnew.low, ebx);
             bc->masm.compareExchange64(srcAddr, rexpect, bc->specific.ecx_ebx, getRd());
         }
 #else
         template<typename T>
-        void
-        atomicCmpXchg64(T srcAddr) {
+        void atomicCmpXchg64(T srcAddr) {
             bc->masm.compareExchange64(srcAddr, rexpect, rnew, getRd());
         }
 #endif
@@ -4563,15 +4558,13 @@ class BaseCompiler final : public BaseCompilerInterface
 
 # ifdef JS_CODEGEN_X86
         template<typename T>
-        void
-        atomicLoad64(T srcAddr, RegI32 ebx) {
+        void atomicLoad64(T srcAddr, RegI32 ebx) {
             MOZ_ASSERT(ebx == js::jit::ebx);
             bc->masm.atomicLoad64(srcAddr, bc->specific.ecx_ebx, getRd());
         }
 # else
         template<typename T>
-        void
-        atomicLoad64(T srcAddr) {
+        void atomicLoad64(T srcAddr) {
             bc->masm.atomicLoad64(srcAddr, RegI64::Invalid(), getRd());
         }
 # endif
@@ -4647,8 +4640,7 @@ class BaseCompiler final : public BaseCompilerInterface
 #endif
 
         template<typename T>
-        void
-        atomicRMW32(T srcAddr, Scalar::Type viewType, AtomicOp op) {
+        void atomicRMW32(T srcAddr, Scalar::Type viewType, AtomicOp op) {
             bc->atomicRMW32(srcAddr, viewType, op, rv, getRd(), temp);
         }
     };
@@ -4720,15 +4712,13 @@ class BaseCompiler final : public BaseCompilerInterface
 
 #ifdef JS_CODEGEN_X86
         template<typename T, typename V>
-        void
-        atomicRMW64(T srcAddr, AtomicOp op, const V& value, RegI32 ebx) {
+        void atomicRMW64(T srcAddr, AtomicOp op, const V& value, RegI32 ebx) {
             MOZ_ASSERT(ebx == js::jit::ebx);
             bc->atomicRMW64(srcAddr, op, value, bc->specific.ecx_ebx, getRd());
         }
 #else
         template<typename T>
-        void
-        atomicRMW64(T srcAddr, AtomicOp op) {
+        void atomicRMW64(T srcAddr, AtomicOp op) {
             bc->atomicRMW64(srcAddr, op, rv, temp, getRd());
         }
 #endif
