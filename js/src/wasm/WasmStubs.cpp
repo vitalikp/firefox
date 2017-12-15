@@ -1343,6 +1343,8 @@ wasm::GenerateStubs(const ModuleEnvironment& env, const FuncImportVector& import
 
     Label throwLabel;
 
+    JitSpew(JitSpew_Codegen, "# Emitting wasm import stubs");
+
     for (uint32_t funcIndex = 0; funcIndex < imports.length(); funcIndex++) {
         const FuncImport& fi = imports[funcIndex];
 
@@ -1359,6 +1361,8 @@ wasm::GenerateStubs(const ModuleEnvironment& env, const FuncImportVector& import
             return false;
     }
 
+    JitSpew(JitSpew_Codegen, "# Emitting wasm export stubs");
+
     for (const FuncExport& fe : exports) {
         Offsets offsets;
         if (!GenerateInterpEntry(masm, fe, &offsets))
@@ -1366,6 +1370,8 @@ wasm::GenerateStubs(const ModuleEnvironment& env, const FuncImportVector& import
         if (!code->codeRanges.emplaceBack(CodeRange::InterpEntry, fe.funcIndex(), offsets))
             return false;
     }
+
+    JitSpew(JitSpew_Codegen, "# Emitting wasm trap stubs");
 
     for (Trap trap : MakeEnumeratedRange(Trap::Limit)) {
         CallableOffsets offsets;
@@ -1376,6 +1382,8 @@ wasm::GenerateStubs(const ModuleEnvironment& env, const FuncImportVector& import
     }
 
     Offsets offsets;
+
+    JitSpew(JitSpew_Codegen, "# Emitting wasm exit stubs");
 
     if (!GenerateOutOfBoundsExit(masm, &throwLabel, &offsets))
         return false;

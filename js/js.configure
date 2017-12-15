@@ -20,9 +20,20 @@ def enable_jit(value, target):
 
 # JIT code simulator for cross compiles
 # =======================================================
-@depends(enable_jit, '--enable-simulator', target)
+@depends(moz_debug)
+def disasm(debug):
+    def disasm_func(arch):
+        if not debug:
+            return
+
+        if arch in ['arm', 'arm64']:
+            cdef('JS_DISASM_%s' % arch.upper(), True)
+
+    return disasm_func
+
+@depends(enable_jit, '--enable-simulator', target, disasm)
 @imports('sys')
-def simulator(jit, sim, target):
+def simulator(jit, sim, target, disasm):
     if not jit or not sim:
         return
     sim = sim[0]
@@ -48,15 +59,14 @@ def simulator(jit, sim, target):
 
     cdef('JS_SIMULATOR_%s' % arch, True)
     cdef('JS_CODEGEN_%s' % arch, True)
-    if sim == 'arm':
-        cdef('JS_DISASM_ARM', True)
+    disasm(sim)
 
     return True
 
 cdef('JS_SIMULATOR', simulator)
 
-@depends(enable_jit, simulator, target, moz_debug)
-def codegen(jit, sim, target, debug):
+@depends(enable_jit, simulator, target, disasm)
+def codegen(jit, sim, target, disasm):
     if not jit:
         return True
 
@@ -70,7 +80,6 @@ def codegen(jit, sim, target, debug):
         cpu = 'arm64'
 
     cdef('JS_CODEGEN_%s' % cpu.upper(), True)
-    if cpu == 'arm' and debug:
-        cdef('JS_DISASM_ARM', True)
+    disasm(cpu)
 
 cdef('JS_CODEGEN_NONE', codegen)
