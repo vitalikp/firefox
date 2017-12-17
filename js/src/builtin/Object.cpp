@@ -1452,7 +1452,7 @@ TryEnumerableOwnPropertiesUnboxed(JSContext* cx, HandleObject obj, MutableHandle
     if (!obj->is<UnboxedPlainObject>())
         return true;
 
-    UnboxedPlainObject* uobj = &obj->as<UnboxedPlainObject>();
+    Handle<UnboxedPlainObject*> uobj = obj.as<UnboxedPlainObject>();
     if (uobj->maybeExpando())
         return true;
 
