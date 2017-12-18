@@ -19,10 +19,6 @@
 #include "js/Vector.h"
 #include "vm/String.h"
 
-namespace JS { union Value; }
-
-class JSObject;
-
 namespace js {
 
 namespace intl {

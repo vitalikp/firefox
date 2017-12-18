@@ -20,8 +20,6 @@
 #include "js/RootingAPI.h"
 #include "js/Value.h"
 
-struct JSContext;
-
 namespace js {
 
 /* DO NOT CALL THIS. Use JS::ToBoolean. */
