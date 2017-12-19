@@ -32,13 +32,17 @@ ModuleLoadRequest::ModuleLoadRequest(nsIURI* aURI,
                                      ValidJSVersion aValidJSVersion,
                                      CORSMode aCORSMode,
                                      const SRIMetadata& aIntegrity,
+                                     nsIURI* aReferrer,
+                                     mozilla::net::ReferrerPolicy aReferrerPolicy,
                                      ScriptLoader* aLoader)
   : ScriptLoadRequest(ScriptKind::Module,
                       aURI,
                       aElement,
                       aValidJSVersion,
                       aCORSMode,
-                      aIntegrity),
+                      aIntegrity,
+                      aReferrer,
+                      aReferrerPolicy),
     mIsTopLevel(true),
     mLoader(aLoader),
     mVisitedSet(new VisitedURLSet())
@@ -53,7 +57,9 @@ ModuleLoadRequest::ModuleLoadRequest(nsIURI* aURI,
                       aParent->mElement,
                       aParent->mValidJSVersion,
                       aParent->mCORSMode,
-                      aParent->mIntegrity),
+                      aParent->mIntegrity,
+                      aParent->mURI,
+                      aParent->mReferrerPolicy),
     mIsTopLevel(false),
     mLoader(aParent->mLoader),
     mVisitedSet(aParent->mVisitedSet)
@@ -61,7 +67,6 @@ ModuleLoadRequest::ModuleLoadRequest(nsIURI* aURI,
   MOZ_ASSERT(mVisitedSet->Contains(aURI));
 
   mIsInline = false;
-  mReferrerPolicy = aParent->mReferrerPolicy;
 }
 
 void
