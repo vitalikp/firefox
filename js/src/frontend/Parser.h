@@ -163,8 +163,7 @@ class ParserBase
     template<class, typename> friend class AutoAwaitIsKeyword;
 
     ParserBase(JSContext* cx, LifoAlloc& alloc, const ReadOnlyCompileOptions& options,
-               const char16_t* chars, size_t length, bool foldConstants,
-               UsedNameTracker& usedNames);
+               bool foldConstants, UsedNameTracker& usedNames);
     ~ParserBase();
 
     bool checkOptions();
@@ -322,8 +321,8 @@ class PerHandlerParser
 
   protected:
     PerHandlerParser(JSContext* cx, LifoAlloc& alloc, const ReadOnlyCompileOptions& options,
-                     const char16_t* chars, size_t length, bool foldConstants,
-                     UsedNameTracker& usedNames, LazyScript* lazyOuterFunction);
+                     bool foldConstants, UsedNameTracker& usedNames,
+                     LazyScript* lazyOuterFunction);
 
     static Node null() { return ParseHandler::null(); }
 
