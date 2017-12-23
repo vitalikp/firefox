@@ -764,7 +764,7 @@ GetToken(AsmJSParser& parser, TokenKind* tkp)
     auto& ts = parser.tokenStream;
     TokenKind tk;
     while (true) {
-        if (!ts.getToken(&tk, TokenStream::Operand))
+        if (!ts.getToken(&tk, TokenStreamShared::Operand))
             return false;
         if (tk != TokenKind::Semi)
             break;
@@ -783,7 +783,7 @@ PeekToken(AsmJSParser& parser, TokenKind* tkp)
             return false;
         if (tk != TokenKind::Semi)
             break;
-        ts.consumeKnownToken(TokenKind::Semi, TokenStream::Operand);
+        ts.consumeKnownToken(TokenKind::Semi, TokenStreamShared::Operand);
     }
     *tkp = tk;
     return true;
@@ -2451,7 +2451,7 @@ class MOZ_STACK_CLASS ModuleValidator
         asmJSMetadata_->srcLength = endBeforeCurly - asmJSMetadata_->srcStart;
 
         TokenPos pos(0, 0);
-        JS_ALWAYS_TRUE(tokenStream().peekTokenPos(&pos, TokenStream::Operand));
+        JS_ALWAYS_TRUE(tokenStream().peekTokenPos(&pos, TokenStreamShared::Operand));
         uint32_t endAfterCurly = pos.end;
         asmJSMetadata_->srcLengthWithRightBrace = endAfterCurly - asmJSMetadata_->srcStart;
 
@@ -3843,7 +3843,7 @@ CheckModuleProcessingDirectives(ModuleValidator& m)
     auto& ts = m.parser().tokenStream;
     while (true) {
         bool matched;
-        if (!ts.matchToken(&matched, TokenKind::String, TokenStream::Operand))
+        if (!ts.matchToken(&matched, TokenKind::String, TokenStreamShared::Operand))
             return false;
         if (!matched)
             return true;
@@ -7173,14 +7173,14 @@ ParseFunction(ModuleValidator& m, ParseNode** fnOut, unsigned* line)
 {
     auto& tokenStream = m.tokenStream();
 
-    tokenStream.consumeKnownToken(TokenKind::Function, TokenStream::Operand);
+    tokenStream.consumeKnownToken(TokenKind::Function, TokenStreamShared::Operand);
 
     auto& anyChars = tokenStream.anyCharsAccess();
     uint32_t toStringStart = anyChars.currentToken().pos.begin;
     *line = anyChars.srcCoords.lineNum(anyChars.currentToken().pos.end);
 
     TokenKind tk;
-    if (!tokenStream.getToken(&tk, TokenStream::Operand))
+    if (!tokenStream.getToken(&tk, TokenStreamShared::Operand))
         return false;
     if (tk == TokenKind::Mul)
         return m.failCurrentOffset("unexpected generator function");
@@ -8386,7 +8386,7 @@ class ModuleChars
 
     static uint32_t endOffset(AsmJSParser& parser) {
         TokenPos pos(0, 0);  // initialize to silence GCC warning
-        MOZ_ALWAYS_TRUE(parser.tokenStream.peekTokenPos(&pos, TokenStream::Operand));
+        MOZ_ALWAYS_TRUE(parser.tokenStream.peekTokenPos(&pos, TokenStreamShared::Operand));
         return pos.end;
     }
 };
