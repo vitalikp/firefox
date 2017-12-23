@@ -501,6 +501,9 @@ template <class ParseHandler, typename CharT>
 class GeneralParser
   : public PerHandlerParser<ParseHandler>
 {
+  public:
+    using TokenStream = TokenStreamSpecific<CharT, ParserAnyCharsAccess<GeneralParser>>;
+
   private:
     using Base = PerHandlerParser<ParseHandler>;
     using FinalParser = Parser<ParseHandler, CharT>;
@@ -510,6 +513,7 @@ class GeneralParser
 
   protected:
     using Modifier = TokenStreamShared::Modifier;
+    using Position = typename TokenStream::Position;
 
     using Base::PredictUninvoked;
     using Base::PredictInvoked;
@@ -719,7 +723,6 @@ class GeneralParser
     }
 
   public:
-    using TokenStream = TokenStreamSpecific<CharT, ParserAnyCharsAccess<GeneralParser>>;
     TokenStream tokenStream;
 
   public:
@@ -1129,6 +1132,8 @@ class Parser<SyntaxParseHandler, CharT> final
 
     // Inherited types, listed here to have non-dependent names.
     using typename Base::Modifier;
+    using typename Base::Position;
+    using typename Base::TokenStream;
 
     // Inherited functions, listed here to have non-dependent names.
 
@@ -1234,6 +1239,8 @@ class Parser<FullParseHandler, CharT> final
 
     // Inherited types, listed here to have non-dependent names.
     using typename Base::Modifier;
+    using typename Base::Position;
+    using typename Base::TokenStream;
 
     // Inherited functions, listed here to have non-dependent names.
 

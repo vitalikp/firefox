@@ -3366,7 +3366,7 @@ GeneralParser<ParseHandler, CharT>::functionDefinition(Node funcNode, uint32_t t
     Directives directives(pc);
     Directives newDirectives = directives;
 
-    typename TokenStream::Position start(keepAtoms);
+    Position start(keepAtoms);
     tokenStream.tell(&start);
 
     // Parse the inner function. The following is a loop as we may attempt to
@@ -3433,7 +3433,7 @@ Parser<FullParseHandler, CharT>::trySyntaxParseInnerFunction(ParseNode* funcNode
         UsedNameTracker::RewindToken token = usedNames.getRewindToken();
 
         // Move the syntax parser to the current position in the stream.
-        typename TokenStream::Position position(keepAtoms);
+        Position position(keepAtoms);
         tokenStream.tell(&position);
         if (!syntaxParser->tokenStream.seek(position, anyChars))
             return false;
@@ -8058,7 +8058,7 @@ GeneralParser<ParseHandler, CharT>::assignExpr(InHandling inHandling, YieldHandl
 
     // Save the tokenizer state in case we find an arrow function and have to
     // rewind.
-    typename TokenStream::Position start(keepAtoms);
+    Position start(keepAtoms);
     tokenStream.tell(&start);
 
     PossibleError possibleErrorInner(*this);
