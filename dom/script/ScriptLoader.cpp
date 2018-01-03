@@ -383,13 +383,15 @@ ScriptLoader::ProcessFetchedModuleSource(ModuleLoadRequest* aRequest)
   nsresult rv = CreateModuleScript(aRequest);
   MOZ_ASSERT(NS_FAILED(rv) == !aRequest->mModuleScript);
 
-  SetModuleFetchFinishedAndResumeWaitingRequests(aRequest, rv);
-
   aRequest->mScriptText.clearAndFree();
 
   if (NS_FAILED(rv)) {
     aRequest->LoadFailed();
     return rv;
+  }
+
+  if (!aRequest->mIsInline) {
+    SetModuleFetchFinishedAndResumeWaitingRequests(aRequest, rv);
   }
 
   if (!aRequest->mModuleScript->HasParseError()) {
@@ -1452,7 +1454,7 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
     return false;
   }
 
-  // Inline classic scripts ignore ther CORS mode and are always CORS_NONE.
+  // Inline classic scripts ignore their CORS mode and are always CORS_NONE.
   CORSMode corsMode = CORS_NONE;
   if (scriptKind == ScriptKind::Module) {
     corsMode = aElement->GetCORSMode();
@@ -1474,20 +1476,20 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
   if (request->IsModuleRequest()) {
     ModuleLoadRequest* modReq = request->AsModuleRequest();
     modReq->mBaseURL = mDocument->GetDocBaseURI();
-    rv = CreateModuleScript(modReq);
-    MOZ_ASSERT(NS_FAILED(rv) == !modReq->mModuleScript);
-    if (NS_FAILED(rv)) {
-      modReq->LoadFailed();
-      return false;
-    }
+
     if (aElement->GetScriptAsync()) {
-      mLoadingAsyncRequests.AppendElement(request);
+      modReq->mIsAsync = true;
+      mLoadingAsyncRequests.AppendElement(modReq);
     } else {
-      AddDeferRequest(request);
+      AddDeferRequest(modReq);
     }
-    if (!modReq->mModuleScript->HasParseError()) {
-      StartFetchingModuleDependencies(modReq);
+
+    nsresult rv = ProcessFetchedModuleSource(modReq);
+    if (NS_FAILED(rv)) {
+      ReportErrorToConsole(modReq, rv);
+      HandleLoadError(modReq, rv);
     }
+
     return false;
   }
   request->mProgress = ScriptLoadRequest::Progress::Ready;
@@ -2765,6 +2767,11 @@ ScriptLoader::ReportErrorToConsole(ScriptLoadRequest *aRequest,
 void
 ScriptLoader::HandleLoadError(ScriptLoadRequest *aRequest, nsresult aResult)
 {
+  if (aRequest->IsModuleRequest() && !aRequest->mIsInline) {
+    auto request = aRequest->AsModuleRequest();
+    SetModuleFetchFinishedAndResumeWaitingRequests(request, aResult);
+  }
+
   if (aRequest->mIsDefer) {
     MOZ_ASSERT_IF(aRequest->IsModuleRequest(),
                   aRequest->AsModuleRequest()->IsTopLevel());
