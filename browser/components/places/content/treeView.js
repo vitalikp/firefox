@@ -501,7 +501,7 @@ PlacesTreeView.prototype = {
   get _todayFormatter() {
     if (!this.__todayFormatter) {
       const dtOptions = { timeStyle: "short" };
-      this.__todayFormatter = Services.intl.createDateTimeFormat(undefined, dtOptions);
+      this.__todayFormatter = new Services.intl.DateTimeFormat(undefined, dtOptions);
     }
     return this.__todayFormatter;
   },
@@ -513,7 +513,7 @@ PlacesTreeView.prototype = {
         dateStyle: "short",
         timeStyle: "short"
       };
-      this.__dateFormatter = Services.intl.createDateTimeFormat(undefined, dtOptions);
+      this.__dateFormatter = new Services.intl.DateTimeFormat(undefined, dtOptions);
     }
     return this.__dateFormatter;
   },

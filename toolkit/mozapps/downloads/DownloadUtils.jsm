@@ -352,7 +352,7 @@ this.DownloadUtils = {
 
     // Figure out if the time is from today, yesterday, this week, etc.
     if (aDate >= today) {
-      let dts = Services.intl.createDateTimeFormat(undefined, {
+      let dts = new Services.intl.DateTimeFormat(undefined, {
         timeStyle: "short"
       });
       dateTimeCompact = dts.format(aDate);
@@ -371,7 +371,7 @@ this.DownloadUtils = {
 
     const dtOptions = { dateStyle: "long", timeStyle: "short" };
     dateTimeFull =
-      Services.intl.createDateTimeFormat(undefined, dtOptions).format(aDate);
+      new Services.intl.DateTimeFormat(undefined, dtOptions).format(aDate);
 
     return [dateTimeCompact, dateTimeFull];
   },
