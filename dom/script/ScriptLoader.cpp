@@ -190,7 +190,7 @@ ScriptLoader::~ScriptLoader()
 static bool
 IsScriptEventHandler(ScriptKind kind, nsIContent* aScriptElement)
 {
-  if (kind != ScriptKind::Classic) {
+  if (kind != ScriptKind::eClassic) {
     return false;
   }
 
@@ -624,7 +624,7 @@ ScriptLoader::StartFetchingModuleDependencies(ModuleLoadRequest* aRequest)
   auto visitedSet = aRequest->mVisitedSet;
   MOZ_ASSERT(visitedSet->Contains(aRequest->mURI));
 
-  aRequest->mProgress = ModuleLoadRequest::Progress::FetchingImports;
+  aRequest->mProgress = ModuleLoadRequest::Progress::eFetchingImports;
 
   nsCOMArray<nsIURI> urls;
   nsresult rv = ResolveRequestedModules(aRequest, &urls);
@@ -907,7 +907,7 @@ ScriptLoader::RestartLoad(ScriptLoadRequest* aRequest)
 
   // Start a new channel from which we explicitly request to stream the source
   // instead of the bytecode.
-  aRequest->mProgress = ScriptLoadRequest::Progress::Loading_Source;
+  aRequest->mProgress = ScriptLoadRequest::Progress::eLoading_Source;
   nsresult rv = StartLoad(aRequest);
   if (NS_FAILED(rv)) {
     return rv;
@@ -923,7 +923,7 @@ ScriptLoader::StartLoad(ScriptLoadRequest* aRequest)
 {
   MOZ_ASSERT(aRequest->IsLoading());
   NS_ENSURE_TRUE(mDocument, NS_ERROR_NULL_POINTER);
-  aRequest->mDataType = ScriptLoadRequest::DataType::Unknown;
+  aRequest->mDataType = ScriptLoadRequest::DataType::eUnknown;
 
   // If this document is sandboxed without 'allow-scripts', abort.
   if (mDocument->HasScriptsBlockedBySandbox()) {
@@ -1014,7 +1014,7 @@ ScriptLoader::StartLoad(ScriptLoadRequest* aRequest)
   aRequest->mCacheInfo = nullptr;
   nsCOMPtr<nsICacheInfoChannel> cic(do_QueryInterface(channel));
   if (cic && nsContentUtils::IsBytecodeCacheEnabled() &&
-      aRequest->mValidJSVersion == ValidJSVersion::Valid) {
+      aRequest->mValidJSVersion == ValidJSVersion::eValid) {
     if (!aRequest->IsLoadingSource()) {
       // Inform the HTTP cache that we prefer to have information coming from the
       // bytecode cache instead of the sources, if such entry is already registered.
@@ -1105,20 +1105,20 @@ ScriptLoader::PreloadURIComparator::Equals(const PreloadInfo& aPi,
 }
 
 /**
- * Returns ValidJSVersion::Valid if aVersionStr is a string of the form
- * '1.n', n = 0, ..., 8, and ValidJSVersion::Invalid for other strings.
+ * Returns ValidJSVersion::eValid if aVersionStr is a string of the form '1.n',
+ * n = 0, ..., 8, and ValidJSVersion::eInvalid for other strings.
  */
 static ValidJSVersion
 ParseJavascriptVersion(const nsAString& aVersionStr)
 {
   if (aVersionStr.Length() != 3 || aVersionStr[0] != '1' ||
       aVersionStr[1] != '.') {
-    return ValidJSVersion::Invalid;
+    return ValidJSVersion::eInvalid;
   }
   if ('0' <= aVersionStr[2] && aVersionStr[2] <= '8') {
-    return ValidJSVersion::Valid;
+    return ValidJSVersion::eValid;
   }
-  return ValidJSVersion::Invalid;
+  return ValidJSVersion::eInvalid;
 }
 
 static inline bool
@@ -1126,7 +1126,7 @@ ParseTypeAttribute(const nsAString& aType, ValidJSVersion* aVersion)
 {
   MOZ_ASSERT(!aType.IsEmpty());
   MOZ_ASSERT(aVersion);
-  MOZ_ASSERT(*aVersion == ValidJSVersion::Valid);
+  MOZ_ASSERT(*aVersion == ValidJSVersion::eValid);
 
   nsContentTypeParser parser(aType);
 
@@ -1194,7 +1194,7 @@ ScriptLoader::CreateLoadRequest(ScriptKind aKind,
 {
   nsIURI* referrer = mDocument->GetDocumentURI();
 
-  if (aKind == ScriptKind::Classic) {
+  if (aKind == ScriptKind::eClassic) {
     ScriptLoadRequest* slr = new ScriptLoadRequest(aKind, aURI, aElement,
                                                    aValidJSVersion, aCORSMode, aIntegrity,
                                                    referrer, aReferrerPolicy);
@@ -1203,7 +1203,7 @@ ScriptLoader::CreateLoadRequest(ScriptKind aKind,
     return slr;
   }
 
-  MOZ_ASSERT(aKind == ScriptKind::Module);
+  MOZ_ASSERT(aKind == ScriptKind::eModule);
   return new ModuleLoadRequest(aURI, aElement, aValidJSVersion, aCORSMode,
                                aIntegrity, referrer, aReferrerPolicy, this);
 }
@@ -1226,10 +1226,10 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
   // Determine whether this is a classic script or a module script.
   nsAutoString type;
   bool hasType = aElement->GetScriptType(type);
-  ScriptKind scriptKind = ScriptKind::Classic;
+  ScriptKind scriptKind = ScriptKind::eClassic;
   if (ModuleScriptsEnabled() &&
       !type.IsEmpty() && type.LowerCaseEqualsASCII("module")) {
-    scriptKind = ScriptKind::Module;
+    scriptKind = ScriptKind::eModule;
   }
 
   // Step 13. Check that the script is not an eventhandler
@@ -1237,11 +1237,11 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
     return false;
   }
 
-  ValidJSVersion validJSVersion = ValidJSVersion::Valid;
+  ValidJSVersion validJSVersion = ValidJSVersion::eValid;
 
   // For classic scripts, check the type attribute to determine language and
   // version. If type exists, it trumps the deprecated 'language='
-  if (scriptKind == ScriptKind::Classic) {
+  if (scriptKind == ScriptKind::eClassic) {
     if (!type.IsEmpty()) {
       NS_ENSURE_TRUE(ParseTypeAttribute(type, &validJSVersion), false);
     } else if (!hasType) {
@@ -1265,7 +1265,7 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
   // "The nomodule attribute must not be specified on module scripts (and will
   // be ignored if it is)."
   if (ModuleScriptsEnabled() &&
-      scriptKind == ScriptKind::Classic &&
+      scriptKind == ScriptKind::eClassic &&
       scriptContent->IsHTMLElement() &&
       scriptContent->HasAttr(kNameSpaceID_None, nsGkAtoms::nomodule)) {
     return false;
@@ -1472,7 +1472,7 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
 
   // Inline classic scripts ignore their CORS mode and are always CORS_NONE.
   CORSMode corsMode = CORS_NONE;
-  if (scriptKind == ScriptKind::Module) {
+  if (scriptKind == ScriptKind::eModule) {
     corsMode = aElement->GetCORSMode();
   }
 
@@ -1483,8 +1483,8 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
   request->mValidJSVersion = validJSVersion;
   request->mIsInline = true;
   request->mLineNo = aElement->GetScriptLineNumber();
-  request->mProgress = ScriptLoadRequest::Progress::Loading_Source;
-  request->mDataType = ScriptLoadRequest::DataType::Source;
+  request->mProgress = ScriptLoadRequest::Progress::eLoading_Source;
+  request->mDataType = ScriptLoadRequest::DataType::eSource;
 
   LOG(("ScriptLoadRequest (%p): Created request for inline script",
        request.get()));
@@ -1509,7 +1509,7 @@ ScriptLoader::ProcessScriptElement(nsIScriptElement* aElement)
 
     return false;
   }
-  request->mProgress = ScriptLoadRequest::Progress::Ready;
+  request->mProgress = ScriptLoadRequest::Progress::eReady;
   if (aElement->GetParserCreated() == FROM_PARSER_XSLT &&
       (!ReadyToExecuteParserBlockingScripts() || !mXSLTRequests.isEmpty())) {
     // Need to maintain order for XSLT-inserted scripts
@@ -1589,7 +1589,7 @@ public:
 nsresult
 ScriptLoader::ProcessOffThreadRequest(ScriptLoadRequest* aRequest)
 {
-  MOZ_ASSERT(aRequest->mProgress == ScriptLoadRequest::Progress::Compiling);
+  MOZ_ASSERT(aRequest->mProgress == ScriptLoadRequest::Progress::eCompiling);
   MOZ_ASSERT(!aRequest->mWasCompiledOMT);
 
   aRequest->mWasCompiledOMT = true;
@@ -1731,7 +1731,7 @@ ScriptLoader::AttemptAsyncScriptCompile(ScriptLoadRequest* aRequest)
 
   // Once the compilation is finished, an event would be added to the event loop
   // to call ScriptLoader::ProcessOffThreadRequest with the same request.
-  aRequest->mProgress = ScriptLoadRequest::Progress::Compiling;
+  aRequest->mProgress = ScriptLoadRequest::Progress::eCompiling;
 
   Unused << runnable.forget();
   return NS_OK;
@@ -2089,7 +2089,7 @@ ScriptLoader::EvaluateScript(ScriptLoadRequest* aRequest)
     return NS_ERROR_FAILURE;
   }
 
-  if (aRequest->mValidJSVersion == ValidJSVersion::Invalid) {
+  if (aRequest->mValidJSVersion == ValidJSVersion::eInvalid) {
     return NS_OK;
   }
 
@@ -2975,7 +2975,7 @@ ScriptLoader::PrepareLoadedRequest(ScriptLoadRequest* aRequest,
     MOZ_ASSERT(!aRequest->IsModuleRequest());
     nsresult rv = AttemptAsyncScriptCompile(aRequest);
     if (rv == NS_OK) {
-      MOZ_ASSERT(aRequest->mProgress == ScriptLoadRequest::Progress::Compiling,
+      MOZ_ASSERT(aRequest->mProgress == ScriptLoadRequest::Progress::eCompiling,
                  "Request should be off-thread compiling now.");
       return NS_OK;
     }
@@ -3051,7 +3051,7 @@ ScriptLoader::PreloadURI(nsIURI* aURI, const nsAString& aCharset,
   }
 
   RefPtr<ScriptLoadRequest> request =
-    CreateLoadRequest(ScriptKind::Classic, aURI, nullptr, ValidJSVersion::Valid,
+    CreateLoadRequest(ScriptKind::eClassic, aURI, nullptr, ValidJSVersion::eValid,
                       Element::StringToCORSMode(aCrossOrigin), sriMetadata,
                       aReferrerPolicy);
   request->mIsInline = false;

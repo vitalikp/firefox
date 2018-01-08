@@ -264,7 +264,7 @@ ScriptLoadHandler::EnsureKnownDataType(nsIIncrementalStreamLoader* aLoader)
   MOZ_ASSERT(mRequest->IsUnknownDataType());
   MOZ_ASSERT(mRequest->IsLoading());
   if (mRequest->IsLoadingSource()) {
-    mRequest->mDataType = ScriptLoadRequest::DataType::Source;
+    mRequest->mDataType = ScriptLoadRequest::DataType::eSource;
     return NS_OK;
   }
 
@@ -278,13 +278,13 @@ ScriptLoadHandler::EnsureKnownDataType(nsIIncrementalStreamLoader* aLoader)
     nsAutoCString altDataType;
     cic->GetAlternativeDataType(altDataType);
     if (altDataType.Equals(nsContentUtils::JSBytecodeMimeType())) {
-      mRequest->mDataType = ScriptLoadRequest::DataType::Bytecode;
+      mRequest->mDataType = ScriptLoadRequest::DataType::eBytecode;
     } else {
       MOZ_ASSERT(altDataType.IsEmpty());
-      mRequest->mDataType = ScriptLoadRequest::DataType::Source;
+      mRequest->mDataType = ScriptLoadRequest::DataType::eSource;
     }
   } else {
-    mRequest->mDataType = ScriptLoadRequest::DataType::Source;
+    mRequest->mDataType = ScriptLoadRequest::DataType::eSource;
   }
   MOZ_ASSERT(!mRequest->IsUnknownDataType());
   MOZ_ASSERT(mRequest->IsLoading());
