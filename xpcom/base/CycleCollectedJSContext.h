@@ -103,7 +103,7 @@ private:
                                         void* aData);
   static void PromiseRejectionTrackerCallback(JSContext* aCx,
                                               JS::HandleObject aPromise,
-                                              PromiseRejectionHandlingState state,
+                                              JS::PromiseRejectionHandlingState state,
                                               void* aData);
 
   void AfterProcessMicrotask(uint32_t aRecursionDepth);
