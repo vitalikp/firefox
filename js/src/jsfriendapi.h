@@ -1060,7 +1060,7 @@ CheckRecursionLimit(JSContext* cx, uintptr_t limit)
 }
 
 MOZ_ALWAYS_INLINE bool
-CheckRecursionLimitDontReport(JSContext* cx, uintptr_t limit)
+CheckRecursionLimitDontReport(uintptr_t limit)
 {
     int stackDummy;
 
@@ -1079,7 +1079,7 @@ CheckRecursionLimit(JSContext* cx)
     // use. To work around this, check the untrusted limit first to avoid the
     // overhead in most cases.
     uintptr_t untrustedLimit = GetNativeStackLimit(cx, JS::StackForUntrustedScript);
-    if (MOZ_LIKELY(CheckRecursionLimitDontReport(cx, untrustedLimit)))
+    if (MOZ_LIKELY(CheckRecursionLimitDontReport(untrustedLimit)))
         return true;
     return CheckRecursionLimit(cx, GetNativeStackLimit(cx));
 }
@@ -1087,7 +1087,7 @@ CheckRecursionLimit(JSContext* cx)
 MOZ_ALWAYS_INLINE bool
 CheckRecursionLimitDontReport(JSContext* cx)
 {
-    return CheckRecursionLimitDontReport(cx, GetNativeStackLimit(cx));
+    return CheckRecursionLimitDontReport(GetNativeStackLimit(cx));
 }
 
 MOZ_ALWAYS_INLINE bool
@@ -1126,8 +1126,8 @@ CheckRecursionLimitConservative(JSContext* cx)
 MOZ_ALWAYS_INLINE bool
 CheckRecursionLimitConservativeDontReport(JSContext* cx)
 {
-    return CheckRecursionLimitDontReport(cx, GetNativeStackLimit(cx, JS::StackForUntrustedScript,
-                                                                 -1024 * int(sizeof(size_t))));
+    return CheckRecursionLimitDontReport(GetNativeStackLimit(cx, JS::StackForUntrustedScript,
+                                                             -1024 * int(sizeof(size_t))));
 }
 
 JS_FRIEND_API(void)
