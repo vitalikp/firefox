@@ -46,7 +46,6 @@ public:
   // Create a top-level module load request.
   ModuleLoadRequest(nsIURI* aURI,
                     nsIScriptElement* aElement,
-                    ValidJSVersion aValidJSVersion,
                     CORSMode aCORSMode,
                     const SRIMetadata& aIntegrity,
                     nsIURI* aReferrer,

@@ -29,11 +29,6 @@ enum class ScriptKind {
   eModule
 };
 
-enum class ValidJSVersion : bool {
-  eInvalid,
-  eValid
-};
-
 /*
  * A class that handles loading and evaluation of <script> elements.
  */
@@ -54,7 +49,6 @@ public:
   ScriptLoadRequest(ScriptKind aKind,
                     nsIURI* aURI,
                     nsIScriptElement* aElement,
-                    ValidJSVersion aValidJSVersion,
                     mozilla::CORSMode aCORSMode,
                     const SRIMetadata &aIntegrity,
                     nsIURI* aReferrer,
@@ -206,7 +200,6 @@ public:
   mozilla::Vector<uint8_t> mScriptBytecode;
   uint32_t mBytecodeOffset; // Offset of the bytecode in mScriptBytecode
 
-  ValidJSVersion mValidJSVersion;
   const nsCOMPtr<nsIURI> mURI;
   nsCOMPtr<nsIPrincipal> mOriginPrincipal;
   nsAutoCString mURL;     // Keep the URI's filename alive during off thread parsing.
