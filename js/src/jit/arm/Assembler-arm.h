@@ -1735,6 +1735,7 @@ class Assembler : public AssemblerShared
     static void Bind(uint8_t* rawCode, CodeOffset label, CodeOffset target);
 
     void as_bkpt();
+    BufferOffset as_illegal_trap();
 
   public:
     static void TraceJumpRelocations(JSTracer* trc, JitCode* code, CompactBufferReader& reader);
