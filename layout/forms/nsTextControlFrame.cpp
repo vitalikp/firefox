@@ -845,8 +845,12 @@ nsTextControlFrame::SelectAllOrCollapseToEndOfText(bool aSelect)
     // br under the root node!
     nsIContent *child = rootContent->GetChildAt(numChildren - 1);
     if (child) {
-      if (child->IsHTMLElement(nsGkAtoms::br))
+      if (child->IsHTMLElement(nsGkAtoms::br)) {
         --numChildren;
+      } else if (child->IsNodeOfType(nsINode::eTEXT) && !child->Length()) {
+        // Editor won't remove text node when empty value.
+        --numChildren;
+      }
     }
     if (!aSelect && numChildren) {
       child = rootContent->GetChildAt(numChildren - 1);
