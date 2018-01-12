@@ -313,25 +313,25 @@ struct Token
     // Mutators
 
     void setName(PropertyName* name) {
-        MOZ_ASSERT(type == TOK_NAME);
+        MOZ_ASSERT(type == TokenKind::TOK_NAME);
         u.name = name;
     }
 
     void setAtom(JSAtom* atom) {
-        MOZ_ASSERT(type == TOK_STRING ||
-                   type == TOK_TEMPLATE_HEAD ||
-                   type == TOK_NO_SUBS_TEMPLATE);
+        MOZ_ASSERT(type == TokenKind::TOK_STRING ||
+                   type == TokenKind::TOK_TEMPLATE_HEAD ||
+                   type == TokenKind::TOK_NO_SUBS_TEMPLATE);
         u.atom = atom;
     }
 
     void setRegExpFlags(RegExpFlag flags) {
-        MOZ_ASSERT(type == TOK_REGEXP);
+        MOZ_ASSERT(type == TokenKind::TOK_REGEXP);
         MOZ_ASSERT((flags & AllFlags) == flags);
         u.reflags = flags;
     }
 
     void setNumber(double n, DecimalPoint decimalPoint) {
-        MOZ_ASSERT(type == TOK_NUMBER);
+        MOZ_ASSERT(type == TokenKind::TOK_NUMBER);
         u.number.value = n;
         u.number.decimalPoint = decimalPoint;
     }
@@ -339,30 +339,30 @@ struct Token
     // Type-safe accessors
 
     PropertyName* name() const {
-        MOZ_ASSERT(type == TOK_NAME);
+        MOZ_ASSERT(type == TokenKind::TOK_NAME);
         return u.name->JSAtom::asPropertyName(); // poor-man's type verification
     }
 
     JSAtom* atom() const {
-        MOZ_ASSERT(type == TOK_STRING ||
-                   type == TOK_TEMPLATE_HEAD ||
-                   type == TOK_NO_SUBS_TEMPLATE);
+        MOZ_ASSERT(type == TokenKind::TOK_STRING ||
+                   type == TokenKind::TOK_TEMPLATE_HEAD ||
+                   type == TokenKind::TOK_NO_SUBS_TEMPLATE);
         return u.atom;
     }
 
     RegExpFlag regExpFlags() const {
-        MOZ_ASSERT(type == TOK_REGEXP);
+        MOZ_ASSERT(type == TokenKind::TOK_REGEXP);
         MOZ_ASSERT((u.reflags & AllFlags) == u.reflags);
         return u.reflags;
     }
 
     double number() const {
-        MOZ_ASSERT(type == TOK_NUMBER);
+        MOZ_ASSERT(type == TokenKind::TOK_NUMBER);
         return u.number.value;
     }
 
     DecimalPoint decimalPoint() const {
-        MOZ_ASSERT(type == TOK_NUMBER);
+        MOZ_ASSERT(type == TokenKind::TOK_NUMBER);
         return u.number.decimalPoint;
     }
 };
@@ -492,7 +492,7 @@ class TokenStreamAnyChars
 
   public:
     PropertyName* currentName() const {
-        if (isCurrentTokenType(TOK_NAME))
+        if (isCurrentTokenType(TokenKind::TOK_NAME))
             return currentToken().name();
 
         MOZ_ASSERT(TokenKindIsPossibleIdentifierName(currentToken().type));
@@ -500,7 +500,7 @@ class TokenStreamAnyChars
     }
 
     bool currentNameHasEscapes() const {
-        if (isCurrentTokenType(TOK_NAME)) {
+        if (isCurrentTokenType(TokenKind::TOK_NAME)) {
             TokenPos pos = currentToken().pos;
             return (pos.end - pos.begin) != currentToken().name()->length();
         }
@@ -510,7 +510,7 @@ class TokenStreamAnyChars
     }
 
     PropertyName* nextName() const {
-        if (nextToken().type != TOK_NAME)
+        if (nextToken().type != TokenKind::TOK_NAME)
             return nextToken().name();
 
         MOZ_ASSERT(TokenKindIsPossibleIdentifierName(nextToken().type));
@@ -567,7 +567,7 @@ class TokenStreamAnyChars
             // Token after yield expression without operand already has
             // NoneIsOperand exception.
             MOZ_ASSERT(modifierException == OperandIsNone);
-            MOZ_ASSERT(next.type != TOK_DIV,
+            MOZ_ASSERT(next.type != TokenKind::TOK_DIV,
                        "next token requires contextual specifier to be parsed unambiguously");
 
             // Do not update modifierException.
@@ -578,12 +578,12 @@ class TokenStreamAnyChars
         switch (modifierException) {
           case NoneIsOperand:
             MOZ_ASSERT(next.modifier == Operand);
-            MOZ_ASSERT(next.type != TOK_DIV,
+            MOZ_ASSERT(next.type != TokenKind::TOK_DIV,
                        "next token requires contextual specifier to be parsed unambiguously");
             break;
           case OperandIsNone:
             MOZ_ASSERT(next.modifier == None);
-            MOZ_ASSERT(next.type != TOK_DIV && next.type != TOK_REGEXP,
+            MOZ_ASSERT(next.type != TokenKind::TOK_DIV && next.type != TokenKind::TOK_REGEXP,
                        "next token requires contextual specifier to be parsed unambiguously");
             break;
           default:
@@ -772,7 +772,7 @@ class TokenStreamAnyChars
     const char*         filename_;          // input filename or null
     UniqueTwoByteChars  displayURL_;        // the user's requested source URL or null
     UniqueTwoByteChars  sourceMapURL_;      // source map's filename or null
-    uint8_t             isExprEnding[TOK_LIMIT];// which tokens definitely terminate exprs?
+    uint8_t             isExprEnding[size_t(TokenKind::TOK_LIMIT)];// which tokens definitely terminate exprs?
     JSContext* const    cx;
     bool                mutedErrors;
     StrictModeGetter*   strictModeGetter;  // used to test for strict mode
@@ -1118,11 +1118,11 @@ class MOZ_STACK_CLASS TokenStreamSpecific
     JSAtom* getRawTemplateStringAtom() {
         TokenStreamAnyChars& anyChars = anyCharsAccess();
 
-        MOZ_ASSERT(anyChars.currentToken().type == TOK_TEMPLATE_HEAD ||
-                   anyChars.currentToken().type == TOK_NO_SUBS_TEMPLATE);
+        MOZ_ASSERT(anyChars.currentToken().type == TokenKind::TOK_TEMPLATE_HEAD ||
+                   anyChars.currentToken().type == TokenKind::TOK_NO_SUBS_TEMPLATE);
         const CharT* cur = userbuf.rawCharPtrAt(anyChars.currentToken().pos.begin + 1);
         const CharT* end;
-        if (anyChars.currentToken().type == TOK_TEMPLATE_HEAD) {
+        if (anyChars.currentToken().type == TokenKind::TOK_TEMPLATE_HEAD) {
             // Of the form    |`...${|   or   |}...${|
             end = userbuf.rawCharPtrAt(anyChars.currentToken().pos.end - 2);
         } else {
@@ -1183,7 +1183,7 @@ class MOZ_STACK_CLASS TokenStreamSpecific
             anyChars.lookahead--;
             anyChars.cursor = (anyChars.cursor + 1) & ntokensMask;
             TokenKind tt = anyChars.currentToken().type;
-            MOZ_ASSERT(tt != TOK_EOL);
+            MOZ_ASSERT(tt != TokenKind::TOK_EOL);
             verifyConsistentModifier(modifier, anyChars.currentToken());
             *ttp = tt;
             return true;
@@ -1277,7 +1277,7 @@ class MOZ_STACK_CLASS TokenStreamSpecific
         const auto& srcCoords = anyChars.srcCoords;
         *ttp = srcCoords.lineNum(curr.pos.end) == srcCoords.lineNum(next.pos.begin)
              ? next.type
-             : TOK_EOL;
+             : TokenKind::TOK_EOL;
         return true;
     }
 
@@ -1307,7 +1307,7 @@ class MOZ_STACK_CLASS TokenStreamSpecific
         if (!peekToken(&tt))
             return false;
 
-        *endsExpr = anyCharsAccess().isExprEnding[tt];
+        *endsExpr = anyCharsAccess().isExprEnding[size_t(tt)];
         if (*endsExpr) {
             // If the next token ends an overall Expression, we'll parse this
             // Expression without ever invoking Parser::orExpr().  But we need
