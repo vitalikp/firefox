@@ -3884,10 +3884,10 @@ SetPropIRGenerator::tryAttachAddSlotStub(HandleObjectGroup oldGroup, HandleShape
 }
 
 InstanceOfIRGenerator::InstanceOfIRGenerator(JSContext* cx, HandleScript script, jsbytecode* pc,
-                                            ICState::Mode mode, HandleValue lhs, HandleValue rhs)
+                                            ICState::Mode mode, HandleValue lhs, HandleObject rhs)
   : IRGenerator(cx, script, pc, CacheKind::InstanceOf, mode),
     lhsVal_(lhs),
-    rhsVal_(rhs)
+    rhsObj_(rhs)
 { }
 
 bool
@@ -3895,7 +3895,14 @@ InstanceOfIRGenerator::tryAttachStub()
 {
     MOZ_ASSERT(cacheKind_ == CacheKind::InstanceOf);
     AutoAssertNoPendingException aanpe(cx_);
-    RootedFunction fun(cx_, &rhsVal_.toObject().as<JSFunction>());
+
+    // Ensure RHS is a function -- could be a Proxy, which the IC isn't prepared to handle.
+    if (!rhsObj_->is<JSFunction>()) {
+        trackNotAttached();
+        return false;
+    }
+
+    HandleFunction fun = rhsObj_.as<JSFunction>();
 
     if (fun->isBoundFunction()) {
         trackNotAttached();
@@ -3968,7 +3975,7 @@ InstanceOfIRGenerator::trackAttached(const char* name)
         LockGuard<Mutex> guard(sp.lock());
         sp.beginCache(guard, *this);
         sp.valueProperty(guard, "lhs", lhsVal_);
-        sp.valueProperty(guard, "rhs", rhsVal_);
+        sp.valueProperty(guard, "rhs", ObjectValue(*rhsObj_));
         sp.attached(guard, name);
         sp.endCache(guard);
     }
@@ -3984,7 +3991,7 @@ InstanceOfIRGenerator::trackNotAttached()
         LockGuard<Mutex> guard(sp.lock());
         sp.beginCache(guard, *this);
         sp.valueProperty(guard, "lhs", lhsVal_);
-        sp.valueProperty(guard, "rhs", rhsVal_);
+        sp.valueProperty(guard, "rhs", ObjectValue(*rhsObj_));
         sp.endCache(guard);
     }
 #endif

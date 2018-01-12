@@ -274,7 +274,7 @@ namespace jit {
     _(InCache)                                                              \
     _(HasOwnCache)                                                          \
     _(InstanceOf)                                                           \
-    _(CallInstanceOf)                                                       \
+    _(InstanceOfCache)                                                      \
     _(InterruptCheck)                                                       \
     _(GetDOMProperty)                                                       \
     _(GetDOMMember)                                                         \

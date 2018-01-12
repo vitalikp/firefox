@@ -370,7 +370,7 @@ class CodeGenerator final : public CodeGeneratorSpecific
     void visitInArray(LInArray* ins);
     void visitInstanceOfO(LInstanceOfO* ins);
     void visitInstanceOfV(LInstanceOfV* ins);
-    void visitCallInstanceOf(LCallInstanceOf* ins);
+    void visitInstanceOfCache(LInstanceOfCache* ins);
     void visitGetDOMProperty(LGetDOMProperty* lir);
     void visitGetDOMMemberV(LGetDOMMemberV* lir);
     void visitGetDOMMemberT(LGetDOMMemberT* lir);

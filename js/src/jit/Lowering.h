@@ -293,7 +293,7 @@ class LIRGenerator : public LIRGeneratorSpecific
     void visitInArray(MInArray* ins);
     void visitHasOwnCache(MHasOwnCache* ins);
     void visitInstanceOf(MInstanceOf* ins);
-    void visitCallInstanceOf(MCallInstanceOf* ins);
+    void visitInstanceOfCache(MInstanceOfCache* ins);
     void visitIsCallable(MIsCallable* ins);
     void visitIsConstructor(MIsConstructor* ins);
     void visitIsArray(MIsArray* ins);
