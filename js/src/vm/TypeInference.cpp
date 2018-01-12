@@ -2359,10 +2359,13 @@ TemporaryTypeSet::getTypedArrayType(CompilerConstraintList* constraints,
 }
 
 bool
-TemporaryTypeSet::isDOMClass(CompilerConstraintList* constraints)
+TemporaryTypeSet::isDOMClass(CompilerConstraintList* constraints, DOMObjectKind* kind)
 {
     if (unknownObject())
         return false;
+
+    *kind = DOMObjectKind::Unknown;
+    bool isFirst = true;
 
     unsigned count = getObjectCount();
     for (unsigned i = 0; i < count; i++) {
@@ -2371,6 +2374,15 @@ TemporaryTypeSet::isDOMClass(CompilerConstraintList* constraints)
             continue;
         if (!clasp->isDOMClass() || !getObject(i)->hasStableClassAndProto(constraints))
             return false;
+
+        DOMObjectKind thisKind = clasp->isProxy() ? DOMObjectKind::Proxy : DOMObjectKind::Native;
+        if (isFirst) {
+            *kind = thisKind;
+            isFirst = false;
+            continue;
+        }
+        if (*kind != thisKind)
+            *kind = DOMObjectKind::Unknown;
     }
 
     return count > 0;
@@ -2393,27 +2405,6 @@ TemporaryTypeSet::maybeCallable(CompilerConstraintList* constraints)
         if (clasp->isProxy() || clasp->nonProxyCallable())
             return true;
         if (!getObject(i)->hasStableClassAndProto(constraints))
-            return true;
-    }
-
-    return false;
-}
-
-bool
-TemporaryTypeSet::maybeProxy(CompilerConstraintList* constraints)
-{
-    if (!maybeObject())
-        return false;
-
-    if (unknownObject())
-        return true;
-
-    unsigned count = getObjectCount();
-    for (unsigned i = 0; i < count; i++) {
-        const Class* clasp = getObjectClass(i);
-        if (!clasp)
-            continue;
-        if (clasp->isProxy() || !getObject(i)->hasStableClassAndProto(constraints))
             return true;
     }
 
