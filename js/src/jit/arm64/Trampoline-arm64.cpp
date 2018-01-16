@@ -965,7 +965,7 @@ JitRuntime::generateProfilerExitFrameTailStub(MacroAssembler& masm, Label* profi
 
         // Store return frame in lastProfilingFrame.
         // scratch2 := masm.getStackPointer() + Descriptor.size*1 + JitFrameLayout::Size();
-        masm.addPtr(masm.getStackPointer(), scratch1, scratch2);
+        masm.Add(ARMRegister(scratch2, 64), masm.GetStackPointer64(), ARMRegister(scratch1, 64));
         masm.syncStackPtr();
         masm.addPtr(Imm32(JitFrameLayout::Size()), scratch2, scratch2);
         masm.storePtr(scratch2, lastProfilingFrame);
@@ -1000,7 +1000,7 @@ JitRuntime::generateProfilerExitFrameTailStub(MacroAssembler& masm, Label* profi
     //
     masm.bind(&handle_BaselineStub);
     {
-        masm.addPtr(masm.getStackPointer(), scratch1, scratch3);
+        masm.Add(ARMRegister(scratch3, 64), masm.GetStackPointer64(), ARMRegister(scratch1, 64));
         masm.syncStackPtr();
         Address stubFrameReturnAddr(scratch3,
                                     JitFrameLayout::Size() +
@@ -1058,7 +1058,7 @@ JitRuntime::generateProfilerExitFrameTailStub(MacroAssembler& masm, Label* profi
     masm.bind(&handle_Rectifier);
     {
         // scratch2 := StackPointer + Descriptor.size*1 + JitFrameLayout::Size();
-        masm.addPtr(masm.getStackPointer(), scratch1, scratch2);
+        masm.Add(ARMRegister(scratch2, 64), masm.GetStackPointer64(), ARMRegister(scratch1, 64));
         masm.syncStackPtr();
         masm.addPtr(Imm32(JitFrameLayout::Size()), scratch2);
         masm.loadPtr(Address(scratch2, RectifierFrameLayout::offsetOfDescriptor()), scratch3);
@@ -1125,7 +1125,7 @@ JitRuntime::generateProfilerExitFrameTailStub(MacroAssembler& masm, Label* profi
     masm.bind(&handle_IonICCall);
     {
         // scratch2 := StackPointer + Descriptor.size + JitFrameLayout::Size()
-        masm.addPtr(masm.getStackPointer(), scratch1, scratch2);
+        masm.Add(ARMRegister(scratch2, 64), masm.GetStackPointer64(), ARMRegister(scratch1, 64));
         masm.syncStackPtr();
         masm.addPtr(Imm32(JitFrameLayout::Size()), scratch2);
 
