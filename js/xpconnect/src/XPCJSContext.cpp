@@ -734,6 +734,8 @@ ReloadPrefsCallback(const char* pref, void* data)
 
     bool streams = Preferences::GetBool(JS_OPTIONS_DOT_STR "streams");
 
+    bool spectreIndexMasking = Preferences::GetBool(JS_OPTIONS_DOT_STR "spectre.index_masking");
+
     sSharedMemoryEnabled = Preferences::GetBool(JS_OPTIONS_DOT_STR "shared_memory");
 
 #ifdef DEBUG
@@ -781,6 +783,8 @@ ReloadPrefsCallback(const char* pref, void* data)
 #ifdef DEBUG
     JS_SetGlobalJitCompilerOption(cx, JSJITCOMPILER_FULL_DEBUG_CHECKS, fullJitDebugChecks);
 #endif
+
+    JS_SetGlobalJitCompilerOption(cx, JSJITCOMPILER_SPECTRE_INDEX_MASKING, spectreIndexMasking);
 }
 
 XPCJSContext::~XPCJSContext()
