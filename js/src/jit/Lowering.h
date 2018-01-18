@@ -226,6 +226,7 @@ class LIRGenerator : public LIRGeneratorSpecific
     void visitNot(MNot* ins);
     void visitBoundsCheck(MBoundsCheck* ins);
     void visitBoundsCheckLower(MBoundsCheckLower* ins);
+    void visitSpectreMaskIndex(MSpectreMaskIndex* ins);
     void visitLoadElement(MLoadElement* ins);
     void visitLoadElementHole(MLoadElementHole* ins);
     void visitLoadUnboxedObjectOrNull(MLoadUnboxedObjectOrNull* ins);

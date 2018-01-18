@@ -211,6 +211,7 @@ namespace jit {
     _(Not)                                                                  \
     _(BoundsCheck)                                                          \
     _(BoundsCheckLower)                                                     \
+    _(SpectreMaskIndex)                                                     \
     _(InArray)                                                              \
     _(LoadElement)                                                          \
     _(LoadElementHole)                                                      \
