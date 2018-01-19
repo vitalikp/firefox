@@ -170,7 +170,7 @@ class LIRGenerator : public LIRGeneratorSpecific
     void visitOsrArgumentsObject(MOsrArgumentsObject* object);
     void visitToDouble(MToDouble* convert);
     void visitToFloat32(MToFloat32* convert);
-    void visitToInt32(MToInt32* convert);
+    void visitToNumberInt32(MToNumberInt32* convert);
     void visitTruncateToInt32(MTruncateToInt32* truncate);
     void visitWasmTruncateToInt32(MWasmTruncateToInt32* truncate);
     void visitWrapInt64ToInt32(MWrapInt64ToInt32* ins);
