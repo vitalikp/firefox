@@ -990,7 +990,7 @@ class BaseStackFrame
     CodeOffset stackAddOffset_;
 
     // The stack pointer, cached for brevity.
-    Register sp_;
+    RegisterOrSP sp_;
 
   public:
 
@@ -1183,7 +1183,7 @@ class BaseStackFrame
 
     void allocStack(Register tmp0, Register tmp1, Label* stackOverflowLabel) {
         stackAddOffset_ = masm.sub32FromStackPtrWithPatch(tmp0);
-        masm.wasmEmitStackCheck(tmp0, tmp1, stackOverflowLabel);
+        masm.wasmEmitStackCheck(RegisterOrSP(tmp0), tmp1, stackOverflowLabel);
     }
 
     void patchAllocStack() {
