@@ -140,10 +140,18 @@ class GlobalObject : public NativeObject
         return getSlot(APPLICATION_SLOTS + key);
     }
     static bool skipDeselectedConstructor(JSContext* cx, JSProtoKey key);
-    static bool ensureConstructor(JSContext* cx, Handle<GlobalObject*> global, JSProtoKey key);
-    static bool resolveConstructor(JSContext* cx, Handle<GlobalObject*> global, JSProtoKey key);
     static bool initBuiltinConstructor(JSContext* cx, Handle<GlobalObject*> global,
                                        JSProtoKey key, HandleObject ctor, HandleObject proto);
+
+  private:
+    static bool resolveConstructor(JSContext* cx, Handle<GlobalObject*> global, JSProtoKey key);
+
+  public:
+    static bool ensureConstructor(JSContext* cx, Handle<GlobalObject*> global, JSProtoKey key) {
+        if (global->isStandardClassResolved(key))
+            return true;
+        return resolveConstructor(cx, global, key);
+    }
 
     static bool maybeResolveGlobalThis(JSContext* cx, Handle<GlobalObject*> global, bool* resolved);
 
