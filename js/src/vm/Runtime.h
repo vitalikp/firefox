@@ -26,7 +26,7 @@
 # include "wasm/WasmSignalHandlers.h"
 #endif
 #include "builtin/AtomicsObject.h"
-#include "builtin/Intl.h"
+#include "builtin/intl/SharedIntlData.h"
 #include "builtin/Promise.h"
 #include "frontend/NameCollections.h"
 #include "gc/GCRuntime.h"
@@ -892,7 +892,7 @@ struct JSRuntime : public js::MallocProvider<JSRuntime>
     js::WriteOnceData<js::WellKnownSymbols*> wellKnownSymbols;
 
     /* Shared Intl data for this runtime. */
-    js::ActiveThreadData<js::SharedIntlData> sharedIntlData;
+    js::ActiveThreadData<js::intl::SharedIntlData> sharedIntlData;
 
     void traceSharedIntlData(JSTracer* trc);
 
