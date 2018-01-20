@@ -1049,9 +1049,6 @@ typedef JSObject* (*ClassInitializerOp)(JSContext* cx, JS::HandleObject obj);
 
 /* Fast access to builtin constructors and prototypes. */
 bool
-GetBuiltinConstructor(JSContext* cx, JSProtoKey key, MutableHandleObject objp);
-
-bool
 GetBuiltinPrototype(JSContext* cx, JSProtoKey key, MutableHandleObject objp);
 
 JSObject*
