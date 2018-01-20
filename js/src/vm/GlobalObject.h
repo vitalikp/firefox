@@ -169,6 +169,13 @@ class GlobalObject : public NativeObject
         return &global->getPrototype(key).toObject();
     }
 
+    JSObject* maybeGetPrototype(JSProtoKey protoKey) const {
+        MOZ_ASSERT(JSProto_Null < protoKey);
+        MOZ_ASSERT(protoKey < JSProto_LIMIT);
+        const Value& v = getPrototype(protoKey);
+        return v.isObject() ? &v.toObject() : nullptr;
+    }
+
     static bool maybeResolveGlobalThis(JSContext* cx, Handle<GlobalObject*> global, bool* resolved);
 
     void setConstructor(JSProtoKey key, const Value& v) {
