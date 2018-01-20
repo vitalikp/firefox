@@ -2039,15 +2039,6 @@ JSObject::changeToSingleton(JSContext* cx, HandleObject obj)
     return true;
 }
 
-bool
-js::IsStandardPrototype(JSObject* obj, JSProtoKey key)
-{
-    GlobalObject& global = obj->global();
-    Value v = global.getPrototype(key);
-    return v.isObject() && obj == &v.toObject();
-}
-
-
 /**
  * Returns the original Object.prototype from the embedding-provided incumbent
  * global.
@@ -2087,6 +2078,13 @@ js::GetObjectFromIncumbentGlobal(JSContext* cx, MutableHandleObject obj)
         return false;
 
     return true;
+}
+
+static bool
+IsStandardPrototype(JSObject* obj, JSProtoKey key)
+{
+    Value v = obj->global().getPrototype(key);
+    return v.isObject() && obj == &v.toObject();
 }
 
 JSProtoKey

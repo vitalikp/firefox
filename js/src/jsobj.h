@@ -1047,10 +1047,6 @@ GetThisValue(JSObject* obj);
 
 typedef JSObject* (*ClassInitializerOp)(JSContext* cx, JS::HandleObject obj);
 
-/* Fast access to builtin constructors and prototypes. */
-extern bool
-IsStandardPrototype(JSObject* obj, JSProtoKey key);
-
 } /* namespace js */
 
 namespace js {
