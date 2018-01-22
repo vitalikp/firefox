@@ -11177,7 +11177,7 @@ class OutOfLineSwitch : public OutOfLineCodeBase<CodeGenerator>
 #if defined(JS_CODEGEN_ARM) || defined(JS_CODEGEN_ARM64)
             MOZ_CRASH("NYI: SwitchTableType::OutOfLine");
 #else
-            masm.mov(start_.patchAt(), temp);
+            masm.mov(start(), temp);
             base = temp;
 #endif
         }
@@ -11191,7 +11191,7 @@ class OutOfLineSwitch : public OutOfLineCodeBase<CodeGenerator>
             (isOutOfLine_ && tableType == SwitchTableType::OutOfLine))
         {
             CodeLabel cl;
-            masm.writeCodePointer(cl.patchAt());
+            masm.writeCodePointer(&cl);
             masm.propagateOOM(codeLabels_.append(mozilla::Move(cl)));
         }
     }
@@ -11219,7 +11219,7 @@ CodeGenerator::visitOutOfLineSwitch(OutOfLineSwitch<tableType>* jumpTable)
         MOZ_CRASH();
 #else
         masm.haltingAlign(sizeof(void*));
-        masm.use(jumpTable->start()->target());
+        masm.bind(jumpTable->start());
         masm.addCodeLabel(*jumpTable->start());
 #endif
     }
