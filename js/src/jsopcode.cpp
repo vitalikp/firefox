@@ -37,6 +37,7 @@
 
 #include "frontend/BytecodeCompiler.h"
 #include "frontend/SourceNotes.h"
+#include "gc/FreeOp.h"
 #include "gc/GCInternals.h"
 #include "js/CharacterEncoding.h"
 #include "vm/CodeCoverage.h"

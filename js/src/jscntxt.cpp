@@ -43,6 +43,7 @@
 #include "jstypes.h"
 #include "jswin.h"
 
+#include "gc/FreeOp.h"
 #include "gc/Marking.h"
 #include "jit/Ion.h"
 #include "jit/PcScriptCache.h"
