@@ -794,9 +794,9 @@ MacroAssembler::storeCallInt32Result(Register reg)
 }
 
 void
-MacroAssembler::storeCallResultValue(AnyRegister dest)
+MacroAssembler::storeCallResultValue(AnyRegister dest, JSValueType type)
 {
-    unboxValue(JSReturnOperand, dest);
+    unboxValue(JSReturnOperand, dest, type);
 }
 
 void
@@ -805,7 +805,7 @@ MacroAssembler::storeCallResultValue(TypedOrValueRegister dest)
     if (dest.hasValue())
         storeCallResultValue(dest.valueReg());
     else
-        storeCallResultValue(dest.typedReg());
+        storeCallResultValue(dest.typedReg(), ValueTypeFromMIRType(dest.type()));
 }
 
 } // namespace jit

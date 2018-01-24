@@ -1751,7 +1751,7 @@ SnapshotIterator::maybeRead(const RValueAllocation& a, MaybeReadFallback& fallba
 void
 SnapshotIterator::writeAllocationValuePayload(const RValueAllocation& alloc, const Value& v)
 {
-    uintptr_t payload = uintptr_t(v.toGCThing());
+    MOZ_ASSERT(v.isGCThing());
 
     switch (alloc.mode()) {
       case RValueAllocation::CONSTANT:
@@ -1767,7 +1767,7 @@ SnapshotIterator::writeAllocationValuePayload(const RValueAllocation& alloc, con
         break;
 
       case RValueAllocation::TYPED_REG:
-        machine_->write(alloc.reg2(), payload);
+        machine_->write(alloc.reg2(), uintptr_t(v.toGCThing()));
         break;
 
       case RValueAllocation::TYPED_STACK:
@@ -1778,7 +1778,7 @@ SnapshotIterator::writeAllocationValuePayload(const RValueAllocation& alloc, con
           case JSVAL_TYPE_STRING:
           case JSVAL_TYPE_SYMBOL:
           case JSVAL_TYPE_OBJECT:
-            WriteFrameSlot(fp_, alloc.stackOffset2(), payload);
+            WriteFrameSlot(fp_, alloc.stackOffset2(), uintptr_t(v.toGCThing()));
             break;
         }
         break;
@@ -1786,12 +1786,12 @@ SnapshotIterator::writeAllocationValuePayload(const RValueAllocation& alloc, con
 #if defined(JS_NUNBOX32)
       case RValueAllocation::UNTYPED_REG_REG:
       case RValueAllocation::UNTYPED_STACK_REG:
-        machine_->write(alloc.reg2(), payload);
+        machine_->write(alloc.reg2(), uintptr_t(v.toGCThing()));
         break;
 
       case RValueAllocation::UNTYPED_REG_STACK:
       case RValueAllocation::UNTYPED_STACK_STACK:
-        WriteFrameSlot(fp_, alloc.stackOffset2(), payload);
+        WriteFrameSlot(fp_, alloc.stackOffset2(), uintptr_t(v.toGCThing()));
         break;
 #elif defined(JS_PUNBOX64)
       case RValueAllocation::UNTYPED_REG:
