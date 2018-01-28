@@ -268,7 +268,7 @@ js::Nursery::leaveZealMode() {
 #endif // JS_GC_ZEAL
 
 JSObject*
-js::Nursery::allocateObject(JSContext* cx, size_t size, size_t numDynamic, const js::Class* clasp)
+js::Nursery::allocateObject(JSContext* cx, size_t size, size_t nDynamicSlots, const js::Class* clasp)
 {
     /* Ensure there's enough space to replace the contents with a RelocationOverlay. */
     MOZ_ASSERT(size >= sizeof(RelocationOverlay));
@@ -284,9 +284,9 @@ js::Nursery::allocateObject(JSContext* cx, size_t size, size_t numDynamic, const
 
     /* If we want external slots, add them. */
     HeapSlot* slots = nullptr;
-    if (numDynamic) {
+    if (nDynamicSlots) {
         MOZ_ASSERT(clasp->isNative());
-        slots = static_cast<HeapSlot*>(allocateBuffer(cx->zone(), numDynamic * sizeof(HeapSlot)));
+        slots = static_cast<HeapSlot*>(allocateBuffer(cx->zone(), nDynamicSlots * sizeof(HeapSlot)));
         if (!slots) {
             /*
              * It is safe to leave the allocated object uninitialized, since we
