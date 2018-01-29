@@ -4890,7 +4890,7 @@ MacroAssembler::storeUnboxedValue(const ConstantOrRegister& value, MIRType value
                                   const BaseIndex& dest, MIRType slotType);
 
 CodeOffset
-MacroAssembler::illegalInstruction()
+MacroAssembler::wasmTrapInstruction()
 {
     return CodeOffset(as_illegal_trap().getOffset());
 }
