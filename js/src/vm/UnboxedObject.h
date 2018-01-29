@@ -274,6 +274,10 @@ class UnboxedPlainObject : public UnboxedObject
         return expando_;
     }
 
+    void setExpandoUnsafe(UnboxedExpandoObject* expando) {
+        expando_ = expando;
+    }
+
     void initExpando() {
         expando_ = nullptr;
     }
