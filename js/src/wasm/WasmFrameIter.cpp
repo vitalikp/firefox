@@ -300,8 +300,7 @@ static void
 LoadActivation(MacroAssembler& masm, const Register& dest)
 {
     // WasmCall pushes a JitActivation.
-    masm.loadPtr(Address(WasmTlsReg, offsetof(wasm::TlsData, addressOfContext)), dest);
-    masm.loadPtr(Address(dest, 0), dest);
+    masm.loadPtr(Address(WasmTlsReg, offsetof(wasm::TlsData, cx)), dest);
     masm.loadPtr(Address(dest, JSContext::offsetOfActivation()), dest);
 }
 
