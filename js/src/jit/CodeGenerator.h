@@ -284,6 +284,11 @@ class CodeGenerator final : public CodeGeneratorSpecific
     void visitIsNullOrLikeUndefinedT(LIsNullOrLikeUndefinedT* lir);
     void visitIsNullOrLikeUndefinedAndBranchV(LIsNullOrLikeUndefinedAndBranchV* lir);
     void visitIsNullOrLikeUndefinedAndBranchT(LIsNullOrLikeUndefinedAndBranchT* lir);
+    void emitSameValue(FloatRegister left, FloatRegister right, FloatRegister temp,
+                       Register output);
+    void visitSameValueD(LSameValueD* lir);
+    void visitSameValueV(LSameValueV* lir);
+    void visitSameValueVM(LSameValueVM* lir);
     void emitConcat(LInstruction* lir, Register lhs, Register rhs, Register output);
     void visitConcat(LConcat* lir);
     void visitCharCodeAt(LCharCodeAt* lir);
