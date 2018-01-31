@@ -1663,13 +1663,13 @@ CreateDependentString::generate(MacroAssembler& masm, const JSAtomState& names,
 static void*
 AllocateString(JSContext* cx)
 {
-    return js::Allocate<JSString, NoGC>(cx);
+    return js::Allocate<JSString, NoGC>(cx, js::gc::TenuredHeap);
 }
 
 static void*
 AllocateFatInlineString(JSContext* cx)
 {
-    return js::Allocate<JSFatInlineString, NoGC>(cx);
+    return js::Allocate<JSFatInlineString, NoGC>(cx, js::gc::TenuredHeap);
 }
 
 void
