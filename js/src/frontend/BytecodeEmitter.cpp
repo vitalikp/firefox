@@ -2510,7 +2510,7 @@ BytecodeEmitter::emitCheckIsCallable(CheckIsCallableKind kind)
 static inline unsigned
 LengthOfSetLine(unsigned line)
 {
-    return 1 /* SN_SETLINE */ + (line > SN_4BYTE_OFFSET_MASK ? 4 : 1);
+    return 1 /* SRC_SETLINE */ + (line > SN_4BYTE_OFFSET_MASK ? 4 : 1);
 }
 
 /* Updates line number notes, not column notes. */
@@ -7729,11 +7729,9 @@ BytecodeEmitter::emitFunction(ParseNode* pn, bool needsProto)
     RootedAtom name(cx, fun->explicitName());
     MOZ_ASSERT_IF(fun->isInterpretedLazy(), fun->lazyScript());
 
-    /*
-     * Set the |wasEmitted| flag in the funbox once the function has been
-     * emitted. Function definitions that need hoisting to the top of the
-     * function will be seen by emitFunction in two places.
-     */
+    // Set the |wasEmitted| flag in the funbox once the function has been
+    // emitted. Function definitions that need hoisting to the top of the
+    // function will be seen by emitFunction in two places.
     if (funbox->wasEmitted) {
         // Annex B block-scoped functions are hoisted like any other
         // block-scoped function to the top of their scope. When their
@@ -7780,12 +7778,10 @@ BytecodeEmitter::emitFunction(ParseNode* pn, bool needsProto)
 
     funbox->wasEmitted = true;
 
-    /*
-     * Mark as singletons any function which will only be executed once, or
-     * which is inner to a lambda we only expect to run once. In the latter
-     * case, if the lambda runs multiple times then CloneFunctionObject will
-     * make a deep clone of its contents.
-     */
+    // Mark as singletons any function which will only be executed once, or
+    // which is inner to a lambda we only expect to run once. In the latter
+    // case, if the lambda runs multiple times then CloneFunctionObject will
+    // make a deep clone of its contents.
     if (fun->isInterpreted()) {
         bool singleton = checkRunOnceContext();
         if (!JSFunction::setTypeForScriptedFunction(cx, fun, singleton))
@@ -7841,12 +7837,12 @@ BytecodeEmitter::emitFunction(ParseNode* pn, bool needsProto)
         MOZ_ASSERT(IsAsmJSModule(fun));
     }
 
-    /* Make the function object a literal in the outer script's pool. */
+    // Make the function object a literal in the outer script's pool.
     unsigned index = objectList.add(pn->pn_funbox);
 
-    /* Non-hoisted functions simply emit their respective op. */
+    // Non-hoisted functions simply emit their respective op.
     if (!pn->functionIsHoisted()) {
-        /* JSOP_LAMBDA_ARROW is always preceded by a new.target */
+        // JSOP_LAMBDA_ARROW is always preceded by a new.target
         MOZ_ASSERT(fun->isArrow() == (pn->getOp() == JSOP_LAMBDA_ARROW));
         if (funbox->isAsync()) {
             MOZ_ASSERT(!needsProto);
@@ -11212,7 +11208,7 @@ BytecodeEmitter::finishTakingSrcNotes(uint32_t* out)
 
     // The prologue count might have changed, so we can't reuse prologueCount.
     // The + 1 is to account for the final SN_MAKE_TERMINATOR that is appended
-    // when the notes are copied to their final destination by CopySrcNotes.
+    // when the notes are copied to their final destination by copySrcNotes.
     *out = prologue.notes.length() + main.notes.length() + 1;
     return true;
 }
