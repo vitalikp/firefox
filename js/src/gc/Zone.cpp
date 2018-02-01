@@ -464,7 +464,7 @@ ZoneList::transferFrom(ZoneList& other)
     other.tail = nullptr;
 }
 
-void
+Zone*
 ZoneList::removeFront()
 {
     MOZ_ASSERT(!isEmpty());
@@ -476,6 +476,8 @@ ZoneList::removeFront()
         tail = nullptr;
 
     front->listNext_ = Zone::NotOnList;
+
+    return front;
 }
 
 void
