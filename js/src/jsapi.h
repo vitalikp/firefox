@@ -1101,6 +1101,7 @@ class JS_PUBLIC_API(ContextOptions) {
         , fuzzing_(false)
 #endif
         , expressionClosures_(false)
+        , arrayProtoValues_(true)
     {
     }
 
@@ -1262,6 +1263,12 @@ class JS_PUBLIC_API(ContextOptions) {
         return *this;
     }
 
+    bool arrayProtoValues() const { return arrayProtoValues_; }
+    ContextOptions& setArrayProtoValues(bool flag) {
+        arrayProtoValues_ = flag;
+        return *this;
+    }
+
     void disableOptionsForSafeMode() {
         setBaseline(false);
         setIon(false);
@@ -1293,6 +1300,7 @@ class JS_PUBLIC_API(ContextOptions) {
     bool fuzzing_ : 1;
 #endif
     bool expressionClosures_ : 1;
+    bool arrayProtoValues_ : 1;
 
 };
 
