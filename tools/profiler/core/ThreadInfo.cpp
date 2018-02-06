@@ -67,6 +67,9 @@ void
 ThreadInfo::StopProfiling()
 {
   mResponsiveness.reset();
+  mUniqueStacks.reset();
+  mSavedStreamedSamples = nullptr;
+  mSavedStreamedMarkers = nullptr;
   mIsBeingProfiled = false;
 }
 
