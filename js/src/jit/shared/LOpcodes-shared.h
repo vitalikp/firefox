@@ -271,8 +271,10 @@
     _(TypeBarrierV)                 \
     _(TypeBarrierO)                 \
     _(PostWriteBarrierO)            \
+    _(PostWriteBarrierS)            \
     _(PostWriteBarrierV)            \
     _(PostWriteElementBarrierO)     \
+    _(PostWriteElementBarrierS)     \
     _(PostWriteElementBarrierV)     \
     _(InitializedLength)            \
     _(SetInitializedLength)         \
