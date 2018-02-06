@@ -190,7 +190,7 @@ public:
 
   size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const;
 
-  ProfileBuffer::LastSample& LastSample() { return mLastSample; }
+  mozilla::Maybe<uint64_t>& LastSample() { return mLastSample; }
 
 private:
   mozilla::UniqueFreePtr<char> mName;
@@ -370,9 +370,10 @@ private:
     INACTIVE_REQUESTED = 3,
   } mJSSampling;
 
-  // When sampling, this holds the generation number and offset in
-  // ActivePS::mBuffer of the most recent sample for this thread.
-  ProfileBuffer::LastSample mLastSample;
+  // When sampling, this holds the position in ActivePS::mBuffer of the most
+  // recent sample for this thread, or Nothing() if there is no sample for this
+  // thread in the buffer.
+  mozilla::Maybe<uint64_t> mLastSample;
 };
 
 void
