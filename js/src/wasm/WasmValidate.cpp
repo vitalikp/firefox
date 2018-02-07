@@ -1741,6 +1741,9 @@ wasm::DecodeModuleEnvironment(Decoder& d, ModuleEnvironment* env)
     if (!d.startSection(SectionId::Code, env, &env->codeSection, "code"))
         return false;
 
+    if (env->codeSection && env->codeSection->size > MaxCodeSectionBytes)
+        return d.fail("code section too big");
+
     return true;
 }
 
