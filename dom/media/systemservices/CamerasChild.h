@@ -97,6 +97,14 @@ public:
     return gTheInstance.get()->mFakeDeviceChangeEventThread;
   }
 
+  static bool InShutdown() {
+    return gTheInstance.get()->mInShutdown;
+  }
+
+  static void StartShutdown() {
+    gTheInstance.get()->mInShutdown = true;
+  }
+
 private:
   static Singleton<CamerasSingleton> gTheInstance;
 
@@ -114,6 +122,7 @@ private:
   CamerasChild* mCameras;
   nsCOMPtr<nsIThread> mCamerasChildThread;
   nsCOMPtr<nsIThread> mFakeDeviceChangeEventThread;
+  Atomic<bool> mInShutdown;
 };
 
 // Get a pointer to a CamerasChild object we can use to do IPC with.
