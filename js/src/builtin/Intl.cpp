@@ -4082,17 +4082,17 @@ NewURelativeDateTimeFormatter(JSContext* cx, Handle<RelativeTimeFormatObject*> r
     return rtf;
 }
 
-enum class RelativeTimeType
+enum class RelativeTimeNumeric
 {
     /**
      * Only strings with numeric components like `1 day ago`.
      */
-    Numeric,
+    Always,
     /**
      * Natural-language strings like `yesterday` when possible,
      * otherwise strings with numeric components as in `7 months ago`.
      */
-    Text,
+    Auto,
 };
 
 bool
@@ -4143,22 +4143,22 @@ js::intl_FormatRelativeTime(JSContext* cx, unsigned argc, Value* vp)
         }
     }
 
-    RelativeTimeType relDateTimeType;
+    RelativeTimeNumeric relDateTimeNumeric;
     {
-        JSLinearString* type = args[3].toString()->ensureLinear(cx);
-        if (!type)
+        JSLinearString* numeric = args[3].toString()->ensureLinear(cx);
+        if (!numeric)
             return false;
 
-        if (StringEqualsAscii(type, "text")) {
-            relDateTimeType = RelativeTimeType::Text;
+        if (StringEqualsAscii(numeric, "auto")) {
+            relDateTimeNumeric = RelativeTimeNumeric::Auto;
         } else {
-            MOZ_ASSERT(StringEqualsAscii(type, "numeric"));
-            relDateTimeType = RelativeTimeType::Numeric;
+            MOZ_ASSERT(StringEqualsAscii(numeric, "always"));
+            relDateTimeNumeric = RelativeTimeNumeric::Always;
         }
     }
 
-    JSString* str = Call(cx, [rtf, t, relDateTimeUnit, relDateTimeType](UChar* chars, int32_t size, UErrorCode* status) {
-        auto fmt = relDateTimeType == RelativeTimeType::Text
+    JSString* str = Call(cx, [rtf, t, relDateTimeUnit, relDateTimeNumeric](UChar* chars, int32_t size, UErrorCode* status) {
+        auto fmt = relDateTimeNumeric == RelativeTimeNumeric::Auto
                    ? ureldatefmt_format
                    : ureldatefmt_formatNumeric;
         return fmt(rtf, t, relDateTimeUnit, chars, size, status);
