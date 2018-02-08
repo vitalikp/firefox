@@ -94,6 +94,7 @@ const char* mozilla::dom::ContentPrefs::gInitPrefs[] = {
   "javascript.options.parallel_parsing",
   "javascript.options.shared_memory",
   "javascript.options.spectre.index_masking",
+  "javascript.options.spectre.string_mitigations",
   "javascript.options.streams",
   "javascript.options.strict",
   "javascript.options.strict.debug",
