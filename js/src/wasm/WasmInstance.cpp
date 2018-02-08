@@ -394,7 +394,6 @@ Instance::Instance(JSContext* cx,
                    const ValVector& globalImports)
   : compartment_(cx->compartment()),
     object_(object),
-    jsJitArgsRectifier_(),
     code_(code),
     debug_(Move(debug)),
     tlsData_(Move(tlsDataIn)),
@@ -415,7 +414,7 @@ Instance::Instance(JSContext* cx,
     tlsData()->instance = this;
     tlsData()->cx = cx;
     tlsData()->stackLimit = cx->stackLimitForJitCode(JS::StackForUntrustedScript);
-    tlsData()->jumpTable = code_->jumpTable();
+    tlsData()->jumpTable = code_->tieringJumpTable();
 
     Tier callerTier = code_->bestTier();
 
@@ -511,13 +510,11 @@ Instance::init(JSContext* cx)
         }
     }
 
-    if (!metadata(code_->bestTier()).funcImports.empty()) {
-        JitRuntime* jitRuntime = cx->runtime()->getJitRuntime(cx);
-        if (!jitRuntime)
-            return false;
-        jsJitArgsRectifier_ = jitRuntime->getArgumentsRectifier();
-    }
-
+    JitRuntime* jitRuntime = cx->runtime()->getJitRuntime(cx);
+    if (!jitRuntime)
+        return false;
+    jsJitArgsRectifier_ = jitRuntime->getArgumentsRectifier();
+    jsJitExceptionHandler_ = jitRuntime->getExceptionTail();
     return true;
 }
 

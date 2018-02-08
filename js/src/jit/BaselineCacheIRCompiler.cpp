@@ -651,7 +651,7 @@ BaselineCacheIRCompiler::emitCallScriptedGetterResult()
             return false;
 
         masm.loadPtr(getterAddr, callee);
-        masm.branchIfFunctionHasNoScript(callee, failure->label());
+        masm.branchIfFunctionHasNoJitEntry(callee, /* constructing */ false, failure->label());
         masm.loadJitCodeRaw(callee, code);
     }
 
@@ -1751,7 +1751,7 @@ BaselineCacheIRCompiler::emitCallScriptedSetter()
             return false;
 
         masm.loadPtr(setterAddr, scratch1);
-        masm.branchIfFunctionHasNoScript(scratch1, failure->label());
+        masm.branchIfFunctionHasNoJitEntry(scratch1, /* constructing */ false, failure->label());
     }
 
     allocator.discardStack(masm);

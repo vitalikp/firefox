@@ -792,7 +792,7 @@ HandleMemoryAccess(EMULATOR_CONTEXT* context, uint8_t* pc, uint8_t* faultingAddr
         // experimental SIMD.js or Atomics. When these are converted to
         // non-experimental wasm features, this case, as well as outOfBoundsCode,
         // can be removed.
-        activation->startWasmInterrupt(ToRegisterState(context));
+        MOZ_ALWAYS_TRUE(activation->startWasmInterrupt(ToRegisterState(context)));
         *ppc = segment->outOfBoundsCode();
         return;
     }
@@ -945,7 +945,7 @@ HandleMemoryAccess(EMULATOR_CONTEXT* context, uint8_t* pc, uint8_t* faultingAddr
     const MemoryAccess* memoryAccess = instance.code().lookupMemoryAccess(pc);
     if (!memoryAccess) {
         // See explanation in the WASM_HUGE_MEMORY HandleMemoryAccess.
-        activation->startWasmInterrupt(ToRegisterState(context));
+        MOZ_ALWAYS_TRUE(activation->startWasmInterrupt(ToRegisterState(context)));
         *ppc = segment->outOfBoundsCode();
         return;
     }
@@ -1408,7 +1408,7 @@ HandleFault(int signum, siginfo_t* info, void* ctx)
         // partly overlaps the end of the heap.  In this case, it is an out-of-bounds
         // error and we should signal that properly, but to do so we must inspect
         // the operand of the failed access.
-        activation->startWasmInterrupt(ToRegisterState(context));
+        MOZ_ALWAYS_TRUE(activation->startWasmInterrupt(ToRegisterState(context)));
         *ppc = segment->unalignedAccessCode();
         return true;
     }
@@ -1490,8 +1490,7 @@ wasm::InInterruptibleCode(JSContext* cx, uint8_t* pc, const CodeSegment** cs)
     if (!*cs)
         return false;
 
-    const Code& code = (*cs)->code();
-    const CodeRange* codeRange = code.lookupRange(pc);
+    const CodeRange* codeRange = (*cs)->code().lookupRange(pc);
     return codeRange && codeRange->isFunction();
 }
 
@@ -1529,18 +1528,15 @@ RedirectJitCodeToInterruptCheck(JSContext* cx, CONTEXT* context)
     // way we don't depend on signal-safe update of cx->activation().
     JitActivation* activation = cx->activation()->asJit();
 
-    // fp may be null when first entering wasm code from an entry stub.
-    uint8_t* fp = ContextToFP(context);
-    if (!fp)
-        return false;
-
     // The out-of-bounds/unaligned trap paths which call startWasmInterrupt() go
     // through function code, so test if already interrupted. These paths are
     // temporary though, so this case can be removed later.
     if (activation->isWasmInterrupted())
         return false;
 
-    activation->startWasmInterrupt(ToRegisterState(context));
+    if (!activation->startWasmInterrupt(ToRegisterState(context)))
+        return false;
+
     *ContextToPC(context) = codeSegment->interruptCode();
 #endif
 
