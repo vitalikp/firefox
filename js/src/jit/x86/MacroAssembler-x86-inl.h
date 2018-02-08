@@ -1011,6 +1011,14 @@ MacroAssembler::branchToComputedAddress(const BaseIndex& addr)
 }
 
 void
+MacroAssembler::cmp32MovePtr(Condition cond, Register lhs, Imm32 rhs, Register src,
+                             Register dest)
+{
+    cmp32(lhs, rhs);
+    cmovCCl(cond, Operand(src), dest);
+}
+
+void
 MacroAssembler::test32LoadPtr(Condition cond, const Address& addr, Imm32 mask, const Address& src,
                               Register dest)
 {

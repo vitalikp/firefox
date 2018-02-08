@@ -193,6 +193,8 @@ enum ExitFrameTokenValues;
 
 class AutoSaveLiveRegisters;
 
+enum class CharEncoding { Latin1, TwoByte };
+
 // The public entrypoint for emitting assembly. Note that a MacroAssembler can
 // use cx->lifoAlloc, so take care not to interleave masm use with other
 // lifoAlloc use if one will be destroyed before the other.
@@ -1342,6 +1344,10 @@ class MacroAssembler : public MacroAssemblerSpecific
                             Register dest)
         DEFINED_ON(arm, arm64, x86_shared);
 
+    inline void cmp32MovePtr(Condition cond, Register lhs, Imm32 rhs, Register src,
+                             Register dest)
+        DEFINED_ON(arm, arm64, x86, x64);
+
     inline void test32LoadPtr(Condition cond, const Address& addr, Imm32 mask, const Address& src,
                               Register dest)
         DEFINED_ON(arm, arm64, x86, x64);
@@ -1585,13 +1591,13 @@ class MacroAssembler : public MacroAssemblerSpecific
         load32(Address(str, JSString::offsetOfLength()), dest);
     }
 
-    void loadStringChars(Register str, Register dest);
+    void loadStringChars(Register str, Register dest, CharEncoding encoding);
 
-    void loadNonInlineStringChars(Register str, Register dest);
+    void loadNonInlineStringChars(Register str, Register dest, CharEncoding encoding);
     void loadNonInlineStringCharsForStore(Register str, Register dest);
     void storeNonInlineStringChars(Register chars, Register str);
 
-    void loadInlineStringChars(Register str, Register dest);
+    void loadInlineStringChars(Register str, Register dest, CharEncoding encoding);
     void loadInlineStringCharsForStore(Register str, Register dest);
 
     void loadStringChar(Register str, Register index, Register output, Register scratch,
