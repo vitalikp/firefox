@@ -15,6 +15,7 @@
 #include "ds/InlineTable.h"
 #include "frontend/TokenStream.h"
 #include "vm/EnvironmentObject.h"
+#include "vm/JSAtom.h"
 #include "vm/JSScript.h"
 
 namespace js {

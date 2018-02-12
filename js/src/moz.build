@@ -361,7 +361,7 @@ UNIFIED_SOURCES += [
     'wasm/WasmValidate.cpp'
 ]
 
-# jsarray.cpp and jsatom.cpp cannot be built in unified mode because
+# jsarray.cpp and vm/JSAtom.cpp cannot be built in unified mode because
 # xpcshell is broken during packaging when compiled with gcc-4.8.2
 # builtin/RegExp.cpp cannot be built in unified mode because it is built
 # without PGO
@@ -383,11 +383,11 @@ SOURCES += [
     'frontend/Parser.cpp',
     'gc/StoreBuffer.cpp',
     'jsarray.cpp',
-    'jsatom.cpp',
     'jsdtoa.cpp',
     'jsmath.cpp',
     'jsutil.cpp',
     'vm/Interpreter.cpp',
+    'vm/JSAtom.cpp',
 ]
 
 if CONFIG['MOZ_INSTRUMENTS']:
