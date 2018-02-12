@@ -6,8 +6,8 @@
 
 /* JS script descriptor. */
 
-#ifndef jsscript_h
-#define jsscript_h
+#ifndef vm_JSScript_h
+#define vm_JSScript_h
 
 #include "mozilla/Atomics.h"
 #include "mozilla/Maybe.h"
@@ -2496,9 +2496,9 @@ class Concrete<js::LazyScript> : TracerConcrete<js::LazyScript> {
   public:
     static void construct(void *storage, js::LazyScript *ptr) { new (storage) Concrete(ptr); }
 
-    CoarseType coarseType() const final { return CoarseType::Script; }
+    CoarseType coarseType() const final override { return CoarseType::Script; }
     Size size(mozilla::MallocSizeOf mallocSizeOf) const override;
-    const char* scriptFilename() const final;
+    const char* scriptFilename() const final override;
 
     const char16_t* typeName() const override { return concreteTypeName; }
     static const char16_t concreteTypeName[];
@@ -2506,4 +2506,4 @@ class Concrete<js::LazyScript> : TracerConcrete<js::LazyScript> {
 } // namespace ubi
 } // namespace JS
 
-#endif /* jsscript_h */
+#endif /* vm_JSScript_h */

@@ -52,7 +52,6 @@
 #include "jscntxt.h"
 #include "jsfriendapi.h"
 #include "jsprf.h"
-#include "jsscript.h"
 #include "jstypes.h"
 #include "jsutil.h"
 #ifdef XP_WIN
@@ -93,6 +92,7 @@
 #include "vm/HelperThreads.h"
 #include "vm/JSFunction.h"
 #include "vm/JSObject.h"
+#include "vm/JSScript.h"
 #include "vm/Monitor.h"
 #include "vm/MutexIDs.h"
 #include "vm/Printer.h"
