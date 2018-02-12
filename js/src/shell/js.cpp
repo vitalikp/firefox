@@ -49,7 +49,6 @@
 
 #include "jsapi.h"
 #include "jsarray.h"
-#include "jscntxt.h"
 #include "jsfriendapi.h"
 #include "jsprf.h"
 #include "jstypes.h"
@@ -90,6 +89,7 @@
 #include "vm/Compression.h"
 #include "vm/Debugger.h"
 #include "vm/HelperThreads.h"
+#include "vm/JSContext.h"
 #include "vm/JSFunction.h"
 #include "vm/JSObject.h"
 #include "vm/JSScript.h"

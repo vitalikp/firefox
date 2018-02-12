@@ -13,10 +13,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "jscntxt.h"
 #include "jsutil.h"
 
 #include "ds/LifoAlloc.h"
+#include "vm/JSContext.h"
 
 using mozilla::PodCopy;
 

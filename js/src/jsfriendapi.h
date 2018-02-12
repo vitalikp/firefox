@@ -1365,8 +1365,6 @@ DateGetMsecSinceEpoch(JSContext* cx, JS::HandleObject obj, double* msecSinceEpoc
 
 } /* namespace js */
 
-/* Implemented in jscntxt.cpp. */
-
 /**
  * Report an exception, which is currently realized as a printf-style format
  * string and its arguments.
@@ -1380,6 +1378,8 @@ typedef enum JSErrNum {
 } JSErrNum;
 
 namespace js {
+
+/* Implemented in vm/JSContext.cpp. */
 
 extern JS_FRIEND_API(const JSErrorFormatString*)
 GetErrorMessage(void* userRef, const unsigned errorNumber);

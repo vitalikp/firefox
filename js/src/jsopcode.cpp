@@ -23,7 +23,6 @@
 #include <string.h>
 
 #include "jsapi.h"
-#include "jscntxt.h"
 #include "jsnum.h"
 #include "jsprf.h"
 #include "jsstr.h"
@@ -38,6 +37,7 @@
 #include "vm/CodeCoverage.h"
 #include "vm/EnvironmentObject.h"
 #include "vm/JSCompartment.h"
+#include "vm/JSContext.h"
 #include "vm/JSFunction.h"
 #include "vm/JSObject.h"
 #include "vm/JSScript.h"
@@ -45,10 +45,9 @@
 #include "vm/Shape.h"
 #include "vm/StringBuffer.h"
 
-#include "jscntxtinlines.h"
-
 #include "gc/Iteration-inl.h"
 #include "vm/JSCompartment-inl.h"
+#include "vm/JSContext-inl.h"
 #include "vm/JSObject-inl.h"
 #include "vm/JSScript-inl.h"
 
