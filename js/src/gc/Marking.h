@@ -176,7 +176,7 @@ inline void
 MakeAccessibleAfterMovingGC(void* anyp) {}
 
 inline void
-MakeAccessibleAfterMovingGC(JSObject* obj); // Defined in jsobjinlines.h.
+MakeAccessibleAfterMovingGC(JSObject* obj); // Defined in vm/JSObject-inl.h.
 
 #ifdef JSGC_HASH_TABLE_CHECKS
 

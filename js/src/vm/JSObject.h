@@ -4,8 +4,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#ifndef jsobj_h
-#define jsobj_h
+#ifndef vm_JSObject_h
+#define vm_JSObject_h
 
 #include "mozilla/MemoryReporting.h"
 
@@ -186,7 +186,7 @@ class JSObject : public js::gc::Cell
      * directly too, as may any object, but only those objects linked after the
      * head of any prototype or scope chain are flagged as delegates. This
      * definition helps to optimize shape-based property cache invalidation
-     * (see Purge{Scope,Proto}Chain in jsobj.cpp).
+     * (see Purge{Scope,Proto}Chain in JSObject.cpp).
      */
     inline bool isDelegate() const;
     static bool setDelegate(JSContext* cx, JS::HandleObject obj) {
@@ -1361,4 +1361,4 @@ IsObjectValueInCompartment(const Value& v, JSCompartment* comp)
 
 }  /* namespace js */
 
-#endif /* jsobj_h */
+#endif /* vm_JSObject_h */

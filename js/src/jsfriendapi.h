@@ -629,7 +629,7 @@ struct String
 } /* namespace shadow */
 
 // This is equal to |&JSObject::class_|.  Use it in places where you don't want
-// to #include jsobj.h.
+// to #include vm/JSObject.h.
 extern JS_FRIEND_DATA(const js::Class* const) ObjectClassPtr;
 
 inline const js::Class*

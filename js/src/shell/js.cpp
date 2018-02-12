@@ -52,7 +52,6 @@
 #include "jscntxt.h"
 #include "jsfriendapi.h"
 #include "jsfun.h"
-#include "jsobj.h"
 #include "jsprf.h"
 #include "jsscript.h"
 #include "jstypes.h"
@@ -93,6 +92,7 @@
 #include "vm/Compression.h"
 #include "vm/Debugger.h"
 #include "vm/HelperThreads.h"
+#include "vm/JSObject.h"
 #include "vm/Monitor.h"
 #include "vm/MutexIDs.h"
 #include "vm/Printer.h"
@@ -105,10 +105,10 @@
 #include "wasm/WasmJS.h"
 
 #include "jscompartmentinlines.h"
-#include "jsobjinlines.h"
 
 #include "vm/ErrorObject-inl.h"
 #include "vm/Interpreter-inl.h"
+#include "vm/JSObject-inl.h"
 #include "vm/Stack-inl.h"
 
 using namespace js;
