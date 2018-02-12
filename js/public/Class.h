@@ -33,7 +33,7 @@ class FreeOp;
 class Shape;
 
 // This is equal to JSFunction::class_.  Use it in places where you don't want
-// to #include jsfun.h.
+// to #include vm/JSFunction.h.
 extern JS_FRIEND_DATA(const js::Class* const) FunctionClassPtr;
 
 } // namespace js

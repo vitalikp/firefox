@@ -2587,7 +2587,7 @@ FunctionObjectToShadowFunction(JSObject* fun)
     return reinterpret_cast<shadow::Function*>(fun);
 }
 
-/* Statically asserted in jsfun.h. */
+/* Statically asserted in vm/JSFunction.h. */
 static const unsigned JS_FUNCTION_INTERPRETED_BITS = 0x0201;
 
 // Return whether the given function object is native.
