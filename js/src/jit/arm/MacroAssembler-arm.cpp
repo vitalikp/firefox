@@ -4716,6 +4716,12 @@ MacroAssembler::pushFakeReturnAddress(Register scratch)
     return pseudoReturnOffset;
 }
 
+void
+MacroAssembler::enterFakeExitFrameForWasm(Register cxreg, Register scratch, ExitFrameType type)
+{
+    enterFakeExitFrame(cxreg, scratch, type);
+}
+
 // ===============================================================
 // Move instructions
 

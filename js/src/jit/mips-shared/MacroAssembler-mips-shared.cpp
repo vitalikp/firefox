@@ -2083,6 +2083,12 @@ MacroAssemblerMIPSShared::wasmStoreImpl(const wasm::MemoryAccessDesc& access, An
     asMasm().memoryBarrierAfter(access.sync());
 }
 
+void
+MacroAssembler::enterFakeExitFrameForWasm(Register cxreg, Register scratch, ExitFrameType type)
+{
+    enterFakeExitFrame(cxreg, scratch, type);
+}
+
 // ========================================================================
 // Primitive atomic operations.
 
