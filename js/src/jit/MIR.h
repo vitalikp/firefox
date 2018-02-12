@@ -6038,11 +6038,11 @@ class MToAsyncGen
 };
 
 class MToAsyncIter
-  : public MUnaryInstruction,
-    public SingleObjectPolicy::Data
+  : public MBinaryInstruction,
+    public MixPolicy<ObjectPolicy<0>, BoxPolicy<1>>::Data
 {
-    explicit MToAsyncIter(MDefinition* unwrapped)
-      : MUnaryInstruction(classOpcode, unwrapped)
+    explicit MToAsyncIter(MDefinition* iterator, MDefinition* nextMethod)
+      : MBinaryInstruction(classOpcode, iterator, nextMethod)
     {
         setResultType(MIRType::Object);
     }
@@ -6050,6 +6050,7 @@ class MToAsyncIter
   public:
     INSTRUCTION_HEADER(ToAsyncIter)
     TRIVIAL_NEW_WRAPPERS
+    NAMED_OPERANDS((0, getIterator), (1, getNextMethod))
 };
 
 class MToId
