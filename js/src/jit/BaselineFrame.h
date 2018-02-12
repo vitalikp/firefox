@@ -44,7 +44,7 @@ class BaselineFrame
 
         // Frame has execution observed by a Debugger.
         //
-        // See comment above 'isDebuggee' in jscompartment.h for explanation of
+        // See comment above 'isDebuggee' in vm/JSCompartment.h for explanation of
         // invariants of debuggee compartments, scripts, and frames.
         DEBUGGEE         = 1 << 6,
 
