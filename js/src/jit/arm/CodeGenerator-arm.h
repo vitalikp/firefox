@@ -230,7 +230,6 @@ class CodeGeneratorARM : public CodeGeneratorShared
     void visitAtomicExchangeTypedArrayElement(LAtomicExchangeTypedArrayElement* lir);
     void visitWasmSelect(LWasmSelect* ins);
     void visitWasmReinterpret(LWasmReinterpret* ins);
-    void emitWasmCall(LWasmCallBase* ins);
     void visitWasmLoad(LWasmLoad* ins);
     void visitWasmLoadI64(LWasmLoadI64* ins);
     void visitWasmUnalignedLoad(LWasmUnalignedLoad* ins);
