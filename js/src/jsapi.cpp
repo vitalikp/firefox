@@ -21,7 +21,6 @@
 #include <sys/stat.h>
 
 #include "jsarray.h"
-#include "jsatom.h"
 #include "jsbool.h"
 #include "jscntxt.h"
 #include "jsdate.h"
@@ -90,7 +89,6 @@
 #include "wasm/AsmJS.h"
 #include "wasm/WasmModule.h"
 
-#include "jsatominlines.h"
 #include "jsfuninlines.h"
 #include "jsscriptinlines.h"
 

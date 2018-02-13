@@ -33,7 +33,6 @@
 #include "vm/Time.h"
 #include "vm/UnboxedObject.h"
 
-#include "jsatominlines.h"
 #include "jsscriptinlines.h"
 
 #include "gc/Iteration-inl.h"
