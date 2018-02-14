@@ -28,7 +28,6 @@
 #include "jsiter.h"
 #include "jsmath.h"
 #include "jsnum.h"
-#include "json.h"
 #include "jsprf.h"
 #include "jsstr.h"
 #include "jstypes.h"
@@ -38,6 +37,7 @@
 
 #include "builtin/AtomicsObject.h"
 #include "builtin/Eval.h"
+#include "builtin/JSON.h"
 #include "builtin/MapObject.h"
 #include "builtin/Promise.h"
 #include "builtin/RegExp.h"
