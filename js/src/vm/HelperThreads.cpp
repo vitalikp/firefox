@@ -173,6 +173,10 @@ js::StartOffThreadIonCompile(JSContext* cx, jit::IonBuilder* builder,
     if (!HelperThreadState().ionWorklist(lock).append(builder))
         return false;
 
+    // The build is moving off-thread. Freeze the LifoAlloc to prevent any
+    // unwanted mutations.
+    builder->alloc().lifoAlloc()->setReadOnly();
+
     HelperThreadState().notifyOne(GlobalHelperThreadState::PRODUCER, lock);
     return true;
 }
@@ -1777,6 +1781,10 @@ HelperThread::handleIonWorkload(AutoLockHelperThreadState& locked)
     // Find the IonBuilder in the worklist with the highest priority, and
     // remove it from the worklist.
     jit::IonBuilder* builder = HelperThreadState().highestPriorityPendingIonCompile(locked);
+
+    // The build is taken by this thread. Unfreeze the LifoAlloc to allow
+    // mutations.
+    builder->alloc().lifoAlloc()->setReadWrite();
 
     currentTask.emplace(builder);
 
