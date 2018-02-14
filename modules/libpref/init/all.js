@@ -1224,7 +1224,7 @@ pref("javascript.options.discardSystemSource", false);
 
 // Many of the the following preferences tune the SpiderMonkey GC, if you
 // change the defaults here please also consider changing them in
-// js/src/jsgc.cpp.  They're documented in js/src/jsapi.h.
+// js/src/gc/GC.cpp.  They're documented in js/src/jsapi.h.
 
 // JSGC_MAX_MALLOC_BYTES
 // How much malloc memory can be allocated before triggering a GC, in MB.

@@ -138,8 +138,6 @@ typedef enum JSGCParamKey {
      * GCs less than this far apart in time will be considered 'high-frequency
      * GCs'.
      *
-     * See setGCLastBytes in jsgc.cpp.
-     *
      * Pref: javascript.options.mem.gc_high_frequency_time_limit_ms
      * Default: HighFrequencyThresholdUsec
      */
