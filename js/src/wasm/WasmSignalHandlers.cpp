@@ -258,7 +258,7 @@ struct AutoSignalHandler
 #endif
 
 #if defined(XP_WIN)
-# include "jswin.h"
+# include "util/Windows.h"
 #else
 # include <signal.h>
 # include <sys/mman.h>

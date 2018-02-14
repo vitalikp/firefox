@@ -107,7 +107,7 @@ included_inclnames_to_ignore = set([
 oddly_ordered_inclnames = set([
     'ctypes/typedefs.h',        # Included multiple times in the body of ctypes/CTypes.h
     'frontend/ReservedWordsGenerated.h', # Included in the body of frontend/TokenStream.h
-    'jswin.h',                  # Must be #included before <psapi.h>
+    'util/Windows.h',           # Must be #included before <psapi.h>
     'machine/endian.h',         # Must be included after <sys/types.h> on BSD
     'winbase.h',                # Must precede other system headers(?)
     'windef.h'                  # Must precede other system headers(?)

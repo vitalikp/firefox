@@ -52,9 +52,6 @@
 #include "jsprf.h"
 #include "jstypes.h"
 #include "jsutil.h"
-#ifdef XP_WIN
-# include "jswin.h"
-#endif
 #include "jswrapper.h"
 #include "shellmoduleloader.out.h"
 
@@ -82,6 +79,9 @@
 #include "threading/ExclusiveData.h"
 #include "threading/LockGuard.h"
 #include "threading/Thread.h"
+#ifdef XP_WIN
+# include "util/Windows.h"
+#endif
 #include "vm/ArgumentsObject.h"
 #include "vm/AsyncFunction.h"
 #include "vm/AsyncIteration.h"

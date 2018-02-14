@@ -4,11 +4,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#ifndef jsnspr_h
-#define jsnspr_h
+#ifndef util_NSPR_h
+#define util_NSPR_h
 
 # include "prinit.h"
 # include "prio.h"
 # include "private/pprio.h"
 
-#endif /* jsnspr_h */
+#endif /* util_NSPR_h */
