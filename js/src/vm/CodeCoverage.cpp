@@ -18,9 +18,9 @@
 # include <unistd.h>
 #endif
 
-#include "jsopcode.h"
 #include "jsprf.h"
 
+#include "vm/BytecodeUtil.h"
 #include "vm/JSCompartment.h"
 #include "vm/JSScript.h"
 #include "vm/Runtime.h"

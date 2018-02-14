@@ -767,7 +767,7 @@ class GlobalObject : public NativeObject
     // Infallibly test whether the given value is the eval function for this global.
     bool valueIsEval(const Value& val);
 
-    // Implemented in jsiter.cpp.
+    // Implemented in vm/Iteration.cpp.
     static bool initIteratorProto(JSContext* cx, Handle<GlobalObject*> global);
     static bool initArrayIteratorProto(JSContext* cx, Handle<GlobalObject*> global);
     static bool initStringIteratorProto(JSContext* cx, Handle<GlobalObject*> global);
@@ -783,7 +783,7 @@ class GlobalObject : public NativeObject
     static bool initMapIteratorProto(JSContext* cx, Handle<GlobalObject*> global);
     static bool initSetIteratorProto(JSContext* cx, Handle<GlobalObject*> global);
 
-    // Implemented in Intl.cpp.
+    // Implemented in builtin/intl/IntlObject.cpp.
     static bool initIntlObject(JSContext* cx, Handle<GlobalObject*> global);
 
     // Implemented in builtin/ModuleObject.cpp
