@@ -4849,6 +4849,9 @@ static bool
 CheckFunctionSignature(ModuleValidator& m, ParseNode* usepn, Sig&& sig, PropertyName* name,
                        ModuleValidator::Func** func)
 {
+    if (sig.args().length() > MaxParams)
+        return m.failf(usepn, "too many parameters");
+
     ModuleValidator::Func* existing = m.lookupFuncDef(name);
     if (!existing) {
         if (!CheckModuleLevelName(m, usepn, name))
