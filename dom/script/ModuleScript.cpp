@@ -41,7 +41,8 @@ NS_IMPL_CYCLE_COLLECTING_RELEASE(ModuleScript)
 
 ModuleScript::ModuleScript(ScriptLoader* aLoader, nsIURI* aBaseURL)
  : mLoader(aLoader),
-   mBaseURL(aBaseURL)
+   mBaseURL(aBaseURL),
+   mSourceElementAssociated(false)
 {
   MOZ_ASSERT(mLoader);
   MOZ_ASSERT(mBaseURL);
@@ -103,6 +104,15 @@ ModuleScript::SetErrorToRethrow(const JS::Value& aError)
   MOZ_ASSERT(!HasErrorToRethrow());
 
   mErrorToRethrow = aError;
+}
+
+void
+ModuleScript::SetSourceElementAssociated()
+{
+  MOZ_ASSERT(mModuleRecord);
+  MOZ_ASSERT(!mSourceElementAssociated);
+
+  mSourceElementAssociated = true;
 }
 
 } // dom namespace

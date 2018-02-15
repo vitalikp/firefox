@@ -23,6 +23,7 @@
 #include "nsString.h"
 
 class nsIScriptContext;
+class nsIScriptElement;
 class nsIScriptGlobalObject;
 class nsXBLPrototypeBinding;
 
@@ -183,6 +184,10 @@ public:
                                 JS::Handle<JSObject*> aEvaluationGlobal,
                                 JS::CompileOptions &aCompileOptions,
                                 JS::MutableHandle<JSObject*> aModule);
+
+  static nsresult InitModuleSourceElement(JSContext* aCx,
+                                          JS::Handle<JSObject*> aModule,
+                                          nsIScriptElement* aElement);
 
   static nsresult ModuleInstantiate(JSContext* aCx,
                                     JS::Handle<JSObject*> aModule);
