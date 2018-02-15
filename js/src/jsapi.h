@@ -4045,6 +4045,15 @@ CompileFunction(JSContext* cx, AutoObjectVector& envChain,
                 const char* name, unsigned nargs, const char* const* argnames,
                 const char* bytes, size_t length, JS::MutableHandleFunction fun);
 
+/*
+ * Associate an element wrapper and attribute name with a previously compiled
+ * script, for debugging purposes. Calling this function is optional, but should
+ * be done before script execution if it is required.
+ */
+extern JS_PUBLIC_API(bool)
+InitScriptSourceElement(JSContext* cx, HandleScript script,
+                        HandleObject element, HandleString elementAttrName = nullptr);
+
 } /* namespace JS */
 
 extern JS_PUBLIC_API(JSString*)
@@ -4242,6 +4251,9 @@ GetRequestedModuleSpecifier(JSContext* cx, JS::HandleValue requestedModuleObject
 extern JS_PUBLIC_API(void)
 GetRequestedModuleSourcePos(JSContext* cx, JS::HandleValue requestedModuleObject,
                             uint32_t* lineNumber, uint32_t* columnNumber);
+
+extern JS_PUBLIC_API(JSScript*)
+GetModuleScript(JS::HandleObject moduleRecord);
 
 } /* namespace JS */
 
