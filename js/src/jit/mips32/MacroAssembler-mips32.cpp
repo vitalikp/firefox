@@ -2345,8 +2345,10 @@ MacroAssembler::storeUnboxedValue(const ConstantOrRegister& value, MIRType value
 
 
 void
-MacroAssembler::wasmTruncateDoubleToUInt32(FloatRegister input, Register output, Label* oolEntry)
+MacroAssembler::wasmTruncateDoubleToUInt32(FloatRegister input, Register output, bool isSaturating,
+                                           Label* oolEntry)
 {
+    MOZ_ASSERT(!isSaturating, "NYI");
 
     loadConstantDouble(double(-1.0), ScratchDoubleReg);
     branchDouble(Assembler::DoubleLessThanOrEqual, input, ScratchDoubleReg, oolEntry);
@@ -2369,8 +2371,11 @@ MacroAssembler::wasmTruncateDoubleToUInt32(FloatRegister input, Register output,
 }
 
 void
-MacroAssembler::wasmTruncateFloat32ToUInt32(FloatRegister input, Register output, Label* oolEntry)
+MacroAssembler::wasmTruncateFloat32ToUInt32(FloatRegister input, Register output, bool isSaturating,
+                                            Label* oolEntry)
 {
+    MOZ_ASSERT(!isSaturating, "NYI");
+
     loadConstantFloat32(double(-1.0), ScratchDoubleReg);
     branchFloat(Assembler::DoubleLessThanOrEqualOrUnordered, input, ScratchDoubleReg, oolEntry);
 
