@@ -62,7 +62,7 @@
 #include "builtin/RegExp.h"
 #include "builtin/TestingFunctions.h"
 #include "frontend/Parser.h"
-#include "gc/GCInternals.h"
+#include "gc/Iteration.h"
 #include "jit/arm/Simulator-arm.h"
 #include "jit/InlinableNatives.h"
 #include "jit/Ion.h"

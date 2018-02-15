@@ -11,6 +11,7 @@
 #include "jsgc.h"
 
 #include "gc/Heap.h"
+#include "gc/Iteration.h"
 #include "jit/BaselineJIT.h"
 #include "jit/Ion.h"
 #include "vm/ArrayObject.h"
