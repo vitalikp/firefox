@@ -5312,11 +5312,7 @@ pref("browser.storageManager.enabled", false);
 pref("dom.IntersectionObserver.enabled", false);
 
 // Whether module scripts (<script type="module">) are enabled for content.
-#ifdef NIGHTLY_BUILD
 pref("dom.moduleScripts.enabled", true);
-#else
-pref("dom.moduleScripts.enabled", false);
-#endif
 
 #ifdef FUZZING
 pref("fuzzing.enabled", false);
