@@ -337,8 +337,8 @@ struct js::AsmJSMetadata : Metadata, AsmJSMetadataCacheablePod
         return srcStart + srcLengthWithRightBrace;
     }
 
-    explicit AsmJSMetadata(UniqueMetadataTier tier)
-      : Metadata(Move(tier), ModuleKind::AsmJS),
+    AsmJSMetadata()
+      : Metadata(ModuleKind::AsmJS),
         cacheResult(CacheResult::Miss),
         srcStart(0),
         strict(false)
@@ -1814,11 +1814,7 @@ class MOZ_STACK_CLASS ModuleValidator
 
   public:
     bool init() {
-        auto tierMetadata = js::MakeUnique<MetadataTier>(Tier::Ion);
-        if (!tierMetadata)
-            return false;
-
-        asmJSMetadata_ = cx_->new_<AsmJSMetadata>(Move(tierMetadata));
+        asmJSMetadata_ = cx_->new_<AsmJSMetadata>();
         if (!asmJSMetadata_)
             return false;
 
@@ -8652,11 +8648,7 @@ LookupAsmJSModuleInCache(JSContext* cx, AsmJSParser& parser, bool* loadedFromCac
     if (!Module::assumptionsMatch(assumptions, cursor, remain))
         return true;
 
-    auto tierMetadata = js::MakeUnique<MetadataTier>(Tier::Ion);
-    if (!tierMetadata)
-        return false;
-
-    MutableAsmJSMetadata asmJSMetadata = cx->new_<AsmJSMetadata>(Move(tierMetadata));
+    MutableAsmJSMetadata asmJSMetadata = cx->new_<AsmJSMetadata>();
     if (!asmJSMetadata)
         return false;
 
