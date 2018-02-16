@@ -197,8 +197,8 @@ CodeGeneratorMIPS::visitUnbox(LUnbox* unbox)
     }
 }
 
-Register
-CodeGeneratorMIPS::splitTagForTest(const ValueOperand& value)
+void
+CodeGeneratorMIPS::splitTagForTest(const ValueOperand& value, ScratchTagScope& tag)
 {
     return value.typeReg();
 }

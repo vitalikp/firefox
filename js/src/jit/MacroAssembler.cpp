@@ -2057,15 +2057,18 @@ void
 MacroAssembler::convertValueToFloatingPoint(ValueOperand value, FloatRegister output,
                                             Label* fail, MIRType outputType)
 {
-    Register tag = splitTagForTest(value);
-
     Label isDouble, isInt32, isBool, isNull, done;
 
-    branchTestDouble(Assembler::Equal, tag, &isDouble);
-    branchTestInt32(Assembler::Equal, tag, &isInt32);
-    branchTestBoolean(Assembler::Equal, tag, &isBool);
-    branchTestNull(Assembler::Equal, tag, &isNull);
-    branchTestUndefined(Assembler::NotEqual, tag, fail);
+    {
+        ScratchTagScope tag(*this, value);
+        splitTagForTest(value, tag);
+
+        branchTestDouble(Assembler::Equal, tag, &isDouble);
+        branchTestInt32(Assembler::Equal, tag, &isInt32);
+        branchTestBoolean(Assembler::Equal, tag, &isBool);
+        branchTestNull(Assembler::Equal, tag, &isNull);
+        branchTestUndefined(Assembler::NotEqual, tag, fail);
+    }
 
     // fall-through: undefined
     loadConstantFloatingPoint(GenericNaN(), float(GenericNaN()), output, outputType);
@@ -2272,7 +2275,8 @@ MacroAssembler::convertValueToInt(ValueOperand value, MDefinition* maybeInput,
                                   Label* fail, IntConversionBehavior behavior,
                                   IntConversionInputKind conversion)
 {
-    Register tag = splitTagForTest(value);
+    Label done, isInt32, isBool, isDouble, isNull, isString;
+
     bool handleStrings = (behavior == IntConversionBehavior::Truncate ||
                           behavior == IntConversionBehavior::ClampToUint8) &&
                          handleStringEntry &&
@@ -2280,33 +2284,36 @@ MacroAssembler::convertValueToInt(ValueOperand value, MDefinition* maybeInput,
 
     MOZ_ASSERT_IF(handleStrings, conversion == IntConversionInputKind::Any);
 
-    Label done, isInt32, isBool, isDouble, isNull, isString;
+    {
+        ScratchTagScope tag(*this, value);
+        splitTagForTest(value, tag);
 
-    maybeBranchTestType(MIRType::Int32, maybeInput, tag, &isInt32);
-    if (conversion == IntConversionInputKind::Any || conversion == IntConversionInputKind::NumbersOrBoolsOnly)
-        maybeBranchTestType(MIRType::Boolean, maybeInput, tag, &isBool);
-    maybeBranchTestType(MIRType::Double, maybeInput, tag, &isDouble);
+        maybeBranchTestType(MIRType::Int32, maybeInput, tag, &isInt32);
+        if (conversion == IntConversionInputKind::Any || conversion == IntConversionInputKind::NumbersOrBoolsOnly)
+            maybeBranchTestType(MIRType::Boolean, maybeInput, tag, &isBool);
+        maybeBranchTestType(MIRType::Double, maybeInput, tag, &isDouble);
 
-    if (conversion == IntConversionInputKind::Any) {
-        // If we are not truncating, we fail for anything that's not
-        // null. Otherwise we might be able to handle strings and objects.
-        switch (behavior) {
-          case IntConversionBehavior::Normal:
-          case IntConversionBehavior::NegativeZeroCheck:
-            branchTestNull(Assembler::NotEqual, tag, fail);
-            break;
+        if (conversion == IntConversionInputKind::Any) {
+            // If we are not truncating, we fail for anything that's not
+            // null. Otherwise we might be able to handle strings and objects.
+            switch (behavior) {
+              case IntConversionBehavior::Normal:
+              case IntConversionBehavior::NegativeZeroCheck:
+                branchTestNull(Assembler::NotEqual, tag, fail);
+                break;
 
-          case IntConversionBehavior::Truncate:
-          case IntConversionBehavior::ClampToUint8:
-            maybeBranchTestType(MIRType::Null, maybeInput, tag, &isNull);
-            if (handleStrings)
-                maybeBranchTestType(MIRType::String, maybeInput, tag, &isString);
-            maybeBranchTestType(MIRType::Object, maybeInput, tag, fail);
-            branchTestUndefined(Assembler::NotEqual, tag, fail);
-            break;
+              case IntConversionBehavior::Truncate:
+              case IntConversionBehavior::ClampToUint8:
+                maybeBranchTestType(MIRType::Null, maybeInput, tag, &isNull);
+                if (handleStrings)
+                    maybeBranchTestType(MIRType::String, maybeInput, tag, &isString);
+                maybeBranchTestType(MIRType::Object, maybeInput, tag, fail);
+                branchTestUndefined(Assembler::NotEqual, tag, fail);
+                break;
+            }
+        } else {
+            jump(fail);
         }
-    } else {
-        jump(fail);
     }
 
     // The value is null or undefined in truncation contexts - just emit 0.
@@ -3438,7 +3445,7 @@ namespace jit {
 #ifdef DEBUG
 template <class RegisterType>
 AutoGenericRegisterScope<RegisterType>::AutoGenericRegisterScope(MacroAssembler& masm, RegisterType reg)
-  : RegisterType(reg), masm_(masm)
+  : RegisterType(reg), masm_(masm), released_(false)
 {
     masm.debugTrackedRegisters_.add(reg);
 }
@@ -3451,12 +3458,39 @@ template AutoGenericRegisterScope<FloatRegister>::AutoGenericRegisterScope(Macro
 template <class RegisterType>
 AutoGenericRegisterScope<RegisterType>::~AutoGenericRegisterScope()
 {
-    const RegisterType& reg = *dynamic_cast<RegisterType*>(this);
-    masm_.debugTrackedRegisters_.take(reg);
+    if (!released_)
+        release();
 }
 
 template AutoGenericRegisterScope<Register>::~AutoGenericRegisterScope();
 template AutoGenericRegisterScope<FloatRegister>::~AutoGenericRegisterScope();
+
+template <class RegisterType>
+void
+AutoGenericRegisterScope<RegisterType>::release()
+{
+    MOZ_ASSERT(!released_);
+    released_ = true;
+    const RegisterType& reg = *dynamic_cast<RegisterType*>(this);
+    masm_.debugTrackedRegisters_.take(reg);
+}
+
+template void AutoGenericRegisterScope<Register>::release();
+template void AutoGenericRegisterScope<FloatRegister>::release();
+
+template <class RegisterType>
+void
+AutoGenericRegisterScope<RegisterType>::reacquire()
+{
+    MOZ_ASSERT(released_);
+    released_ = false;
+    const RegisterType& reg = *dynamic_cast<RegisterType*>(this);
+    masm_.debugTrackedRegisters_.add(reg);
+}
+
+template void AutoGenericRegisterScope<Register>::reacquire();
+template void AutoGenericRegisterScope<FloatRegister>::reacquire();
+
 #endif // DEBUG
 
 } // namespace jit
