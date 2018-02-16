@@ -8360,7 +8360,11 @@ BaseCompiler::emitWait(ValType type, uint32_t byteSize)
       default:
         MOZ_CRASH();
     }
-    masm.branchTest32(Assembler::Signed, ReturnReg, ReturnReg, oldTrap(Trap::ThrowReported));
+
+    Label ok;
+    masm.branchTest32(Assembler::NotSigned, ReturnReg, ReturnReg, &ok);
+    trap(Trap::ThrowReported);
+    masm.bind(&ok);
 
     return true;
 }
@@ -8379,7 +8383,11 @@ BaseCompiler::emitWake()
         return true;
 
     emitInstanceCall(lineOrBytecode, SigPII_, ExprType::I32, SymbolicAddress::Wake);
-    masm.branchTest32(Assembler::Signed, ReturnReg, ReturnReg, oldTrap(Trap::ThrowReported));
+
+    Label ok;
+    masm.branchTest32(Assembler::NotSigned, ReturnReg, ReturnReg, &ok);
+    trap(Trap::ThrowReported);
+    masm.bind(&ok);
 
     return true;
 }
