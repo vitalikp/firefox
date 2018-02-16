@@ -9013,6 +9013,7 @@ js::gc::detail::CellIsMarkedGrayIfKnown(const Cell* cell)
 }
 
 #ifdef DEBUG
+
 JS_PUBLIC_API(bool)
 js::gc::detail::CellIsNotGray(const Cell* cell)
 {
@@ -9047,4 +9048,11 @@ js::gc::detail::CellIsNotGray(const Cell* cell)
 
     return false;
 }
+
+extern JS_PUBLIC_API(bool)
+js::gc::detail::ObjectIsMarkedBlack(const JSObject* obj)
+{
+    return obj->isMarkedBlack();
+}
+
 #endif

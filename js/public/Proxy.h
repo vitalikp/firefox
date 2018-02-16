@@ -497,6 +497,8 @@ inline void
 SetProxyReservedSlot(JSObject* obj, size_t n, const Value& extra)
 {
     MOZ_ASSERT(n < JSCLASS_RESERVED_SLOTS(GetObjectClass(obj)));
+    MOZ_ASSERT_IF(gc::detail::ObjectIsMarkedBlack(obj), JS::ValueIsNotGray(extra));
+
     Value* vp = &detail::GetProxyDataLayout(obj)->reservedSlots->slots[n];
 
     // Trigger a barrier before writing the slot.
@@ -509,6 +511,8 @@ SetProxyReservedSlot(JSObject* obj, size_t n, const Value& extra)
 inline void
 SetProxyPrivate(JSObject* obj, const Value& value)
 {
+    MOZ_ASSERT_IF(gc::detail::ObjectIsMarkedBlack(obj), JS::ValueIsNotGray(value));
+
     Value* vp = &detail::GetProxyDataLayout(obj)->values()->privateSlot;
 
     // Trigger a barrier before writing the slot.
