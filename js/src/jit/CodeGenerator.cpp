@@ -5231,7 +5231,7 @@ struct ScriptCountBlockState
     {
         // Prefix stream of assembly instructions with their LIR instruction
         // name and any associated high level info.
-        if (const char* extra = ins->extraName())
+        if (const char* extra = ins->getExtraName())
             printer.printf("[%s:%s]\n", ins->opName(), extra);
         else
             printer.printf("[%s]\n", ins->opName());
@@ -5565,7 +5565,7 @@ CodeGenerator::generateBody()
 
 #ifdef JS_JITSPEW
             JitSpewStart(JitSpew_Codegen, "instruction %s", iter->opName());
-            if (const char* extra = iter->extraName())
+            if (const char* extra = iter->getExtraName())
                 JitSpewCont(JitSpew_Codegen, ":%s", extra);
             JitSpewFin(JitSpew_Codegen);
 #endif

@@ -481,6 +481,11 @@ LDefinition::dump() const
 void
 LNode::printOperands(GenericPrinter& out)
 {
+    if (isMoveGroup()) {
+        toMoveGroup()->printOperands(out);
+        return;
+    }
+
     size_t numOperands = isPhi() ? toPhi()->numOperands() : toInstruction()->numOperands();
 
     for (size_t i = 0; i < numOperands; i++) {
@@ -591,6 +596,17 @@ LNode::dump()
     dump(out);
     out.printf("\n");
     out.finish();
+}
+
+const char*
+LNode::getExtraName() const
+{
+    switch (op()) {
+      default: MOZ_CRASH("Unexpected LIR op");
+# define LIROP(x) case LNode::LOp_##x: return to##x()->extraName();
+    LIR_OPCODE_LIST(LIROP)
+# undef LIROP
+    }
 }
 
 void
