@@ -16,6 +16,8 @@
 #include "mozilla/ScopeExit.h"
 #include "mozilla/Unused.h"
 
+#include <type_traits>
+
 #include "jslibmath.h"
 #include "jsmath.h"
 #include "jsnum.h"
@@ -5597,12 +5599,20 @@ CodeGenerator::generateBody()
                 }
             }
 
-#ifdef DEBUG
             setElement(*iter); // needed to encode correct snapshot location.
+
+#ifdef DEBUG
             emitDebugForceBailing(*iter);
 #endif
 
-            iter->accept(this);
+            switch (iter->op()) {
+#define LIROP(op) case LNode::LOp_##op: visit##op(iter->to##op()); break;
+    LIR_OPCODE_LIST(LIROP)
+#undef LIROP
+              case LNode::LOp_Invalid:
+              default:
+                MOZ_CRASH("Invalid LIR op");
+            }
 
             // Track the end native offset of optimizations.
             if (iter->mirRaw() && iter->mirRaw()->trackedOptimizations())
@@ -13115,6 +13125,9 @@ CodeGenerator::visitGetPrototypeOf(LGetPrototypeOf* lir)
 
     masm.bind(ool->rejoin());
 }
+
+static_assert(!std::is_polymorphic<CodeGenerator>::value,
+              "CodeGenerator should not have any virtual methods");
 
 } // namespace jit
 } // namespace js
