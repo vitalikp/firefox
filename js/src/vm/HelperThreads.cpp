@@ -380,12 +380,11 @@ static const JSClass parseTaskGlobalClass = {
     &parseTaskGlobalClassOps
 };
 
-ParseTask::ParseTask(ParseTaskKind kind, JSContext* cx, JSObject* parseGlobal,
-                     const char16_t* chars, size_t length,
+ParseTask::ParseTask(ParseTaskKind kind, JSContext* cx, const char16_t* chars, size_t length,
                      JS::OffThreadCompileCallback callback, void* callbackData)
   : kind(kind), options(cx), data(AsVariant(TwoByteChars(chars, length))),
     alloc(JSContext::TEMP_LIFO_ALLOC_PRIMARY_CHUNK_SIZE),
-    parseGlobal(parseGlobal),
+    parseGlobal(nullptr),
     callback(callback), callbackData(callbackData),
     scripts(cx), sourceObjects(cx),
     overRecursed(false), outOfMemory(false)
@@ -394,12 +393,11 @@ ParseTask::ParseTask(ParseTaskKind kind, JSContext* cx, JSObject* parseGlobal,
     MOZ_ALWAYS_TRUE(sourceObjects.reserve(sourceObjects.capacity()));
 }
 
-ParseTask::ParseTask(ParseTaskKind kind, JSContext* cx, JSObject* parseGlobal,
-                     const JS::TranscodeRange& range,
+ParseTask::ParseTask(ParseTaskKind kind, JSContext* cx, const JS::TranscodeRange& range,
                      JS::OffThreadCompileCallback callback, void* callbackData)
   : kind(kind), options(cx), data(AsVariant(range)),
     alloc(JSContext::TEMP_LIFO_ALLOC_PRIMARY_CHUNK_SIZE),
-    parseGlobal(parseGlobal),
+    parseGlobal(nullptr),
     callback(callback), callbackData(callbackData),
     scripts(cx), sourceObjects(cx),
     overRecursed(false), outOfMemory(false)
@@ -408,12 +406,11 @@ ParseTask::ParseTask(ParseTaskKind kind, JSContext* cx, JSObject* parseGlobal,
     MOZ_ALWAYS_TRUE(sourceObjects.reserve(sourceObjects.capacity()));
 }
 
-ParseTask::ParseTask(ParseTaskKind kind, JSContext* cx, JSObject* parseGlobal,
-                     JS::TranscodeSources& sources,
+ParseTask::ParseTask(ParseTaskKind kind, JSContext* cx, JS::TranscodeSources& sources,
                      JS::OffThreadCompileCallback callback, void* callbackData)
   : kind(kind), options(cx), data(AsVariant(&sources)),
     alloc(JSContext::TEMP_LIFO_ALLOC_PRIMARY_CHUNK_SIZE),
-    parseGlobal(parseGlobal),
+    parseGlobal(nullptr),
     callback(callback), callbackData(callbackData),
     scripts(cx), sourceObjects(cx),
     overRecursed(false), outOfMemory(false)
@@ -423,11 +420,12 @@ ParseTask::ParseTask(ParseTaskKind kind, JSContext* cx, JSObject* parseGlobal,
 }
 
 bool
-ParseTask::init(JSContext* cx, const ReadOnlyCompileOptions& options)
+ParseTask::init(JSContext* cx, const ReadOnlyCompileOptions& options, JSObject* global)
 {
     if (!this->options.copy(cx, options))
         return false;
 
+    parseGlobal = global;
     return true;
 }
 
@@ -474,13 +472,10 @@ ParseTask::trace(JSTracer* trc)
     sourceObjects.trace(trc);
 }
 
-ScriptParseTask::ScriptParseTask(JSContext* cx, JSObject* parseGlobal,
-                                 const char16_t* chars, size_t length,
+ScriptParseTask::ScriptParseTask(JSContext* cx, const char16_t* chars, size_t length,
                                  JS::OffThreadCompileCallback callback, void* callbackData)
-  : ParseTask(ParseTaskKind::Script, cx, parseGlobal, chars, length, callback,
-              callbackData)
-{
-}
+  : ParseTask(ParseTaskKind::Script, cx, chars, length, callback, callbackData)
+{}
 
 void
 ScriptParseTask::parse(JSContext* cx)
@@ -500,13 +495,10 @@ ScriptParseTask::parse(JSContext* cx)
         sourceObjects.infallibleAppend(sourceObject);
 }
 
-ModuleParseTask::ModuleParseTask(JSContext* cx, JSObject* parseGlobal,
-                                 const char16_t* chars, size_t length,
+ModuleParseTask::ModuleParseTask(JSContext* cx, const char16_t* chars, size_t length,
                                  JS::OffThreadCompileCallback callback, void* callbackData)
-  : ParseTask(ParseTaskKind::Module, cx, parseGlobal, chars, length, callback,
-              callbackData)
-{
-}
+  : ParseTask(ParseTaskKind::Module, cx, chars, length, callback, callbackData)
+{}
 
 void
 ModuleParseTask::parse(JSContext* cx)
@@ -523,13 +515,10 @@ ModuleParseTask::parse(JSContext* cx)
     }
 }
 
-ScriptDecodeTask::ScriptDecodeTask(JSContext* cx, JSObject* parseGlobal,
-                                   const JS::TranscodeRange& range,
+ScriptDecodeTask::ScriptDecodeTask(JSContext* cx, const JS::TranscodeRange& range,
                                    JS::OffThreadCompileCallback callback, void* callbackData)
-  : ParseTask(ParseTaskKind::ScriptDecode, cx, parseGlobal,
-              range, callback, callbackData)
-{
-}
+  : ParseTask(ParseTaskKind::ScriptDecode, cx, range, callback, callbackData)
+{}
 
 void
 ScriptDecodeTask::parse(JSContext* cx)
@@ -548,13 +537,10 @@ ScriptDecodeTask::parse(JSContext* cx)
     }
 }
 
-MultiScriptsDecodeTask::MultiScriptsDecodeTask(JSContext* cx, JSObject* parseGlobal,
-                                     JS::TranscodeSources& sources,
+MultiScriptsDecodeTask::MultiScriptsDecodeTask(JSContext* cx, JS::TranscodeSources& sources,
                                      JS::OffThreadCompileCallback callback, void* callbackData)
-  : ParseTask(ParseTaskKind::MultiScriptsDecode, cx, parseGlobal,
-              sources, callback, callbackData)
-{
-}
+  : ParseTask(ParseTaskKind::MultiScriptsDecode, cx, sources, callback, callbackData)
+{}
 
 void
 MultiScriptsDecodeTask::parse(JSContext* cx)
@@ -770,10 +756,8 @@ QueueOffThreadParseTask(JSContext* cx, ParseTask* task)
     return true;
 }
 
-template <typename TaskFunctor>
 bool
-StartOffThreadParseTask(JSContext* cx, const ReadOnlyCompileOptions& options,
-                        ParseTaskKind kind, TaskFunctor& taskFunctor)
+StartOffThreadParseTask(JSContext* cx, ParseTask* task, const ReadOnlyCompileOptions& options)
 {
     // Suppress GC so that calls below do not trigger a new incremental GC
     // which could require barriers on the atoms compartment.
@@ -791,14 +775,12 @@ StartOffThreadParseTask(JSContext* cx, const ReadOnlyCompileOptions& options,
     // this state is cleared automatically.
     AutoSetCreatedForHelperThread createdForHelper(global);
 
-    ScopedJSDeletePtr<ParseTask> task(taskFunctor(global));
-    if (!task || !task->init(cx, options))
+    if (!task->init(cx, options, global))
         return false;
 
     if (!QueueOffThreadParseTask(cx, task))
         return false;
 
-    task.forget();
     createdForHelper.forget();
     return true;
 }
@@ -808,11 +790,13 @@ js::StartOffThreadParseScript(JSContext* cx, const ReadOnlyCompileOptions& optio
                               const char16_t* chars, size_t length,
                               JS::OffThreadCompileCallback callback, void* callbackData)
 {
-    auto functor = [&](JSObject* global) -> ScriptParseTask* {
-        return cx->new_<ScriptParseTask>(cx, global, chars, length,
-                                         callback, callbackData);
-    };
-    return StartOffThreadParseTask(cx, options, ParseTaskKind::Script, functor);
+    ScopedJSDeletePtr<ParseTask> task;
+    task = cx->new_<ScriptParseTask>(cx, chars, length, callback, callbackData);
+    if (!task || !StartOffThreadParseTask(cx, task, options))
+        return false;
+
+    task.forget();
+    return true;
 }
 
 bool
@@ -820,11 +804,13 @@ js::StartOffThreadParseModule(JSContext* cx, const ReadOnlyCompileOptions& optio
                               const char16_t* chars, size_t length,
                               JS::OffThreadCompileCallback callback, void* callbackData)
 {
-    auto functor = [&](JSObject* global) -> ModuleParseTask* {
-        return cx->new_<ModuleParseTask>(cx, global, chars, length,
-                                         callback, callbackData);
-    };
-    return StartOffThreadParseTask(cx, options, ParseTaskKind::Module, functor);
+    ScopedJSDeletePtr<ParseTask> task;
+    task = cx->new_<ModuleParseTask>(cx, chars, length, callback, callbackData);
+    if (!task || !StartOffThreadParseTask(cx, task, options))
+        return false;
+
+    task.forget();
+    return true;
 }
 
 bool
@@ -832,10 +818,13 @@ js::StartOffThreadDecodeScript(JSContext* cx, const ReadOnlyCompileOptions& opti
                                const JS::TranscodeRange& range,
                                JS::OffThreadCompileCallback callback, void* callbackData)
 {
-    auto functor = [&](JSObject* global) -> ScriptDecodeTask* {
-        return cx->new_<ScriptDecodeTask>(cx, global, range, callback, callbackData);
-    };
-    return StartOffThreadParseTask(cx, options, ParseTaskKind::ScriptDecode, functor);
+    ScopedJSDeletePtr<ParseTask> task;
+    task = cx->new_<ScriptDecodeTask>(cx, range, callback, callbackData);
+    if (!task || !StartOffThreadParseTask(cx, task, options))
+        return false;
+
+    task.forget();
+    return true;
 }
 
 bool
@@ -843,10 +832,13 @@ js::StartOffThreadDecodeMultiScripts(JSContext* cx, const ReadOnlyCompileOptions
                                      JS::TranscodeSources& sources,
                                      JS::OffThreadCompileCallback callback, void* callbackData)
 {
-    auto functor = [&](JSObject* global) -> MultiScriptsDecodeTask* {
-        return cx->new_<MultiScriptsDecodeTask>(cx, global, sources, callback, callbackData);
-    };
-    return StartOffThreadParseTask(cx, options, ParseTaskKind::MultiScriptsDecode, functor);
+    ScopedJSDeletePtr<ParseTask> task;
+    task = cx->new_<MultiScriptsDecodeTask>(cx, sources, callback, callbackData);
+    if (!task || !StartOffThreadParseTask(cx, task, options))
+        return false;
+
+    task.forget();
+    return true;
 }
 
 void
