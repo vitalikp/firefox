@@ -9050,17 +9050,15 @@ class LWasmStackArgI64 : public LInstructionHelper<0, INT64_PIECES, 0>
 };
 
 template <size_t Defs>
-class LWasmCallBase : public details::LInstructionFixedDefsTempsHelper<Defs, 0>
+class LWasmCallBase : public LVariadicInstruction<Defs, 0>
 {
-    using Base = details::LInstructionFixedDefsTempsHelper<Defs, 0>;
+    using Base = LVariadicInstruction<Defs, 0>;
 
-    LAllocation* operands_;
-    uint32_t needsBoundsCheck_;
+    bool needsBoundsCheck_;
 
   public:
-    LWasmCallBase(LAllocation* operands, uint32_t numOperands, bool needsBoundsCheck)
+    LWasmCallBase(uint32_t numOperands, bool needsBoundsCheck)
       : Base(numOperands),
-        operands_(operands),
         needsBoundsCheck_(needsBoundsCheck)
     {
         this->setIsCall();
@@ -9079,15 +9077,6 @@ class LWasmCallBase : public details::LInstructionFixedDefsTempsHelper<Defs, 0>
         return !reg.isFloat() && reg.gpr() == WasmTlsReg;
     }
 
-    // LInstruction interface
-    LAllocation* getOperand(size_t index) override {
-        MOZ_ASSERT(index < this->numOperands());
-        return &operands_[index];
-    }
-    void setOperand(size_t index, const LAllocation& a) override {
-        MOZ_ASSERT(index < this->numOperands());
-        operands_[index] = a;
-    }
     bool needsBoundsCheck() const {
         return needsBoundsCheck_;
     }
@@ -9098,8 +9087,8 @@ class LWasmCall : public LWasmCallBase<1>
   public:
     LIR_HEADER(WasmCall);
 
-    LWasmCall(LAllocation* operands, uint32_t numOperands, bool needsBoundsCheck)
-      : LWasmCallBase(operands, numOperands, needsBoundsCheck)
+    LWasmCall(uint32_t numOperands, bool needsBoundsCheck)
+      : LWasmCallBase(numOperands, needsBoundsCheck)
     {
     }
 };
@@ -9109,8 +9098,8 @@ class LWasmCallVoid : public LWasmCallBase<0>
   public:
     LIR_HEADER(WasmCallVoid);
 
-    LWasmCallVoid(LAllocation* operands, uint32_t numOperands, bool needsBoundsCheck)
-      : LWasmCallBase(operands, numOperands, needsBoundsCheck)
+    LWasmCallVoid(uint32_t numOperands, bool needsBoundsCheck)
+      : LWasmCallBase(numOperands, needsBoundsCheck)
     {
     }
 };
@@ -9120,8 +9109,8 @@ class LWasmCallI64 : public LWasmCallBase<INT64_PIECES>
   public:
     LIR_HEADER(WasmCallI64);
 
-    LWasmCallI64(LAllocation* operands, uint32_t numOperands, bool needsBoundsCheck)
-      : LWasmCallBase(operands, numOperands, needsBoundsCheck)
+    LWasmCallI64(uint32_t numOperands, bool needsBoundsCheck)
+      : LWasmCallBase(numOperands, needsBoundsCheck)
     {
     }
 };
