@@ -1124,7 +1124,6 @@ js::fun_toString(JSContext* cx, unsigned argc, Value* vp)
     return true;
 }
 
-#if JS_HAS_TOSOURCE
 static bool
 fun_toSource(JSContext* cx, unsigned argc, Value* vp)
 {
@@ -1146,7 +1145,6 @@ fun_toSource(JSContext* cx, unsigned argc, Value* vp)
     args.rval().setString(str);
     return true;
 }
-#endif
 
 bool
 js::fun_call(JSContext* cx, unsigned argc, Value* vp)
@@ -1653,9 +1651,7 @@ JSFunction::maybeRelazify(JSRuntime* rt)
 }
 
 const JSFunctionSpec js::function_methods[] = {
-#if JS_HAS_TOSOURCE
     JS_FN(js_toSource_str,   fun_toSource,   0,0),
-#endif
     JS_FN(js_toString_str,   fun_toString,   0,0),
     JS_FN(js_apply_str,      fun_apply,      2,0),
     JS_FN(js_call_str,       fun_call,       1,0),
