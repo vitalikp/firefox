@@ -8,7 +8,7 @@
 
 #include "js/StructuredClone.h"
 #include "js/Utility.h"
-#include "jswrapper.h"
+#include "js/Wrapper.h"
 
 #include "xpcpublic.h"
 

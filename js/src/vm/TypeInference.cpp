@@ -12,7 +12,6 @@
 #include "mozilla/Sprintf.h"
 
 #include "jsapi.h"
-#include "jsprf.h"
 #include "jsstr.h"
 
 #include "gc/HashUtil.h"
@@ -23,6 +22,7 @@
 #include "jit/JitCompartment.h"
 #include "jit/OptimizationTracking.h"
 #include "js/MemoryMetrics.h"
+#include "js/Printf.h"
 #include "vm/HelperThreads.h"
 #include "vm/JSContext.h"
 #include "vm/JSObject.h"
