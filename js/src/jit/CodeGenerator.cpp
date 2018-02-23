@@ -2026,7 +2026,7 @@ CodeGenerator::visitRegExpMatcher(LRegExpMatcher* lir)
     MOZ_ASSERT(ToRegister(lir->regexp()) == RegExpMatcherRegExpReg);
     MOZ_ASSERT(ToRegister(lir->string()) == RegExpMatcherStringReg);
     MOZ_ASSERT(ToRegister(lir->lastIndex()) == RegExpMatcherLastIndexReg);
-    MOZ_ASSERT(GetValueOutput(lir) == JSReturnOperand);
+    MOZ_ASSERT(ToOutValue(lir) == JSReturnOperand);
 
 #if defined(JS_NUNBOX32)
     MOZ_ASSERT(RegExpMatcherRegExpReg != JSReturnReg_Type);
@@ -3394,7 +3394,7 @@ void
 CodeGenerator::visitGetPropertyPolymorphicV(LGetPropertyPolymorphicV* ins)
 {
     Register obj = ToRegister(ins->obj());
-    ValueOperand output = GetValueOutput(ins);
+    ValueOperand output = ToOutValue(ins);
     emitGetPropertyPolymorphic(ins, obj, output.scratchReg(), output);
 }
 
@@ -9514,7 +9514,7 @@ CodeGenerator::visitArgumentsLength(LArgumentsLength* lir)
 void
 CodeGenerator::visitGetFrameArgument(LGetFrameArgument* lir)
 {
-    ValueOperand result = GetValueOutput(lir);
+    ValueOperand result = ToOutValue(lir);
     const LAllocation* index = lir->index();
     size_t argvOffset = frameSize() + JitFrameLayout::offsetOfActualArgs();
 
@@ -10269,7 +10269,7 @@ CodeGenerator::visitLoadFixedSlotV(LLoadFixedSlotV* ins)
 {
     const Register obj = ToRegister(ins->getOperand(0));
     size_t slot = ins->mir()->slot();
-    ValueOperand result = GetValueOutput(ins);
+    ValueOperand result = ToOutValue(ins);
 
     masm.loadValue(Address(obj, NativeObject::getFixedSlotOffset(slot)), result);
 }
@@ -10363,7 +10363,7 @@ CodeGenerator::visitGetNameCache(LGetNameCache* ins)
 {
     LiveRegisterSet liveRegs = ins->safepoint()->liveRegs();
     Register envChain = ToRegister(ins->envObj());
-    ValueOperand output(GetValueOutput(ins));
+    ValueOperand output = ToOutValue(ins);
     Register temp = ToRegister(ins->temp());
 
     IonGetNameIC ic(liveRegs, envChain, output, temp);
@@ -10457,7 +10457,7 @@ CodeGenerator::visitGetPropertyCacheV(LGetPropertyCacheV* ins)
     TypedOrValueRegister value =
         toConstantOrRegister(ins, LGetPropertyCacheV::Value, ins->mir()->value()->type()).reg();
     ConstantOrRegister id = toConstantOrRegister(ins, LGetPropertyCacheV::Id, ins->mir()->idval()->type());
-    TypedOrValueRegister output = TypedOrValueRegister(GetValueOutput(ins));
+    TypedOrValueRegister output(ToOutValue(ins));
     Register maybeTemp = ins->temp()->isBogusTemp() ? InvalidReg : ToRegister(ins->temp());
 
     addGetPropertyCache(ins, liveRegs, value, id, output, maybeTemp,
@@ -10486,7 +10486,7 @@ CodeGenerator::visitGetPropSuperCacheV(LGetPropSuperCacheV* ins)
     TypedOrValueRegister receiver =
         toConstantOrRegister(ins, LGetPropSuperCacheV::Receiver, ins->mir()->receiver()->type()).reg();
     ConstantOrRegister id = toConstantOrRegister(ins, LGetPropSuperCacheV::Id, ins->mir()->idval()->type());
-    TypedOrValueRegister output = TypedOrValueRegister(GetValueOutput(ins));
+    TypedOrValueRegister output(ToOutValue(ins));
 
     CacheKind kind = CacheKind::GetElemSuper;
     if (id.constant() && id.value().isString()) {
@@ -11843,7 +11843,7 @@ CodeGenerator::visitGetDOMMemberV(LGetDOMMemberV* ins)
     // proxies in IonBuilder.
     Register object = ToRegister(ins->object());
     size_t slot = ins->mir()->domMemberSlotIndex();
-    ValueOperand result = GetValueOutput(ins);
+    ValueOperand result = ToOutValue(ins);
 
     masm.loadValue(Address(object, NativeObject::getFixedSlotOffset(slot)), result);
 }
@@ -12685,7 +12685,7 @@ CodeGenerator::visitDebugger(LDebugger* ins)
 void
 CodeGenerator::visitNewTarget(LNewTarget *ins)
 {
-    ValueOperand output = GetValueOutput(ins);
+    ValueOperand output = ToOutValue(ins);
 
     // if (isConstructing) output = argv[Max(numActualArgs, numFormalArgs)]
     Label notConstructing, done;
