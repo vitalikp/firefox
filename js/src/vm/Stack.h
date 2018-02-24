@@ -1242,6 +1242,7 @@ class LiveSavedFrameCache
               MutableHandleSavedFrame frame) const;
     bool insert(JSContext* cx, FramePtr& framePtr, const jsbytecode* pc,
                 HandleSavedFrame savedFrame);
+    void clear() { if (frames) frames->clear(); }
 };
 
 static_assert(sizeof(LiveSavedFrameCache) == sizeof(uintptr_t),
@@ -1387,6 +1388,7 @@ class Activation
     }
 
     inline LiveSavedFrameCache* getLiveSavedFrameCache(JSContext* cx);
+    void clearLiveSavedFrameCache() { frameCache_.get().clear(); }
 
   private:
     Activation(const Activation& other) = delete;
