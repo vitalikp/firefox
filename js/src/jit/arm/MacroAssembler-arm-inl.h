@@ -2173,6 +2173,12 @@ MacroAssembler::test32MovePtr(Condition cond, const Address& addr, Imm32 mask, R
 }
 
 void
+MacroAssembler::spectreMovePtr(Condition cond, Register src, Register dest)
+{
+    ma_mov(src, dest, LeaveCC, cond);
+}
+
+void
 MacroAssembler::boundsCheck32ForLoad(Register index, Register length, Register scratch,
                                      Label* failure)
 {
