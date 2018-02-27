@@ -1329,18 +1329,14 @@ class ParseNodeAllocator
 {
   public:
     explicit ParseNodeAllocator(JSContext* cx, LifoAlloc& alloc)
-      : cx(cx), alloc(alloc), freelist(nullptr)
+      : cx(cx), alloc(alloc)
     {}
 
     void* allocNode();
-    void freeNode(ParseNode* pn);
-    ParseNode* freeTree(ParseNode* pn);
-    void prepareNodeForMutation(ParseNode* pn);
 
   private:
     JSContext* cx;
     LifoAlloc& alloc;
-    ParseNode* freelist;
 };
 
 inline bool

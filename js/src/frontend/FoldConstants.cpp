@@ -516,7 +516,6 @@ FoldCondition(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHand
         // that appears on a method list corrupts the method list. However,
         // methods are M's in statements of the form 'this.foo = M;', which we
         // never fold, so we're okay.
-        parser.prepareNodeForMutation(node);
         if (t == Truthy) {
             node->setKind(ParseNodeKind::True);
             node->setOp(JSOP_TRUE);
@@ -554,8 +553,6 @@ FoldTypeOfExpr(JSContext* cx, ParseNode* node, PerHandlerParser<FullParseHandler
         result = cx->names().function;
 
     if (result) {
-        parser.prepareNodeForMutation(node);
-
         node->setKind(ParseNodeKind::String);
         node->setArity(PN_NULLARY);
         node->setOp(JSOP_NOP);
@@ -578,7 +575,6 @@ FoldDeleteExpr(JSContext* cx, ParseNode* node, PerHandlerParser<FullParseHandler
     // Expression deletion evaluates the expression, then evaluates to true.
     // For effectless expressions, eliminate the expression evaluation.
     if (IsEffectless(expr)) {
-        parser.prepareNodeForMutation(node);
         node->setKind(ParseNodeKind::True);
         node->setArity(PN_NULLARY);
         node->setOp(JSOP_TRUE);
@@ -645,7 +641,6 @@ FoldNot(JSContext* cx, ParseNode* node, PerHandlerParser<FullParseHandler>& pars
     if (expr->isKind(ParseNodeKind::Number)) {
         double d = expr->pn_dval;
 
-        parser.prepareNodeForMutation(node);
         if (d == 0 || IsNaN(d)) {
             node->setKind(ParseNodeKind::True);
             node->setOp(JSOP_TRUE);
@@ -657,7 +652,6 @@ FoldNot(JSContext* cx, ParseNode* node, PerHandlerParser<FullParseHandler>& pars
     } else if (expr->isKind(ParseNodeKind::True) || expr->isKind(ParseNodeKind::False)) {
         bool newval = !expr->isKind(ParseNodeKind::True);
 
-        parser.prepareNodeForMutation(node);
         node->setKind(newval ? ParseNodeKind::True : ParseNodeKind::False);
         node->setArity(PN_NULLARY);
         node->setOp(newval ? JSOP_TRUE : JSOP_FALSE);
@@ -694,7 +688,6 @@ FoldUnaryArithmetic(JSContext* cx, ParseNode* node, PerHandlerParser<FullParseHa
         else
             MOZ_ASSERT(node->isKind(ParseNodeKind::Pos)); // nothing to do
 
-        parser.prepareNodeForMutation(node);
         node->setKind(ParseNodeKind::Number);
         node->setOp(JSOP_DOUBLE);
         node->setArity(PN_NULLARY);
@@ -753,12 +746,8 @@ FoldAndOr(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHandler>
         // trailing nodes will never be evaluated.  Truncate the list after
         // the known-truthiness node, as it's the overall result.
         if ((t == Truthy) == isOrNode) {
-            ParseNode* afterNext;
-            for (ParseNode* next = (*elem)->pn_next; next; next = afterNext) {
-                afterNext = next->pn_next;
-                parser.freeTree(next);
+            for (ParseNode* next = (*elem)->pn_next; next; next = next->pn_next)
                 --node->pn_count;
-            }
 
             // Terminate the original and/or list at the known-truthiness
             // node.
@@ -769,14 +758,13 @@ FoldAndOr(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHandler>
 
         MOZ_ASSERT((t == Truthy) == !isOrNode);
 
-        // We've encountered a vacuous node that'll never short- circuit
+        // We've encountered a vacuous node that'll never short-circuit
         // evaluation.
         if ((*elem)->pn_next) {
             // This node is never the overall result when there are
             // subsequent nodes.  Remove it.
             ParseNode* elt = *elem;
             *elem = elt->pn_next;
-            parser.freeTree(elt);
             --node->pn_count;
         } else {
             // Otherwise this node is the result of the overall expression,
@@ -797,10 +785,6 @@ FoldAndOr(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHandler>
     if (node->pn_count == 1) {
         ParseNode* first = node->pn_head;
         ReplaceNode(nodePtr, first);
-
-        node->setKind(ParseNodeKind::Null);
-        node->setArity(PN_NULLARY);
-        parser.freeTree(node);
     }
 
     return true;
@@ -852,15 +836,7 @@ FoldConditional(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHa
             continue;
 
         // Otherwise reduce 'C ? T : F' to T or F as directed by C.
-        ParseNode* replacement;
-        ParseNode* discarded;
-        if (t == Truthy) {
-            replacement = ifTruthy;
-            discarded = ifFalsy;
-        } else {
-            replacement = ifFalsy;
-            discarded = ifTruthy;
-        }
+        ParseNode* replacement = t == Truthy ? ifTruthy : ifFalsy;
 
         // Otherwise perform a replacement.  This invalidates |nextNode|, so
         // reset it (if the replacement requires folding) or clear it (if
@@ -868,8 +844,6 @@ FoldConditional(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHa
         if (nextNode)
             nextNode = (*nextNode == replacement) ? nodePtr : nullptr;
         ReplaceNode(nodePtr, replacement);
-
-        parser.freeTree(discarded);
     } while (nextNode);
 
     return true;
@@ -949,7 +923,6 @@ FoldIf(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHandler>& p
             // If there's no replacement node, we have a constantly-false |if|
             // with no |else|.  Replace the entire thing with an empty
             // statement list.
-            parser.prepareNodeForMutation(node);
             node->setKind(ParseNodeKind::StatementList);
             node->setArity(PN_LIST);
             node->makeEmpty();
@@ -960,16 +933,6 @@ FoldIf(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHandler>& p
             if (nextNode)
                 nextNode = (*nextNode == replacement) ? nodePtr : nullptr;
             ReplaceNode(nodePtr, replacement);
-
-            // Morph the original node into a discardable node, then
-            // aggressively free it and the discarded arm (if any) to suss out
-            // any bugs in the preceding logic.
-            node->setKind(ParseNodeKind::StatementList);
-            node->setArity(PN_LIST);
-            node->makeEmpty();
-            if (discarded)
-                node->append(discarded);
-            parser.freeTree(node);
         }
     } while (nextNode);
 
@@ -1090,9 +1053,7 @@ FoldBinaryArithmetic(JSContext* cx, ParseNode* node, PerHandlerParser<FullParseH
 
             double d = ComputeBinary(kind, elem->pn_dval, next->pn_dval);
 
-            ParseNode* afterNext = next->pn_next;
-            parser.freeTree(next);
-            next = afterNext;
+            next = next->pn_next;
             elem->pn_next = next;
 
             elem->setKind(ParseNodeKind::Number);
@@ -1112,8 +1073,6 @@ FoldBinaryArithmetic(JSContext* cx, ParseNode* node, PerHandlerParser<FullParseH
             node->setArity(PN_NULLARY);
             node->setOp(JSOP_DOUBLE);
             node->pn_dval = d;
-
-            parser.freeTree(elem);
         }
     }
 
@@ -1155,7 +1114,6 @@ FoldExponentiation(JSContext* cx, ParseNode* node, PerHandlerParser<FullParseHan
 
     double d1 = base->pn_dval, d2 = exponent->pn_dval;
 
-    parser.prepareNodeForMutation(node);
     node->setKind(ParseNodeKind::Number);
     node->setArity(PN_NULLARY);
     node->setOp(JSOP_DOUBLE);
@@ -1313,16 +1271,6 @@ FoldElement(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHandle
     dottedAccess->setInParens(node->isInParens());
     ReplaceNode(nodePtr, dottedAccess);
 
-    // If we've replaced |expr["prop"]| with |expr.prop|, we can now free the
-    // |"prop"| and |expr["prop"]| nodes -- but not the |expr| node that we're
-    // now using as a sub-node of |dottedAccess|.  Munge |expr["prop"]| into a
-    // node with |"prop"| as its only child, that'll pass AST sanity-checking
-    // assertions during freeing, then free it.
-    node->setKind(ParseNodeKind::TypeOfExpr);
-    node->setArity(PN_UNARY);
-    node->pn_kid = key;
-    parser.freeTree(node);
-
     return true;
 }
 
@@ -1354,7 +1302,6 @@ FoldAdd(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHandler>& 
 
             current->pn_dval += next->pn_dval;
             current->pn_next = next->pn_next;
-            parser.freeTree(next);
             next = current->pn_next;
 
             MOZ_ASSERT(node->pn_count > 1);
@@ -1415,9 +1362,8 @@ FoldAdd(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHandler>& 
                 if (!combination)
                     return false;
 
-                current->pn_next = next->pn_next;
-                parser.freeTree(next);
-                next = current->pn_next;
+                next = next->pn_next;
+                current->pn_next = next;
 
                 MOZ_ASSERT(node->pn_count > 1);
                 node->pn_count--;
@@ -1465,12 +1411,6 @@ FoldAdd(JSContext* cx, ParseNode** nodePtr, PerHandlerParser<FullParseHandler>& 
         // We reduced the list to a constant.  Replace the ParseNodeKind::Add node
         // with that constant.
         ReplaceNode(nodePtr, current);
-
-        // Free the old node to aggressively verify nothing uses it.
-        node->setKind(ParseNodeKind::True);
-        node->setArity(PN_NULLARY);
-        node->setOp(JSOP_TRUE);
-        parser.freeTree(node);
     }
 
     return true;
@@ -1538,10 +1478,8 @@ FoldForHead(JSContext* cx, ParseNode* node, PerHandlerParser<FullParseHandler>& 
         if (!FoldCondition(cx, &test, parser))
             return false;
 
-        if (test->isKind(ParseNodeKind::True)) {
-            parser.freeTree(test);
+        if (test->isKind(ParseNodeKind::True))
             test = nullptr;
-        }
     }
 
     if (ParseNode*& update = node->pn_kid3) {
