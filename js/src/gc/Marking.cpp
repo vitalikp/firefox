@@ -988,10 +988,13 @@ bool
 js::GCMarker::mark(T* thing)
 {
     AssertShouldMarkInZone(thing);
-    MOZ_ASSERT(!IsInsideNursery(TenuredCell::fromPointer(thing)));
-    return ParticipatesInCC<T>::value
-           ? TenuredCell::fromPointer(thing)->markIfUnmarked(markColor())
-           : TenuredCell::fromPointer(thing)->markIfUnmarked(MarkColor::Black);
+    TenuredCell* cell = TenuredCell::fromPointer(thing);
+    MOZ_ASSERT(!IsInsideNursery(cell));
+
+    if (!ParticipatesInCC<T>::value)
+        return cell->markIfUnmarked(MarkColor::Black);
+
+    return cell->markIfUnmarked(markColor());
 }
 
 
@@ -2464,7 +2467,7 @@ GCMarker::reset()
         unmarkedArenaStackTop = arena->getNextDelayedMarking();
         arena->unsetDelayedMarking();
         arena->markOverflow = 0;
-        arena->allocatedDuringIncremental = 0;
+
 #ifdef DEBUG
         markLaterArenas--;
 #endif
@@ -2543,27 +2546,16 @@ GCMarker::leaveWeakMarkingMode()
 void
 GCMarker::markDelayedChildren(Arena* arena)
 {
-    if (arena->markOverflow) {
-        bool always = arena->allocatedDuringIncremental;
-        arena->markOverflow = 0;
+    MOZ_ASSERT(arena->markOverflow);
+    arena->markOverflow = 0;
 
-        for (ArenaCellIterUnderGC i(arena); !i.done(); i.next()) {
-            TenuredCell* t = i.getCell();
-            if (always || t->isMarkedAny()) {
-                t->markIfUnmarked();
-                js::TraceChildren(this, t, MapAllocToTraceKind(arena->getAllocKind()));
-            }
+    for (ArenaCellIterUnderGC i(arena); !i.done(); i.next()) {
+        TenuredCell* t = i.getCell();
+        if (t->isMarkedAny()) {
+            t->markIfUnmarked();
+            js::TraceChildren(this, t, MapAllocToTraceKind(arena->getAllocKind()));
         }
-    } else {
-        MOZ_ASSERT(arena->allocatedDuringIncremental);
-        PushArena(this, arena);
     }
-    arena->allocatedDuringIncremental = 0;
-    /*
-     * Note that during an incremental GC we may still be allocating into
-     * the arena. However, prepareForIncrementalGC sets the
-     * allocatedDuringIncremental flag if we continue marking.
-     */
 }
 
 bool
@@ -3188,7 +3180,7 @@ IsMarkedInternalCommon(T* thingp)
         return true;
     }
 
-    return thing.isMarkedAny() || thing.arena()->allocatedDuringIncremental;
+    return thing.isMarkedAny();
 }
 
 template <typename T>
@@ -3237,8 +3229,6 @@ js::gc::IsAboutToBeFinalizedDuringSweep(TenuredCell& tenured)
 {
     MOZ_ASSERT(!IsInsideNursery(&tenured));
     MOZ_ASSERT(tenured.zoneFromAnyThread()->isGCSweeping());
-    if (tenured.arena()->allocatedDuringIncremental)
-        return false;
     return !tenured.isMarkedAny();
 }
 

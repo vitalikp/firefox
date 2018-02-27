@@ -520,6 +520,25 @@ Arena::unmarkAll()
     memset(word, 0, ArenaBitmapWords * sizeof(uintptr_t));
 }
 
+void
+Arena::unmarkPreMarkedFreeCells()
+{
+    for (ArenaFreeCellIter iter(this); !iter.done(); iter.next()) {
+        TenuredCell* cell = iter.getCell();
+        MOZ_ASSERT(cell->isMarkedBlack());
+        cell->unmark();
+    }
+}
+
+#ifdef DEBUG
+void
+Arena::checkNoMarkedFreeCells()
+{
+    for (ArenaFreeCellIter iter(this); !iter.done(); iter.next())
+        MOZ_ASSERT(!iter.getCell()->isMarkedAny());
+}
+#endif
+
 /* static */ void
 Arena::staticAsserts()
 {
@@ -547,7 +566,6 @@ Arena::finalize(FreeOp* fop, AllocKind thingKind, size_t thingSize)
     MOZ_ASSERT(thingSize == getThingSize());
     MOZ_ASSERT(!hasDelayedMarking);
     MOZ_ASSERT(!markOverflow);
-    MOZ_ASSERT(!allocatedDuringIncremental);
 
     uint_fast16_t firstThing = firstThingOffset(thingKind);
     uint_fast16_t firstThingOrSuccessorOfLastMarkedThing = firstThing;
@@ -955,7 +973,6 @@ GCRuntime::GCRuntime(JSRuntime* rt) :
     currentSweepGroup(nullptr),
     sweepZone(nullptr),
     abortSweepAfterCurrentGroup(false),
-    arenasAllocatedDuringSweep(nullptr),
     startedCompacting(false),
     relocatedArenasToRelease(nullptr),
 #ifdef JS_GC_ZEAL
@@ -2014,11 +2031,13 @@ GCMarker::delayMarkingChildren(const void* thing)
 }
 
 inline void
-ArenaLists::prepareForIncrementalGC()
+ArenaLists::unmarkPreMarkedFreeCells()
 {
-    purge();
-    for (auto i : AllAllocKinds())
-        arenaLists(i).moveCursorToEnd();
+    for (auto i : AllAllocKinds()) {
+        FreeSpan* freeSpan = freeList(i);
+        if (!freeSpan->isEmpty())
+            freeSpan->getArena()->unmarkPreMarkedFreeCells();
+    }
 }
 
 /* Compacting GC */
@@ -2262,7 +2281,6 @@ RelocateArena(Arena* arena, SliceBudget& sliceBudget)
     MOZ_ASSERT(arena->allocated());
     MOZ_ASSERT(!arena->hasDelayedMarking);
     MOZ_ASSERT(!arena->markOverflow);
-    MOZ_ASSERT(!arena->allocatedDuringIncremental);
     MOZ_ASSERT(arena->bufferedCells()->isEmpty());
 
     Zone* zone = arena->zone;
@@ -2350,7 +2368,7 @@ ArenaLists::relocateArenas(Zone* zone, Arena*& relocatedListOut, JS::gcreason::R
     MOZ_ASSERT(!runtime_->gc.isBackgroundSweeping());
 
     // Clear all the free lists.
-    purge();
+    clearFreeLists();
 
     if (ShouldRelocateAllArenas(reason)) {
         zone->prepareForCompacting();
@@ -2982,12 +3000,11 @@ ArenaLists::ArenaLists(JSRuntime* rt, ZoneGroup* group)
     gcObjectGroupArenasToUpdate(group, nullptr),
     savedEmptyArenas(group, nullptr)
 {
-    for (auto i : AllAllocKinds())
-        freeLists(i) = &placeholder;
-    for (auto i : AllAllocKinds())
+    for (auto i : AllAllocKinds()) {
+        freeLists()[i] = &placeholder;
         backgroundFinalizeState(i) = BFS_DONE;
-    for (auto i : AllAllocKinds())
         arenaListsToSweep(i) = nullptr;
+    }
 }
 
 void
@@ -4251,12 +4268,13 @@ GCRuntime::beginMarkPhase(JS::gcreason::Reason reason, AutoTraceSession& session
         session.maybeLock.reset();
 
     /*
-     * Ensure that after the start of a collection we don't allocate into any
-     * existing arenas, as this can cause unreachable things to be marked.
+     * In an incremental GC, clear the area free lists to ensure that subsequent
+     * allocations refill them and end up marking new cells back. See
+     * arenaAllocatedDuringGC().
      */
     if (isIncremental) {
         for (GCZonesIter zone(rt); !zone.done(); zone.next())
-            zone->arenas.prepareForIncrementalGC();
+            zone->arenas.clearFreeLists();
     }
 
     marker.start();
@@ -4727,8 +4745,6 @@ js::gc::MarkingValidator::validate()
             if (!arena->allocated())
                 continue;
             if (!arena->zone->isGCSweeping())
-                continue;
-            if (arena->allocatedDuringIncremental)
                 continue;
 
             AllocKind kind = arena->getAllocKind();
@@ -5571,7 +5587,9 @@ GCRuntime::beginSweepingSweepGroup(FreeOp* fop, SliceBudget& budget)
         zone->changeGCState(Zone::Mark, Zone::Sweep);
 
         /* Purge the ArenaLists before sweeping. */
-        zone->arenas.purge();
+        if (isIncremental)
+            zone->arenas.unmarkPreMarkedFreeCells();
+        zone->arenas.clearFreeLists();
 
         if (zone->isAtomsZone())
             sweepingAtoms = true;
@@ -5693,6 +5711,8 @@ GCRuntime::endSweepingSweepGroup(FreeOp* fop, SliceBudget& budget)
         zone->threshold.updateAfterGC(zone->usage.gcBytes(), invocationKind, tunables,
                                       schedulingState, lock);
         zone->updateAllGCMallocCountersOnGCEnd(lock);
+        if (isIncremental)
+            zone->arenas.unmarkPreMarkedFreeCells();
     }
 
     /*
@@ -5714,12 +5734,6 @@ GCRuntime::endSweepingSweepGroup(FreeOp* fop, SliceBudget& budget)
         queueZonesForBackgroundSweep(zones);
     else
         sweepBackgroundThings(zones, blocksToFreeAfterSweeping.ref());
-
-    /* Reset the list of arenas marked as being allocated during sweep phase. */
-    while (Arena* arena = arenasAllocatedDuringSweep) {
-        arenasAllocatedDuringSweep = arena->getNextAllocDuringSweep();
-        arena->unsetAllocDuringSweep();
-    }
 
     return Finished;
 }
@@ -6744,6 +6758,7 @@ GCRuntime::resetIncrementalGC(gc::AbortReason reason, AutoTraceSession& session)
         for (GCZonesIter zone(rt); !zone.done(); zone.next()) {
             zone->setNeedsIncrementalBarrier(false);
             zone->changeGCState(Zone::Mark, Zone::NoGC);
+            zone->arenas.unmarkPreMarkedFreeCells();
         }
 
         blocksToFreeAfterSweeping.ref().freeAll();
@@ -6871,10 +6886,8 @@ AutoGCSlice::~AutoGCSlice()
     /* We can't use GCZonesIter if this is the end of the last slice. */
     for (ZonesIter zone(runtime, WithAtoms); !zone.done(); zone.next()) {
         MOZ_ASSERT(!zone->needsIncrementalBarrier());
-        if (zone->isGCMarking()) {
+        if (zone->isGCMarking())
             zone->setNeedsIncrementalBarrier(true);
-            zone->arenas.purge();
-        }
     }
 }
 
@@ -6886,6 +6899,17 @@ GCRuntime::pushZealSelectedObjects()
     for (JSObject** obj = selectedForMarking.ref().begin(); obj != selectedForMarking.ref().end(); obj++)
         TraceManuallyBarrieredEdge(&marker, obj, "selected obj");
 #endif
+}
+
+void
+GCRuntime::changeToNonIncrementalGC()
+{
+    MOZ_ASSERT(isIncremental);
+
+    for (GCZonesIter zone(rt); !zone.done(); zone.next()) {
+        if (zone->isGCMarking() || zone->isGCSweeping())
+            zone->arenas.unmarkPreMarkedFreeCells();
+    }
 }
 
 static bool
@@ -6932,6 +6956,9 @@ GCRuntime::incrementalCollectSlice(SliceBudget& budget, JS::gcreason::Reason rea
 #endif
 
     MOZ_ASSERT_IF(isIncrementalGCInProgress(), isIncremental);
+    if (isIncrementalGCInProgress() && budget.isUnlimited())
+        changeToNonIncrementalGC();
+
     isIncremental = !budget.isUnlimited();
 
     if (useZeal && (hasZealMode(ZealMode::IncrementalRootsThenFinish) ||
@@ -8034,9 +8061,11 @@ GCRuntime::mergeCompartments(JSCompartment* source, JSCompartment* target)
                 // If we are currently collecting the target zone then we must
                 // treat all merged things as if they were allocated during the
                 // collection.
-                arena->unmarkAll();
-                if (!arena->isEmpty())
-                    arenaAllocatedDuringGC(target->zone(), arena);
+                for (ArenaCellIterUnbarriered iter(arena); !iter.done(); iter.next()) {
+                    TenuredCell* cell = iter.getCell();
+                    MOZ_ASSERT(!cell->isMarkedAny());
+                    cell->markBlack();
+                }
             }
         }
     }
@@ -8236,7 +8265,7 @@ ArenaLists::adoptArenas(JSRuntime* rt, ArenaLists* fromArenaLists, bool targetZo
     // GC may be active so take the lock here so we can mutate the arena lists.
     AutoLockGC lock(rt);
 
-    fromArenaLists->purge();
+    fromArenaLists->clearFreeLists();
 
     for (auto thingKind : AllAllocKinds()) {
         MOZ_ASSERT(fromArenaLists->backgroundFinalizeState(thingKind) == BFS_DONE);
