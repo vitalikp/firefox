@@ -2830,6 +2830,8 @@ GCRuntime::updateZonePointersToRelocatedCells(Zone* zone)
     MOZ_ASSERT(!rt->isBeingDestroyed());
     MOZ_ASSERT(zone->isGCCompacting());
 
+    AutoTouchingGrayThings tgt;
+
     gcstats::AutoPhase ap(stats(), gcstats::PhaseKind::COMPACT_UPDATE);
     MovingTracer trc(rt);
 
@@ -5092,6 +5094,8 @@ js::gc::DelayCrossCompartmentGrayMarking(JSObject* src)
 {
     MOZ_ASSERT(IsGrayListObject(src));
 
+    AutoTouchingGrayThings tgt;
+
     /* Called from MarkCrossCompartmentXXX functions. */
     unsigned slot = ProxyObject::grayLinkReservedSlot(src);
     JSObject* dest = CrossCompartmentPointerReferent(src);
@@ -5167,6 +5171,8 @@ MarkIncomingCrossCompartmentPointers(JSRuntime* rt, MarkColor color)
 static bool
 RemoveFromGrayList(JSObject* wrapper)
 {
+    AutoTouchingGrayThings tgt;
+
     if (!IsGrayListObject(wrapper))
         return false;
 
@@ -9097,8 +9103,7 @@ js::gc::detail::CellIsNotGray(const Cell* cell)
     // GC. For performance reasons we don't do this in CellIsMarkedGrayIfKnown.
 
     // TODO: I'd like to AssertHeapIsIdle() here, but this ends up getting
-    // called while iterating the heap for memory reporting.
-    MOZ_ASSERT(!JS::CurrentThreadIsHeapCollecting());
+    // called during GC and while iterating the heap for memory reporting.
     MOZ_ASSERT(!JS::CurrentThreadIsHeapCycleCollecting());
 
     if (!CanCheckGrayBits(cell))

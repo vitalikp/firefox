@@ -1337,7 +1337,6 @@ ScriptSourceObject::finalize(FreeOp* fop, JSObject* obj)
     MOZ_ASSERT(fop->onActiveCooperatingThread());
     ScriptSourceObject* sso = &obj->as<ScriptSourceObject>();
     sso->source()->decref();
-    sso->setReservedSlot(SOURCE_SLOT, PrivateValue(nullptr));
 }
 
 static const ClassOps ScriptSourceObjectClassOps = {
