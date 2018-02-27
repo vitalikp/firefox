@@ -552,8 +552,7 @@ class GCRuntime
                                  AutoTraceSession& session);
 
     friend class AutoCallGCCallbacks;
-    void maybeCallBeginCallback();
-    void maybeCallEndCallback();
+    void maybeCallGCCallback(JSGCStatus status);
 
     void pushZealSelectedObjects();
     void purgeRuntime();
@@ -919,7 +918,7 @@ class GCRuntime
 
     ActiveThreadData<bool> fullCompartmentChecks;
 
-    ActiveThreadData<uint32_t> gcBeginCallbackDepth;
+    ActiveThreadData<uint32_t> gcCallbackDepth;
 
     Callback<JSGCCallback> gcCallback;
     Callback<JS::DoCycleCollectionCallback> gcDoCycleCollectionCallback;
