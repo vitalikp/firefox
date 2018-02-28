@@ -4336,7 +4336,10 @@ CodeGenerator::visitCallGeneric(LCallGeneric* call)
     masm.checkStackAlignment();
 
     // Guard that calleereg is actually a function object.
-    masm.branchTestObjClass(Assembler::NotEqual, calleereg, nargsreg, &JSFunction::class_, &invoke);
+    if (call->mir()->needsClassCheck()) {
+        masm.branchTestObjClass(Assembler::NotEqual, calleereg, nargsreg, &JSFunction::class_,
+                                &invoke);
+    }
 
     // Guard that calleereg is an interpreted function with a JSScript or a
     // wasm function.
@@ -4349,7 +4352,10 @@ CodeGenerator::visitCallGeneric(LCallGeneric* call)
                                 &invoke);
     }
 
-    masm.loadJitCodeRaw(calleereg, objreg);
+    if (call->mir()->needsArgCheck())
+        masm.loadJitCodeRaw(calleereg, objreg);
+    else
+        masm.loadJitCodeNoArgCheck(calleereg, objreg);
 
     // Nestle the StackPointer up to the argument vector.
     masm.freeStack(unusedStack);
