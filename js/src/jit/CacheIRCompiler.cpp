@@ -1448,9 +1448,7 @@ CacheIRCompiler::emitGuardIsNativeObject()
     if (!addFailurePath(&failure))
         return false;
 
-    masm.loadObjClass(obj, scratch);
-    masm.branchTest32(Assembler::NonZero, Address(scratch, Class::offsetOfFlags()),
-                      Imm32(Class::NON_NATIVE), failure->label());
+    masm.branchIfNonNativeObj(obj, scratch, failure->label());
     return true;
 }
 
@@ -2603,9 +2601,7 @@ CacheIRCompiler::emitMegamorphicLoadSlotByValueResult()
         return false;
 
     // The object must be Native.
-    masm.loadObjClass(obj, scratch);
-    masm.branchTest32(Assembler::NonZero, Address(scratch, Class::offsetOfFlags()),
-                      Imm32(Class::NON_NATIVE), failure->label());
+    masm.branchIfNonNativeObj(obj, scratch, failure->label());
 
     // idVal will be in vp[0], result will be stored in vp[1].
     masm.reserveStack(sizeof(Value));

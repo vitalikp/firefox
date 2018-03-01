@@ -1170,6 +1170,10 @@ class MacroAssembler : public MacroAssemblerSpecific
     void branchIfObjGroupHasNoAddendum(Register obj, Register scratch, Label* label);
     void branchIfPretenuredGroup(const ObjectGroup* group, Register scratch, Label* label);
 
+    void branchIfNonNativeObj(Register obj, Register scratch, Label* label);
+
+    void branchIfInlineTypedObject(Register obj, Register scratch, Label* label);
+
     void branchIfNotSimdObject(Register obj, Register scratch, SimdType simdType, Label* label);
 
     inline void branchTestClassIsProxy(bool proxy, Register clasp, Label* label);
@@ -1949,6 +1953,10 @@ class MacroAssembler : public MacroAssemblerSpecific
     void loadObjGroupUnsafe(Register obj, Register dest) {
         loadPtr(Address(obj, JSObject::offsetOfGroup()), dest);
     }
+    void loadObjClassUnsafe(Register obj, Register dest) {
+        loadPtr(Address(obj, JSObject::offsetOfGroup()), dest);
+        loadPtr(Address(dest, ObjectGroup::offsetOfClasp()), dest);
+    }
 
     template <typename EmitPreBarrier>
     inline void storeObjGroup(Register group, Register obj, EmitPreBarrier emitPreBarrier);
@@ -1958,11 +1966,6 @@ class MacroAssembler : public MacroAssemblerSpecific
     inline void storeObjShape(Register shape, Register obj, EmitPreBarrier emitPreBarrier);
     template <typename EmitPreBarrier>
     inline void storeObjShape(Shape* shape, Register obj, EmitPreBarrier emitPreBarrier);
-
-    void loadObjClass(Register obj, Register dest) {
-        loadPtr(Address(obj, JSObject::offsetOfGroup()), dest);
-        loadPtr(Address(dest, ObjectGroup::offsetOfClasp()), dest);
-    }
 
     void loadObjPrivate(Register obj, uint32_t nfixed, Register dest) {
         loadPtr(Address(obj, NativeObject::getPrivateDataOffset(nfixed)), dest);
