@@ -261,6 +261,8 @@ class LIRGenerator : public LIRGeneratorSpecific
     void visitBindNameCache(MBindNameCache* ins);
     void visitCallBindVar(MCallBindVar* ins);
     void visitGuardObjectIdentity(MGuardObjectIdentity* ins);
+    void visitGuardShape(MGuardShape* ins);
+    void visitGuardObjectGroup(MGuardObjectGroup* ins);
     void visitGuardClass(MGuardClass* ins);
     void visitGuardObject(MGuardObject* ins);
     void visitGuardString(MGuardString* ins);

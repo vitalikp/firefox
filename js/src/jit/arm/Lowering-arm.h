@@ -100,8 +100,6 @@ class LIRGeneratorARM : public LIRGeneratorShared
     void visitUnbox(MUnbox* unbox);
     void visitReturn(MReturn* ret);
     void lowerPhi(MPhi* phi);
-    void visitGuardShape(MGuardShape* ins);
-    void visitGuardObjectGroup(MGuardObjectGroup* ins);
     void visitWasmSelect(MWasmSelect* ins);
     void visitWasmUnsignedToDouble(MWasmUnsignedToDouble* ins);
     void visitWasmUnsignedToFloat32(MWasmUnsignedToFloat32* ins);
