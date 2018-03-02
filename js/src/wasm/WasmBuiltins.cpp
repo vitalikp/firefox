@@ -480,8 +480,8 @@ FuncCast(F* funcPtr, ABIFunctionType abiType)
     return pf;
 }
 
-static void*
-AddressOf(SymbolicAddress imm, ABIFunctionType* abiType)
+void*
+wasm::AddressOf(SymbolicAddress imm, ABIFunctionType* abiType)
 {
     switch (imm) {
       case SymbolicAddress::HandleExecutionInterrupt:
@@ -960,7 +960,7 @@ wasm::EnsureBuiltinThunksInitialized()
     memset(thunks->codeBase + masm.bytesNeeded(), 0, allocSize - masm.bytesNeeded());
 
     masm.processCodeLabels(thunks->codeBase);
-#ifdef DEBUG
+
     MOZ_ASSERT(masm.callSites().empty());
     MOZ_ASSERT(masm.callSiteTargets().empty());
     MOZ_ASSERT(masm.callFarJumps().empty());
@@ -970,7 +970,6 @@ wasm::EnsureBuiltinThunksInitialized()
     MOZ_ASSERT(masm.callFarJumps().empty());
     MOZ_ASSERT(masm.memoryAccesses().empty());
     MOZ_ASSERT(masm.symbolicAccesses().empty());
-#endif
 
     ExecutableAllocator::cacheFlush(thunks->codeBase, thunks->codeSize);
     if (!ExecutableAllocator::makeExecutable(thunks->codeBase, thunks->codeSize))
