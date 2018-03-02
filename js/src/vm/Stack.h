@@ -1198,7 +1198,7 @@ class LiveSavedFrameCache
         return true;
     }
 
-    static mozilla::Maybe<FramePtr> getFramePtr(FrameIter& iter);
+    static mozilla::Maybe<FramePtr> getFramePtr(const FrameIter& iter);
     void trace(JSTracer* trc);
 
     void find(JSContext* cx, FrameIter& frameIter, MutableHandleSavedFrame frame) const;
