@@ -81,7 +81,7 @@ LiveSavedFrameCache::trace(JSTracer* trc)
 }
 
 bool
-LiveSavedFrameCache::insert(JSContext* cx, FramePtr& framePtr, jsbytecode* pc,
+LiveSavedFrameCache::insert(JSContext* cx, FramePtr& framePtr, const jsbytecode* pc,
                             HandleSavedFrame savedFrame)
 {
     MOZ_ASSERT(initialized());
@@ -112,7 +112,7 @@ LiveSavedFrameCache::find(JSContext* cx, FrameIter& frameIter, MutableHandleSave
     MOZ_ASSERT(maybeFramePtr.isSome());
 
     FramePtr framePtr(*maybeFramePtr);
-    jsbytecode* pc = frameIter.pc();
+    const jsbytecode* pc = frameIter.pc();
     size_t numberStillValid = 0;
 
     frame.set(nullptr);
