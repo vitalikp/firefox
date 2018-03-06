@@ -58,6 +58,12 @@ const uint32_t ASYNC_STACK_MAX_FRAME_COUNT = 60;
 /* static */ Maybe<LiveSavedFrameCache::FramePtr>
 LiveSavedFrameCache::getFramePtr(const FrameIter& iter)
 {
+    if (iter.done())
+        return Nothing();
+
+    if (iter.isWasm())
+        return Nothing();
+
     if (iter.hasUsableAbstractFramePtr())
         return Some(FramePtr(iter.abstractFramePtr()));
 
@@ -84,6 +90,7 @@ bool
 LiveSavedFrameCache::insert(JSContext* cx, FramePtr& framePtr, const jsbytecode* pc,
                             HandleSavedFrame savedFrame)
 {
+    MOZ_ASSERT(savedFrame);
     MOZ_ASSERT(initialized());
 
     if (!frames->emplaceBack(framePtr, pc, savedFrame)) {
@@ -91,12 +98,7 @@ LiveSavedFrameCache::insert(JSContext* cx, FramePtr& framePtr, const jsbytecode*
         return false;
     }
 
-    // Safe to dereference the cache key because the stack frames are still
-    // live. After this point, they should never be dereferenced again.
-    if (framePtr.is<AbstractFramePtr>())
-        framePtr.as<AbstractFramePtr>().setHasCachedSavedFrame();
-    else
-        framePtr.as<jit::CommonFrameLayout*>()->setHasCachedSavedFrame();
+    framePtr.setHasCachedSavedFrame();
 
     return true;
 }
@@ -106,10 +108,10 @@ LiveSavedFrameCache::find(JSContext* cx, FrameIter& frameIter, MutableHandleSave
 {
     MOZ_ASSERT(initialized());
     MOZ_ASSERT(!frameIter.done());
-    MOZ_ASSERT(frameIter.hasCachedSavedFrame());
 
     Maybe<FramePtr> maybeFramePtr = getFramePtr(frameIter);
     MOZ_ASSERT(maybeFramePtr.isSome());
+    MOZ_ASSERT(maybeFramePtr->hasCachedSavedFrame());
 
     Key key(*maybeFramePtr);
     const jsbytecode* pc = frameIter.pc();
@@ -1288,6 +1290,7 @@ SavedStacks::insertFrames(JSContext* cx, FrameIter& iter, MutableHandleSavedFram
     RootedString asyncCause(cx, nullptr);
     bool parentIsInCache = false;
     RootedSavedFrame cachedFrame(cx, nullptr);
+    Maybe<LiveSavedFrameCache::FramePtr> framePtr = LiveSavedFrameCache::getFramePtr(iter);
 
     // Accumulate the vector of Lookup objects in |stackChain|.
     SavedFrame::AutoLookupVector stackChain(cx);
@@ -1344,12 +1347,11 @@ SavedStacks::insertFrames(JSContext* cx, FrameIter& iter, MutableHandleSavedFram
         // The bit set means that the next older parent (frame, pc) pair *must*
         // be in the cache.
         if (capture.is<JS::AllFrames>())
-            parentIsInCache = iter.hasCachedSavedFrame();
+            parentIsInCache = framePtr && framePtr->hasCachedSavedFrame();
 
         auto principals = iter.compartment()->principals();
         auto displayAtom = (iter.isWasm() || iter.isFunctionFrame()) ? iter.functionDisplayAtom() : nullptr;
 
-        Maybe<LiveSavedFrameCache::FramePtr> framePtr = LiveSavedFrameCache::getFramePtr(iter);
         MOZ_ASSERT_IF(framePtr && !iter.isWasm(), iter.pc());
 
         if (!stackChain->emplaceBack(location.source(),
@@ -1375,10 +1377,11 @@ SavedStacks::insertFrames(JSContext* cx, FrameIter& iter, MutableHandleSavedFram
         }
 
         ++iter;
+        framePtr = LiveSavedFrameCache::getFramePtr(iter);
 
         if (parentIsInCache &&
-            !iter.done() &&
-            iter.hasCachedSavedFrame())
+            framePtr &&
+            framePtr->hasCachedSavedFrame())
         {
             auto* cache = activation.getLiveSavedFrameCache(cx);
             if (!cache)
