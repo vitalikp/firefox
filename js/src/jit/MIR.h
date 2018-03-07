@@ -14828,9 +14828,12 @@ class MWasmLoadGlobalVar
   : public MUnaryInstruction,
     public NoTypePolicy::Data
 {
-    MWasmLoadGlobalVar(MIRType type, unsigned globalDataOffset, bool isConstant, MDefinition* tlsPtr)
+    MWasmLoadGlobalVar(MIRType type, unsigned globalDataOffset, bool isConstant, bool isIndirect,
+                       MDefinition* tlsPtr)
       : MUnaryInstruction(classOpcode, tlsPtr),
-        globalDataOffset_(globalDataOffset), isConstant_(isConstant)
+        globalDataOffset_(globalDataOffset),
+        isConstant_(isConstant),
+        isIndirect_(isIndirect)
     {
         MOZ_ASSERT(IsNumberType(type) || IsSimdType(type));
         setResultType(type);
@@ -14839,6 +14842,7 @@ class MWasmLoadGlobalVar
 
     unsigned globalDataOffset_;
     bool isConstant_;
+    bool isIndirect_;
 
   public:
     INSTRUCTION_HEADER(WasmLoadGlobalVar)
@@ -14846,6 +14850,7 @@ class MWasmLoadGlobalVar
     NAMED_OPERANDS((0, tlsPtr))
 
     unsigned globalDataOffset() const { return globalDataOffset_; }
+    bool isIndirect() const { return isIndirect_; }
 
     HashNumber valueHash() const override;
     bool congruentTo(const MDefinition* ins) const override;
@@ -14862,12 +14867,15 @@ class MWasmStoreGlobalVar
   : public MBinaryInstruction,
     public NoTypePolicy::Data
 {
-    MWasmStoreGlobalVar(unsigned globalDataOffset, MDefinition* value, MDefinition* tlsPtr)
+    MWasmStoreGlobalVar(unsigned globalDataOffset, bool isIndirect, MDefinition* value,
+                        MDefinition* tlsPtr)
       : MBinaryInstruction(classOpcode, value, tlsPtr),
-        globalDataOffset_(globalDataOffset)
+        globalDataOffset_(globalDataOffset),
+        isIndirect_(isIndirect)
     { }
 
     unsigned globalDataOffset_;
+    bool isIndirect_;
 
   public:
     INSTRUCTION_HEADER(WasmStoreGlobalVar)
@@ -14875,6 +14883,7 @@ class MWasmStoreGlobalVar
     NAMED_OPERANDS((0, value), (1, tlsPtr))
 
     unsigned globalDataOffset() const { return globalDataOffset_; }
+    bool isIndirect() const { return isIndirect_; }
 
     AliasSet getAliasSet() const override {
         return AliasSet::Store(AliasSet::WasmGlobalVar);

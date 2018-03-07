@@ -1950,8 +1950,11 @@ class MOZ_STACK_CLASS ModuleValidator
         MOZ_ASSERT(type == Type::canonicalize(Type::lit(lit)));
 
         uint32_t index = env_.globals.length();
-        if (!env_.globals.emplaceBack(type.canonicalToValType(), !isConst, index))
+        if (!env_.globals.emplaceBack(type.canonicalToValType(), !isConst, index,
+                                      ModuleKind::AsmJS))
+        {
             return false;
+        }
 
         Global::Which which = isConst ? Global::ConstantLiteral : Global::Variable;
         Global* global = validationLifo_.new_<Global>(which);
@@ -1978,7 +1981,7 @@ class MOZ_STACK_CLASS ModuleValidator
 
         uint32_t index = env_.globals.length();
         ValType valType = type.canonicalToValType();
-        if (!env_.globals.emplaceBack(valType, !isConst, index))
+        if (!env_.globals.emplaceBack(valType, !isConst, index, ModuleKind::AsmJS))
             return false;
 
         Global::Which which = isConst ? Global::ConstantImport : Global::Variable;
@@ -8167,8 +8170,10 @@ TryInstantiate(JSContext* cx, CallArgs args, Module& module, const AsmJSMetadata
     if (!GetImports(cx, metadata, globalVal, importVal, &funcs, &valImports))
         return false;
 
+    Rooted<WasmGlobalObjectVector> globalObjs(cx);
+
     RootedWasmTableObject table(cx);
-    if (!module.instantiate(cx, funcs, table, memory, valImports, nullptr, instanceObj))
+    if (!module.instantiate(cx, funcs, table, memory, valImports, globalObjs.get(), nullptr, instanceObj))
         return false;
 
     exportObj.set(&instanceObj->exportsObj());
