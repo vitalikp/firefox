@@ -732,9 +732,6 @@ class LNode
         return numDefs_;
     }
 
-    // Returns information about operands.
-    virtual LAllocation* getOperand(size_t index) = 0;
-
     bool isCall() const {
         return isCall_;
     }
@@ -832,6 +829,9 @@ class LInstruction
     void setOperand(size_t index, const LAllocation& a) {
         *getOperand(index) = a;
     }
+
+    // Returns information about operands.
+    virtual LAllocation* getOperand(size_t index) = 0;
 
     // Returns information about temporary registers needed. Each temporary
     // register is an LDefinition with a fixed or virtual register and
