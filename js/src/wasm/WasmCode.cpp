@@ -332,7 +332,6 @@ ModuleSegment::initialize(Tier tier,
                           const CodeRangeVector& codeRanges)
 {
     MOZ_ASSERT(bytes_ == nullptr);
-    MOZ_ASSERT(linkData.interruptOffset);
     MOZ_ASSERT(linkData.outOfBoundsOffset);
     MOZ_ASSERT(linkData.unalignedAccessOffset);
     MOZ_ASSERT(linkData.trapOffset);
@@ -340,7 +339,6 @@ ModuleSegment::initialize(Tier tier,
     tier_ = tier;
     bytes_ = Move(codeBytes);
     length_ = codeLength;
-    interruptCode_ = bytes_.get() + linkData.interruptOffset;
     outOfBoundsCode_ = bytes_.get() + linkData.outOfBoundsOffset;
     unalignedAccessCode_ = bytes_.get() + linkData.unalignedAccessOffset;
     trapCode_ = bytes_.get() + linkData.trapOffset;

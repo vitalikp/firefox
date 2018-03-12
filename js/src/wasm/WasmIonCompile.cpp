@@ -254,8 +254,6 @@ class FunctionCompiler
                 return false;
         }
 
-        addInterruptCheck();
-
         return true;
     }
 
@@ -1030,8 +1028,7 @@ class FunctionCompiler
 
     void addInterruptCheck()
     {
-        // We rely on signal handlers for interrupts on Asm.JS/Wasm
-        MOZ_RELEASE_ASSERT(wasm::HaveSignalHandlers());
+        // TODO
     }
 
     MDefinition* extractSimdElement(unsigned lane, MDefinition* base, MIRType type, SimdSign sign)
