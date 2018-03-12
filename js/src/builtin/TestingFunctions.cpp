@@ -4877,24 +4877,6 @@ IsLegacyIterator(JSContext* cx, unsigned argc, Value* vp)
     return true;
 }
 
-static bool
-EnableExpressionClosures(JSContext* cx, unsigned argc, Value* vp)
-{
-    CallArgs args = CallArgsFromVp(argc, vp);
-    JS::ContextOptionsRef(cx).setExpressionClosures(true);
-    args.rval().setUndefined();
-    return true;
-}
-
-static bool
-DisableExpressionClosures(JSContext* cx, unsigned argc, Value* vp)
-{
-    CallArgs args = CallArgsFromVp(argc, vp);
-    JS::ContextOptionsRef(cx).setExpressionClosures(false);
-    args.rval().setUndefined();
-    return true;
-}
-
 static const JSFunctionSpecWithHelp TestingFunctions[] = {
     JS_FN_HELP("gc", ::GC, 0, 0,
 "gc([obj] | 'zone' [, 'shrinking'])",
@@ -5517,14 +5499,6 @@ gc::ZealModeHelpText),
     JS_FN_HELP("getTimeZone", GetTimeZone, 0, 0,
 "getTimeZone()",
 "  Get the current time zone.\n"),
-
-    JS_FN_HELP("enableExpressionClosures", EnableExpressionClosures, 0, 0,
-"enableExpressionClosures()",
-"  Enables the deprecated, non-standard expression closures.\n"),
-
-    JS_FN_HELP("disableExpressionClosures", DisableExpressionClosures, 0, 0,
-"disableExpressionClosures()",
-"  Disables the deprecated, non-standard expression closures.\n"),
 
     JS_FS_HELP_END
 };
