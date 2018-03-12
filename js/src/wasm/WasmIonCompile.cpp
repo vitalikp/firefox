@@ -1028,7 +1028,9 @@ class FunctionCompiler
 
     void addInterruptCheck()
     {
-        // TODO
+        if (inDeadCode())
+            return;
+        curBlock_->add(MWasmInterruptCheck::New(alloc(), tlsPointer_, bytecodeOffset()));
     }
 
     MDefinition* extractSimdElement(unsigned lane, MDefinition* base, MIRType type, SimdSign sign)
