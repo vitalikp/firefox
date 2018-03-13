@@ -1259,7 +1259,7 @@ ToObjectFromStack(JSContext* cx, HandleValue vp)
 }
 
 template<XDRMode mode>
-bool
+XDRResult
 XDRObjectLiteral(XDRState<mode>* xdr, MutableHandleObject obj);
 
 /*
