@@ -918,9 +918,6 @@ static void
 DebuggerFrame_maybeDecrementFrameScriptStepModeCount(FreeOp* fop, AbstractFramePtr frame,
                                                      NativeObject* frameobj);
 
-static void
-DebuggerFrame_freeScriptFrameIterData(FreeOp* fop, JSObject* obj);
-
 /*
  * Handle leaving a frame with debuggers watching. |frameOk| indicates whether
  * the frame is exiting normally or abruptly. Set |cx|'s exception and/or
@@ -4160,9 +4157,9 @@ Debugger::removeDebuggeeGlobal(FreeOp* fop, GlobalObject* global,
      */
     for (FrameMap::Enum e(frames); !e.empty(); e.popFront()) {
         AbstractFramePtr frame = e.front().key();
-        NativeObject* frameobj = e.front().value();
+        DebuggerFrame* frameobj = e.front().value();
         if (frame.global() == global) {
-            DebuggerFrame_freeScriptFrameIterData(fop, frameobj);
+            frameobj->freeFrameIterData(fop);
             DebuggerFrame_maybeDecrementFrameScriptStepModeCount(fop, frame, frameobj);
             e.removeFront();
         }
@@ -6373,7 +6370,7 @@ Debugger::replaceFrameGuts(JSContext* cx, AbstractFramePtr from, AbstractFramePt
         Debugger* dbg = Debugger::fromChildJSObject(frameobj);
 
         // Update frame object's ScriptFrameIter::data pointer.
-        DebuggerFrame_freeScriptFrameIterData(cx->runtime()->defaultFreeOp(), frameobj);
+        frameobj->freeFrameIterData(cx->runtime()->defaultFreeOp());
         ScriptFrameIter::Data* data = iter.copyData();
         if (!data) {
             // An OOM here means that some Debuggers' frame maps may still
@@ -6402,7 +6399,7 @@ Debugger::replaceFrameGuts(JSContext* cx, AbstractFramePtr from, AbstractFramePt
             // Debugger's frame map, so it will not be cleaned up by neither
             // lambda. Manually clean it up here.
             FreeOp* fop = cx->runtime()->defaultFreeOp();
-            DebuggerFrame_freeScriptFrameIterData(fop, frameobj);
+            frameobj->freeFrameIterData(fop);
             DebuggerFrame_maybeDecrementFrameScriptStepModeCount(fop, to, frameobj);
 
             ReportOutOfMemory(cx);
@@ -6420,18 +6417,18 @@ Debugger::replaceFrameGuts(JSContext* cx, AbstractFramePtr from, AbstractFramePt
 Debugger::inFrameMaps(AbstractFramePtr frame)
 {
     bool foundAny = false;
-    forEachDebuggerFrame(frame, [&](NativeObject* frameobj) { foundAny = true; });
+    forEachDebuggerFrame(frame, [&](DebuggerFrame* frameobj) { foundAny = true; });
     return foundAny;
 }
 
 /* static */ void
 Debugger::removeFromFrameMapsAndClearBreakpointsIn(JSContext* cx, AbstractFramePtr frame)
 {
-    forEachDebuggerFrame(frame, [&](NativeObject* frameobj) {
+    forEachDebuggerFrame(frame, [&](DebuggerFrame* frameobj) {
         Debugger* dbg = Debugger::fromChildJSObject(frameobj);
 
         FreeOp* fop = cx->runtime()->defaultFreeOp();
-        DebuggerFrame_freeScriptFrameIterData(fop, frameobj);
+        frameobj->freeFrameIterData(fop);
         DebuggerFrame_maybeDecrementFrameScriptStepModeCount(fop, frame, frameobj);
 
         dbg->frames.remove(frame);
@@ -8062,13 +8059,12 @@ DebuggerFrame::requireScriptReferent(JSContext* cx, HandleDebuggerFrame frame)
     return true;
 }
 
-static void
-DebuggerFrame_freeScriptFrameIterData(FreeOp* fop, JSObject* obj)
+void
+DebuggerFrame::freeFrameIterData(FreeOp* fop)
 {
-    DebuggerFrame& frame = obj->as<DebuggerFrame>();
-    if (FrameIter::Data* data = frame.frameIterData()) {
+    if (FrameIter::Data* data = frameIterData()) {
         fop->delete_(data);
-        frame.setPrivate(nullptr);
+        setPrivate(nullptr);
     }
 }
 
@@ -8091,11 +8087,12 @@ static void
 DebuggerFrame_finalize(FreeOp* fop, JSObject* obj)
 {
     MOZ_ASSERT(fop->maybeOnHelperThread());
-    DebuggerFrame_freeScriptFrameIterData(fop, obj);
-    OnStepHandler* onStepHandler = obj->as<DebuggerFrame>().onStepHandler();
+    DebuggerFrame& frameobj = obj->as<DebuggerFrame>();
+    frameobj.freeFrameIterData(fop);
+    OnStepHandler* onStepHandler = frameobj.onStepHandler();
     if (onStepHandler)
         onStepHandler->drop();
-    OnPopHandler* onPopHandler = obj->as<DebuggerFrame>().onPopHandler();
+    OnPopHandler* onPopHandler = frameobj.onPopHandler();
     if (onPopHandler)
         onPopHandler->drop();
 }
