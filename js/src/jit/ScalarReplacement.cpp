@@ -74,10 +74,16 @@ EmulateStateOf<MemoryView>::run(MemoryView& view)
             // Increment the iterator before visiting the instruction, as the
             // visit function might discard itself from the basic block.
             MNode* ins = *iter++;
-            if (ins->isDefinition())
-                ins->toDefinition()->accept(&view);
-            else
+            if (ins->isDefinition()) {
+                MDefinition* def = ins->toDefinition();
+                switch (def->op()) {
+#define MIR_OP(op) case MDefinition::Opcode::op: view.visit##op(def->to##op()); break;
+    MIR_OPCODE_LIST(MIR_OP)
+#undef MIR_OP
+                }
+            } else {
                 view.visitResumePoint(ins->toResumePoint());
+            }
             if (view.oom())
                 return false;
         }

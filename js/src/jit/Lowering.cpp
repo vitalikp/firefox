@@ -9,6 +9,8 @@
 #include "mozilla/DebugOnly.h"
 #include "mozilla/EndianUtils.h"
 
+#include <type_traits>
+
 #include "jit/JitSpewer.h"
 #include "jit/LIR.h"
 #include "jit/MIR.h"
@@ -5178,6 +5180,24 @@ SpewResumePoint(MBasicBlock* block, MInstruction* ins, MResumePoint* resumePoint
     }
 }
 
+void
+LIRGenerator::visitInstructionDispatch(MInstruction* ins)
+{
+    switch (ins->op()) {
+#define MIR_OP(op) case MDefinition::Opcode::op: visit##op(ins->to##op()); break;
+    MIR_OPCODE_LIST(MIR_OP)
+#undef MIR_OP
+      default:
+        MOZ_CRASH("Invalid instruction");
+    }
+}
+
+void
+LIRGeneratorShared::visitEmittedAtUses(MInstruction* ins)
+{
+    static_cast<LIRGenerator*>(this)->visitInstructionDispatch(ins);
+}
+
 bool
 LIRGenerator::visitInstruction(MInstruction* ins)
 {
@@ -5188,7 +5208,7 @@ LIRGenerator::visitInstruction(MInstruction* ins)
 
     if (!gen->ensureBallast())
         return false;
-    ins->accept(this);
+    visitInstructionDispatch(ins);
 
     if (ins->possiblyCalls()) {
         gen->setNeedsStaticStackAlignment();
@@ -5386,3 +5406,6 @@ LIRGenerator::visitUnknownValue(MUnknownValue* ins)
 {
     MOZ_CRASH("Can not lower unknown value.");
 }
+
+static_assert(!std::is_polymorphic<LIRGenerator>::value,
+              "LIRGenerator should not have any virtual methods");

@@ -32,7 +32,7 @@
 namespace js {
 namespace jit {
 
-class LIRGenerator : public LIRGeneratorSpecific
+class LIRGenerator final : public LIRGeneratorSpecific
 {
     void updateResumeState(MInstruction* ins);
     void updateResumeState(MBasicBlock* block);
@@ -67,6 +67,7 @@ class LIRGenerator : public LIRGeneratorSpecific
     LInstruction* lowerWasmCall(MWasmCall* ins, bool needsBoundsCheck);
 
   public:
+    void visitInstructionDispatch(MInstruction* ins);
     MOZ_MUST_USE bool visitInstruction(MInstruction* ins);
     MOZ_MUST_USE bool visitBlock(MBasicBlock* block);
 
