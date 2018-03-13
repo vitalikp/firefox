@@ -340,7 +340,7 @@ LNode::printName(GenericPrinter& out, Opcode op)
         LIR_OPCODE_LIST(LIROP)
 #undef LIROP
     };
-    const char* name = names[op];
+    const char* name = names[uint32_t(op)];
     size_t len = strlen(name);
     for (size_t i = 0; i < len; i++)
         out.printf("%c", tolower(name[i]));
@@ -543,7 +543,7 @@ NumSuccessors(const LInstruction* ins)
 {
     switch (ins->op()) {
       default: MOZ_CRASH("Unexpected LIR op");
-# define LIROP(x) case LNode::LOp_##x: return NumSuccessorsHelper(ins->to##x());
+# define LIROP(x) case LNode::Opcode::x: return NumSuccessorsHelper(ins->to##x());
     LIR_OPCODE_LIST(LIROP)
 # undef LIROP
     }
@@ -569,7 +569,7 @@ GetSuccessor(const LInstruction* ins, size_t i)
 
     switch (ins->op()) {
       default: MOZ_CRASH("Unexpected LIR op");
-# define LIROP(x) case LNode::LOp_##x: return GetSuccessorHelper(ins->to##x(), i);
+# define LIROP(x) case LNode::Opcode::x: return GetSuccessorHelper(ins->to##x(), i);
     LIR_OPCODE_LIST(LIROP)
 # undef LIROP
     }
@@ -636,7 +636,7 @@ LNode::getExtraName() const
 {
     switch (op()) {
       default: MOZ_CRASH("Unexpected LIR op");
-# define LIROP(x) case LNode::LOp_##x: return to##x()->extraName();
+# define LIROP(x) case LNode::Opcode::x: return to##x()->extraName();
     LIR_OPCODE_LIST(LIROP)
 # undef LIROP
     }
