@@ -70,20 +70,28 @@ CheckUsesAreFloat32Consumers(const MInstruction* ins)
     return allConsumerUses;
 }
 
-void
-MDefinition::PrintOpcodeName(GenericPrinter& out, MDefinition::Opcode op)
+#ifdef JS_JITSPEW
+static const char*
+OpcodeName(MDefinition::Opcode op)
 {
-    static const char * const names[] =
+    static const char* const names[] =
     {
 #define NAME(x) #x,
         MIR_OPCODE_LIST(NAME)
 #undef NAME
     };
-    const char* name = names[unsigned(op)];
+    return names[unsigned(op)];
+}
+
+void
+MDefinition::PrintOpcodeName(GenericPrinter& out, Opcode op)
+{
+    const char* name = OpcodeName(op);
     size_t len = strlen(name);
     for (size_t i = 0; i < len; i++)
         out.printf("%c", tolower(name[i]));
 }
+#endif
 
 static MConstant*
 EvaluateConstantOperands(TempAllocator& alloc, MBinaryInstruction* ins, bool* ptypeChange = nullptr)
@@ -219,12 +227,20 @@ EvaluateExactReciprocal(TempAllocator& alloc, MDiv* ins)
     return mul;
 }
 
+#ifdef JS_JITSPEW
+const char*
+MDefinition::opName() const
+{
+    return OpcodeName(op());
+}
+
 void
 MDefinition::printName(GenericPrinter& out) const
 {
     PrintOpcodeName(out, op());
     out.printf("%u", id());
 }
+#endif
 
 HashNumber
 MDefinition::valueHash() const
@@ -615,6 +631,7 @@ MTest::filtersUndefinedOrNull(bool trueBranch, MDefinition** subject, bool* filt
     *subject = nullptr;
 }
 
+#ifdef JS_JITSPEW
 void
 MDefinition::printOpcode(GenericPrinter& out) const
 {
@@ -679,6 +696,7 @@ MDefinition::dumpLocation() const
     dumpLocation(out);
     out.finish();
 }
+#endif
 
 #if defined(DEBUG) || defined(JS_JITSPEW)
 size_t
@@ -1105,6 +1123,7 @@ MConstant::congruentTo(const MDefinition* ins) const
     return ins->isConstant() && equals(ins->toConstant());
 }
 
+#ifdef JS_JITSPEW
 void
 MConstant::printOpcode(GenericPrinter& out) const
 {
@@ -1179,6 +1198,7 @@ MConstant::printOpcode(GenericPrinter& out) const
         MOZ_CRASH("unexpected type");
     }
 }
+#endif
 
 bool
 MConstant::canProduceFloat32() const
@@ -1758,6 +1778,7 @@ PrintOpcodeOperation(T* mir, GenericPrinter& out)
     out.printf(" (%s)", T::OperationName(mir->operation()));
 }
 
+#ifdef JS_JITSPEW
 void
 MSimdBinaryArith::printOpcode(GenericPrinter& out) const
 {
@@ -1864,6 +1885,7 @@ void MNearbyInt::printOpcode(GenericPrinter& out) const
     }
     out.printf(" %s", roundingModeStr);
 }
+#endif
 
 const char*
 MMathFunction::FunctionName(Function function)
@@ -1898,12 +1920,14 @@ MMathFunction::FunctionName(Function function)
     }
 }
 
+#ifdef JS_JITSPEW
 void
 MMathFunction::printOpcode(GenericPrinter& out) const
 {
     MDefinition::printOpcode(out);
     out.printf(" %s", FunctionName(function()));
 }
+#endif
 
 MDefinition*
 MMathFunction::foldsTo(TempAllocator& alloc)
@@ -2012,6 +2036,7 @@ MAtomicIsLockFree::foldsTo(TempAllocator& alloc)
 // TRIVIAL_NEW_WRAPPERS.
 const int32_t MParameter::THIS_SLOT;
 
+#ifdef JS_JITSPEW
 void
 MParameter::printOpcode(GenericPrinter& out) const
 {
@@ -2021,6 +2046,7 @@ MParameter::printOpcode(GenericPrinter& out) const
     else
         out.printf(" %d", index());
 }
+#endif
 
 HashNumber
 MParameter::valueHash() const
@@ -2272,6 +2298,7 @@ MGoto::New(TempAllocator& alloc)
     return new(alloc) MGoto(nullptr);
 }
 
+#ifdef JS_JITSPEW
 void
 MUnbox::printOpcode(GenericPrinter& out) const
 {
@@ -2297,6 +2324,7 @@ MUnbox::printOpcode(GenericPrinter& out) const
       default: break;
     }
 }
+#endif
 
 MDefinition*
 MUnbox::foldsTo(TempAllocator &alloc)
@@ -2322,6 +2350,7 @@ MUnbox::foldsTo(TempAllocator &alloc)
     return ins;
 }
 
+#ifdef JS_JITSPEW
 void
 MTypeBarrier::printOpcode(GenericPrinter& out) const
 {
@@ -2329,6 +2358,7 @@ MTypeBarrier::printOpcode(GenericPrinter& out) const
     out.printf(" ");
     getOperand(0)->printName(out);
 }
+#endif
 
 bool
 MTypeBarrier::congruentTo(const MDefinition* def) const
@@ -3156,6 +3186,7 @@ NeedNegativeZeroCheck(MDefinition* def)
     return false;
 }
 
+#ifdef JS_JITSPEW
 void
 MBinaryArithInstruction::printOpcode(GenericPrinter& out) const
 {
@@ -3188,6 +3219,7 @@ MBinaryArithInstruction::printOpcode(GenericPrinter& out) const
         break;
     }
 }
+#endif
 
 MBinaryArithInstruction*
 MBinaryArithInstruction::New(TempAllocator& alloc, Opcode op,
@@ -4236,6 +4268,7 @@ MResumePoint::addStore(TempAllocator& alloc, MDefinition* store, const MResumePo
     stores_.push(top);
 }
 
+#ifdef JS_JITSPEW
 void
 MResumePoint::dump(GenericPrinter& out) const
 {
@@ -4276,6 +4309,7 @@ MResumePoint::dump() const
     dump(out);
     out.finish();
 }
+#endif
 
 bool
 MResumePoint::isObservableOperand(MUse* u) const
@@ -4963,6 +4997,7 @@ MNot::trySpecializeFloat32(TempAllocator& alloc)
         ConvertDefinitionToDouble<0>(alloc, in, this);
 }
 
+#ifdef JS_JITSPEW
 void
 MBeta::printOpcode(GenericPrinter& out) const
 {
@@ -4971,6 +5006,7 @@ MBeta::printOpcode(GenericPrinter& out) const
     out.printf(" ");
     comparison_->dump(out);
 }
+#endif
 
 bool
 MCreateThisWithTemplate::canRecoverOnBailout() const
@@ -5440,6 +5476,7 @@ MLoadSlot::foldsTo(TempAllocator& alloc)
     return this;
 }
 
+#ifdef JS_JITSPEW
 void
 MLoadSlot::printOpcode(GenericPrinter& out) const
 {
@@ -5456,6 +5493,7 @@ MStoreSlot::printOpcode(GenericPrinter& out) const
     out.printf(" %d ", slot());
     getOperand(1)->printName(out);
 }
+#endif
 
 MDefinition*
 MFunctionEnvironment::foldsTo(TempAllocator& alloc)
