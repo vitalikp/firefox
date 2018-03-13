@@ -1272,7 +1272,7 @@ EventStateManager::IsRemoteTarget(nsIContent* target) {
 
   // <browser/iframe remote=true> from XUL
   if (target->IsAnyOfXULElements(nsGkAtoms::browser, nsGkAtoms::iframe) &&
-      target->AttrValueIs(kNameSpaceID_None, nsGkAtoms::Remote,
+      target->AttrValueIs(kNameSpaceID_None, nsGkAtoms::remote,
                           nsGkAtoms::_true, eIgnoreCase)) {
     return true;
   }

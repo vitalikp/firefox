@@ -195,7 +195,7 @@ nsAtom** const kAttributesHTML[] = {
   &nsGkAtoms::kind,
   &nsGkAtoms::label,
   &nsGkAtoms::lang,
-  &nsGkAtoms::list,
+  &nsGkAtoms::list_,
   &nsGkAtoms::longdesc,
   &nsGkAtoms::loop,
   &nsGkAtoms::low,
@@ -649,7 +649,7 @@ nsAtom** const kElementsMathML[] = {
    &nsGkAtoms::divide_, // divide
    &nsGkAtoms::domain_, // domain
    &nsGkAtoms::domainofapplication_, // domainofapplication
-   &nsGkAtoms::el_, // el
+   &nsGkAtoms::el, // el
    &nsGkAtoms::emptyset_, // emptyset
    &nsGkAtoms::eq_, // eq
    &nsGkAtoms::equivalent_, // equivalent
@@ -882,7 +882,7 @@ nsAtom** const kAttributesMathML[] = {
    &nsGkAtoms::number, // number
    &nsGkAtoms::open, // open
    &nsGkAtoms::order, // order
-   &nsGkAtoms::other_, // other
+   &nsGkAtoms::other, // other
    &nsGkAtoms::overflow, // overflow
    &nsGkAtoms::position, // position
    &nsGkAtoms::role, // role

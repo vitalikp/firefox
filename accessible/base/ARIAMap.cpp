@@ -294,7 +294,7 @@ static const nsRoleMapEntry sWAIRoleMaps[] =
     states::LINKED
   },
   { // list
-    &nsGkAtoms::list,
+    &nsGkAtoms::list_,
     roles::LIST,
     kUseMapRole,
     eNoValue,
@@ -631,7 +631,7 @@ static const nsRoleMapEntry sWAIRoleMaps[] =
     kNoReqStates
   },
   { // switch
-    &nsGkAtoms::_switch,
+    &nsGkAtoms::svgSwitch,
     roles::SWITCH,
     kUseMapRole,
     eNoValue,

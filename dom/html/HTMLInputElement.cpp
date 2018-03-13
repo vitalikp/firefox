@@ -1863,7 +1863,7 @@ nsGenericHTMLElement*
 HTMLInputElement::GetList() const
 {
   nsAutoString dataListId;
-  GetAttr(kNameSpaceID_None, nsGkAtoms::list, dataListId);
+  GetAttr(kNameSpaceID_None, nsGkAtoms::list_, dataListId);
   if (dataListId.IsEmpty()) {
     return nullptr;
   }
