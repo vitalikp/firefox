@@ -22,6 +22,7 @@
 # include <sys/mman.h>
 #endif
 
+#include "jsfriendapi.h"
 #include "jsmath.h"
 
 #include "builtin/Promise.h"
@@ -181,6 +182,7 @@ JSRuntime::JSRuntime(JSRuntime* parentRuntime)
     stackFormat_(parentRuntime ? js::StackFormat::Default
                                : js::StackFormat::SpiderMonkey)
 {
+    JS_COUNT_CTOR(JSRuntime);
     liveRuntimesCount++;
 
     /* Initialize infallibly first, so we can goto bad and JS_DestroyRuntime. */
@@ -191,6 +193,7 @@ JSRuntime::JSRuntime(JSRuntime* parentRuntime)
 
 JSRuntime::~JSRuntime()
 {
+    JS_COUNT_DTOR(JSRuntime);
     MOZ_ASSERT(!initialized_);
 
     DebugOnly<size_t> oldCount = liveRuntimesCount--;
