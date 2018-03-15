@@ -2452,7 +2452,7 @@ class MOZ_STACK_CLASS ModuleValidator
         asmJSMetadata_->srcLength = endBeforeCurly - asmJSMetadata_->srcStart;
 
         TokenPos pos(0, 0);
-        JS_ALWAYS_TRUE(tokenStream().peekTokenPos(&pos, TokenStreamShared::Operand));
+        MOZ_ALWAYS_TRUE(tokenStream().peekTokenPos(&pos, TokenStreamShared::Operand));
         uint32_t endAfterCurly = pos.end;
         asmJSMetadata_->srcLengthWithRightBrace = endAfterCurly - asmJSMetadata_->srcStart;
 
@@ -2665,7 +2665,7 @@ ExtractSimdValue(ModuleValidator& m, ParseNode* pn)
     MOZ_ASSERT(IsSimdLiteral(m, pn));
 
     SimdType type = SimdType::Count;
-    JS_ALWAYS_TRUE(IsSimdTuple(m, pn, &type));
+    MOZ_ALWAYS_TRUE(IsSimdTuple(m, pn, &type));
     MOZ_ASSERT(CallArgListLength(pn) == GetSimdLanes(type));
 
     ParseNode* arg = CallArgList(pn);
@@ -2676,7 +2676,7 @@ ExtractSimdValue(ModuleValidator& m, ParseNode* pn)
         int8_t val[16];
         for (size_t i = 0; i < 16; i++, arg = NextNode(arg)) {
             uint32_t u32 = 0;
-            JS_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
+            MOZ_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
             val[i] = int8_t(u32);
         }
         MOZ_ASSERT(arg == nullptr);
@@ -2689,7 +2689,7 @@ ExtractSimdValue(ModuleValidator& m, ParseNode* pn)
         int16_t val[8];
         for (size_t i = 0; i < 8; i++, arg = NextNode(arg)) {
             uint32_t u32 = 0;
-            JS_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
+            MOZ_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
             val[i] = int16_t(u32);
         }
         MOZ_ASSERT(arg == nullptr);
@@ -2702,7 +2702,7 @@ ExtractSimdValue(ModuleValidator& m, ParseNode* pn)
         int32_t val[4];
         for (size_t i = 0; i < 4; i++, arg = NextNode(arg)) {
             uint32_t u32 = 0;
-            JS_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
+            MOZ_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
             val[i] = int32_t(u32);
         }
         MOZ_ASSERT(arg == nullptr);
@@ -2722,7 +2722,7 @@ ExtractSimdValue(ModuleValidator& m, ParseNode* pn)
         int8_t val[16];
         for (size_t i = 0; i < 16; i++, arg = NextNode(arg)) {
             uint32_t u32 = 0;
-            JS_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
+            MOZ_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
             val[i] = u32 ? -1 : 0;
         }
         MOZ_ASSERT(arg == nullptr);
@@ -2733,7 +2733,7 @@ ExtractSimdValue(ModuleValidator& m, ParseNode* pn)
         int16_t val[8];
         for (size_t i = 0; i < 8; i++, arg = NextNode(arg)) {
             uint32_t u32 = 0;
-            JS_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
+            MOZ_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
             val[i] = u32 ? -1 : 0;
         }
         MOZ_ASSERT(arg == nullptr);
@@ -2744,7 +2744,7 @@ ExtractSimdValue(ModuleValidator& m, ParseNode* pn)
         int32_t val[4];
         for (size_t i = 0; i < 4; i++, arg = NextNode(arg)) {
             uint32_t u32 = 0;
-            JS_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
+            MOZ_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
             val[i] = u32 ? -1 : 0;
         }
         MOZ_ASSERT(arg == nullptr);
@@ -3106,7 +3106,7 @@ class MOZ_STACK_CLASS FunctionValidator
                breakableStack_.append(blockDepth_++);
     }
     bool popBreakableBlock() {
-        JS_ALWAYS_TRUE(breakableStack_.popCopy() == --blockDepth_);
+        MOZ_ALWAYS_TRUE(breakableStack_.popCopy() == --blockDepth_);
         return encoder().writeOp(Op::End);
     }
 
@@ -3136,7 +3136,7 @@ class MOZ_STACK_CLASS FunctionValidator
                continuableStack_.append(blockDepth_++);
     }
     bool popContinuableBlock() {
-        JS_ALWAYS_TRUE(continuableStack_.popCopy() == --blockDepth_);
+        MOZ_ALWAYS_TRUE(continuableStack_.popCopy() == --blockDepth_);
         return encoder().writeOp(Op::End);
     }
 
@@ -3149,8 +3149,8 @@ class MOZ_STACK_CLASS FunctionValidator
                continuableStack_.append(blockDepth_++);
     }
     bool popLoop() {
-        JS_ALWAYS_TRUE(continuableStack_.popCopy() == --blockDepth_);
-        JS_ALWAYS_TRUE(breakableStack_.popCopy() == --blockDepth_);
+        MOZ_ALWAYS_TRUE(continuableStack_.popCopy() == --blockDepth_);
+        MOZ_ALWAYS_TRUE(breakableStack_.popCopy() == --blockDepth_);
         return encoder().writeOp(Op::End) &&
                encoder().writeOp(Op::End);
     }
@@ -7844,7 +7844,7 @@ static bool
 ValidateSimdOperation(JSContext* cx, const AsmJSGlobal& global, HandleValue globalVal)
 {
     RootedValue v(cx);
-    JS_ALWAYS_TRUE(ValidateSimdType(cx, global, globalVal, &v));
+    MOZ_ALWAYS_TRUE(ValidateSimdType(cx, global, globalVal, &v));
 
     if (!GetDataProperty(cx, v, global.field(), &v))
         return false;
