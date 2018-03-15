@@ -12,6 +12,7 @@
 
 #include "mozilla/DebugOnly.h"
 #include "mozilla/MathAlgorithms.h"
+#include "mozilla/Maybe.h"
 #include "mozilla/MemoryReporting.h"
 #include "mozilla/PodOperations.h"
 #include "mozilla/ScopeExit.h"
@@ -66,6 +67,7 @@ using namespace js::gc;
 using namespace js::frontend;
 
 using mozilla::AsVariant;
+using mozilla::Maybe;
 using mozilla::PodCopy;
 using mozilla::PodZero;
 using mozilla::RotateLeft;

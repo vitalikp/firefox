@@ -12,6 +12,7 @@
 
 #include "mozilla/double-conversion.h"
 #include "mozilla/FloatingPoint.h"
+#include "mozilla/Maybe.h"
 #include "mozilla/PodOperations.h"
 #include "mozilla/RangedPtr.h"
 
@@ -40,6 +41,7 @@ using namespace js;
 
 using mozilla::Abs;
 using mozilla::ArrayLength;
+using mozilla::Maybe;
 using mozilla::MinNumberValue;
 using mozilla::NegativeInfinity;
 using mozilla::PodCopy;
