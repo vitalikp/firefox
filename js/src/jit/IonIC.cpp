@@ -20,10 +20,10 @@ using namespace js::jit;
 using mozilla::Maybe;
 
 void
-IonIC::updateBaseAddress(JitCode* code, MacroAssembler& masm)
+IonIC::updateBaseAddress(JitCode* code)
 {
-    fallbackLabel_.repoint(code, &masm);
-    rejoinLabel_.repoint(code, &masm);
+    fallbackLabel_.repoint(code);
+    rejoinLabel_.repoint(code);
 
     codeRaw_ = fallbackLabel_.raw();
 }
