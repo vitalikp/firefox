@@ -1154,19 +1154,23 @@ nsXPConnect::ReadFunction(nsIObjectInputStream* stream, JSContext* cx, JSObject*
 
 /* These are here to be callable from a debugger */
 extern "C" {
-JS_EXPORT_API(void) DumpJSStack()
+
+MOZ_EXPORT void
+DumpJSStack()
 {
     xpc_DumpJSStack(true, true, false);
 }
 
-JS_EXPORT_API(const char*) PrintJSStack()
+MOZ_EXPORT const char*
+PrintJSStack()
 {
     if (JSContext* cx = nsContentUtils::GetCurrentJSContext())
         return xpc_PrintJSStack(cx, true, true, false).release();
     return "There is no JSContext on the stack.\n";
 }
 
-JS_EXPORT_API(void) DumpCompleteHeap()
+MOZ_EXPORT void
+DumpCompleteHeap()
 {
     nsCOMPtr<nsICycleCollectorListener> listener =
       do_CreateInstance("@mozilla.org/cycle-collector-logger;1");
