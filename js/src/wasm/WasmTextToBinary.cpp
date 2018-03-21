@@ -116,6 +116,7 @@ class WasmToken
         Offset,
         OpenParen,
         Param,
+        RefNull,
         Result,
         Return,
         SetGlobal,
@@ -332,6 +333,7 @@ class WasmToken
           case Load:
           case Loop:
           case Nop:
+          case RefNull:
           case Return:
           case SetGlobal:
           case SetLocal:
@@ -889,6 +891,8 @@ WasmTokenStream::next()
             return WasmToken(WasmToken::Align, begin, cur_);
         if (consume(u"anyfunc"))
             return WasmToken(WasmToken::AnyFunc, begin, cur_);
+        if (consume(u"anyref"))
+            return WasmToken(WasmToken::ValueType, ValType::AnyRef, begin, cur_);
 #ifdef ENABLE_WASM_THREAD_OPS
         if (consume(u"atomic.wake"))
             return WasmToken(WasmToken::Wake, ThreadOp::Wake, begin, cur_);
@@ -1666,6 +1670,13 @@ WasmTokenStream::next()
             return WasmToken(WasmToken::Result, begin, cur_);
         if (consume(u"return"))
             return WasmToken(WasmToken::Return, begin, cur_);
+        if (consume(u"ref.")) {
+            if (consume(u"null"))
+                return WasmToken(WasmToken::RefNull, begin, cur_);
+            if (consume(u"is_null"))
+                return WasmToken(WasmToken::UnaryOpcode, Op::RefIsNull, begin, cur_);
+            break;
+        }
         break;
 
       case 's':
@@ -2935,6 +2946,19 @@ ParseGrowMemory(WasmParseContext& c, bool inParens)
 }
 
 static AstExpr*
+ParseRefNull(WasmParseContext& c)
+{
+    WasmToken token;
+    if (!c.ts.match(WasmToken::ValueType, &token, c.error))
+        return nullptr;
+    if (token.valueType() != ValType::AnyRef) {
+        c.ts.generateError(token, "only anyref is supported for nullref", c.error);
+        return nullptr;
+    }
+    return new(c.lifo) AstRefNull(ValType::AnyRef);
+}
+
+static AstExpr*
 ParseExprBody(WasmParseContext& c, WasmToken token, bool inParens)
 {
     if (!CheckRecursionLimitDontReport(c.stackLimit))
@@ -3010,6 +3034,8 @@ ParseExprBody(WasmParseContext& c, WasmToken token, bool inParens)
         return new(c.lifo) AstCurrentMemory();
       case WasmToken::GrowMemory:
         return ParseGrowMemory(c, inParens);
+      case WasmToken::RefNull:
+        return ParseRefNull(c);
       default:
         c.ts.generateError(token, c.error);
         return nullptr;
@@ -4327,6 +4353,7 @@ ResolveExpr(Resolver& r, AstExpr& expr)
       case AstExprKind::Pop:
       case AstExprKind::Unreachable:
       case AstExprKind::CurrentMemory:
+      case AstExprKind::RefNull:
         return true;
       case AstExprKind::Drop:
         return ResolveDropOperator(r, expr.as<AstDrop>());
@@ -4932,6 +4959,13 @@ EncodeWake(Encoder& e, AstWake& s)
 }
 
 static bool
+EncodeRefNull(Encoder& e, AstRefNull& s)
+{
+    return e.writeOp(Op::RefNull) &&
+           e.writeValType(s.refType());
+}
+
+static bool
 EncodeExpr(Encoder& e, AstExpr& expr)
 {
     switch (expr.kind()) {
@@ -4941,6 +4975,8 @@ EncodeExpr(Encoder& e, AstExpr& expr)
         return e.writeOp(Op::Nop);
       case AstExprKind::Unreachable:
         return e.writeOp(Op::Unreachable);
+      case AstExprKind::RefNull:
+        return EncodeRefNull(e, expr.as<AstRefNull>());
       case AstExprKind::BinaryOperator:
         return EncodeBinaryOperator(e, expr.as<AstBinaryOperator>());
       case AstExprKind::Block:
