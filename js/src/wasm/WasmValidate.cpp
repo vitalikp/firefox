@@ -1977,7 +1977,13 @@ wasm::Validate(JSContext* cx, const ShareableBytes& bytecode, UniqueChars* error
 {
     Decoder d(bytecode.bytes, 0, error);
 
-    ModuleEnvironment env(CompileMode::Once, Tier::Ion, DebugEnabled::False,
+#ifdef ENABLE_WASM_GC
+    HasGcTypes gcSupport = cx->options().wasmGc() ? HasGcTypes::True : HasGcTypes::False;
+#else
+    HasGcTypes gcSupport = HasGcTypes::False;
+#endif
+
+    ModuleEnvironment env(CompileMode::Once, Tier::Ion, DebugEnabled::False, gcSupport,
                           cx->compartment()->creationOptions().getSharedMemoryAndAtomicsEnabled()
                           ? Shareable::True
                           : Shareable::False);
