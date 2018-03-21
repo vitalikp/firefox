@@ -160,11 +160,6 @@ AutoGCRooter::trace(JSTracer* trc)
         return;
       }
 
-      case IONMASM: {
-        static_cast<js::jit::MacroAssembler::AutoRooter*>(this)->masm()->trace(trc);
-        return;
-      }
-
       case WRAPPER: {
         /*
          * We need to use TraceManuallyBarrieredEdge here because we trace

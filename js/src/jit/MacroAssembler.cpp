@@ -2715,7 +2715,6 @@ MacroAssembler::MacroAssembler(JSContext* cx)
 #endif
     emitProfilingInstrumentation_(false)
 {
-    constructRoot(cx);
     jitContext_.emplace(cx, (js::jit::TempAllocator*)nullptr);
     alloc_.emplace(cx);
     moveResolver_.setAllocator(*jitContext_->temp);
