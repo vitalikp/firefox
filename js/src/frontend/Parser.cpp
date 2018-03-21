@@ -4391,8 +4391,6 @@ GeneralParser<ParseHandler, CharT>::bindingInitializer(Node lhs, DeclarationKind
     if (!rhs)
         return null();
 
-    handler.checkAndSetIsDirectRHSAnonFunction(rhs);
-
     Node assign = handler.newAssignment(ParseNodeKind::Assign, lhs, rhs);
     if (!assign)
         return null();
@@ -4776,8 +4774,6 @@ GeneralParser<ParseHandler, CharT>::declarationPattern(DeclarationKind declKind,
     if (!init)
         return null();
 
-    handler.checkAndSetIsDirectRHSAnonFunction(init);
-
     return handler.newAssignment(ParseNodeKind::Assign, pattern, init);
 }
 
@@ -4800,8 +4796,6 @@ GeneralParser<ParseHandler, CharT>::initializerInNameDeclaration(Node binding,
                                   yieldHandling, TripledotProhibited);
     if (!initializer)
         return false;
-
-    handler.checkAndSetIsDirectRHSAnonFunction(initializer);
 
     if (forHeadKind && initialDeclaration) {
         bool isForIn, isForOf;
@@ -5764,8 +5758,6 @@ GeneralParser<ParseHandler, CharT>::exportDefaultAssignExpr(uint32_t begin)
     Node kid = assignExpr(InAllowed, YieldIsName, TripledotProhibited);
     if (!kid)
         return null();
-
-    handler.checkAndSetIsDirectRHSAnonFunction(kid);
 
     if (!matchOrInsertSemicolon())
         return null();
@@ -7190,8 +7182,6 @@ GeneralParser<ParseHandler, CharT>::classDefinition(YieldHandling yieldHandling,
         if (!fn)
             return null();
 
-        handler.checkAndSetIsDirectRHSAnonFunction(fn);
-
         AccessorType atype = ToAccessorType(propType);
         if (!handler.addClassMethodDefinition(classMethods, propName, fn, atype, isStatic))
             return null();
@@ -8161,9 +8151,6 @@ GeneralParser<ParseHandler, CharT>::assignExpr(InHandling inHandling, YieldHandl
     Node rhs = assignExpr(inHandling, yieldHandling, TripledotProhibited);
     if (!rhs)
         return null();
-
-    if (kind == ParseNodeKind::Assign)
-        handler.checkAndSetIsDirectRHSAnonFunction(rhs);
 
     return handler.newAssignment(kind, lhs, rhs);
 }
@@ -9438,16 +9425,11 @@ GeneralParser<ParseHandler, CharT>::objectLiteral(YieldHandling yieldHandling,
                 if (!propExpr)
                     return null();
 
-                handler.checkAndSetIsDirectRHSAnonFunction(propExpr);
-
                 if (!checkDestructuringAssignmentElement(propExpr, exprPos, &possibleErrorInner,
                                                          possibleError))
                 {
                     return null();
                 }
-
-                if (foldConstants && !FoldConstants(context, &propExpr, this))
-                    return null();
 
                 if (propAtom == context->names().proto) {
                     if (seenPrototypeMutation) {
@@ -9465,18 +9447,25 @@ GeneralParser<ParseHandler, CharT>::objectLiteral(YieldHandling yieldHandling,
                     }
                     seenPrototypeMutation = true;
 
-                    // Note: this occurs *only* if we observe TokenKind::Colon!  Only
-                    // __proto__: v mutates [[Prototype]].  Getters, setters,
-                    // method/generator definitions, computed property name
-                    // versions of all of these, and shorthands do not.
+                    if (foldConstants && !FoldConstants(context, &propExpr, this))
+                        return null();
+
+                    // This occurs *only* if we observe PropertyType::Normal!
+                    // Only |__proto__: v| mutates [[Prototype]]. Getters,
+                    // setters, method/generator definitions, computed
+                    // property name versions of all of these, and shorthands
+                    // do not.
                     if (!handler.addPrototypeMutation(literal, namePos.begin, propExpr))
                         return null();
                 } else {
-                    if (!handler.isConstant(propExpr))
-                        handler.setListFlag(literal, PNX_NONCONST);
-
-                    if (!handler.addPropertyDefinition(literal, propName, propExpr))
+                    Node propDef = handler.newPropertyDefinition(propName, propExpr);
+                    if (!propDef)
                         return null();
+
+                    if (foldConstants && !FoldConstants(context, &propDef, this))
+                        return null();
+
+                    handler.addPropertyDefinition(literal, propDef);
                 }
             } else if (propType == PropertyType::Shorthand) {
                 /*
@@ -9544,8 +9533,6 @@ GeneralParser<ParseHandler, CharT>::objectLiteral(YieldHandling yieldHandling,
                 if (!rhs)
                     return null();
 
-                handler.checkAndSetIsDirectRHSAnonFunction(rhs);
-
                 Node propExpr = handler.newAssignment(ParseNodeKind::Assign, lhs, rhs);
                 if (!propExpr)
                     return null();
@@ -9567,8 +9554,6 @@ GeneralParser<ParseHandler, CharT>::objectLiteral(YieldHandling yieldHandling,
                 Node fn = methodDefinition(namePos.begin, propType, funName);
                 if (!fn)
                     return null();
-
-                handler.checkAndSetIsDirectRHSAnonFunction(fn);
 
                 AccessorType atype = ToAccessorType(propType);
                 if (!handler.addObjectMethodDefinition(literal, propName, fn, atype))

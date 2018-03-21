@@ -5482,6 +5482,8 @@ bool
 BytecodeEmitter::setOrEmitSetFunName(ParseNode* maybeFun, HandleAtom name,
                                      FunctionPrefixKind prefixKind)
 {
+    MOZ_ASSERT(maybeFun->isDirectRHSAnonFunction());
+
     if (maybeFun->isKind(ParseNodeKind::Function)) {
         // Function doesn't have 'name' property at this point.
         // Set function's name at compile time.
@@ -5505,6 +5507,8 @@ BytecodeEmitter::setOrEmitSetFunName(ParseNode* maybeFun, HandleAtom name,
         return true;
     }
 
+    MOZ_ASSERT(maybeFun->isKind(ParseNodeKind::Class));
+
     uint32_t nameIndex;
     if (!makeAtomIndex(name, &nameIndex))
         return false;
@@ -5522,9 +5526,8 @@ BytecodeEmitter::emitInitializer(ParseNode* initializer, ParseNode* pattern)
     if (!emitTree(initializer))
         return false;
 
-    if (!pattern->isInParens() && pattern->isKind(ParseNodeKind::Name) &&
-        initializer->isDirectRHSAnonFunction())
-    {
+    if (initializer->isDirectRHSAnonFunction()) {
+        MOZ_ASSERT(!pattern->isInParens());
         RootedAtom name(cx, pattern->name());
         if (!setOrEmitSetFunName(initializer, name, FunctionPrefixKind::None))
             return false;
@@ -6276,7 +6279,9 @@ BytecodeEmitter::emitAssignment(ParseNode* lhs, ParseNodeKind pnk, ParseNode* rh
             if (!EmitAssignmentRhs(bce, rhs, emittedBindOp ? 2 : 1))
                 return false;
 
-            if (!lhs->isInParens() && op == JSOP_NOP && rhs && rhs->isDirectRHSAnonFunction()) {
+            if (rhs && rhs->isDirectRHSAnonFunction()) {
+                MOZ_ASSERT(!lhs->isInParens());
+                MOZ_ASSERT(op == JSOP_NOP);
                 RootedAtom name(bce->cx, lhs->name());
                 if (!bce->setOrEmitSetFunName(rhs, name, FunctionPrefixKind::None))
                     return false;
