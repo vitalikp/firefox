@@ -588,6 +588,19 @@ WasmSaturatingTruncationSupported(JSContext* cx, unsigned argc, Value* vp)
 }
 
 static bool
+WasmGcEnabled(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+#ifdef ENABLE_WASM_GC
+    bool isSupported = cx->options().wasmBaseline() && cx->options().wasmGc();
+#else
+    bool isSupported = false;
+#endif
+    args.rval().setBoolean(isSupported);
+    return true;
+}
+
+static bool
 WasmCompileMode(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
@@ -5225,6 +5238,10 @@ gc::ZealModeHelpText),
 "  'stable', 'best', 'baseline', or 'ion'; the default is 'stable'.  If the request\n"
 "  cannot be satisfied then null is returned.  If the request is 'ion' then block\n"
 "  until background compilation is complete."),
+
+    JS_FN_HELP("wasmGcEnabled", WasmGcEnabled, 1, 0,
+"wasmGcEnabled(bool)",
+"  Returns a boolean indicating whether the WebAssembly GC support is enabled."),
 
     JS_FN_HELP("isLazyFunction", IsLazyFunction, 1, 0,
 "isLazyFunction(fun)",
