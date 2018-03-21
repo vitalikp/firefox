@@ -941,7 +941,7 @@ static const VMFunction HandleDebugTrapInfo =
 JitCode*
 JitRuntime::generateDebugTrapHandler(JSContext* cx)
 {
-    MacroAssembler masm;
+    StackMacroAssembler masm;
 
     Register scratch1 = r0;
     Register scratch2 = r1;
