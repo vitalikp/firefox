@@ -7721,6 +7721,9 @@ ValidateGlobalVariable(JSContext* cx, const AsmJSGlobal& global, HandleValue imp
             *val = Val(simdConstant.asInt32x4());
             return true;
           }
+          case ValType::AnyRef: {
+            MOZ_CRASH("not available in asm.js");
+          }
           case ValType::InvalidCode:
             return false;
         }

@@ -220,6 +220,9 @@ class FunctionCompiler
               case ValType::F64:
                 ins = MConstant::New(alloc(), DoubleValue(0.0), MIRType::Double);
                 break;
+              case ValType::AnyRef:
+                MOZ_CRASH("ion support for anyref locale default value NYI");
+                break;
               case ValType::I8x16:
                 ins = MSimdConstant::New(alloc(), SimdConstant::SplatX16(0), MIRType::Int8x16);
                 break;
@@ -2973,6 +2976,7 @@ SimdToLaneType(ValType type)
       case ValType::I64:
       case ValType::F32:
       case ValType::F64:
+      case ValType::AnyRef:
       case ValType::InvalidCode:
         break;
     }
@@ -3254,6 +3258,7 @@ EmitSimdCtor(FunctionCompiler& f, ValType type)
       case ValType::I64:
       case ValType::F32:
       case ValType::F64:
+      case ValType::AnyRef:
       case ValType::InvalidCode:
         break;
     }
@@ -3968,6 +3973,11 @@ EmitBodyExprs(FunctionCompiler& f)
           case uint16_t(Op::F64ReinterpretI64):
             CHECK(EmitReinterpret(f, ValType::F64, ValType::I64, MIRType::Double));
 
+          // GC types are NYI in Ion.
+          case uint16_t(Op::RefNull):
+          case uint16_t(Op::RefIsNull):
+            return f.iter().unrecognizedOpcode(&op);
+
           // Sign extensions
 #ifdef ENABLE_WASM_SIGNEXTEND_OPS
           case uint16_t(Op::I32Extend8S):
@@ -4381,7 +4391,7 @@ wasm::IonCompileFunctions(const ModuleEnvironment& env, LifoAlloc& lifo,
         ValTypeVector locals;
         if (!locals.appendAll(env.funcSigs[func.index]->args()))
             return false;
-        if (!DecodeLocalEntries(d, env.kind, &locals))
+        if (!DecodeLocalEntries(d, env.kind, env.gcTypesEnabled, &locals))
             return false;
 
         // Set up for Ion compilation.

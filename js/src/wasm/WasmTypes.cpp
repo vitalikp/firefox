@@ -72,6 +72,9 @@ Val::writePayload(uint8_t* dst) const
       case ValType::B32x4:
         memcpy(dst, &u, jit::Simd128DataSize);
         return;
+      case ValType::AnyRef:
+        // TODO
+        MOZ_CRASH("writing imported value of AnyRef in global NYI");
       default:
         break;
     }
@@ -174,7 +177,7 @@ static const unsigned sTotalBits = sizeof(ImmediateType) * 8;
 static const unsigned sTagBits = 1;
 static const unsigned sReturnBit = 1;
 static const unsigned sLengthBits = 4;
-static const unsigned sTypeBits = 2;
+static const unsigned sTypeBits = 3;
 static const unsigned sMaxTypes = (sTotalBits - sTagBits - sReturnBit - sLengthBits) / sTypeBits;
 
 static bool
@@ -185,6 +188,7 @@ IsImmediateType(ValType vt)
       case ValType::I64:
       case ValType::F32:
       case ValType::F64:
+      case ValType::AnyRef:
         return true;
       case ValType::I8x16:
       case ValType::I16x8:
@@ -203,7 +207,7 @@ IsImmediateType(ValType vt)
 static unsigned
 EncodeImmediateType(ValType vt)
 {
-    static_assert(3 < (1 << sTypeBits), "fits");
+    static_assert(4 < (1 << sTypeBits), "fits");
     switch (vt) {
       case ValType::I32:
         return 0;
@@ -213,6 +217,8 @@ EncodeImmediateType(ValType vt)
         return 2;
       case ValType::F64:
         return 3;
+      case ValType::AnyRef:
+        return 4;
       case ValType::I8x16:
       case ValType::I16x8:
       case ValType::I32x4:
