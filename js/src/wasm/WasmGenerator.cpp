@@ -48,9 +48,7 @@ CompiledCode::swap(MacroAssembler& masm)
     callSites.swap(masm.callSites());
     callSiteTargets.swap(masm.callSiteTargets());
     trapSites.swap(masm.trapSites());
-    oldTrapSites.swap(masm.oldTrapSites());
     callFarJumps.swap(masm.callFarJumps());
-    oldTrapFarJumps.swap(masm.oldTrapFarJumps());
     symbolicAccesses.swap(masm.symbolicAccesses());
     codeLabels.swap(masm.codeLabels());
     return true;
@@ -75,7 +73,6 @@ ModuleGenerator::ModuleGenerator(const CompileArgs& args, ModuleEnvironment* env
     lifo_(GENERATOR_LIFO_DEFAULT_CHUNK_SIZE),
     masmAlloc_(&lifo_),
     masm_(masmAlloc_),
-    oldTrapCodeOffsets_(),
     debugTrapCodeOffset_(),
     lastPatchedCallSite_(0),
     startOfUnpatchedCallsites_(0),
@@ -86,7 +83,6 @@ ModuleGenerator::ModuleGenerator(const CompileArgs& args, ModuleEnvironment* env
     finishedFuncDefs_(false)
 {
     MOZ_ASSERT(IsCompilingWasm());
-    std::fill(oldTrapCodeOffsets_.begin(), oldTrapCodeOffsets_.end(), 0);
 }
 
 ModuleGenerator::~ModuleGenerator()
@@ -460,26 +456,6 @@ ModuleGenerator::linkCallSites()
             masm_.patchCall(callerOffset, p->value());
             break;
           }
-          case CallSiteDesc::OldTrapExit: {
-            if (!existingTrapFarJumps[target.trap()]) {
-                // See MacroAssembler::wasmEmitOldTrapOutOfLineCode for why we must
-                // reload the TLS register on this path.
-                Offsets offsets;
-                offsets.begin = masm_.currentOffset();
-                masm_.loadPtr(Address(FramePointer, offsetof(Frame, tls)), WasmTlsReg);
-                if (!oldTrapFarJumps_.emplaceBack(target.trap(), masm_.farJumpWithPatch()))
-                    return false;
-                offsets.end = masm_.currentOffset();
-                if (masm_.oom())
-                    return false;
-                if (!metadataTier_->codeRanges.emplaceBack(CodeRange::FarJumpIsland, offsets))
-                    return false;
-                existingTrapFarJumps[target.trap()] = Some(offsets.begin);
-            }
-
-            masm_.patchCall(callerOffset, *existingTrapFarJumps[target.trap()]);
-            break;
-          }
           case CallSiteDesc::Breakpoint:
           case CallSiteDesc::EnterFrame:
           case CallSiteDesc::LeaveFrame: {
@@ -530,10 +506,6 @@ ModuleGenerator::noteCodeRange(uint32_t codeRangeIndex, const CodeRange& codeRan
         break;
       case CodeRange::ImportInterpExit:
         metadataTier_->funcImports[codeRange.funcIndex()].initInterpExitOffset(codeRange.begin());
-        break;
-      case CodeRange::OldTrapExit:
-        MOZ_ASSERT(!oldTrapCodeOffsets_[codeRange.trap()]);
-        oldTrapCodeOffsets_[codeRange.trap()] = codeRange.begin();
         break;
       case CodeRange::DebugTrap:
         MOZ_ASSERT(!debugTrapCodeOffset_);
@@ -613,12 +585,6 @@ ModuleGenerator::linkCompiledCode(const CompiledCode& code)
         if (!AppendForEach(&metadataTier_->trapSites[trap], code.trapSites[trap], trapSiteOp))
             return false;
     }
-
-    MOZ_ASSERT(code.oldTrapSites.empty());
-
-    auto trapFarJumpOp = [=](uint32_t, OldTrapFarJump* tfj) { tfj->offsetBy(offsetInModule); };
-    if (!AppendForEach(&oldTrapFarJumps_, code.oldTrapFarJumps, trapFarJumpOp))
-        return false;
 
     auto callFarJumpOp = [=](uint32_t, CallFarJump* cfj) { cfj->offsetBy(offsetInModule); };
     if (!AppendForEach(&callFarJumps_, code.callFarJumps, callFarJumpOp))
@@ -821,9 +787,6 @@ ModuleGenerator::finishCode()
     for (CallFarJump far : callFarJumps_)
         masm_.patchFarJump(far.jump, funcCodeRange(far.funcIndex).funcNormalEntry());
 
-    for (OldTrapFarJump far : oldTrapFarJumps_)
-        masm_.patchFarJump(far.jump, oldTrapCodeOffsets_[far.trap]);
-
     for (CodeOffset farJump : debugTrapFarJumps_)
         masm_.patchFarJump(farJump, debugTrapCodeOffset_);
 
@@ -832,8 +795,6 @@ ModuleGenerator::finishCode()
     MOZ_ASSERT(masm_.callSites().empty());
     MOZ_ASSERT(masm_.callSiteTargets().empty());
     MOZ_ASSERT(masm_.trapSites().empty());
-    MOZ_ASSERT(masm_.oldTrapSites().empty());
-    MOZ_ASSERT(masm_.oldTrapFarJumps().empty());
     MOZ_ASSERT(masm_.callFarJumps().empty());
     MOZ_ASSERT(masm_.symbolicAccesses().empty());
     MOZ_ASSERT(masm_.codeLabels().empty());

@@ -827,7 +827,6 @@ CodeRange::CodeRange(Kind kind, CallableOffsets offsets)
     PodZero(&u);
 #ifdef DEBUG
     switch (kind_) {
-      case OldTrapExit:
       case DebugTrap:
       case BuiltinThunk:
         break;
@@ -866,17 +865,6 @@ CodeRange::CodeRange(uint32_t funcIndex, JitExitOffsets offsets)
     u.jitExit.beginToUntrustedFPEnd_ = offsets.untrustedFPEnd - begin_;
     MOZ_ASSERT(jitExitUntrustedFPStart() == offsets.untrustedFPStart);
     MOZ_ASSERT(jitExitUntrustedFPEnd() == offsets.untrustedFPEnd);
-}
-
-CodeRange::CodeRange(Trap trap, CallableOffsets offsets)
-  : begin_(offsets.begin),
-    ret_(offsets.ret),
-    end_(offsets.end),
-    kind_(OldTrapExit)
-{
-    MOZ_ASSERT(begin_ < ret_);
-    MOZ_ASSERT(ret_ < end_);
-    u.trap_ = trap;
 }
 
 CodeRange::CodeRange(uint32_t funcIndex, uint32_t funcLineOrBytecode, FuncOffsets offsets)

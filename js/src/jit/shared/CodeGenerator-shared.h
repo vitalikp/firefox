@@ -494,11 +494,6 @@ class CodeGeneratorShared : public LElementVisitor
     void jumpToBlock(MBasicBlock* mir, Assembler::Condition cond);
 #endif
 
-    template <class T>
-    wasm::OldTrapDesc oldTrap(T* mir, wasm::Trap trap) {
-        return wasm::OldTrapDesc(mir->bytecodeOffset(), trap, masm.framePushed());
-    }
-
   private:
     void generateInvalidateEpilogue();
 

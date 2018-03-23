@@ -514,7 +514,6 @@ class MacroAssemblerCompat : public vixl::MacroAssembler
     }
 
     using vixl::MacroAssembler::B;
-    void B(wasm::OldTrapDesc, Condition cond = Always);
 
     void convertDoubleToInt32(FloatRegister src, Register dest, Label* fail,
                               bool negativeZeroCheck = true)
@@ -688,9 +687,6 @@ class MacroAssemblerCompat : public vixl::MacroAssembler
     void jump(const Address& addr) {
         loadPtr(addr, ip0);
         Br(vixl::ip0);
-    }
-    void jump(wasm::OldTrapDesc target) {
-        B(target);
     }
 
     void align(int alignment) {
