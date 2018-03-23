@@ -331,10 +331,7 @@ ModuleSegment::initialize(Tier tier,
                           const Metadata& metadata,
                           const CodeRangeVector& codeRanges)
 {
-    MOZ_ASSERT(bytes_ == nullptr);
-    MOZ_ASSERT(linkData.outOfBoundsOffset);
-    MOZ_ASSERT(linkData.unalignedAccessOffset);
-    MOZ_ASSERT(linkData.trapOffset);
+    MOZ_ASSERT(!bytes_);
 
     tier_ = tier;
     bytes_ = Move(codeBytes);
@@ -522,8 +519,7 @@ CacheableChars::sizeOfExcludingThis(MallocSizeOf mallocSizeOf) const
 size_t
 MetadataTier::serializedSize() const
 {
-    return SerializedPodVectorSize(memoryAccesses) +
-           SerializedPodVectorSize(codeRanges) +
+    return SerializedPodVectorSize(codeRanges) +
            SerializedPodVectorSize(callSites) +
            trapSites.serializedSize() +
            SerializedVectorSize(funcImports) +
@@ -533,8 +529,7 @@ MetadataTier::serializedSize() const
 size_t
 MetadataTier::sizeOfExcludingThis(MallocSizeOf mallocSizeOf) const
 {
-    return memoryAccesses.sizeOfExcludingThis(mallocSizeOf) +
-           codeRanges.sizeOfExcludingThis(mallocSizeOf) +
+    return codeRanges.sizeOfExcludingThis(mallocSizeOf) +
            callSites.sizeOfExcludingThis(mallocSizeOf) +
            trapSites.sizeOfExcludingThis(mallocSizeOf) +
            SizeOfVectorExcludingThis(funcImports, mallocSizeOf) +
@@ -545,7 +540,6 @@ uint8_t*
 MetadataTier::serialize(uint8_t* cursor) const
 {
     MOZ_ASSERT(debugTrapFarJumpOffsets.empty() && debugFuncToCodeRange.empty());
-    cursor = SerializePodVector(cursor, memoryAccesses);
     cursor = SerializePodVector(cursor, codeRanges);
     cursor = SerializePodVector(cursor, callSites);
     cursor = trapSites.serialize(cursor);
@@ -557,7 +551,6 @@ MetadataTier::serialize(uint8_t* cursor) const
 /* static */ const uint8_t*
 MetadataTier::deserialize(const uint8_t* cursor)
 {
-    (cursor = DeserializePodVector(cursor, &memoryAccesses)) &&
     (cursor = DeserializePodVector(cursor, &codeRanges)) &&
     (cursor = DeserializePodVector(cursor, &callSites)) &&
     (cursor = trapSites.deserialize(cursor)) &&
@@ -702,7 +695,6 @@ LazyStubTier::createMany(const Uint32Vector& funcExportIndices, const CodeTier& 
     MOZ_ASSERT(masm.oldTrapSites().empty());
     MOZ_ASSERT(masm.oldTrapFarJumps().empty());
     MOZ_ASSERT(masm.callFarJumps().empty());
-    MOZ_ASSERT(masm.memoryAccesses().empty());
     MOZ_ASSERT(masm.symbolicAccesses().empty());
 
     if (masm.oom())
@@ -842,8 +834,6 @@ LazyStubTier::addSizeOfMisc(MallocSizeOf mallocSizeOf, size_t* code, size_t* dat
 bool
 MetadataTier::clone(const MetadataTier& src)
 {
-    if (!memoryAccesses.appendAll(src.memoryAccesses))
-        return false;
     if (!codeRanges.appendAll(src.codeRanges))
         return false;
     if (!callSites.appendAll(src.callSites))
@@ -1219,36 +1209,6 @@ Code::lookupFuncRange(void* pc) const
         const CodeRange* result = codeTier(t).lookupRange(pc);
         if (result && result->isFunction())
             return result;
-    }
-    return nullptr;
-}
-
-struct MemoryAccessOffset
-{
-    const MemoryAccessVector& accesses;
-    explicit MemoryAccessOffset(const MemoryAccessVector& accesses) : accesses(accesses) {}
-    uintptr_t operator[](size_t index) const {
-        return accesses[index].insnOffset();
-    }
-};
-
-const MemoryAccess*
-Code::lookupMemoryAccess(void* pc) const
-{
-    for (Tier t : tiers()) {
-        const MemoryAccessVector& memoryAccesses = metadata(t).memoryAccesses;
-
-        uint32_t target = ((uint8_t*)pc) - segment(t).base();
-        size_t lowerBound = 0;
-        size_t upperBound = memoryAccesses.length();
-
-        size_t match;
-        if (BinarySearch(MemoryAccessOffset(memoryAccesses), lowerBound, upperBound, target,
-                         &match))
-        {
-            MOZ_ASSERT(segment(t).containsCodePC(pc));
-            return &memoryAccesses[match];
-        }
     }
     return nullptr;
 }

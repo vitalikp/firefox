@@ -405,7 +405,7 @@ CodeGeneratorX64::wasmStore(const wasm::MemoryAccessDesc& access, const LAllocat
         const MConstant* mir = value->toConstant();
         Imm32 cst = Imm32(mir->type() == MIRType::Int32 ? mir->toInt32() : mir->toInt64());
 
-        size_t storeOffset = masm.size();
+        masm.append(access, masm.size());
         switch (access.type()) {
           case Scalar::Int8:
           case Scalar::Uint8:
@@ -430,7 +430,6 @@ CodeGeneratorX64::wasmStore(const wasm::MemoryAccessDesc& access, const LAllocat
           case Scalar::MaxTypedArrayViewType:
             MOZ_CRASH("unexpected array type");
         }
-        masm.append(access, storeOffset, masm.framePushed());
 
         masm.memoryBarrierAfter(access.sync());
     } else {
@@ -561,7 +560,6 @@ CodeGeneratorX64::visitWasmCompareExchangeHeap(LWasmCompareExchangeHeap* ins)
     BaseIndex srcAddr(HeapReg, ptr, TimesOne, mir->access().offset());
 
     if (accessType == Scalar::Int64) {
-        MOZ_ASSERT(!mir->access().isPlainAsmJS());
         masm.compareExchange64(Synchronization::Full(), srcAddr, Register64(oldval),
                                Register64(newval), ToOutRegister64(ins));
     } else {
@@ -584,7 +582,6 @@ CodeGeneratorX64::visitWasmAtomicExchangeHeap(LWasmAtomicExchangeHeap* ins)
     BaseIndex srcAddr(HeapReg, ptr, TimesOne, mir->access().offset());
 
     if (accessType == Scalar::Int64) {
-        MOZ_ASSERT(!mir->access().isPlainAsmJS());
         masm.atomicExchange64(Synchronization::Full(), srcAddr, Register64(value),
                               ToOutRegister64(ins));
     } else {
