@@ -2825,9 +2825,11 @@ TraceBufferedCells(TenuringTracer& mover, Arena* arena, ArenaCellSet* cells)
 }
 
 void
-js::gc::StoreBuffer::traceWholeCells(TenuringTracer& mover)
+js::gc::StoreBuffer::WholeCellBuffer::trace(StoreBuffer* owner, TenuringTracer& mover)
 {
-    for (ArenaCellSet* cells = bufferWholeCell; cells; cells = cells->next) {
+    MOZ_ASSERT(owner->isEnabled());
+
+    for (ArenaCellSet* cells = head_; cells; cells = cells->next) {
         cells->check();
 
         Arena* arena = cells->arena;
@@ -2849,7 +2851,7 @@ js::gc::StoreBuffer::traceWholeCells(TenuringTracer& mover)
         }
     }
 
-    bufferWholeCell = nullptr;
+    head_ = nullptr;
 }
 
 void
