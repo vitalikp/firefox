@@ -9254,14 +9254,6 @@ GeneralParser<ParseHandler, CharT>::arrayInitializer(YieldHandling yieldHandling
     return literal;
 }
 
-static JSAtom*
-DoubleToAtom(JSContext* cx, double value)
-{
-    // This is safe because doubles can not be moved.
-    Value tmp = DoubleValue(value);
-    return ToAtom<CanGC>(cx, HandleValue::fromMarkedLocation(&tmp));
-}
-
 template <class ParseHandler, typename CharT>
 typename ParseHandler::Node
 GeneralParser<ParseHandler, CharT>::propertyName(YieldHandling yieldHandling,
@@ -9319,7 +9311,7 @@ GeneralParser<ParseHandler, CharT>::propertyName(YieldHandling yieldHandling,
     Node propName;
     switch (ltok) {
       case TokenKind::Number:
-        propAtom.set(DoubleToAtom(context, anyChars.currentToken().number()));
+        propAtom.set(NumberToAtom(context, anyChars.currentToken().number()));
         if (!propAtom.get())
             return null();
         propName = newNumber(anyChars.currentToken());
@@ -9383,7 +9375,7 @@ GeneralParser<ParseHandler, CharT>::propertyName(YieldHandling yieldHandling,
 
             uint32_t index;
             if (propAtom->isIndex(&index)) {
-                propAtom.set(DoubleToAtom(context, index));
+                propAtom.set(NumberToAtom(context, index));
                 if (!propAtom.get())
                     return null();
                 return handler.newNumber(index, NoDecimal, pos());
@@ -9393,7 +9385,7 @@ GeneralParser<ParseHandler, CharT>::propertyName(YieldHandling yieldHandling,
         if (tt == TokenKind::Number) {
             tokenStream.consumeKnownToken(TokenKind::Number);
 
-            propAtom.set(DoubleToAtom(context, anyChars.currentToken().number()));
+            propAtom.set(NumberToAtom(context, anyChars.currentToken().number()));
             if (!propAtom.get())
                 return null();
             return newNumber(anyChars.currentToken());
