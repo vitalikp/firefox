@@ -41,7 +41,6 @@ class JS_FRIEND_API(TransitiveCompileOptions);
 class JS_PUBLIC_API(CompartmentOptions);
 
 struct RootingContext;
-class Value;
 struct Zone;
 
 namespace shadow {
