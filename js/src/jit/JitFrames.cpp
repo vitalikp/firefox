@@ -1077,7 +1077,7 @@ TraceIonJSFrame(JSTracer* trc, const JitFrameIterator& frame)
 
         if (v != Value::fromTagAndPayload(tag, rawPayload)) {
             // GC moved the value, replace the stored payload.
-            rawPayload = *v.payloadUIntPtr();
+            rawPayload = v.toNunboxPayload();
             WriteAllocation(frame, &payload, rawPayload);
         }
     }
@@ -1913,12 +1913,7 @@ SnapshotIterator::maybeRead(const RValueAllocation& a, MaybeReadFallback& fallba
 void
 SnapshotIterator::writeAllocationValuePayload(const RValueAllocation& alloc, const Value& v)
 {
-    uintptr_t payload = *v.payloadUIntPtr();
-#if defined(JS_PUNBOX64)
-    // Do not write back the tag, as this will trigger an assertion when we will
-    // reconstruct the JS Value while tracing again or when bailing out.
-    payload &= JSVAL_PAYLOAD_MASK;
-#endif
+    uintptr_t payload = uintptr_t(v.toGCThing());
 
     switch (alloc.mode()) {
       case RValueAllocation::CONSTANT:
