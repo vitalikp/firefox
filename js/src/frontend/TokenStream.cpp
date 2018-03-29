@@ -485,6 +485,15 @@ TokenStreamAnyChars::internalUpdateLineInfoForEOL(uint32_t lineStartOffset)
     return srcCoords.add(lineno, linebase);
 }
 
+void
+TokenStreamAnyChars::undoInternalUpdateLineInfoForEOL()
+{
+    MOZ_ASSERT(prevLinebase != size_t(-1)); // we should never get more than one EOL
+    linebase = prevLinebase;
+    prevLinebase = size_t(-1);
+    lineno--;
+}
+
 template<typename CharT, class AnyCharsAccess>
 MOZ_MUST_USE MOZ_ALWAYS_INLINE bool
 TokenStreamSpecific<CharT, AnyCharsAccess>::updateLineInfoForEOL()
@@ -556,15 +565,6 @@ GeneralTokenStreamChars<CharT, AnyCharsAccess>::getCharIgnoreEOL()
     return EOF;
 }
 
-void
-TokenStreamAnyChars::undoGetChar()
-{
-    MOZ_ASSERT(prevLinebase != size_t(-1)); // we should never get more than one EOL
-    linebase = prevLinebase;
-    prevLinebase = size_t(-1);
-    lineno--;
-}
-
 template<typename CharT, class AnyCharsAccess>
 void
 GeneralTokenStreamChars<CharT, AnyCharsAccess>::ungetChar(int32_t c)
@@ -584,7 +584,7 @@ GeneralTokenStreamChars<CharT, AnyCharsAccess>::ungetChar(int32_t c)
         if (!userbuf.atStart())
             userbuf.matchRawCharBackwards('\r');
 
-        anyCharsAccess().undoGetChar();
+        anyCharsAccess().undoInternalUpdateLineInfoForEOL();
     } else {
         MOZ_ASSERT(userbuf.peekRawChar() == c);
     }
