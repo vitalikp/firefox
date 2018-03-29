@@ -287,7 +287,7 @@ class Arena
      */
     uint8_t data[ArenaSize - ArenaHeaderSize];
 
-    void init(JS::Zone* zoneArg, AllocKind kind);
+    void init(JS::Zone* zoneArg, AllocKind kind, const AutoLockGC& lock);
 
     // Sets |firstFreeSpan| to the Arena's entire valid range, and
     // also sets the next span stored at |firstFreeSpan.last| as empty.
@@ -312,7 +312,7 @@ class Arena
     }
 
     // Return an allocated arena to its unallocated state.
-    inline void release();
+    inline void release(const AutoLockGC& lock);
 
     uintptr_t address() const {
         checkAddress();
