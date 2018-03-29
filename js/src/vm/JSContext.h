@@ -85,6 +85,11 @@ enum class ContextKind
     Background
 };
 
+#ifdef DEBUG
+bool
+CurrentThreadIsParseThread();
+#endif
+
 } /* namespace js */
 
 /*
@@ -106,7 +111,7 @@ struct JSContext : public JS::RootingContext,
     // System handle for the thread this context is associated with.
     js::WriteOnceData<size_t> threadNative_;
 
-    // The thread on which this context is running, if this is performing a parse task.
+    // The thread on which this context is running if this is not the main thread.
     js::ThreadLocalData<js::HelperThread*> helperThread_;
 
     js::ThreadLocalData<JS::ContextOptions> options_;
@@ -1184,6 +1189,7 @@ class MOZ_RAII AutoLockForExclusiveAccess
     JSRuntime* runtime;
 
     void init(JSRuntime* rt) {
+        MOZ_ASSERT(CurrentThreadCanAccessRuntime(rt) || CurrentThreadIsParseThread());
         runtime = rt;
         if (runtime->hasHelperThreadZones()) {
             runtime->exclusiveAccessLock.lock();
@@ -1225,6 +1231,7 @@ class MOZ_RAII AutoLockScriptData
   public:
     explicit AutoLockScriptData(JSRuntime* rt MOZ_GUARD_OBJECT_NOTIFIER_PARAM) {
         MOZ_GUARD_OBJECT_NOTIFIER_INIT;
+        MOZ_ASSERT(CurrentThreadCanAccessRuntime(rt) || CurrentThreadIsParseThread());
         runtime = rt;
         if (runtime->hasHelperThreadZones()) {
             runtime->scriptDataLock.lock();
