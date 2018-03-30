@@ -248,12 +248,6 @@ wasm::LookupCode(const void* pc, const CodeRange** cr /* = nullptr */)
     return found ? &found->code() : nullptr;
 }
 
-bool
-wasm::Init()
-{
-    return InitSignatureSet();
-}
-
 void
 wasm::ShutDown()
 {
@@ -263,7 +257,6 @@ wasm::ShutDown()
     if (JSRuntime::hasLiveRuntimes())
         return;
 
-    ReleaseSignatureSet();
     ReleaseBuiltinThunks();
     processCodeSegmentMap.freeAll();
 }
