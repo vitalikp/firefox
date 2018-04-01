@@ -2775,12 +2775,10 @@ ParserBase::newFunction(HandleAtom atom, FunctionSyntaxKind kind,
         allocKind = gc::AllocKind::FUNCTION_EXTENDED;
         break;
       case Getter:
-      case GetterNoExpressionClosure:
         flags = JSFunction::INTERPRETED_GETTER;
         allocKind = gc::AllocKind::FUNCTION_EXTENDED;
         break;
       case Setter:
-      case SetterNoExpressionClosure:
         flags = JSFunction::INTERPRETED_SETTER;
         allocKind = gc::AllocKind::FUNCTION_EXTENDED;
         break;
@@ -2892,10 +2890,10 @@ JSAtom*
 ParserBase::prefixAccessorName(PropertyType propType, HandleAtom propAtom)
 {
     RootedAtom prefix(context);
-    if (propType == PropertyType::Setter || propType == PropertyType::SetterNoExpressionClosure) {
+    if (propType == PropertyType::Setter) {
         prefix = context->names().setPrefix;
     } else {
-        MOZ_ASSERT(propType == PropertyType::Getter || propType == PropertyType::GetterNoExpressionClosure);
+        MOZ_ASSERT(propType == PropertyType::Getter);
         prefix = context->names().getPrefix;
     }
 
@@ -2998,7 +2996,7 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
         bool disallowDuplicateParams = kind == Arrow || kind == Method || kind == ClassConstructor;
         AtomVector& positionalFormals = pc->positionalFormalParameterNames();
 
-        if (IsGetterKind(kind)) {
+        if (kind == Getter) {
             error(JSMSG_ACCESSOR_WRONG_ARGS, "getter", "no", "s");
             return false;
         }
@@ -3016,7 +3014,7 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
             MOZ_ASSERT_IF(parenFreeArrow, TokenKindIsPossibleIdentifier(tt));
 
             if (tt == TokenKind::TripleDot) {
-                if (IsSetterKind(kind)) {
+                if (kind == Setter) {
                     error(JSMSG_ACCESSOR_WRONG_ARGS, "setter", "one", "");
                     return false;
                 }
@@ -3143,7 +3141,7 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
             }
 
             // Setter syntax uniquely requires exactly one argument.
-            if (IsSetterKind(kind))
+            if (kind == Setter)
                 break;
 
             if (!tokenStream.matchToken(&matched, TokenKind::Comma, TokenStream::Operand))
@@ -3164,7 +3162,7 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
             if (!tokenStream.getToken(&tt, TokenStream::Operand))
                 return false;
             if (tt != TokenKind::Rp) {
-                if (IsSetterKind(kind)) {
+                if (kind == Setter) {
                     error(JSMSG_ACCESSOR_WRONG_ARGS, "setter", "one", "");
                     return false;
                 }
@@ -3181,7 +3179,7 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
             funbox->hasDirectEvalInParameterExpr = true;
 
         funbox->function()->setArgCount(positionalFormals.length());
-    } else if (IsSetterKind(kind)) {
+    } else if (kind == Setter) {
         error(JSMSG_ACCESSOR_WRONG_ARGS, "setter", "one", "");
         return false;
     }
@@ -7119,10 +7117,8 @@ ToAccessorType(PropertyType propType)
 {
     switch (propType) {
       case PropertyType::Getter:
-      case PropertyType::GetterNoExpressionClosure:
         return AccessorType::Getter;
       case PropertyType::Setter:
-      case PropertyType::SetterNoExpressionClosure:
         return AccessorType::Setter;
       case PropertyType::Normal:
       case PropertyType::Method:
@@ -7259,11 +7255,6 @@ GeneralParser<ParseHandler, CharT>::classDefinition(YieldHandling yieldHandling,
             return null();
         }
 
-        if (propType == PropertyType::Getter)
-            propType = PropertyType::GetterNoExpressionClosure;
-        if (propType == PropertyType::Setter)
-            propType = PropertyType::SetterNoExpressionClosure;
-
         bool isConstructor = !isStatic && propAtom == context->names().constructor;
         if (isConstructor) {
             if (propType != PropertyType::Method) {
@@ -7282,8 +7273,8 @@ GeneralParser<ParseHandler, CharT>::classDefinition(YieldHandling yieldHandling,
 
         RootedAtom funName(context);
         switch (propType) {
-          case PropertyType::GetterNoExpressionClosure:
-          case PropertyType::SetterNoExpressionClosure:
+          case PropertyType::Getter:
+          case PropertyType::Setter:
             if (!anyChars.isCurrentTokenType(TokenKind::Rb)) {
                 funName = prefixAccessorName(propType, propAtom);
                 if (!funName)
@@ -9711,16 +9702,8 @@ GeneralParser<ParseHandler, CharT>::methodDefinition(uint32_t toStringStart, Pro
         kind = Getter;
         break;
 
-      case PropertyType::GetterNoExpressionClosure:
-        kind = GetterNoExpressionClosure;
-        break;
-
       case PropertyType::Setter:
         kind = Setter;
-        break;
-
-      case PropertyType::SetterNoExpressionClosure:
-        kind = SetterNoExpressionClosure;
         break;
 
       case PropertyType::Method:
