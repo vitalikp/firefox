@@ -481,7 +481,7 @@ FunctionBox::FunctionBox(JSContext* cx, ObjectBox* traceListHead,
     usesThis(false),
     usesReturn(false),
     hasRest_(false),
-    isExprBody_(false),
+    hasExprBody_(false),
     hasExtensibleScope_(false),
     argumentsHasLocalBinding_(false),
     definitelyNeedsArgsObj_(false),
@@ -2458,8 +2458,6 @@ PerHandlerParser<SyntaxParseHandler>::finishFunction(bool isStandaloneFunction /
     lazy->setAsyncKind(funbox->asyncKind());
     if (funbox->hasRest())
         lazy->setHasRest();
-    if (funbox->isExprBody())
-        lazy->setIsExprBody();
     if (funbox->isLikelyConstructorWrapper())
         lazy->setLikelyConstructorWrapper();
     if (funbox->isDerivedClassConstructor())
@@ -3211,8 +3209,6 @@ Parser<FullParseHandler, CharT>::skipLazyInnerFunction(ParseNode* funcNode, uint
     LazyScript* lazy = fun->lazyScript();
     if (lazy->needsHomeObject())
         funbox->setNeedsHomeObject();
-    if (lazy->isExprBody())
-        funbox->setIsExprBody();
 
     PropagateTransitiveParseFlags(lazy, pc->sc());
 
@@ -3736,7 +3732,7 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
 
         anyChars.ungetToken();
         bodyType = ExpressionBody;
-        funbox->setIsExprBody();
+        funbox->setHasExprBody();
     } else {
         openedPos = pos().begin;
     }
