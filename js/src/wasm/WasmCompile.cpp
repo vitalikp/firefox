@@ -23,9 +23,9 @@
 
 #include "jit/ProcessExecutableMemory.h"
 #include "wasm/WasmBaselineCompile.h"
-#include "wasm/WasmBinaryIterator.h"
 #include "wasm/WasmGenerator.h"
 #include "wasm/WasmIonCompile.h"
+#include "wasm/WasmOpIter.h"
 #include "wasm/WasmSignalHandlers.h"
 #include "wasm/WasmValidate.h"
 
