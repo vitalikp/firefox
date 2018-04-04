@@ -94,7 +94,6 @@ JSCompartment::JSCompartment(Zone* zone, const JS::CompartmentOptions& options =
     iterResultTemplate_(nullptr),
     lcovOutput()
 {
-    PodArrayZero(sawDeprecatedLanguageExtension);
     runtime_->numCompartments++;
     MOZ_ASSERT_IF(creationOptions_.mergeable(),
                   creationOptions_.invisibleToDebugger());
@@ -102,8 +101,6 @@ JSCompartment::JSCompartment(Zone* zone, const JS::CompartmentOptions& options =
 
 JSCompartment::~JSCompartment()
 {
-    reportTelemetry();
-
     // Write the code coverage information in a file.
     JSRuntime* rt = runtimeFromActiveCooperatingThread();
     if (rt->lcovOutput().isEnabled())
@@ -1407,35 +1404,6 @@ JSCompartment::addSizeOfIncludingThis(mozilla::MallocSizeOf mallocSizeOf,
     auto callback = runtime_->sizeOfIncludingThisCompartmentCallback;
     if (callback)
         *privateData += callback(mallocSizeOf, this);
-}
-
-void
-JSCompartment::reportTelemetry()
-{
-    // Only report telemetry for web content, not add-ons or chrome JS.
-    if (creationOptions_.addonIdOrNull() || isSystem_)
-        return;
-
-    // Hazard analysis can't tell that the telemetry callbacks don't GC.
-    JS::AutoSuppressGCAnalysis nogc;
-
-    // Call back into Firefox's Telemetry reporter.
-    for (size_t i = 0; i < size_t(DeprecatedLanguageExtension::Count); i++) {
-        if (sawDeprecatedLanguageExtension[i])
-            runtime_->addTelemetry(JS_TELEMETRY_DEPRECATED_LANGUAGE_EXTENSIONS_IN_CONTENT, i);
-    }
-}
-
-void
-JSCompartment::addTelemetry(const char* filename, DeprecatedLanguageExtension e)
-{
-    // Only report telemetry for web content, not add-ons or chrome JS.
-    if (creationOptions_.addonIdOrNull() || isSystem_)
-        return;
-    if (!filename || strncmp(filename, "http", 4) != 0)
-        return;
-
-    sawDeprecatedLanguageExtension[size_t(e)] = true;
 }
 
 HashNumber
