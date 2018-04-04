@@ -2751,8 +2751,7 @@ ParserBase::newFunction(HandleAtom atom, FunctionSyntaxKind kind,
     bool isGlobalSelfHostedBuiltin = false;
 #endif
     switch (kind) {
-      case AssignmentExpression:
-      case PrimaryExpression:
+      case Expression:
         flags = (generatorKind == GeneratorKind::NotGenerator &&
                  asyncKind == FunctionAsyncKind::SyncFunction
                  ? JSFunction::INTERPRETED_LAMBDA
@@ -3753,7 +3752,7 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
     }
 
     // Revalidate the function name when we transitioned to strict mode.
-    if ((kind == Statement || IsFunctionExpression(kind)) &&
+    if ((kind == Statement || kind == Expression) &&
         fun->explicitName() &&
         !inheritedStrict &&
         pc->sc()->strict())
@@ -3763,7 +3762,7 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
 
         PropertyName* propertyName = fun->explicitName()->asPropertyName();
         YieldHandling nameYieldHandling;
-        if (IsFunctionExpression(kind)) {
+        if (kind == Expression) {
             // Named lambda has binding inside it.
             nameYieldHandling = bodyYieldHandling;
         } else {
@@ -3903,7 +3902,6 @@ GeneralParser<ParseHandler, CharT>::functionStmt(uint32_t toStringStart,
 template <class ParseHandler, typename CharT>
 typename ParseHandler::Node
 GeneralParser<ParseHandler, CharT>::functionExpr(uint32_t toStringStart,
-                                                 ExpressionClosure expressionClosureHandling,
                                                  InvokedPrediction invoked,
                                                  FunctionAsyncKind asyncKind)
 {
@@ -3939,12 +3937,8 @@ GeneralParser<ParseHandler, CharT>::functionExpr(uint32_t toStringStart,
     if (invoked)
         pn = handler.setLikelyIIFE(pn);
 
-    FunctionSyntaxKind kind = expressionClosureHandling == ExpressionClosure::Allowed
-                              ? AssignmentExpression
-                              : PrimaryExpression;
-
-    return functionDefinition(pn, toStringStart, InAllowed, yieldHandling, name, kind,
-                              generatorKind, asyncKind);
+    return functionDefinition(pn, toStringStart, InAllowed, yieldHandling, name,
+                              FunctionSyntaxKind::Expression, generatorKind, asyncKind);
 }
 
 /*
@@ -7196,8 +7190,7 @@ GeneralParser<ParseHandler, CharT>::classDefinition(YieldHandling yieldHandling,
     if (hasHeritage) {
         if (!tokenStream.getToken(&tt))
             return null();
-        classHeritage = memberExpr(yieldHandling, TripledotProhibited,
-                                   ExpressionClosure::Forbidden, tt);
+        classHeritage = memberExpr(yieldHandling, TripledotProhibited, tt);
         if (!classHeritage)
             return null();
     }
@@ -7934,7 +7927,6 @@ template <class ParseHandler, typename CharT>
 MOZ_ALWAYS_INLINE typename ParseHandler::Node
 GeneralParser<ParseHandler, CharT>::orExpr(InHandling inHandling, YieldHandling yieldHandling,
                                            TripledotHandling tripledotHandling,
-                                           ExpressionClosure expressionClosureHandling,
                                            PossibleError* possibleError,
                                            InvokedPrediction invoked /* = PredictUninvoked */)
 {
@@ -7948,12 +7940,9 @@ GeneralParser<ParseHandler, CharT>::orExpr(InHandling inHandling, YieldHandling 
     int depth = 0;
     Node pn;
     for (;;) {
-        pn = unaryExpr(yieldHandling, tripledotHandling, expressionClosureHandling, possibleError,
-                       invoked);
+        pn = unaryExpr(yieldHandling, tripledotHandling, possibleError, invoked);
         if (!pn)
             return null();
-
-        expressionClosureHandling = ExpressionClosure::Forbidden;
 
         // If a binary operator follows, consume it and compute the
         // corresponding operator.
@@ -8019,12 +8008,10 @@ template <class ParseHandler, typename CharT>
 MOZ_ALWAYS_INLINE typename ParseHandler::Node
 GeneralParser<ParseHandler, CharT>::condExpr(InHandling inHandling, YieldHandling yieldHandling,
                                              TripledotHandling tripledotHandling,
-                                             ExpressionClosure expressionClosureHandling,
                                              PossibleError* possibleError,
                                              InvokedPrediction invoked /* = PredictUninvoked */)
 {
-    Node condition = orExpr(inHandling, yieldHandling, tripledotHandling,
-                            expressionClosureHandling, possibleError, invoked);
+    Node condition = orExpr(inHandling, yieldHandling, tripledotHandling, possibleError, invoked);
     if (!condition)
         return null();
 
@@ -8151,8 +8138,7 @@ GeneralParser<ParseHandler, CharT>::assignExpr(InHandling inHandling, YieldHandl
 
         isArrow = true;
     } else {
-        lhs = condExpr(inHandling, yieldHandling, tripledotHandling, ExpressionClosure::Allowed,
-                       &possibleErrorInner, invoked);
+        lhs = condExpr(inHandling, yieldHandling, tripledotHandling, &possibleErrorInner, invoked);
         if (!lhs)
             return null();
 
@@ -8344,7 +8330,7 @@ typename ParseHandler::Node
 GeneralParser<ParseHandler, CharT>::unaryOpExpr(YieldHandling yieldHandling, ParseNodeKind kind,
                                                 uint32_t begin)
 {
-    Node kid = unaryExpr(yieldHandling, TripledotProhibited, ExpressionClosure::Forbidden);
+    Node kid = unaryExpr(yieldHandling, TripledotProhibited);
     if (!kid)
         return null();
     return handler.newUnary(kind, begin, kid);
@@ -8354,7 +8340,6 @@ template <class ParseHandler, typename CharT>
 typename ParseHandler::Node
 GeneralParser<ParseHandler, CharT>::unaryExpr(YieldHandling yieldHandling,
                                               TripledotHandling tripledotHandling,
-                                              ExpressionClosure expressionClosureHandling,
                                               PossibleError* possibleError /* = nullptr */,
                                               InvokedPrediction invoked /* = PredictUninvoked */)
 {
@@ -8389,7 +8374,7 @@ GeneralParser<ParseHandler, CharT>::unaryExpr(YieldHandling yieldHandling,
         //   // Evaluates expression, triggering a runtime ReferenceError for
         //   // the undefined name.
         //   typeof (1, nonExistentName);
-        Node kid = unaryExpr(yieldHandling, TripledotProhibited, ExpressionClosure::Forbidden);
+        Node kid = unaryExpr(yieldHandling, TripledotProhibited);
         if (!kid)
             return null();
 
@@ -8405,7 +8390,7 @@ GeneralParser<ParseHandler, CharT>::unaryExpr(YieldHandling yieldHandling,
 
         uint32_t operandOffset = pos().begin;
         Node operand =
-            memberExpr(yieldHandling, TripledotProhibited, ExpressionClosure::Forbidden, tt2);
+            memberExpr(yieldHandling, TripledotProhibited, tt2);
         if (!operand || !checkIncDecOperand(operand, operandOffset))
             return null();
         ParseNodeKind pnk = (tt == TokenKind::Inc)
@@ -8419,7 +8404,7 @@ GeneralParser<ParseHandler, CharT>::unaryExpr(YieldHandling yieldHandling,
         if (!tokenStream.peekOffset(&exprOffset, TokenStream::Operand))
             return null();
 
-        Node expr = unaryExpr(yieldHandling, TripledotProhibited, ExpressionClosure::Forbidden);
+        Node expr = unaryExpr(yieldHandling, TripledotProhibited);
         if (!expr)
             return null();
 
@@ -8437,8 +8422,7 @@ GeneralParser<ParseHandler, CharT>::unaryExpr(YieldHandling yieldHandling,
 
       case TokenKind::Await: {
         if (pc->isAsync()) {
-            Node kid = unaryExpr(yieldHandling, tripledotHandling, ExpressionClosure::Forbidden,
-                                 possibleError, invoked);
+            Node kid = unaryExpr(yieldHandling, tripledotHandling, possibleError, invoked);
             if (!kid)
                 return null();
             pc->lastAwaitOffset = begin;
@@ -8449,7 +8433,7 @@ GeneralParser<ParseHandler, CharT>::unaryExpr(YieldHandling yieldHandling,
         MOZ_FALLTHROUGH;
 
       default: {
-        Node expr = memberExpr(yieldHandling, tripledotHandling, expressionClosureHandling, tt,
+        Node expr = memberExpr(yieldHandling, tripledotHandling, tt,
                                /* allowCallSyntax = */ true, possibleError, invoked);
         if (!expr)
             return null();
@@ -8563,7 +8547,6 @@ template <class ParseHandler, typename CharT>
 typename ParseHandler::Node
 GeneralParser<ParseHandler, CharT>::memberExpr(YieldHandling yieldHandling,
                                                TripledotHandling tripledotHandling,
-                                               ExpressionClosure expressionClosureHandling,
                                                TokenKind tt, bool allowCallSyntax /* = true */,
                                                PossibleError* possibleError /* = nullptr */,
                                                InvokedPrediction invoked /* = PredictUninvoked */)
@@ -8587,8 +8570,7 @@ GeneralParser<ParseHandler, CharT>::memberExpr(YieldHandling yieldHandling,
         } else {
             // Gotten by tryNewTarget
             tt = anyChars.currentToken().type;
-            Node ctorExpr = memberExpr(yieldHandling, TripledotProhibited,
-                                       ExpressionClosure::Forbidden, tt,
+            Node ctorExpr = memberExpr(yieldHandling, TripledotProhibited, tt,
                                        /* allowCallSyntax = */ false,
                                        /* possibleError = */ nullptr, PredictInvoked);
             if (!ctorExpr)
@@ -8617,8 +8599,7 @@ GeneralParser<ParseHandler, CharT>::memberExpr(YieldHandling yieldHandling,
         if (!lhs)
             return null();
     } else {
-        lhs = primaryExpr(yieldHandling, tripledotHandling, expressionClosureHandling, tt,
-                          possibleError, invoked);
+        lhs = primaryExpr(yieldHandling, tripledotHandling, tt, possibleError, invoked);
         if (!lhs)
             return null();
     }
@@ -9793,7 +9774,6 @@ template <class ParseHandler, typename CharT>
 typename ParseHandler::Node
 GeneralParser<ParseHandler, CharT>::primaryExpr(YieldHandling yieldHandling,
                                                 TripledotHandling tripledotHandling,
-                                                ExpressionClosure expressionClosureHandling,
                                                 TokenKind tt, PossibleError* possibleError,
                                                 InvokedPrediction invoked /* = PredictUninvoked */)
 {
@@ -9803,8 +9783,7 @@ GeneralParser<ParseHandler, CharT>::primaryExpr(YieldHandling yieldHandling,
 
     switch (tt) {
       case TokenKind::Function:
-        return functionExpr(pos().begin, expressionClosureHandling, invoked,
-                            FunctionAsyncKind::SyncFunction);
+        return functionExpr(pos().begin, invoked, FunctionAsyncKind::SyncFunction);
 
       case TokenKind::Class:
         return classDefinition(yieldHandling, ClassExpression, NameRequired);
@@ -9869,8 +9848,7 @@ GeneralParser<ParseHandler, CharT>::primaryExpr(YieldHandling yieldHandling,
             if (nextSameLine == TokenKind::Function) {
                 uint32_t toStringStart = pos().begin;
                 tokenStream.consumeKnownToken(TokenKind::Function);
-                return functionExpr(toStringStart, expressionClosureHandling, PredictUninvoked,
-                                    FunctionAsyncKind::AsyncFunction);
+                return functionExpr(toStringStart, PredictUninvoked, FunctionAsyncKind::AsyncFunction);
             }
         }
 
