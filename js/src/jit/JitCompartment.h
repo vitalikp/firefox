@@ -64,6 +64,11 @@ class JitRuntime
     // Executable allocator for all code except wasm code.
     ActiveThreadData<ExecutableAllocator> execAlloc_;
 
+    ActiveThreadData<uint64_t> nextCompilationId_;
+#ifdef DEBUG
+    ActiveThreadData<mozilla::Maybe<IonCompilationId>> currentCompilationId_;
+#endif
+
     // Shared exception-handler tail.
     ExclusiveAccessLockWriteOnceData<uint32_t> exceptionTailOffset_;
 
@@ -181,6 +186,15 @@ class JitRuntime
     ExecutableAllocator& execAlloc() {
         return execAlloc_.ref();
     }
+
+    IonCompilationId nextCompilationId() {
+        return IonCompilationId(nextCompilationId_++);
+    }
+#ifdef DEBUG
+    mozilla::Maybe<IonCompilationId>& currentCompilationId() {
+        return currentCompilationId_.ref();
+    }
+#endif
 
     TrampolinePtr getVMWrapper(const VMFunction& f) const;
     JitCode* debugTrapHandler(JSContext* cx);
