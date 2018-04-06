@@ -538,12 +538,12 @@ FunctionBox::initWithEnclosingParseContext(ParseContext* enclosing, FunctionSynt
         allowNewTarget_ = true;
         allowSuperProperty_ = fun->allowSuperProperty();
 
-        if (kind == ClassConstructor || kind == DerivedClassConstructor) {
+        if (IsConstructorKind(kind)) {
             auto stmt = enclosing->findInnermostStatement<ParseContext::ClassStatement>();
             MOZ_ASSERT(stmt);
             stmt->constructorBox = this;
 
-            if (kind == DerivedClassConstructor) {
+            if (kind == FunctionSyntaxKind::DerivedClassConstructor) {
                 setDerivedClassConstructor();
                 allowSuperCall_ = true;
                 needsThisTDZChecks_ = true;
@@ -2555,7 +2555,7 @@ Parser<FullParseHandler, CharT>::standaloneFunction(HandleFunction fun,
     YieldHandling yieldHandling = GetYieldHandling(generatorKind);
     AwaitHandling awaitHandling = GetAwaitHandling(asyncKind);
     AutoAwaitIsKeyword<FullParseHandler, CharT> awaitIsKeyword(this, awaitHandling);
-    if (!functionFormalParametersAndBody(InAllowed, yieldHandling, &fn, Statement,
+    if (!functionFormalParametersAndBody(InAllowed, yieldHandling, &fn, FunctionSyntaxKind::Statement,
                                          parameterListEnd, /* isStandaloneFunction = */ true))
     {
         return null();
@@ -2709,7 +2709,7 @@ GeneralParser<ParseHandler, CharT>::functionBody(InHandling inHandling,
     }
 
     MOZ_ASSERT_IF(!pc->isGenerator() && !pc->isAsync(), pc->lastYieldOffset == startYieldOffset);
-    MOZ_ASSERT_IF(pc->isGenerator(), kind != Arrow);
+    MOZ_ASSERT_IF(pc->isGenerator(), kind != FunctionSyntaxKind::Arrow);
     MOZ_ASSERT_IF(pc->isGenerator(), type == StatementListBody);
 
     if (pc->needsDotGeneratorName()) {
@@ -2726,7 +2726,7 @@ GeneralParser<ParseHandler, CharT>::functionBody(InHandling inHandling,
     // Declare the 'arguments' and 'this' bindings if necessary before
     // finishing up the scope so these special bindings get marked as closed
     // over if necessary. Arrow functions don't have these bindings.
-    if (kind != Arrow) {
+    if (kind != FunctionSyntaxKind::Arrow) {
         if (!declareFunctionArgumentsObject())
             return null();
         if (!declareFunctionThis())
@@ -2741,7 +2741,7 @@ ParserBase::newFunction(HandleAtom atom, FunctionSyntaxKind kind,
                         GeneratorKind generatorKind, FunctionAsyncKind asyncKind,
                         HandleObject proto)
 {
-    MOZ_ASSERT_IF(kind == Statement, atom != nullptr);
+    MOZ_ASSERT_IF(kind == FunctionSyntaxKind::Statement, atom != nullptr);
 
     RootedFunction fun(context);
 
@@ -2751,38 +2751,38 @@ ParserBase::newFunction(HandleAtom atom, FunctionSyntaxKind kind,
     bool isGlobalSelfHostedBuiltin = false;
 #endif
     switch (kind) {
-      case Expression:
+      case FunctionSyntaxKind::Expression:
         flags = (generatorKind == GeneratorKind::NotGenerator &&
                  asyncKind == FunctionAsyncKind::SyncFunction
                  ? JSFunction::INTERPRETED_LAMBDA
                  : JSFunction::INTERPRETED_LAMBDA_GENERATOR_OR_ASYNC);
         break;
-      case Arrow:
+      case FunctionSyntaxKind::Arrow:
         flags = JSFunction::INTERPRETED_LAMBDA_ARROW;
         allocKind = gc::AllocKind::FUNCTION_EXTENDED;
         break;
-      case Method:
+      case FunctionSyntaxKind::Method:
         flags = (generatorKind == GeneratorKind::NotGenerator &&
                  asyncKind == FunctionAsyncKind::SyncFunction
                  ? JSFunction::INTERPRETED_METHOD
                  : JSFunction::INTERPRETED_METHOD_GENERATOR_OR_ASYNC);
         allocKind = gc::AllocKind::FUNCTION_EXTENDED;
         break;
-      case ClassConstructor:
-      case DerivedClassConstructor:
+      case FunctionSyntaxKind::ClassConstructor:
+      case FunctionSyntaxKind::DerivedClassConstructor:
         flags = JSFunction::INTERPRETED_CLASS_CONSTRUCTOR;
         allocKind = gc::AllocKind::FUNCTION_EXTENDED;
         break;
-      case Getter:
+      case FunctionSyntaxKind::Getter:
         flags = JSFunction::INTERPRETED_GETTER;
         allocKind = gc::AllocKind::FUNCTION_EXTENDED;
         break;
-      case Setter:
+      case FunctionSyntaxKind::Setter:
         flags = JSFunction::INTERPRETED_SETTER;
         allocKind = gc::AllocKind::FUNCTION_EXTENDED;
         break;
       default:
-        MOZ_ASSERT(kind == Statement);
+        MOZ_ASSERT(kind == FunctionSyntaxKind::Statement);
 #ifdef DEBUG
         if (options().selfHostingMode && !pc->isFunctionBox()) {
             isGlobalSelfHostedBuiltin = true;
@@ -2936,7 +2936,7 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
     //   async a => 1
     //         ^
     Modifier argModifier = TokenStream::Operand;
-    if (kind == Arrow) {
+    if (kind == FunctionSyntaxKind::Arrow) {
         TokenKind tt;
         // In async function, the first token after `async` is already gotten
         // with TokenStream::None.
@@ -2957,7 +2957,9 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
         if (!tokenStream.getToken(&tt, firstTokenModifier))
             return false;
         if (tt != TokenKind::Lp) {
-            error(kind == Arrow ? JSMSG_BAD_ARROW_ARGS : JSMSG_PAREN_BEFORE_FORMAL);
+            error(kind == FunctionSyntaxKind::Arrow
+                  ? JSMSG_BAD_ARROW_ARGS
+                  : JSMSG_PAREN_BEFORE_FORMAL);
             return false;
         }
 
@@ -2992,10 +2994,12 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
         bool hasRest = false;
         bool hasDefault = false;
         bool duplicatedParam = false;
-        bool disallowDuplicateParams = kind == Arrow || kind == Method || kind == ClassConstructor;
+        bool disallowDuplicateParams = kind == FunctionSyntaxKind::Arrow ||
+                                       kind == FunctionSyntaxKind::Method ||
+                                       kind == FunctionSyntaxKind::ClassConstructor;
         AtomVector& positionalFormals = pc->positionalFormalParameterNames();
 
-        if (kind == Getter) {
+        if (kind == FunctionSyntaxKind::Getter) {
             error(JSMSG_ACCESSOR_WRONG_ARGS, "getter", "no", "s");
             return false;
         }
@@ -3013,7 +3017,7 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
             MOZ_ASSERT_IF(parenFreeArrow, TokenKindIsPossibleIdentifier(tt));
 
             if (tt == TokenKind::TripleDot) {
-                if (kind == Setter) {
+                if (kind == FunctionSyntaxKind::Setter) {
                     error(JSMSG_ACCESSOR_WRONG_ARGS, "setter", "one", "");
                     return false;
                 }
@@ -3140,7 +3144,7 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
             }
 
             // Setter syntax uniquely requires exactly one argument.
-            if (kind == Setter)
+            if (kind == FunctionSyntaxKind::Setter)
                 break;
 
             if (!tokenStream.matchToken(&matched, TokenKind::Comma, TokenStream::Operand))
@@ -3161,7 +3165,7 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
             if (!tokenStream.getToken(&tt, TokenStream::Operand))
                 return false;
             if (tt != TokenKind::Rp) {
-                if (kind == Setter) {
+                if (kind == FunctionSyntaxKind::Setter) {
                     error(JSMSG_ACCESSOR_WRONG_ARGS, "setter", "one", "");
                     return false;
                 }
@@ -3178,7 +3182,7 @@ GeneralParser<ParseHandler, CharT>::functionArguments(YieldHandling yieldHandlin
             funbox->hasDirectEvalInParameterExpr = true;
 
         funbox->function()->setArgCount(positionalFormals.length());
-    } else if (kind == Setter) {
+    } else if (kind == FunctionSyntaxKind::Setter) {
         error(JSMSG_ACCESSOR_WRONG_ARGS, "setter", "one", "");
         return false;
     }
@@ -3317,7 +3321,7 @@ GeneralParser<ParseHandler, CharT>::functionDefinition(Node funcNode, uint32_t t
                                                        FunctionAsyncKind asyncKind,
                                                        bool tryAnnexB /* = false */)
 {
-    MOZ_ASSERT_IF(kind == Statement, funName);
+    MOZ_ASSERT_IF(kind == FunctionSyntaxKind::Statement, funName);
 
     // When fully parsing a LazyScript, we do not fully reparse its inner
     // functions, which are also lazy. Instead, their free variables and
@@ -3639,17 +3643,17 @@ Parser<FullParseHandler, CharT>::standaloneLazyFunction(HandleFunction fun, uint
         return null();
 
     YieldHandling yieldHandling = GetYieldHandling(generatorKind);
-    FunctionSyntaxKind syntaxKind = Statement;
+    FunctionSyntaxKind syntaxKind = FunctionSyntaxKind::Statement;
     if (fun->isClassConstructor())
-        syntaxKind = ClassConstructor;
+        syntaxKind = FunctionSyntaxKind::ClassConstructor;
     else if (fun->isMethod())
-        syntaxKind = Method;
+        syntaxKind = FunctionSyntaxKind::Method;
     else if (fun->isGetter())
-        syntaxKind = Getter;
+        syntaxKind = FunctionSyntaxKind::Getter;
     else if (fun->isSetter())
-        syntaxKind = Setter;
+        syntaxKind = FunctionSyntaxKind::Setter;
     else if (fun->isArrow())
-        syntaxKind = Arrow;
+        syntaxKind = FunctionSyntaxKind::Arrow;
 
     if (!functionFormalParametersAndBody(InAllowed, yieldHandling, &pn, syntaxKind)) {
         MOZ_ASSERT(directives == newDirectives);
@@ -3681,9 +3685,10 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
     // See below for an explanation why arrow function parameters and arrow
     // function bodies are parsed with different yield/await settings.
     {
-        AwaitHandling awaitHandling = funbox->isAsync() || (kind == Arrow && awaitIsKeyword())
-                                      ? AwaitIsKeyword
-                                      : AwaitIsName;
+        AwaitHandling awaitHandling =
+            (funbox->isAsync() || (kind == FunctionSyntaxKind::Arrow && awaitIsKeyword()))
+            ? AwaitIsKeyword
+            : AwaitIsName;
         AutoAwaitIsKeyword<ParseHandler, CharT> awaitIsKeyword(this, awaitHandling);
         if (!functionArguments(yieldHandling, kind, *pn))
             return false;
@@ -3698,7 +3703,7 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
         pc->functionScope().useAsVarScope(pc);
     }
 
-    if (kind == Arrow) {
+    if (kind == FunctionSyntaxKind::Arrow) {
         bool matched;
         if (!tokenStream.matchToken(&matched, TokenKind::Arrow))
             return false;
@@ -3722,7 +3727,7 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
         return false;
     uint32_t openedPos = 0;
     if (tt != TokenKind::Lc) {
-        if (kind != Arrow) {
+        if (kind != FunctionSyntaxKind::Arrow) {
             error(JSMSG_CURLY_BEFORE_BODY);
             return false;
         }
@@ -3752,7 +3757,7 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
     }
 
     // Revalidate the function name when we transitioned to strict mode.
-    if ((kind == Statement || kind == Expression) &&
+    if ((kind == FunctionSyntaxKind::Statement || kind == FunctionSyntaxKind::Expression) &&
         fun->explicitName() &&
         !inheritedStrict &&
         pc->sc()->strict())
@@ -3762,7 +3767,7 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
 
         PropertyName* propertyName = fun->explicitName()->asPropertyName();
         YieldHandling nameYieldHandling;
-        if (kind == Expression) {
+        if (kind == FunctionSyntaxKind::Expression) {
             // Named lambda has binding inside it.
             nameYieldHandling = bodyYieldHandling;
         } else {
@@ -3786,12 +3791,12 @@ GeneralParser<ParseHandler, CharT>::functionFormalParametersAndBody(InHandling i
                                                               JSMSG_CURLY_OPENED, openedPos));
         funbox->setEnd(anyChars);
     } else {
-        MOZ_ASSERT(kind == Arrow);
+        MOZ_ASSERT(kind == FunctionSyntaxKind::Arrow);
 
         if (anyChars.hadError())
             return false;
         funbox->setEnd(anyChars);
-        if (kind == Statement && !matchOrInsertSemicolon())
+        if (kind == FunctionSyntaxKind::Statement && !matchOrInsertSemicolon())
             return false;
     }
 
@@ -3895,8 +3900,8 @@ GeneralParser<ParseHandler, CharT>::functionStmt(uint32_t toStringStart,
     bool tryAnnexB = kind == DeclarationKind::SloppyLexicalFunction;
 
     YieldHandling newYieldHandling = GetYieldHandling(generatorKind);
-    return functionDefinition(pn, toStringStart, InAllowed, newYieldHandling, name, Statement,
-                              generatorKind, asyncKind, tryAnnexB);
+    return functionDefinition(pn, toStringStart, InAllowed, newYieldHandling, name,
+                              FunctionSyntaxKind::Statement, generatorKind, asyncKind, tryAnnexB);
 }
 
 template <class ParseHandler, typename CharT>
@@ -8182,8 +8187,9 @@ GeneralParser<ParseHandler, CharT>::assignExpr(InHandling inHandling, YieldHandl
         if (!pn)
             return null();
 
-        return functionDefinition(pn, toStringStart, inHandling, yieldHandling, nullptr, Arrow,
-                                  GeneratorKind::NotGenerator, asyncKind);
+        return functionDefinition(pn, toStringStart, inHandling, yieldHandling, nullptr,
+                                  FunctionSyntaxKind::Arrow, GeneratorKind::NotGenerator,
+                                  asyncKind);
     }
 
     MOZ_ALWAYS_TRUE(tokenStream.getToken(&tokenAfterLHS, TokenStream::Operand));
@@ -9680,26 +9686,26 @@ GeneralParser<ParseHandler, CharT>::methodDefinition(uint32_t toStringStart, Pro
     FunctionSyntaxKind kind;
     switch (propType) {
       case PropertyType::Getter:
-        kind = Getter;
+        kind = FunctionSyntaxKind::Getter;
         break;
 
       case PropertyType::Setter:
-        kind = Setter;
+        kind = FunctionSyntaxKind::Setter;
         break;
 
       case PropertyType::Method:
       case PropertyType::GeneratorMethod:
       case PropertyType::AsyncMethod:
       case PropertyType::AsyncGeneratorMethod:
-        kind = Method;
+        kind = FunctionSyntaxKind::Method;
         break;
 
       case PropertyType::Constructor:
-        kind = ClassConstructor;
+        kind = FunctionSyntaxKind::ClassConstructor;
         break;
 
       case PropertyType::DerivedConstructor:
-        kind = DerivedClassConstructor;
+        kind = FunctionSyntaxKind::DerivedClassConstructor;
         break;
 
       default:
