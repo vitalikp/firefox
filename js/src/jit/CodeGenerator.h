@@ -43,7 +43,6 @@ class OutOfLineTestObject;
 class OutOfLineNewArray;
 class OutOfLineNewObject;
 class CheckOverRecursedFailure;
-class OutOfLineInterruptCheckImplicit;
 class OutOfLineUnboxFloatingPoint;
 class OutOfLineStoreElementHole;
 class OutOfLineTypeOfV;
@@ -465,7 +464,6 @@ class CodeGenerator final : public CodeGeneratorSpecific
 #endif
 
     void visitInterruptCheck(LInterruptCheck* lir);
-    void visitOutOfLineInterruptCheckImplicit(OutOfLineInterruptCheckImplicit* ins);
     void visitWasmInterruptCheck(LWasmInterruptCheck* lir);
     void visitWasmTrap(LWasmTrap* lir);
     void visitWasmLoadTls(LWasmLoadTls* ins);
