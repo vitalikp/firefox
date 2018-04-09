@@ -1211,7 +1211,7 @@ class TypeCompilerConstraint : public TypeConstraint
     }
 
     bool sweep(TypeZone& zone, TypeConstraint** res) {
-        if (data.shouldSweep() || compilation.shouldSweep())
+        if (data.shouldSweep() || compilation.shouldSweep(zone))
             return false;
         *res = zone.typeLifoAlloc().new_<TypeCompilerConstraint<T> >(compilation, data);
         return true;
@@ -1420,7 +1420,7 @@ bool
 js::FinishCompilation(JSContext* cx, HandleScript script, CompilerConstraintList* constraints,
                       IonCompilationId compilationId, bool* isValidOut)
 {
-    MOZ_ASSERT(*cx->runtime()->jitRuntime()->currentCompilationId() == compilationId);
+    MOZ_ASSERT(*cx->zone()->types.currentCompilationId() == compilationId);
 
     if (constraints->failed())
         return false;
@@ -4383,7 +4383,7 @@ JSScript::maybeSweepTypes(AutoClearTypeInferenceStateOnOOM* oom)
         RecompileInfoVector& inlinedCompilations = types_->inlinedCompilations();
         size_t dest = 0;
         for (size_t i = 0; i < inlinedCompilations.length(); i++) {
-            if (inlinedCompilations[i].shouldSweep())
+            if (inlinedCompilations[i].shouldSweep(types))
                 continue;
             inlinedCompilations[dest] = inlinedCompilations[i];
             dest++;
@@ -4453,6 +4453,7 @@ Zone::addSizeOfIncludingThis(mozilla::MallocSizeOf mallocSizeOf,
 TypeZone::TypeZone(Zone* zone)
   : zone_(zone),
     typeLifoAlloc_(zone->group(), (size_t) TYPE_LIFO_ALLOC_PRIMARY_CHUNK_SIZE),
+    currentCompilationId_(zone->group()),
     generation(zone->group(), 0),
     sweepTypeLifoAlloc(zone->group(), (size_t) TYPE_LIFO_ALLOC_PRIMARY_CHUNK_SIZE),
     sweepReleaseTypes(zone->group(), false),
