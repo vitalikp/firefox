@@ -3362,8 +3362,7 @@ GeneralParser<ParseHandler, CharT>::functionDefinition(Node funcNode, uint32_t t
     Directives directives(pc);
     Directives newDirectives = directives;
 
-    Position start(keepAtoms);
-    tokenStream.tell(&start);
+    Position start(keepAtoms, tokenStream);
 
     // Parse the inner function. The following is a loop as we may attempt to
     // reparse a function due to failed syntax parsing and encountering new
@@ -3429,9 +3428,8 @@ Parser<FullParseHandler, CharT>::trySyntaxParseInnerFunction(ParseNode* funcNode
         UsedNameTracker::RewindToken token = usedNames.getRewindToken();
 
         // Move the syntax parser to the current position in the stream.
-        Position position(keepAtoms);
-        tokenStream.tell(&position);
-        if (!syntaxParser->tokenStream.seek(position, anyChars))
+        Position currentPosition(keepAtoms, tokenStream);
+        if (!syntaxParser->tokenStream.seek(currentPosition, anyChars))
             return false;
 
         // Make a FunctionBox before we enter the syntax parser, because |pn|
@@ -3461,8 +3459,8 @@ Parser<FullParseHandler, CharT>::trySyntaxParseInnerFunction(ParseNode* funcNode
         }
 
         // Advance this parser over tokens processed by the syntax parser.
-        syntaxParser->tokenStream.tell(&position);
-        if (!tokenStream.seek(position, syntaxParser->anyChars))
+        Position currentSyntaxPosition(keepAtoms, syntaxParser->tokenStream);
+        if (!tokenStream.seek(currentSyntaxPosition, syntaxParser->anyChars))
             return false;
 
         // Update the end position of the parse node.
@@ -8061,8 +8059,7 @@ GeneralParser<ParseHandler, CharT>::assignExpr(InHandling inHandling, YieldHandl
 
     // Save the tokenizer state in case we find an arrow function and have to
     // rewind.
-    Position start(keepAtoms);
-    tokenStream.tell(&start);
+    Position start(keepAtoms, tokenStream);
 
     PossibleError possibleErrorInner(*this);
     Node lhs = null();
