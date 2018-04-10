@@ -186,8 +186,7 @@ class AssemblerBuffer
 
   private:
     Slice* newSlice(LifoAlloc& a) {
-        // Clients of IonAssemblerBuffer can only handle a size up to INT_MAX.
-        if (size() + sizeof(Slice) > INT32_MAX) {
+        if (size() > MaxCodeBytesPerProcess - sizeof(Slice)) {
             fail_oom();
             return nullptr;
         }
@@ -278,6 +277,9 @@ class AssemblerBuffer
         if (tail)
             return bufferSize + tail->length();
         return bufferSize;
+    }
+    BufferOffset nextOffset() const {
+        return BufferOffset(size());
     }
 
     bool oom() const { return m_oom || m_bail; }
@@ -391,12 +393,6 @@ class AssemblerBuffer
         // second-to-last.
         Slice* prev = tail->getPrev();
         return getInstBackwards(off, prev, bufferSize - prev->length());
-    }
-
-    BufferOffset nextOffset() const {
-        if (tail)
-            return BufferOffset(bufferSize + tail->length());
-        return BufferOffset(bufferSize);
     }
 
     typedef AssemblerBuffer<SliceSize, Inst> ThisClass;
