@@ -304,6 +304,15 @@ struct RegI64 : public Register64
     static RegI64 Invalid() { return RegI64(Register64::Invalid()); }
 };
 
+struct RegPtr : public Register
+{
+    RegPtr() : Register(Register::Invalid()) {}
+    explicit RegPtr(Register reg) : Register(reg) {}
+    bool isValid() const { return *this != Invalid(); }
+    bool isInvalid() const { return !isValid(); }
+    static RegPtr Invalid() { return RegPtr(Register::Invalid()); }
+};
+
 struct RegF32 : public FloatRegister
 {
     RegF32() : FloatRegister() {}
@@ -324,10 +333,21 @@ struct RegF64 : public FloatRegister
 
 struct AnyReg
 {
+    union {
+        RegI32 i32_;
+        RegI64 i64_;
+        RegPtr ref_;
+        RegF32 f32_;
+        RegF64 f64_;
+    };
+
+    enum { I32, I64, REF, F32, F64 } tag;
+
     explicit AnyReg(RegI32 r) { tag = I32; i32_ = r; }
     explicit AnyReg(RegI64 r) { tag = I64; i64_ = r; }
     explicit AnyReg(RegF32 r) { tag = F32; f32_ = r; }
     explicit AnyReg(RegF64 r) { tag = F64; f64_ = r; }
+    explicit AnyReg(RegPtr r) { tag = REF; ref_ = r; }
 
     RegI32 i32() const {
         MOZ_ASSERT(tag == I32);
@@ -345,6 +365,11 @@ struct AnyReg
         MOZ_ASSERT(tag == F64);
         return f64_;
     }
+    RegPtr ref() const {
+        MOZ_ASSERT(tag == REF);
+        return ref_;
+    }
+
     AnyRegister any() const {
         switch (tag) {
           case F32: return AnyRegister(f32_);
@@ -360,20 +385,14 @@ struct AnyReg
             // only on 64-bit platforms.
             MOZ_CRASH("AnyReg::any() on 32-bit platform");
 #endif
+          case REF:
+            MOZ_CRASH("AnyReg::any() not implemented for ref types");
           default:
             MOZ_CRASH();
         }
         // Work around GCC 5 analysis/warning bug.
         MOZ_CRASH("AnyReg::any(): impossible case");
     }
-
-    union {
-        RegI32 i32_;
-        RegI64 i64_;
-        RegF32 f32_;
-        RegF64 f64_;
-    };
-    enum { I32, I64, F32, F64 } tag;
 };
 
 // Platform-specific registers.
@@ -699,6 +718,10 @@ class BaseRegAlloc
 #endif
     }
 
+    bool isAvailablePtr(RegPtr r) {
+        return isAvailableGPR(r);
+    }
+
     bool isAvailableF32(RegF32 r) {
         return isAvailableFPU(r);
     }
@@ -734,6 +757,18 @@ class BaseRegAlloc
         allocInt64(specific);
     }
 
+    MOZ_MUST_USE RegPtr needPtr() {
+        if (!hasGPR())
+            bc.sync();
+        return RegPtr(allocGPR());
+    }
+
+    void needPtr(RegPtr specific) {
+        if (!isAvailablePtr(specific))
+            bc.sync();
+        allocGPR(specific);
+    }
+
     MOZ_MUST_USE RegF32 needF32() {
         if (!hasFPU<MIRType::Float32>())
             bc.sync();
@@ -764,6 +799,10 @@ class BaseRegAlloc
 
     void freeI64(RegI64 r) {
         freeInt64(r);
+    }
+
+    void freePtr(RegPtr r) {
+        freeGPR(r);
     }
 
     void freeF64(RegF64 r) {
@@ -824,6 +863,10 @@ class BaseRegAlloc
 
         void addKnownF64(RegF64 r) {
             knownFPU_.add(r);
+        }
+
+        void addKnownRef(RegPtr r) {
+            knownGPR_.add(r);
         }
     };
 #endif
@@ -896,22 +939,27 @@ class ScratchF32 : public ScratchFloat32Scope
 #endif
 
 #ifdef RABALDR_SCRATCH_I32
-class ScratchI32 : public BaseScratchRegister
+template<class RegType>
+class ScratchGPR : public BaseScratchRegister
 {
   public:
-    explicit ScratchI32(BaseRegAlloc& ra)
+    explicit ScratchGPR(BaseRegAlloc& ra)
       : BaseScratchRegister(ra, BaseRegAlloc::ScratchKind::I32)
     {}
-    operator RegI32() const { return RegI32(RabaldrScratchI32); }
+    operator RegType() const { return RegType(RabaldrScratchI32); }
 };
 #else
-class ScratchI32 : public ScratchRegisterScope
+template<class RegType>
+class ScratchGPR : public ScratchRegisterScope
 {
   public:
-    explicit ScratchI32(MacroAssembler& m) : ScratchRegisterScope(m) {}
-    operator RegI32() const { return RegI32(Register(*this)); }
+    explicit ScratchGPR(MacroAssembler& m) : ScratchRegisterScope(m) {}
+    operator RegType() const { return RegType(Register(*this)); }
 };
 #endif
+
+using ScratchI32 = ScratchGPR<RegI32>;
+using ScratchPtr = ScratchGPR<RegPtr>;
 
 #if defined(JS_CODEGEN_X86)
 // ScratchEBX is a mnemonic device: For some atomic ops we really need EBX,
@@ -1018,6 +1066,7 @@ BaseLocalIter::settle()
           case MIRType::Int64:
           case MIRType::Double:
           case MIRType::Float32:
+          case MIRType::Pointer:
             if (argsIter_->argInRegister())
                 frameOffset_ = pushLocal(MIRTypeToSize(mirType_));
             else
@@ -1036,6 +1085,7 @@ BaseLocalIter::settle()
           case ValType::I64:
           case ValType::F32:
           case ValType::F64:
+          case ValType::AnyRef:
             mirType_ = ToMIRType(locals_[index_]);
             frameOffset_ = pushLocal(MIRTypeToSize(mirType_));
             break;
@@ -1544,7 +1594,7 @@ class BaseStackFrame final : public BaseStackFrameAllocator {
         masm.load64(Address(sp_, localOffset(src)), dest);
     }
 
-    void loadLocalPtr(const Local& src, Register dest) {
+    void loadLocalPtr(const Local& src, RegPtr dest) {
         masm.loadPtr(Address(sp_, localOffset(src)), dest);
     }
 
@@ -1708,7 +1758,7 @@ class BaseStackFrame final : public BaseStackFrameAllocator {
     // Disambiguation: this loads a "Ptr" value from the stack, it does not load
     // the "StackPtr".
 
-    void loadStackPtr(int32_t offset, Register dest) {
+    void loadStackPtr(int32_t offset, RegPtr dest) {
         masm.loadPtr(Address(sp_, stackOffset(offset)), dest);
     }
 
@@ -1983,6 +2033,7 @@ class BaseCompiler final : public BaseCompilerInterface
 
     RegI32 joinRegI32_;
     RegI64 joinRegI64_;
+    RegPtr joinRegPtr_;
     RegF32 joinRegF32_;
     RegF64 joinRegF64_;
 
@@ -2045,16 +2096,19 @@ class BaseCompiler final : public BaseCompilerInterface
 
     bool isAvailableI32(RegI32 r) { return ra.isAvailableI32(r); }
     bool isAvailableI64(RegI64 r) { return ra.isAvailableI64(r); }
+    bool isAvailableRef(RegPtr r) { return ra.isAvailablePtr(r); }
     bool isAvailableF32(RegF32 r) { return ra.isAvailableF32(r); }
     bool isAvailableF64(RegF64 r) { return ra.isAvailableF64(r); }
 
     MOZ_MUST_USE RegI32 needI32() { return ra.needI32(); }
     MOZ_MUST_USE RegI64 needI64() { return ra.needI64(); }
+    MOZ_MUST_USE RegPtr needRef() { return ra.needPtr(); }
     MOZ_MUST_USE RegF32 needF32() { return ra.needF32(); }
     MOZ_MUST_USE RegF64 needF64() { return ra.needF64(); }
 
     void needI32(RegI32 specific) { ra.needI32(specific); }
     void needI64(RegI64 specific) { ra.needI64(specific); }
+    void needRef(RegPtr specific) { ra.needPtr(specific); }
     void needF32(RegF32 specific) { ra.needF32(specific); }
     void needF64(RegF64 specific) { ra.needF64(specific); }
 
@@ -2064,6 +2118,7 @@ class BaseCompiler final : public BaseCompilerInterface
 
     void freeI32(RegI32 r) { ra.freeI32(r); }
     void freeI64(RegI64 r) { ra.freeI64(r); }
+    void freeRef(RegPtr r) { ra.freePtr(r); }
     void freeF32(RegF32 r) { ra.freeF32(r); }
     void freeF64(RegF64 r) { ra.freeF64(r); }
 
@@ -2139,6 +2194,10 @@ class BaseCompiler final : public BaseCompilerInterface
 #endif
     }
 
+    RegI32 narrowPtr(RegPtr r) {
+        return RegI32(r);
+    }
+
     RegI32 lowPart(RegI64 r) {
 #ifdef JS_PUNBOX64
         return RegI32(r.reg);
@@ -2171,6 +2230,11 @@ class BaseCompiler final : public BaseCompilerInterface
             masm.move64(src, dest);
     }
 
+    void moveRef(RegPtr src, RegPtr dest) {
+        if (src != dest)
+            masm.movePtr(src, dest);
+    }
+
     void moveF64(RegF64 src, RegF64 dest) {
         if (src != dest)
             masm.moveDouble(src, dest);
@@ -2186,6 +2250,8 @@ class BaseCompiler final : public BaseCompilerInterface
             needI32(joinRegI32_);
         else if (type == ExprType::I64)
             needI64(joinRegI64_);
+        else if (type == ExprType::AnyRef)
+            needRef(joinRegPtr_);
     }
 
     void maybeUnreserveJoinRegI(ExprType type) {
@@ -2193,6 +2259,8 @@ class BaseCompiler final : public BaseCompilerInterface
             freeI32(joinRegI32_);
         else if (type == ExprType::I64)
             freeI64(joinRegI64_);
+        else if (type == ExprType::AnyRef)
+            freeRef(joinRegPtr_);
     }
 
     void maybeReserveJoinReg(ExprType type) {
@@ -2208,6 +2276,9 @@ class BaseCompiler final : public BaseCompilerInterface
             break;
           case ExprType::F64:
             needF64(joinRegF64_);
+            break;
+          case ExprType::AnyRef:
+            needRef(joinRegPtr_);
             break;
           default:
             break;
@@ -2227,6 +2298,9 @@ class BaseCompiler final : public BaseCompilerInterface
             break;
           case ExprType::F64:
             freeF64(joinRegF64_);
+            break;
+          case ExprType::AnyRef:
+            freeRef(joinRegPtr_);
             break;
           default:
             break;
@@ -2248,6 +2322,10 @@ class BaseCompiler final : public BaseCompilerInterface
 
     struct Stk
     {
+      private:
+        Stk() : kind_(Unknown), i64val_(0) {}
+
+      public:
         enum Kind
         {
             // The Mem opcodes are all clustered at the beginning to
@@ -2256,6 +2334,7 @@ class BaseCompiler final : public BaseCompilerInterface
             MemI64,               // 64-bit integer stack value ("offs")
             MemF32,               // 32-bit floating stack value ("offs")
             MemF64,               // 64-bit floating stack value ("offs")
+            MemRef,               // reftype (pointer wide) stack value ("offs")
 
             // The Local opcodes follow the Mem opcodes for a similar
             // quick test within hasLocal().
@@ -2263,46 +2342,60 @@ class BaseCompiler final : public BaseCompilerInterface
             LocalI64,             // Local int64 var ("slot")
             LocalF32,             // Local float32 var ("slot")
             LocalF64,             // Local double var ("slot")
+            LocalRef,             // Local reftype (pointer wide) var ("slot")
 
             RegisterI32,          // 32-bit integer register ("i32reg")
             RegisterI64,          // 64-bit integer register ("i64reg")
             RegisterF32,          // 32-bit floating register ("f32reg")
             RegisterF64,          // 64-bit floating register ("f64reg")
+            RegisterRef,          // reftype (pointer wide) register ("refReg")
 
             ConstI32,             // 32-bit integer constant ("i32val")
             ConstI64,             // 64-bit integer constant ("i64val")
             ConstF32,             // 32-bit floating constant ("f32val")
             ConstF64,             // 64-bit floating constant ("f64val")
+            ConstRef,             // reftype (pointer wide) constant ("refval")
+
+            Unknown,
         };
 
         Kind kind_;
 
-        static const Kind MemLast = MemF64;
-        static const Kind LocalLast = LocalF64;
+        static const Kind MemLast = MemRef;
+        static const Kind LocalLast = LocalRef;
 
         union {
             RegI32   i32reg_;
             RegI64   i64reg_;
+            RegPtr   refReg_;
             RegF32   f32reg_;
             RegF64   f64reg_;
             int32_t  i32val_;
             int64_t  i64val_;
+            intptr_t refval_;
             float    f32val_;
             double   f64val_;
             uint32_t slot_;
             uint32_t offs_;
         };
 
-        explicit Stk(RegI32 r)  : kind_(RegisterI32), i32reg_(r) {}
-        explicit Stk(RegI64 r)  : kind_(RegisterI64), i64reg_(r) {}
-        explicit Stk(RegF32 r)  : kind_(RegisterF32), f32reg_(r) {}
-        explicit Stk(RegF64 r)  : kind_(RegisterF64), f64reg_(r) {}
-        explicit Stk(int32_t v) : kind_(ConstI32), i32val_(v) {}
-        explicit Stk(int64_t v) : kind_(ConstI64), i64val_(v) {}
-        explicit Stk(float v)   : kind_(ConstF32), f32val_(v) {}
-        explicit Stk(double v)  : kind_(ConstF64), f64val_(v) {}
+        explicit Stk(RegI32 r)   : kind_(RegisterI32), i32reg_(r) {}
+        explicit Stk(RegI64 r)   : kind_(RegisterI64), i64reg_(r) {}
+        explicit Stk(RegPtr r)   : kind_(RegisterRef), refReg_(r) {}
+        explicit Stk(RegF32 r)   : kind_(RegisterF32), f32reg_(r) {}
+        explicit Stk(RegF64 r)   : kind_(RegisterF64), f64reg_(r) {}
+        explicit Stk(int32_t v)  : kind_(ConstI32), i32val_(v) {}
+        explicit Stk(int64_t v)  : kind_(ConstI64), i64val_(v) {}
+        explicit Stk(float v)    : kind_(ConstF32), f32val_(v) {}
+        explicit Stk(double v)   : kind_(ConstF64), f64val_(v) {}
         explicit Stk(Kind k, uint32_t v) : kind_(k), slot_(v) {
             MOZ_ASSERT(k > MemLast && k <= LocalLast);
+        }
+        static Stk StkRef(intptr_t v) {
+            Stk s;
+            s.kind_ = ConstRef;
+            s.refval_ = v;
+            return s;
         }
 
         void setOffs(Kind k, uint32_t v) { MOZ_ASSERT(k <= MemLast); kind_ = k; offs_ = v; }
@@ -2312,11 +2405,13 @@ class BaseCompiler final : public BaseCompilerInterface
 
         RegI32   i32reg() const { MOZ_ASSERT(kind_ == RegisterI32); return i32reg_; }
         RegI64   i64reg() const { MOZ_ASSERT(kind_ == RegisterI64); return i64reg_; }
+        RegPtr   refReg() const { MOZ_ASSERT(kind_ == RegisterRef); return refReg_; }
         RegF32   f32reg() const { MOZ_ASSERT(kind_ == RegisterF32); return f32reg_; }
         RegF64   f64reg() const { MOZ_ASSERT(kind_ == RegisterF64); return f64reg_; }
 
         int32_t  i32val() const { MOZ_ASSERT(kind_ == ConstI32); return i32val_; }
         int64_t  i64val() const { MOZ_ASSERT(kind_ == ConstI64); return i64val_; }
+        intptr_t refval() const { MOZ_ASSERT(kind_ == ConstRef); return refval_; }
 
         // For these two, use an out-param instead of simply returning, to
         // use the normal stack and not the x87 FP stack (which has effect on
@@ -2334,6 +2429,10 @@ class BaseCompiler final : public BaseCompilerInterface
     template<typename... Args>
     void push(Args&&... args) {
         stk_.infallibleEmplaceBack(Stk(Forward<Args>(args)...));
+    }
+
+    void pushConstRef(intptr_t v) {
+        stk_.infallibleEmplaceBack(Stk::StkRef(v));
     }
 
     void loadConstI32(const Stk& src, RegI32 dest) {
@@ -2366,6 +2465,22 @@ class BaseCompiler final : public BaseCompilerInterface
 
     void loadRegisterI64(const Stk& src, RegI64 dest) {
         moveI64(src.i64reg(), dest);
+    }
+
+    void loadConstRef(const Stk& src, RegPtr dest) {
+        moveImmRef(src.refval(), dest);
+    }
+
+    void loadMemRef(const Stk& src, RegPtr dest) {
+        fr.loadStackPtr(src.offs(), dest);
+    }
+
+    void loadLocalRef(const Stk& src, RegPtr dest) {
+        fr.loadLocalPtr(localFromSlot(src.slot(), MIRType::Pointer), dest);
+    }
+
+    void loadRegisterRef(const Stk& src, RegPtr dest) {
+        moveRef(src.refReg(), dest);
     }
 
     void loadConstF64(const Stk& src, RegF64 dest) {
@@ -2520,6 +2635,25 @@ class BaseCompiler final : public BaseCompilerInterface
         }
     }
 
+    void loadRef(const Stk& src, RegPtr dest) {
+        switch (src.kind()) {
+          case Stk::ConstRef:
+            loadConstRef(src, dest);
+            break;
+          case Stk::MemRef:
+            loadMemRef(src, dest);
+            break;
+          case Stk::LocalRef:
+            loadLocalRef(src, dest);
+            break;
+          case Stk::RegisterRef:
+            loadRegisterRef(src, dest);
+            break;
+          default:
+            MOZ_CRASH("Compiler bug: expected ref on stack");
+        }
+    }
+
     // Flush all local and register value stack elements to memory.
     //
     // TODO / OPTIMIZE: As this is fairly expensive and causes worse
@@ -2622,6 +2756,19 @@ class BaseCompiler final : public BaseCompilerInterface
                 v.setOffs(Stk::MemF32, offs);
                 break;
               }
+              case Stk::LocalRef: {
+                ScratchPtr scratch(*this);
+                loadLocalRef(v, scratch);
+                uint32_t offs = fr.pushPtr(scratch);
+                v.setOffs(Stk::MemRef, offs);
+                break;
+              }
+              case Stk::RegisterRef: {
+                uint32_t offs = fr.pushPtr(v.refReg());
+                freeRef(v.refReg());
+                v.setOffs(Stk::MemRef, offs);
+                break;
+              }
               default: {
                 break;
               }
@@ -2665,6 +2812,11 @@ class BaseCompiler final : public BaseCompilerInterface
         push(r);
     }
 
+    void pushRef(RegPtr r) {
+        MOZ_ASSERT(!isAvailableRef(r));
+        push(r);
+    }
+
     void pushF64(RegF64 r) {
         MOZ_ASSERT(!isAvailableF64(r));
         push(r);
@@ -2685,6 +2837,10 @@ class BaseCompiler final : public BaseCompilerInterface
         push(v);
     }
 
+    void pushRef(intptr_t v) {
+        pushConstRef(v);
+    }
+
     void pushF64(double v) {
         push(v);
     }
@@ -2703,6 +2859,10 @@ class BaseCompiler final : public BaseCompilerInterface
 
     void pushLocalI64(uint32_t slot) {
         push(Stk::LocalI64, slot);
+    }
+
+    void pushLocalRef(uint32_t slot) {
+        push(Stk::LocalRef, slot);
     }
 
     void pushLocalF64(uint32_t slot) {
@@ -2817,6 +2977,54 @@ class BaseCompiler final : public BaseCompilerInterface
 
         stk_.popBack();
         return specific;
+    }
+
+    // Call only from other popRef() variants.
+    // v must be the stack top.  May pop the CPU stack.
+
+    void popRef(const Stk& v, RegPtr dest) {
+        MOZ_ASSERT(&v == &stk_.back());
+        switch (v.kind()) {
+          case Stk::ConstRef:
+            loadConstRef(v, dest);
+            break;
+          case Stk::LocalRef:
+            loadLocalRef(v, dest);
+            break;
+          case Stk::MemRef:
+            fr.popPtr(dest);
+            break;
+          case Stk::RegisterRef:
+            loadRegisterRef(v, dest);
+            break;
+          default:
+            MOZ_CRASH("Compiler bug: expected ref on stack");
+        }
+    }
+
+    RegPtr popRef(RegPtr specific) {
+        Stk& v = stk_.back();
+
+        if (!(v.kind() == Stk::RegisterRef && v.refReg() == specific)) {
+            needRef(specific);
+            popRef(v, specific);
+            if (v.kind() == Stk::RegisterRef)
+                freeRef(v.refReg());
+        }
+
+        stk_.popBack();
+        return specific;
+    }
+
+    MOZ_MUST_USE RegPtr popRef() {
+        Stk& v = stk_.back();
+        RegPtr r;
+        if (v.kind() == Stk::RegisterRef)
+            r = v.refReg();
+        else
+            popRef(v, (r = needRef()));
+        stk_.popBack();
+        return r;
     }
 
     // Call only from other popF64() variants.
@@ -3035,6 +3243,12 @@ class BaseCompiler final : public BaseCompilerInterface
                        k == Stk::LocalF32);
             return Some(AnyReg(popF32(joinRegF32_)));
           }
+          case ExprType::AnyRef: {
+            DebugOnly<Stk::Kind> k(stk_.back().kind());
+            MOZ_ASSERT(k == Stk::RegisterRef || k == Stk::ConstRef || k == Stk::MemRef ||
+                       k == Stk::LocalRef);
+            return Some(AnyReg(popRef(joinRegPtr_)));
+          }
           default: {
             MOZ_CRASH("Compiler bug: unexpected expression type");
           }
@@ -3065,6 +3279,10 @@ class BaseCompiler final : public BaseCompilerInterface
             MOZ_ASSERT(isAvailableF64(joinRegF64_));
             needF64(joinRegF64_);
             return Some(AnyReg(joinRegF64_));
+          case ExprType::AnyRef:
+            MOZ_ASSERT(isAvailableRef(joinRegPtr_));
+            needRef(joinRegPtr_);
+            return Some(AnyReg(joinRegPtr_));
           case ExprType::Void:
             return Nothing();
           default:
@@ -3088,6 +3306,9 @@ class BaseCompiler final : public BaseCompilerInterface
           case AnyReg::F32:
             pushF32(r->f32());
             break;
+          case AnyReg::REF:
+            pushRef(r->ref());
+            break;
         }
     }
 
@@ -3107,6 +3328,9 @@ class BaseCompiler final : public BaseCompilerInterface
           case AnyReg::F32:
             freeF32(r->f32());
             break;
+          case AnyReg::REF:
+            freeRef(r->ref());
+            break;
         }
     }
 
@@ -3119,6 +3343,7 @@ class BaseCompiler final : public BaseCompilerInterface
         for (uint32_t i = stk_.length() - 1; numval > 0; numval--, i--) {
             Stk& v = stk_[i];
             switch (v.kind()) {
+              case Stk::MemRef: size += BaseStackFrame::StackSizeOfPtr;    break;
               case Stk::MemI32: size += BaseStackFrame::StackSizeOfPtr;    break;
               case Stk::MemI64: size += BaseStackFrame::StackSizeOfInt64;  break;
               case Stk::MemF64: size += BaseStackFrame::StackSizeOfDouble; break;
@@ -3144,6 +3369,9 @@ class BaseCompiler final : public BaseCompilerInterface
                 break;
               case Stk::RegisterF32:
                 freeF32(v.f32reg());
+                break;
+              case Stk::RegisterRef:
+                freeRef(v.refReg());
                 break;
               default:
                 break;
@@ -3190,6 +3418,9 @@ class BaseCompiler final : public BaseCompilerInterface
                 break;
               case Stk::RegisterF64:
                 check.addKnownF64(item.f64reg());
+                break;
+              case Stk::RegisterRef:
+                check.addKnownRef(item.refReg());
                 break;
               default:
                 break;
@@ -3296,6 +3527,9 @@ class BaseCompiler final : public BaseCompilerInterface
                 break;
               case MIRType::Int64:
                 fr.storeLocalI64(RegI64(i->gpr64()), l);
+                break;
+              case MIRType::Pointer:
+                fr.storeLocalPtr(RegPtr(i->gpr()), l);
                 break;
               case MIRType::Double:
                 fr.storeLocalF64(RegF64(i->fpu()), l);
@@ -3626,6 +3860,17 @@ class BaseCompiler final : public BaseCompilerInterface
             }
             break;
           }
+          case ValType::AnyRef: {
+            ABIArg argLoc = call->abi.next(MIRType::Pointer);
+            if (argLoc.kind() == ABIArg::Stack) {
+                ScratchPtr scratch(*this);
+                loadRef(arg, scratch);
+                masm.storePtr(scratch, Address(masm.getStackPointer(), argLoc.offsetFromArgBase()));
+            } else {
+                loadRef(arg, RegPtr(argLoc.gpr()));
+            }
+            break;
+          }
           default:
             MOZ_CRASH("Function argument type");
         }
@@ -3697,6 +3942,10 @@ class BaseCompiler final : public BaseCompilerInterface
 
     void moveImm64(int64_t v, RegI64 dest) {
         masm.move64(Imm64(v), dest);
+    }
+
+    void moveImmRef(intptr_t v, RegPtr dest) {
+        masm.movePtr(ImmWord(v), dest);
     }
 
     void moveImmF32(float f, RegF32 dest) {
@@ -3826,6 +4075,13 @@ class BaseCompiler final : public BaseCompilerInterface
         if (call.usesSystemAbi && !call.hardFP)
             masm.ma_vxfer(ReturnReg64.low, ReturnReg64.high, r);
 #endif
+        return r;
+    }
+
+    RegPtr captureReturnedRef() {
+        RegPtr r = RegPtr(ReturnReg);
+        MOZ_ASSERT(isAvailableRef(r));
+        needRef(r);
         return r;
     }
 
@@ -5408,6 +5664,11 @@ class BaseCompiler final : public BaseCompilerInterface
         *r0 = popF64();
     }
 
+    void pop2xRef(RegPtr* r0, RegPtr* r1) {
+        *r1 = popRef();
+        *r0 = popRef();
+    }
+
     RegI32 popI64ToI32() {
         RegI64 r = popI64();
         return narrowI64(r);
@@ -5746,6 +6007,9 @@ class BaseCompiler final : public BaseCompilerInterface
                           ExprType retType, SymbolicAddress builtin);
     MOZ_MUST_USE bool emitGrowMemory();
     MOZ_MUST_USE bool emitCurrentMemory();
+
+    MOZ_MUST_USE bool emitRefNull();
+    void emitRefIsNull();
 
     MOZ_MUST_USE bool emitAtomicCmpXchg(ValType type, Scalar::Type viewType);
     MOZ_MUST_USE bool emitAtomicLoad(ValType type, Scalar::Type viewType);
@@ -6984,10 +7248,9 @@ BaseCompiler::sniffConditionalControlCmp(Cond compareOp, ValType operandType)
     OpBytes op;
     iter_.peekOp(&op);
     switch (op.b0) {
-      case uint16_t(Op::Select):
-        MOZ_FALLTHROUGH;
       case uint16_t(Op::BrIf):
       case uint16_t(Op::If):
+      case uint16_t(Op::Select):
         setLatentCompare(compareOp, operandType);
         return true;
       default:
@@ -7568,6 +7831,12 @@ BaseCompiler::doReturn(ExprType type, bool popStack)
         freeF32(rv);
         break;
       }
+      case ExprType::AnyRef: {
+        RegPtr rv = popRef(RegPtr(ReturnReg));
+        returnCleanup(popStack);
+        freeRef(rv);
+        break;
+      }
       default: {
         MOZ_CRASH("Function return type");
       }
@@ -7630,6 +7899,11 @@ BaseCompiler::pushReturned(const FunctionCall& call, ExprType type)
       case ExprType::F64: {
         RegF64 rv = captureReturnedF64(call);
         pushF64(rv);
+        break;
+      }
+      case ExprType::AnyRef: {
+        RegPtr rv = captureReturnedRef();
+        pushRef(rv);
         break;
       }
       default:
@@ -7959,6 +8233,9 @@ BaseCompiler::emitGetLocal()
       case ValType::F32:
         pushLocalF32(slot);
         break;
+      case ValType::AnyRef:
+        pushLocalRef(slot);
+        break;
       default:
         MOZ_CRASH("Local variable type");
     }
@@ -8013,6 +8290,16 @@ BaseCompiler::emitSetOrTeeLocal(uint32_t slot)
             freeF32(rv);
         else
             pushF32(rv);
+        break;
+      }
+      case ValType::AnyRef: {
+        RegPtr rv = popRef();
+        syncLocal(slot);
+        fr.storeLocalPtr(rv, localFromSlot(slot, MIRType::Pointer));
+        if (isSetLocal)
+            freeRef(rv);
+        else
+            pushRef(rv);
         break;
       }
       default:
@@ -8535,6 +8822,16 @@ BaseCompiler::emitSelect()
         pushF64(r);
         break;
       }
+      case ValType::AnyRef: {
+        RegPtr r, rs;
+        pop2xRef(&r, &rs);
+        emitBranchPerform(&b);
+        moveRef(rs, r);
+        masm.bind(&done);
+        freeRef(rs);
+        pushRef(r);
+        break;
+      }
       default: {
         MOZ_CRASH("select type");
       }
@@ -8687,6 +8984,29 @@ BaseCompiler::emitCurrentMemory()
 
     emitInstanceCall(lineOrBytecode, SigP_, ExprType::I32, SymbolicAddress::CurrentMemory);
     return true;
+}
+
+bool
+BaseCompiler::emitRefNull()
+{
+    if (!iter_.readRefNull())
+        return false;
+
+    if (deadCode_)
+        return true;
+
+    pushRef(NULLREF_VALUE);
+    return true;
+}
+
+void
+BaseCompiler::emitRefIsNull()
+{
+    RegPtr r = popRef();
+    RegI32 rd = narrowPtr(r);
+
+    masm.cmpPtrSet(Assembler::Equal, r, ImmWord(NULLREF_VALUE), rd);
+    pushI32(rd);
 }
 
 bool
@@ -9557,6 +9877,19 @@ BaseCompiler::emitBody()
           case uint16_t(Op::CurrentMemory):
             CHECK_NEXT(emitCurrentMemory());
 
+#ifdef ENABLE_WASM_GC
+          case uint16_t(Op::RefNull):
+            if (env_.gcTypesEnabled == HasGcTypes::False)
+                return iter_.unrecognizedOpcode(&op);
+            CHECK_NEXT(emitRefNull());
+            break;
+          case uint16_t(Op::RefIsNull):
+            if (env_.gcTypesEnabled == HasGcTypes::False)
+                return iter_.unrecognizedOpcode(&op);
+            CHECK_NEXT(emitConversion(emitRefIsNull, ValType::AnyRef, ValType::I32));
+            break;
+#endif
+
           // Numeric operations
           case uint16_t(Op::NumericPrefix): {
 #ifdef ENABLE_WASM_SATURATING_TRUNC_OPS
@@ -9835,6 +10168,7 @@ BaseCompiler::BaseCompiler(const ModuleEnvironment& env,
       fr(*masm),
       joinRegI32_(RegI32(ReturnReg)),
       joinRegI64_(RegI64(ReturnReg64)),
+      joinRegPtr_(RegPtr(ReturnReg)),
       joinRegF32_(RegF32(ReturnFloat32Reg)),
       joinRegF64_(RegF64(ReturnDoubleReg))
 {
