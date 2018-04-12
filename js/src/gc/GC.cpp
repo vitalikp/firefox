@@ -1760,7 +1760,7 @@ void
 GCRuntime::callGCCallback(JSGCStatus status) const
 {
     MOZ_ASSERT(gcCallback.op);
-    gcCallback.op(TlsContext.get(), status, gcCallback.data);
+    gcCallback.op(rt->mainContextFromOwnThread(), status, gcCallback.data);
 }
 
 void
@@ -1775,7 +1775,7 @@ void
 GCRuntime::callObjectsTenuredCallback()
 {
     if (tenuredCallback.op)
-        tenuredCallback.op(TlsContext.get(), tenuredCallback.data);
+        tenuredCallback.op(rt->mainContextFromOwnThread(), tenuredCallback.data);
 }
 
 bool
@@ -1825,8 +1825,9 @@ GCRuntime::removeWeakPointerZonesCallback(JSWeakPointerZonesCallback callback)
 void
 GCRuntime::callWeakPointerZonesCallbacks() const
 {
+    JSContext* cx = rt->mainContextFromOwnThread();
     for (auto const& p : updateWeakPointerZonesCallbacks.ref())
-        p.op(TlsContext.get(), p.data);
+        p.op(cx, p.data);
 }
 
 bool
@@ -1850,8 +1851,9 @@ GCRuntime::removeWeakPointerCompartmentCallback(JSWeakPointerCompartmentCallback
 void
 GCRuntime::callWeakPointerCompartmentCallbacks(JSCompartment* comp) const
 {
+    JSContext* cx = rt->mainContextFromOwnThread();
     for (auto const& p : updateWeakPointerCompartmentCallbacks.ref())
-        p.op(TlsContext.get(), comp, p.data);
+        p.op(cx, comp, p.data);
 }
 
 JS::GCSliceCallback
@@ -2118,7 +2120,7 @@ GCRuntime::shouldCompact()
 bool
 GCRuntime::isCompactingGCEnabled() const
 {
-    return compactingEnabled && TlsContext.get()->compactingDisabledCount == 0;
+    return compactingEnabled && rt->mainContextFromOwnThread()->compactingDisabledCount == 0;
 }
 
 AutoDisableCompactingGC::AutoDisableCompactingGC(JSContext* cx)
@@ -3271,7 +3273,7 @@ GCRuntime::requestMajorGC(JS::gcreason::Reason reason)
     // There's no need to use RequestInterruptUrgent here. It's slower because
     // it has to interrupt (looping) Ion code, but loops in Ion code that
     // affect GC will have an explicit interrupt check.
-    TlsContext.get()->requestInterrupt(JSContext::RequestInterruptCanWait);
+    rt->mainContextFromOwnThread()->requestInterrupt(JSContext::RequestInterruptCanWait);
 }
 
 void
@@ -3286,7 +3288,7 @@ Nursery::requestMinorGC(JS::gcreason::Reason reason) const
     minorGCTriggerReason_ = reason;
 
     // See comment in requestMajorGC.
-    TlsContext.get()->requestInterrupt(JSContext::RequestInterruptCanWait);
+    runtime()->mainContextFromOwnThread()->requestInterrupt(JSContext::RequestInterruptCanWait);
 }
 
 bool
@@ -3376,7 +3378,7 @@ GCRuntime::triggerZoneGC(Zone* zone, JS::gcreason::Reason reason, size_t used, s
 
     if (zone->isAtomsZone()) {
         /* We can't do a zone GC of the atoms compartment. */
-        if (TlsContext.get()->keepAtoms || rt->hasHelperThreadZones()) {
+        if (rt->mainContextFromOwnThread()->keepAtoms || rt->hasHelperThreadZones()) {
             /* Skip GC and retrigger later, since atoms zone won't be collected
              * if keepAtoms is true. */
             fullGCForAtomsRequested_ = true;
@@ -3798,7 +3800,7 @@ JSCompartment::destroy(FreeOp* fop)
     if (auto callback = rt->destroyCompartmentCallback)
         callback(fop, this);
     if (principals())
-        JS_DropPrincipals(TlsContext.get(), principals());
+        JS_DropPrincipals(rt->mainContextFromOwnThread(), principals());
     fop->delete_(this);
     rt->gc.stats().sweptCompartment();
 }
@@ -4135,11 +4137,12 @@ CompartmentCheckTracer::onChild(const JS::GCCellPtr& thing)
 void
 GCRuntime::checkForCompartmentMismatches()
 {
-    if (TlsContext.get()->disableStrictProxyCheckingCount)
+    JSContext* cx = rt->mainContextFromOwnThread();
+    if (cx->disableStrictProxyCheckingCount)
         return;
 
     CompartmentCheckTracer trc(rt);
-    AutoAssertEmptyNursery empty(TlsContext.get());
+    AutoAssertEmptyNursery empty(cx);
     for (ZonesIter zone(rt, SkipAtoms); !zone.done(); zone.next()) {
         trc.zone = zone;
         for (auto thingKind : AllAllocKinds()) {
@@ -4161,9 +4164,9 @@ RelazifyFunctions(Zone* zone, AllocKind kind)
     MOZ_ASSERT(kind == AllocKind::FUNCTION ||
                kind == AllocKind::FUNCTION_EXTENDED);
 
-    AutoAssertEmptyNursery empty(TlsContext.get());
-
     JSRuntime* rt = zone->runtimeFromActiveCooperatingThread();
+    AutoAssertEmptyNursery empty(rt->mainContextFromOwnThread());
+
     for (auto i = zone->cellIter<JSObject>(kind, empty); !i.done(); i.next()) {
         JSFunction* fun = &i->as<JSFunction>();
         if (fun->hasScript())
@@ -4255,7 +4258,7 @@ GCRuntime::prepareZonesForCollection(JS::gcreason::Reason reason, bool* isFullOu
     }
 
     if (!cleanUpEverything && canAllocateMoreCode) {
-        jit::JitActivationIterator activation(TlsContext.get());
+        jit::JitActivationIterator activation(rt->mainContextFromOwnThread());
         if (!activation.done())
             activation->compartment()->zone()->setPreservingCode(true);
     }
@@ -5004,7 +5007,7 @@ GCRuntime::groupZonesForSweeping(JS::gcreason::Reason reason)
         MOZ_ASSERT(zone->gcSweepGroupEdges().empty());
 #endif
 
-    JSContext* cx = TlsContext.get();
+    JSContext* cx = rt->mainContextFromOwnThread();
     Zone* maybeAtomsZone = atomsZone->wasGCStarted() ? atomsZone.ref() : nullptr;
     ZoneComponentFinder finder(cx->nativeStackLimit[JS::StackForSystemCode], maybeAtomsZone);
     if (!isIncremental || !findInterZoneEdges())
@@ -6705,7 +6708,7 @@ GCRuntime::compactPhase(JS::gcreason::Reason reason, SliceBudget& sliceBudget,
     // middle of relocating an arena, invalid JSScript pointers may be
     // accessed. Suppress all sampling until a finer-grained solution can be
     // found. See bug 1295775.
-    AutoSuppressProfilerSampling suppressSampling(TlsContext.get());
+    AutoSuppressProfilerSampling suppressSampling(rt->mainContextFromOwnThread());
 
     ZoneList relocatedZones;
     Arena* relocatedArenas = nullptr;
@@ -6819,8 +6822,9 @@ AllNurseriesAreEmpty(JSRuntime* rt)
 /* Start a new heap session. */
 AutoTraceSession::AutoTraceSession(JSRuntime* rt, JS::HeapState heapState)
   : runtime(rt),
-    prevState(TlsContext.get()->heapState),
-    pseudoFrame(TlsContext.get(), HeapStateToLabel(heapState), ProfileEntry::Category::GC)
+    prevState(rt->mainContextFromOwnThread()->heapState),
+    pseudoFrame(rt->mainContextFromOwnThread(), HeapStateToLabel(heapState),
+                ProfileEntry::Category::GC)
 {
     MOZ_ASSERT(prevState == JS::HeapState::Idle);
     MOZ_ASSERT(heapState != JS::HeapState::Idle);
@@ -6829,33 +6833,19 @@ AutoTraceSession::AutoTraceSession(JSRuntime* rt, JS::HeapState heapState)
     // Session always begins with lock held, see comment in class definition.
     maybeLock.emplace(rt);
 
-    TlsContext.get()->heapState = heapState;
+    rt->mainContextFromOwnThread()->heapState = heapState;
 }
 
 AutoTraceSession::~AutoTraceSession()
 {
     MOZ_ASSERT(JS::CurrentThreadIsHeapBusy());
-    TlsContext.get()->heapState = prevState;
+    runtime->mainContextFromOwnThread()->heapState = prevState;
 }
 
 JS_PUBLIC_API(JS::HeapState)
 JS::CurrentThreadHeapState()
 {
     return TlsContext.get()->heapState;
-}
-
-bool
-GCRuntime::canChangeActiveContext(JSContext* cx)
-{
-    // Threads cannot be in the middle of any operation that affects GC
-    // behavior when execution transfers to another thread for cooperative
-    // scheduling.
-    return cx->heapState == JS::HeapState::Idle
-        && !cx->suppressGC
-        && !cx->inUnsafeRegion
-        && !cx->generationalDisabled
-        && !cx->compactingDisabledCount
-        && !cx->keepAtoms;
 }
 
 GCRuntime::IncrementalResult
@@ -7246,7 +7236,7 @@ GCRuntime::incrementalCollectSlice(SliceBudget& budget, JS::gcreason::Reason rea
 gc::AbortReason
 gc::IsIncrementalGCUnsafe(JSRuntime* rt)
 {
-    MOZ_ASSERT(!TlsContext.get()->suppressGC);
+    MOZ_ASSERT(!rt->mainContextFromOwnThread()->suppressGC);
 
     if (!rt->gc.isIncrementalGCAllowed())
         return gc::AbortReason::IncrementalDisabled;
@@ -7492,10 +7482,10 @@ GCRuntime::gcCycle(bool nonincrementalByAPI, SliceBudget& budget, JS::gcreason::
 
     // It's ok if threads other than the active thread have suppressGC set, as
     // they are operating on zones which will not be collected from here.
-    MOZ_ASSERT(!TlsContext.get()->suppressGC);
+    MOZ_ASSERT(!rt->mainContextFromOwnThread()->suppressGC);
 
     // Assert if this is a GC unsafe region.
-    TlsContext.get()->verifyIsSafeToGC();
+    rt->mainContextFromOwnThread()->verifyIsSafeToGC();
 
     {
         gcstats::AutoPhase ap(stats(), gcstats::PhaseKind::WAIT_BACKGROUND_THREAD);
@@ -7615,13 +7605,13 @@ GCRuntime::checkCanCallAPI()
     /* If we attempt to invoke the GC while we are running in the GC, assert. */
     MOZ_RELEASE_ASSERT(!JS::CurrentThreadIsHeapBusy());
 
-    MOZ_ASSERT(TlsContext.get()->isAllocAllowed());
+    MOZ_ASSERT(rt->mainContextFromOwnThread()->isAllocAllowed());
 }
 
 bool
 GCRuntime::checkIfGCAllowedInCurrentState(JS::gcreason::Reason reason)
 {
-    if (TlsContext.get()->suppressGC)
+    if (rt->mainContextFromOwnThread()->suppressGC)
         return false;
 
     // Only allow shutdown GCs when we're destroying the runtime. This keeps
@@ -7748,7 +7738,7 @@ void
 GCRuntime::startGC(JSGCInvocationKind gckind, JS::gcreason::Reason reason, int64_t millis)
 {
     MOZ_ASSERT(!isIncrementalGCInProgress());
-    if (!JS::IsIncrementalGCEnabled(TlsContext.get())) {
+    if (!JS::IsIncrementalGCEnabled(rt->mainContextFromOwnThread())) {
         gc(gckind, reason);
         return;
     }
@@ -7788,7 +7778,7 @@ GCRuntime::abortGC()
 {
     MOZ_ASSERT(isIncrementalGCInProgress());
     checkCanCallAPI();
-    MOZ_ASSERT(!TlsContext.get()->suppressGC);
+    MOZ_ASSERT(!rt->mainContextFromOwnThread()->suppressGC);
 
     collect(false, SliceBudget::unlimited(), JS::gcreason::ABORT_GC);
 }
@@ -7868,7 +7858,7 @@ GCRuntime::minorGC(JS::gcreason::Reason reason, gcstats::PhaseKind phase)
 {
     MOZ_ASSERT(!JS::CurrentThreadIsHeapBusy());
 
-    if (TlsContext.get()->suppressGC)
+    if (rt->mainContextFromOwnThread()->suppressGC)
         return;
 
     gcstats::AutoPhase ap(rt->gc.stats(), phase);
@@ -7914,7 +7904,7 @@ JS::AutoDisableGenerationalGC::~AutoDisableGenerationalGC()
 JS_PUBLIC_API(bool)
 JS::IsGenerationalGCEnabled(JSRuntime* rt)
 {
-    return !TlsContext.get()->generationalDisabled;
+    return !rt->mainContextFromOwnThread()->generationalDisabled;
 }
 
 bool
@@ -7927,7 +7917,7 @@ GCRuntime::gcIfRequested()
 
     if (majorGCRequested()) {
         if (majorGCTriggerReason == JS::gcreason::DELAYED_ATOMS_GC &&
-            !TlsContext.get()->canCollectAtoms())
+            !rt->mainContextFromOwnThread()->canCollectAtoms())
         {
             // A GC was requested to collect the atoms zone, but it's no longer
             // possible. Skip this collection.
@@ -8252,7 +8242,7 @@ void
 GCRuntime::runDebugGC()
 {
 #ifdef JS_GC_ZEAL
-    if (TlsContext.get()->suppressGC)
+    if (rt->mainContextFromOwnThread()->suppressGC)
         return;
 
     if (hasZealMode(ZealMode::GenerationalGC))
