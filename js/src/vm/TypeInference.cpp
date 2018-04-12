@@ -691,8 +691,8 @@ void
 ConstraintTypeSet::postWriteBarrier(JSContext* cx, Type type)
 {
     if (type.isSingletonUnchecked() && IsInsideNursery(type.singletonNoBarrier())) {
-        cx->zone()->group()->storeBuffer().putGeneric(TypeSetRef(cx->zone(), this));
-        cx->zone()->group()->storeBuffer().setShouldCancelIonCompilations();
+        cx->runtime()->gc.storeBuffer().putGeneric(TypeSetRef(cx->zone(), this));
+        cx->runtime()->gc.storeBuffer().setShouldCancelIonCompilations();
     }
 }
 

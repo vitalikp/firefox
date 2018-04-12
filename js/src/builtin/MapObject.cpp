@@ -264,7 +264,7 @@ MapIteratorObject::finalize(FreeOp* fop, JSObject* obj)
     MOZ_ASSERT(!IsInsideNursery(obj));
 
     auto range = MapIteratorObjectRange(&obj->as<NativeObject>());
-    MOZ_ASSERT(!obj->zone()->group()->nursery().isInside(range));
+    MOZ_ASSERT(!fop->runtime()->gc.nursery().isInside(range));
 
     fop->delete_(range);
 }
@@ -280,7 +280,7 @@ MapIteratorObject::objectMoved(JSObject* obj, JSObject* old)
     if (!range)
         return 0;
 
-    Nursery& nursery = iter->zone()->group()->nursery();
+    Nursery& nursery = iter->runtimeFromActiveCooperatingThread()->gc.nursery();
     if (!nursery.isInside(range)) {
         nursery.removeMallocedBuffer(range);
         return 0;
@@ -565,7 +565,8 @@ WriteBarrierPostImpl(JSRuntime* rt, ObjectT* obj, const Value& keyValue)
         if (!keys)
             return false;
 
-        key->zone()->group()->storeBuffer().putGeneric(OrderedHashTableRef<ObjectT>(obj));
+        JSRuntime* rt = key->runtimeFromActiveCooperatingThread();
+        rt->gc.storeBuffer().putGeneric(OrderedHashTableRef<ObjectT>(obj));
     }
 
     if (!keys->append(key))
@@ -1110,7 +1111,7 @@ SetIteratorObject::finalize(FreeOp* fop, JSObject* obj)
     MOZ_ASSERT(!IsInsideNursery(obj));
 
     auto range = SetIteratorObjectRange(&obj->as<NativeObject>());
-    MOZ_ASSERT(!obj->zone()->group()->nursery().isInside(range));
+    MOZ_ASSERT(!fop->runtime()->gc.nursery().isInside(range));
 
     fop->delete_(range);
 }
@@ -1126,7 +1127,7 @@ SetIteratorObject::objectMoved(JSObject* obj, JSObject* old)
     if (!range)
         return 0;
 
-    Nursery& nursery = iter->zone()->group()->nursery();
+    Nursery& nursery = iter->runtimeFromActiveCooperatingThread()->gc.nursery();
     if (!nursery.isInside(range)) {
         nursery.removeMallocedBuffer(range);
         return 0;
