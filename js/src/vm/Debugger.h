@@ -1145,7 +1145,8 @@ class DebuggerEnvironment : public NativeObject
 
     static const Class class_;
 
-    static NativeObject* initClass(JSContext* cx, HandleObject dbgCtor, HandleObject objProto);
+    static NativeObject* initClass(JSContext* cx, HandleObject dbgCtor,
+                                   Handle<GlobalObject*> global);
     static DebuggerEnvironment* create(JSContext* cx, HandleObject proto, HandleObject referent,
                                        HandleNativeObject debugger);
 
@@ -1334,7 +1335,8 @@ class DebuggerFrame : public NativeObject
 
     static const Class class_;
 
-    static NativeObject* initClass(JSContext* cx, HandleObject dbgCtor, HandleObject objProto);
+    static NativeObject* initClass(JSContext* cx, HandleObject dbgCtor,
+                                   Handle<GlobalObject*> global);
     static DebuggerFrame* create(JSContext* cx, HandleObject proto, const FrameIter& iter,
                                  HandleNativeObject debugger);
     void freeFrameIterData(FreeOp* fop);
@@ -1410,7 +1412,8 @@ class DebuggerObject : public NativeObject
   public:
     static const Class class_;
 
-    static NativeObject* initClass(JSContext* cx, HandleObject obj, HandleObject debugCtor);
+    static NativeObject* initClass(JSContext* cx, Handle<GlobalObject*> global,
+                                   HandleObject debugCtor);
     static DebuggerObject* create(JSContext* cx, HandleObject proto, HandleObject obj,
                                   HandleNativeObject debugger);
 
