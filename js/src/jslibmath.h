@@ -11,20 +11,7 @@
 
 #include <math.h>
 
-#include "jsnum.h"
-
-/*
- * Use system provided math routines.
- */
-
-/* The right copysign function is not always named the same thing. */
-#ifdef __GNUC__
-#define js_copysign __builtin_copysign
-#elif defined _WIN32
-#define js_copysign _copysign
-#else
-#define js_copysign copysign
-#endif
+#include "js/Value.h"
 
 namespace js {
 
