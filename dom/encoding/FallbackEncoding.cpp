@@ -6,6 +6,7 @@
 
 #include "mozilla/dom/FallbackEncoding.h"
 
+#include "mozilla/ArrayUtils.h"
 #include "mozilla/dom/EncodingUtils.h"
 #include "nsUConvPropertySearch.h"
 #include "mozilla/Preferences.h"

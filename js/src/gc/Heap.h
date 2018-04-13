@@ -48,6 +48,7 @@ class Arena;
 class ArenaCellSet;
 class ArenaList;
 class SortedArenaList;
+class StoreBuffer;
 class TenuredCell;
 struct Chunk;
 
