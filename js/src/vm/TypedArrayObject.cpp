@@ -398,7 +398,7 @@ class TypedArrayObjectTemplate : public TypedArrayObject
     {
         MOZ_ASSERT(proto);
 
-        JSObject* obj = NewObjectWithClassProto(cx, instanceClass(), proto, allocKind);
+        JSObject* obj = NewObjectWithGivenProto(cx, instanceClass(), proto, allocKind);
         return obj ? &obj->as<TypedArrayObject>() : nullptr;
     }
 

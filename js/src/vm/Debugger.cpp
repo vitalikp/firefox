@@ -7480,20 +7480,18 @@ DebuggerFrame::initClass(JSContext* cx, HandleObject dbgCtor, HandleObject obj)
 DebuggerFrame::create(JSContext* cx, HandleObject proto, const FrameIter& iter,
                       HandleNativeObject debugger)
 {
-    JSObject* obj = NewObjectWithGivenProto(cx, &DebuggerFrame::class_, proto);
-    if (!obj)
+    DebuggerFrame* frame = NewObjectWithGivenProto<DebuggerFrame>(cx, proto);
+    if (!frame)
         return nullptr;
-
-    DebuggerFrame& frame = obj->as<DebuggerFrame>();
 
     FrameIter::Data* data = iter.copyData();
     if (!data)
         return nullptr;
-    frame.setPrivate(data);
+    frame->setPrivate(data);
 
-    frame.setReservedSlot(JSSLOT_DEBUGFRAME_OWNER, ObjectValue(*debugger));
+    frame->setReservedSlot(JSSLOT_DEBUGFRAME_OWNER, ObjectValue(*debugger));
 
-    return &frame;
+    return frame;
 }
 
 /* static */ bool
@@ -8350,7 +8348,7 @@ DebuggerArguments::create(JSContext* cx, HandleObject proto, HandleDebuggerFrame
 {
     AbstractFramePtr referent = DebuggerFrame::getReferent(frame);
 
-    RootedNativeObject obj(cx, NewNativeObjectWithGivenProto(cx, &DebuggerArguments::class_, proto));
+    Rooted<DebuggerArguments*> obj(cx, NewObjectWithGivenProto<DebuggerArguments>(cx, proto));
     if (!obj)
         return nullptr;
 
@@ -8383,7 +8381,7 @@ DebuggerArguments::create(JSContext* cx, HandleObject proto, HandleDebuggerFrame
         getobj->setExtendedSlot(0, Int32Value(i));
     }
 
-    return &obj->as<DebuggerArguments>();
+    return obj;
 }
 
 /* static */ bool
@@ -9782,15 +9780,14 @@ DebuggerObject::create(JSContext* cx, HandleObject proto, HandleObject referent,
                        HandleNativeObject debugger)
 {
     NewObjectKind newKind = IsInsideNursery(referent) ? GenericObject : TenuredObject;
-    JSObject* obj = NewObjectWithGivenProto(cx, &DebuggerObject::class_, proto, newKind);
+    DebuggerObject* obj = NewObjectWithGivenProto<DebuggerObject>(cx, proto, newKind);
     if (!obj)
         return nullptr;
 
-    DebuggerObject& object = obj->as<DebuggerObject>();
-    object.setPrivateGCThing(referent);
-    object.setReservedSlot(JSSLOT_DEBUGOBJECT_OWNER, ObjectValue(*debugger));
+    obj->setPrivateGCThing(referent);
+    obj->setReservedSlot(JSSLOT_DEBUGOBJECT_OWNER, ObjectValue(*debugger));
 
-    return &object;
+    return obj;
 }
 
 bool
@@ -11027,15 +11024,14 @@ DebuggerEnvironment::create(JSContext* cx, HandleObject proto, HandleObject refe
                             HandleNativeObject debugger)
 {
     NewObjectKind newKind = IsInsideNursery(referent) ? GenericObject : TenuredObject;
-    RootedObject obj(cx, NewObjectWithGivenProto(cx, &DebuggerEnvironment::class_, proto, newKind));
+    DebuggerEnvironment* obj = NewObjectWithGivenProto<DebuggerEnvironment>(cx, proto, newKind);
     if (!obj)
         return nullptr;
 
-    DebuggerEnvironment& environment = obj->as<DebuggerEnvironment>();
-    environment.setPrivateGCThing(referent);
-    environment.setReservedSlot(OWNER_SLOT, ObjectValue(*debugger));
+    obj->setPrivateGCThing(referent);
+    obj->setReservedSlot(OWNER_SLOT, ObjectValue(*debugger));
 
-    return &environment;
+    return obj;
 }
 
 /* static */ DebuggerEnvironmentType
