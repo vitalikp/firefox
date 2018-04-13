@@ -6035,7 +6035,7 @@ CodeGenerator::visitNewTypedArray(LNewTypedArray* lir)
                         ool->entry(), /*initContents*/true, /*convertDoubleElements*/false);
 
     masm.initTypedArraySlots(objReg, tempReg, lengthReg, liveRegs, ool->entry(),
-                             ttemplate, TypedArrayLength::Fixed);
+                             ttemplate, MacroAssembler::TypedArrayLength::Fixed);
 
     masm.bind(ool->rejoin());
 }
@@ -6061,7 +6061,7 @@ CodeGenerator::visitNewTypedArrayDynamicLength(LNewTypedArrayDynamicLength* lir)
                         ool->entry(), /*initContents*/true, /*convertDoubleElements*/false);
 
     masm.initTypedArraySlots(objReg, tempReg, lengthReg, liveRegs, ool->entry(),
-                             ttemplate, TypedArrayLength::Dynamic);
+                             ttemplate, MacroAssembler::TypedArrayLength::Dynamic);
 
     masm.bind(ool->rejoin());
 }
