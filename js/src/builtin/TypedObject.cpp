@@ -1311,9 +1311,8 @@ GlobalObject::initTypedObjectModule(JSContext* cx, Handle<GlobalObject*> global)
 }
 
 JSObject*
-js::InitTypedObjectModuleObject(JSContext* cx, HandleObject obj)
+js::InitTypedObjectModuleObject(JSContext* cx, Handle<GlobalObject*> global)
 {
-    Handle<GlobalObject*> global = obj.as<GlobalObject>();
     return GlobalObject::getOrCreateTypedObjectModule(cx, global);
 }
 

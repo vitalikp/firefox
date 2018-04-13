@@ -97,9 +97,11 @@ js_fputs(const char16_t* s, FILE* f);
 
 namespace js {
 
+class GlobalObject;
+
 /* Initialize the String class, returning its prototype object. */
 extern JSObject*
-InitStringClass(JSContext* cx, HandleObject obj);
+InitStringClass(JSContext* cx, Handle<GlobalObject*> global);
 
 /*
  * Convert a value to a printable C string.

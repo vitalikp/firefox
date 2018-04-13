@@ -17,6 +17,7 @@
 
 namespace js {
 
+class GlobalObject;
 class SharedArrayRawBuffer;
 
 class AtomicsObject : public NativeObject
@@ -143,7 +144,7 @@ public:
 };
 
 JSObject*
-InitAtomicsClass(JSContext* cx, HandleObject obj);
+InitAtomicsClass(JSContext* cx, Handle<GlobalObject*> global);
 
 // Go to sleep if the int32_t value at the given address equals `value`.
 MOZ_MUST_USE FutexThread::WaitResult
