@@ -1272,7 +1272,7 @@ JS_PUBLIC_API(Value)
 JS::detail::ComputeThis(JSContext* cx, Value* vp)
 {
     AssertHeapIsIdle();
-    assertSameCompartment(cx, JSValueArray(vp, 2));
+    assertSameCompartment(cx, vp[0], vp[1]);
 
     MutableHandleValue thisv = MutableHandleValue::fromMarkedLocation(&vp[1]);
     if (!BoxNonStrictThis(cx, thisv, thisv))
