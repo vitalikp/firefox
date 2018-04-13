@@ -1400,8 +1400,7 @@ GlobalObject::initArrayIteratorProto(JSContext* cx, Handle<GlobalObject*> global
         return false;
 
     const Class* cls = &ArrayIteratorPrototypeClass;
-    RootedObject proto(cx, GlobalObject::createBlankPrototypeInheriting(cx, global, cls,
-                                                                        iteratorProto));
+    RootedObject proto(cx, GlobalObject::createBlankPrototypeInheriting(cx, cls, iteratorProto));
     if (!proto ||
         !DefinePropertiesAndFunctions(cx, proto, nullptr, array_iterator_methods) ||
         !DefineToStringTag(cx, proto, cx->names().ArrayIterator))
@@ -1424,8 +1423,7 @@ GlobalObject::initStringIteratorProto(JSContext* cx, Handle<GlobalObject*> globa
         return false;
 
     const Class* cls = &StringIteratorPrototypeClass;
-    RootedObject proto(cx, GlobalObject::createBlankPrototypeInheriting(cx, global, cls,
-                                                                        iteratorProto));
+    RootedObject proto(cx, GlobalObject::createBlankPrototypeInheriting(cx, cls, iteratorProto));
     if (!proto ||
         !DefinePropertiesAndFunctions(cx, proto, nullptr, string_iterator_methods) ||
         !DefineToStringTag(cx, proto, cx->names().StringIterator))
