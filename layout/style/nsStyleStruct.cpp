@@ -2062,8 +2062,12 @@ nsStyleImageRequest::Resolve(nsPresContext* aPresContext)
   if (GetImageValue()->HasRef()) {
     bool isEqualExceptRef = false;
     RefPtr<nsIURI> imageURI = GetImageURI();
-    imageURI->EqualsExceptRef(docURI, &isEqualExceptRef);
-    if (isEqualExceptRef) {
+    if (!imageURI) {
+      return false;
+    }
+
+    if (NS_SUCCEEDED(imageURI->EqualsExceptRef(docURI, &isEqualExceptRef)) &&
+        isEqualExceptRef) {
       // Prevent loading an internal resource.
       return true;
     }
