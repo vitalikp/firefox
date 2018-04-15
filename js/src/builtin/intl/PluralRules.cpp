@@ -120,7 +120,7 @@ PluralRules(JSContext* cx, unsigned argc, Value* vp)
 void
 js::PluralRulesObject::finalize(FreeOp* fop, JSObject* obj)
 {
-    MOZ_ASSERT(fop->onActiveCooperatingThread());
+    MOZ_ASSERT(fop->onMainThread());
 
     PluralRulesObject* pluralRules = &obj->as<PluralRulesObject>();
 
