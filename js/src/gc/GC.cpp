@@ -8116,6 +8116,7 @@ GCRuntime::mergeCompartments(JSCompartment* source, JSCompartment* target)
 
     // Merge other info in source's zone into target's zone.
     target->zone()->types.typeLifoAlloc().transferFrom(&source->zone()->types.typeLifoAlloc());
+    MOZ_RELEASE_ASSERT(source->zone()->types.sweepTypeLifoAlloc.ref().isEmpty());
 
     // Atoms which are marked in source's zone are now marked in target's zone.
     atomMarking.adoptMarkedAtoms(target->zone(), source->zone());

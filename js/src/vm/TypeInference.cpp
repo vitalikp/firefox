@@ -719,7 +719,8 @@ ConstraintTypeSet::addType(JSContext* cx, Type type)
 
     /* Propagate the type to all constraints. */
     if (!cx->helperThread()) {
-        TypeConstraint* constraint = constraintList();
+        AutoAssertNoTISweeping nosweeping(cx->zone()->types);
+        TypeConstraint* constraint = constraintList(nosweeping);
         while (constraint) {
             constraint->newType(cx, this, type);
             constraint = constraint->next();
@@ -1971,18 +1972,19 @@ ObjectStateChange(JSContext* cx, ObjectGroup* group, bool markingUnknown)
     HeapTypeSet* types = group->maybeGetProperty(JSID_EMPTY);
 
     /* Mark as unknown after getting the types, to avoid assertion. */
+    AutoAssertNoTISweeping nosweeping(cx->zone()->types);
     if (markingUnknown)
         group->addFlags(OBJECT_FLAG_DYNAMIC_MASK | OBJECT_FLAG_UNKNOWN_PROPERTIES);
 
     if (types) {
         if (!cx->helperThread()) {
-            TypeConstraint* constraint = types->constraintList();
+            TypeConstraint* constraint = types->constraintList(nosweeping);
             while (constraint) {
                 constraint->newObjectState(cx, group);
                 constraint = constraint->next();
             }
         } else {
-            MOZ_ASSERT(!types->constraintList());
+            MOZ_ASSERT(!types->constraintList(nosweeping));
         }
     }
 }
@@ -2812,20 +2814,23 @@ ObjectGroup::markPropertyNonWritable(JSContext* cx, JSObject* obj, jsid id)
 void
 ObjectGroup::markStateChange(JSContext* cx)
 {
+    MOZ_ASSERT(cx->compartment() == compartment());
+
     if (unknownProperties())
         return;
 
     AutoEnterAnalysis enter(cx);
     HeapTypeSet* types = maybeGetProperty(JSID_EMPTY);
     if (types) {
+        AutoAssertNoTISweeping nosweeping(cx->zone()->types);
         if (!cx->helperThread()) {
-            TypeConstraint* constraint = types->constraintList();
+            TypeConstraint* constraint = types->constraintList(nosweeping);
             while (constraint) {
                 constraint->newObjectState(cx, this);
                 constraint = constraint->next();
             }
         } else {
-            MOZ_ASSERT(!types->constraintList());
+            MOZ_ASSERT(!types->constraintList(nosweeping));
         }
     }
 }
@@ -3281,6 +3286,8 @@ js::TypeMonitorResult(JSContext* cx, JSScript* script, jsbytecode* pc, StackType
 
     AutoEnterAnalysis enter(cx);
 
+    script->maybeSweepTypes(nullptr);
+
     MOZ_ASSERT(types == TypeScript::BytecodeTypes(script, pc));
     MOZ_ASSERT(!types->hasType(type));
 
@@ -3310,6 +3317,7 @@ bool
 JSScript::makeTypes(JSContext* cx)
 {
     MOZ_ASSERT(!types_);
+    assertSameCompartment(cx, this);
 
     AutoEnterAnalysis enter(cx);
 
@@ -4231,7 +4239,8 @@ ConstraintTypeSet::sweep(Zone* zone, AutoClearTypeInferenceStateOnOOM& oom)
      * Type constraints only hold weak references. Copy constraints referring
      * to data that is still live into the zone's new arena.
      */
-    TypeConstraint* constraint = constraintList();
+    AutoAssertNoTISweeping nosweeping(zone->types);
+    TypeConstraint* constraint = constraintList(nosweeping);
     constraintList_ = nullptr;
     while (constraint) {
         MOZ_ASSERT(zone->types.sweepTypeLifoAlloc.ref().contains(constraint));
@@ -4286,8 +4295,9 @@ void
 ObjectGroup::sweep(AutoClearTypeInferenceStateOnOOM* oom)
 {
     MOZ_ASSERT(generation() != zoneFromAnyThread()->types.generation);
-
     setGeneration(zone()->types.generation);
+
+    MOZ_RELEASE_ASSERT(!zone()->types.assertNoTISweeping);
 
     AssertGCStateForSweep(zone());
 
@@ -4323,6 +4333,7 @@ ObjectGroup::sweep(AutoClearTypeInferenceStateOnOOM* oom)
      * Properties were allocated from the old arena, and need to be copied over
      * to the new one.
      */
+    AutoAssertNoTISweeping nosweeping(zone()->types);
     unsigned propertyCount = basePropertyCount();
     if (propertyCount >= 2) {
         unsigned oldCapacity = TypeHashSet::Capacity(propertyCount);
@@ -4340,7 +4351,10 @@ ObjectGroup::sweep(AutoClearTypeInferenceStateOnOOM* oom)
             if (prop) {
                 oldPropertiesFound++;
                 prop->types.checkMagic();
-                if (singleton() && !prop->types.constraintList() && !zone()->isPreservingCode()) {
+                if (singleton() &&
+                    !prop->types.constraintList(nosweeping) &&
+                    !zone()->isPreservingCode())
+                {
                     /*
                      * Don't copy over properties of singleton objects when their
                      * presence will not be required by jitcode or type constraints
@@ -4376,7 +4390,10 @@ ObjectGroup::sweep(AutoClearTypeInferenceStateOnOOM* oom)
     } else if (propertyCount == 1) {
         Property* prop = (Property*) propertySet;
         prop->types.checkMagic();
-        if (singleton() && !prop->types.constraintList() && !zone()->isPreservingCode()) {
+        if (singleton() &&
+            !prop->types.constraintList(nosweeping) &&
+            !zone()->isPreservingCode())
+        {
             // Skip, as above.
             JS_POISON(prop, JS_SWEPT_TI_PATTERN, sizeof(Property), MemCheckKind::MakeUndefined);
             clearProperties();
@@ -4403,6 +4420,8 @@ JSScript::maybeSweepTypes(AutoClearTypeInferenceStateOnOOM* oom)
 {
     if (!types_ || typesGeneration() == zone()->types.generation)
         return;
+
+    MOZ_RELEASE_ASSERT(!zone()->types.assertNoTISweeping);
 
     setTypesGeneration(zone()->types.generation);
 
@@ -4494,6 +4513,7 @@ TypeZone::TypeZone(Zone* zone)
     sweepReleaseTypes(zone, false),
     sweepingTypes(zone, false),
     keepTypeScripts(zone, false),
+    assertNoTISweeping(zone, false),
     activeAnalysis(zone, nullptr)
 {
 }
@@ -4541,6 +4561,7 @@ AutoClearTypeInferenceStateOnOOM::AutoClearTypeInferenceStateOnOOM(Zone* zone)
   : zone(zone), oom(false)
 {
     MOZ_RELEASE_ASSERT(CurrentThreadCanAccessZone(zone));
+    MOZ_ASSERT(!zone->types.assertNoTISweeping);
     zone->types.setSweepingTypes(true);
 }
 
@@ -4616,6 +4637,19 @@ TypeScript::printTypes(JSContext* cx, HandleScript script) const
     fprintf(stderr, "\n");
 }
 #endif /* DEBUG */
+
+AutoAssertNoTISweeping::AutoAssertNoTISweeping(TypeZone& zone)
+  : zone_(zone),
+    prev_(zone_.assertNoTISweeping)
+{
+    zone_.assertNoTISweeping = true;
+}
+
+AutoAssertNoTISweeping::~AutoAssertNoTISweeping()
+{
+    MOZ_ASSERT(zone_.assertNoTISweeping);
+    zone_.assertNoTISweeping = prev_;
+}
 
 JS::ubi::Node::Size
 JS::ubi::Concrete<js::ObjectGroup>::size(mozilla::MallocSizeOf mallocSizeOf) const
