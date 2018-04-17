@@ -494,10 +494,7 @@ struct JSRuntime : public js::MallocProvider<JSRuntime>
     bool activeThreadHasScriptDataAccess;
 #endif
 
-    /*
-     * Number of zones which may be operated on by non-cooperating helper
-     * threads.
-     */
+    // Number of zones which may be operated on by helper threads.
     mozilla::Atomic<size_t> numActiveHelperThreadZones;
 
     friend class js::AutoLockForExclusiveAccess;
