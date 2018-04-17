@@ -1041,11 +1041,9 @@ GCRuntime::needZealousGC() {
     if (nextScheduled > 0 && --nextScheduled == 0) {
         if (hasZealMode(ZealMode::Alloc) ||
             hasZealMode(ZealMode::GenerationalGC) ||
-            hasZealMode(ZealMode::YieldBeforeMarking) ||
-            hasZealMode(ZealMode::YieldBeforeSweeping) ||
             hasZealMode(ZealMode::IncrementalMultipleSlices) ||
             hasZealMode(ZealMode::Compact) ||
-            hasZealMode(ZealMode::YieldBeforeSweepingAtoms))
+            hasIncrementalTwoSliceZealMode())
         {
             nextScheduled = zealFrequency;
         }
@@ -1058,7 +1056,12 @@ inline bool
 GCRuntime::hasIncrementalTwoSliceZealMode() {
     return hasZealMode(ZealMode::YieldBeforeMarking) ||
            hasZealMode(ZealMode::YieldBeforeSweeping) ||
-           hasZealMode(ZealMode::YieldBeforeSweepingAtoms);
+           hasZealMode(ZealMode::YieldBeforeSweepingAtoms) ||
+           hasZealMode(ZealMode::YieldBeforeSweepingCaches) ||
+           hasZealMode(ZealMode::YieldBeforeSweepingTypes) ||
+           hasZealMode(ZealMode::YieldBeforeSweepingObjects) ||
+           hasZealMode(ZealMode::YieldBeforeSweepingNonObjects) ||
+           hasZealMode(ZealMode::YieldBeforeSweepingShapeTrees);
 }
 
 #else
