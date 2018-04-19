@@ -600,7 +600,7 @@ js::CancelOffThreadParses(JSRuntime* rt)
         HelperThreadState().wait(lock, GlobalHelperThreadState::CONSUMER);
     }
 
-    // Clean up any parse tasks which haven't been finished by the active thread.
+    // Clean up any parse tasks which haven't been finished by the main thread.
     GlobalHelperThreadState::ParseTaskVector& finished = HelperThreadState().parseFinishedList(lock);
     while (true) {
         bool found = false;
@@ -1743,7 +1743,7 @@ HelperThread::handleWasmWorkload(AutoLockHelperThreadState& locked, wasm::Compil
         wasm::ExecuteCompileTaskFromHelperThread(task);
     }
 
-    // No active thread should be waiting on the CONSUMER mutex.
+    // No main thread should be waiting on the CONSUMER mutex.
     currentTask.reset();
 }
 
@@ -1786,7 +1786,7 @@ HelperThread::handlePromiseHelperTaskWorkload(AutoLockHelperThreadState& locked)
         task->dispatchResolveAndDestroy();
     }
 
-    // No active thread should be waiting on the CONSUMER mutex.
+    // No main thread should be waiting on the CONSUMER mutex.
     currentTask.reset();
 }
 
@@ -1838,7 +1838,7 @@ HelperThread::handleIonWorkload(AutoLockHelperThreadState& locked)
 
     currentTask.reset();
 
-    // Notify the active thread in case it is waiting for the compilation to finish.
+    // Notify the main thread in case it is waiting for the compilation to finish.
     HelperThreadState().notifyAll(GlobalHelperThreadState::CONSUMER, locked);
 }
 
@@ -1938,7 +1938,7 @@ HelperThread::handleParseWorkload(AutoLockHelperThreadState& locked)
 
     currentTask.reset();
 
-    // Notify the active thread in case it is waiting for the parse/emit to finish.
+    // Notify the main thread in case it is waiting for the parse/emit to finish.
     HelperThreadState().notifyAll(GlobalHelperThreadState::CONSUMER, locked);
 }
 
@@ -1973,7 +1973,7 @@ HelperThread::handleCompressionWorkload(AutoLockHelperThreadState& locked)
 
     currentTask.reset();
 
-    // Notify the active thread in case it is waiting for the compression to finish.
+    // Notify the main thread in case it is waiting for the compression to finish.
     HelperThreadState().notifyAll(GlobalHelperThreadState::CONSUMER, locked);
 }
 

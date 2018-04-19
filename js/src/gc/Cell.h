@@ -374,7 +374,7 @@ TenuredCell::readBarrier(TenuredCell* thing)
 
     JS::shadow::Zone* shadowZone = thing->shadowZoneFromAnyThread();
     if (shadowZone->needsIncrementalBarrier()) {
-        // Barriers are only enabled on the active thread and are disabled while collecting.
+        // Barriers are only enabled on the main thread and are disabled while collecting.
         MOZ_ASSERT(!RuntimeFromMainThreadIsHeapMajorCollecting(shadowZone));
         Cell* tmp = thing;
         TraceManuallyBarrieredGenericPointerEdge(shadowZone->barrierTracer(), &tmp, "read barrier");
@@ -382,7 +382,7 @@ TenuredCell::readBarrier(TenuredCell* thing)
     }
 
     if (thing->isMarkedGray()) {
-        // There shouldn't be anything marked grey unless we're on the active thread.
+        // There shouldn't be anything marked grey unless we're on the main thread.
         MOZ_ASSERT(CurrentThreadCanAccessRuntime(thing->runtimeFromAnyThread()));
         if (!RuntimeFromMainThreadIsHeapMajorCollecting(shadowZone))
             UnmarkGrayCellRecursively(thing, thing->getTraceKind());
