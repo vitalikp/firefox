@@ -255,7 +255,7 @@ struct VMFunction
     { }
 
     VMFunction(const VMFunction& o)
-      : next(nullptr),
+      : next(functions),
         wrapped(o.wrapped),
 #ifdef JS_TRACE_LOGGING
         name_(o.name_),
@@ -270,6 +270,9 @@ struct VMFunction
         extraValuesToPop(o.extraValuesToPop),
         expectTailCall(o.expectTailCall)
     {
+        // Add this to the global list of VMFunctions.
+        functions = this;
+
         // Check for valid failure/return type.
         MOZ_ASSERT_IF(outParam != Type_Void,
                       returnType == Type_Void ||
@@ -277,7 +280,6 @@ struct VMFunction
         MOZ_ASSERT(returnType == Type_Void ||
                    returnType == Type_Bool ||
                    returnType == Type_Object);
-        addToFunctions();
     }
 
     typedef const VMFunction* Lookup;
@@ -311,10 +313,6 @@ struct VMFunction
         MOZ_ASSERT(f1->outParamRootType == f2->outParamRootType);
         return true;
     }
-
-  private:
-    // Add this to the global list of VMFunctions.
-    void addToFunctions();
 };
 
 template <class> struct TypeToDataType { /* Unexpected return type for a VMFunction. */ };
