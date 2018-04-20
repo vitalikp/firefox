@@ -186,26 +186,31 @@ BuildHandlerChain(nsIContent* aContent, nsXBLPrototypeHandler** aResult)
        key;
        key = key->GetPreviousSibling()) {
 
-    if (key->NodeInfo()->Equals(nsGkAtoms::key, kNameSpaceID_XUL)) {
-      // Check whether the key element has empty value at key/char attribute.
-      // Such element is used by localizers for alternative shortcut key
-      // definition on the locale. See bug 426501.
-      nsAutoString valKey, valCharCode, valKeyCode;
-      bool attrExists =
-        key->GetAttr(kNameSpaceID_None, nsGkAtoms::key, valKey) ||
-        key->GetAttr(kNameSpaceID_None, nsGkAtoms::charcode, valCharCode) ||
-        key->GetAttr(kNameSpaceID_None, nsGkAtoms::keycode, valKeyCode);
-      if (attrExists &&
-          valKey.IsEmpty() && valCharCode.IsEmpty() && valKeyCode.IsEmpty())
-        continue;
+    if (!key->NodeInfo()->Equals(nsGkAtoms::key, kNameSpaceID_XUL))
+      continue;
 
-      bool reserved = key->AttrValueIs(kNameSpaceID_None, nsGkAtoms::reserved,
-                                       nsGkAtoms::_true, eCaseMatters);
-      nsXBLPrototypeHandler* handler = new nsXBLPrototypeHandler(key, reserved);
+    Element* keyElement = key->AsElement();
 
-      handler->SetNextHandler(*aResult);
-      *aResult = handler;
-    }
+    // Check whether the key element has empty value at key/char attribute.
+    // Such element is used by localizers for alternative shortcut key
+    // definition on the locale. See bug 426501.
+    nsAutoString valKey, valCharCode, valKeyCode;
+    keyElement->GetAttr(kNameSpaceID_None, nsGkAtoms::key, valKey) ||
+      keyElement->GetAttr(kNameSpaceID_None, nsGkAtoms::charcode, valCharCode) ||
+      keyElement->GetAttr(kNameSpaceID_None, nsGkAtoms::keycode, valKeyCode);
+
+    // If not, ignore this key element.
+    if (valKey.IsEmpty() && valCharCode.IsEmpty() && valKeyCode.IsEmpty())
+      continue;
+
+    nsXBLPrototypeHandler* handler;
+
+    bool reserved = keyElement->AttrValueIs(kNameSpaceID_None, nsGkAtoms::reserved,
+                                     nsGkAtoms::_true, eCaseMatters);
+    handler = new nsXBLPrototypeHandler(keyElement, reserved);
+
+    handler->SetNextHandler(*aResult);
+    *aResult = handler;
   }
 }
 
