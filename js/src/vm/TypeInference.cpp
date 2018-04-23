@@ -4561,7 +4561,7 @@ AutoClearTypeInferenceStateOnOOM::AutoClearTypeInferenceStateOnOOM(Zone* zone)
   : zone(zone), oom(false)
 {
     MOZ_RELEASE_ASSERT(CurrentThreadCanAccessZone(zone));
-    MOZ_ASSERT(!zone->types.assertNoTISweeping);
+    // Bug 1454398, MOZ_ASSERT(!zone->types.assertNoTISweeping);
     zone->types.setSweepingTypes(true);
 }
 
