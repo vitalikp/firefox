@@ -708,9 +708,6 @@ class MemoryCounter
 
     void updateOnGCStart();
     void updateOnGCEnd(const GCSchedulingTunables& tunables, const AutoLockGC& lock);
-
-  private:
-    void reset();
 };
 
 // A singly linked list of zones.
