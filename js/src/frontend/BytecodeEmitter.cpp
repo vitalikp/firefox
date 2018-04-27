@@ -2531,7 +2531,7 @@ BytecodeEmitter::updateLineNumberNotes(uint32_t offset)
     TokenStreamAnyChars* ts = &parser.tokenStream();
     bool onThisLine;
     if (!ts->srcCoords.isOnThisLine(offset, currentLine(), &onThisLine)) {
-        ts->reportErrorNoOffset(JSMSG_OUT_OF_MEMORY);
+        parser.errorReporter().reportErrorNoOffset(JSMSG_OUT_OF_MEMORY);
         return false;
     }
 
@@ -4859,7 +4859,7 @@ BytecodeEmitter::emitSetThis(ParseNode* pn)
 bool
 BytecodeEmitter::emitScript(ParseNode* body)
 {
-    AutoFrontendTraceLog traceLog(cx, TraceLogger_BytecodeEmission, tokenStream(), body);
+    AutoFrontendTraceLog traceLog(cx, TraceLogger_BytecodeEmission, parser.errorReporter(), body);
 
     setScriptStartOffsetIfUnset(body->pn_pos);
 
@@ -4933,7 +4933,7 @@ bool
 BytecodeEmitter::emitFunctionScript(ParseNode* body)
 {
     FunctionBox* funbox = sc->asFunctionBox();
-    AutoFrontendTraceLog traceLog(cx, TraceLogger_BytecodeEmission, tokenStream(), funbox);
+    AutoFrontendTraceLog traceLog(cx, TraceLogger_BytecodeEmission, parser.errorReporter(), funbox);
 
     setScriptStartOffsetIfUnset(body->pn_pos);
 

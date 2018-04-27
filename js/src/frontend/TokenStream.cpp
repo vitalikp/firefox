@@ -782,10 +782,12 @@ TokenStreamAnyChars::fillExcludingContext(ErrorMetadata* err, uint32_t offset)
     return true;
 }
 
+template<typename CharT, class AnyCharsAccess>
 bool
-TokenStreamAnyChars::hasTokenizationStarted() const
+TokenStreamSpecific<CharT, AnyCharsAccess>::hasTokenizationStarted() const
 {
-    return isCurrentTokenType(TokenKind::Eof) && !isEOF();
+    const TokenStreamAnyChars& anyChars = anyCharsAccess();
+    return anyChars.isCurrentTokenType(TokenKind::Eof) && !anyChars.isEOF();
 }
 
 void
@@ -794,11 +796,13 @@ TokenStreamAnyChars::lineAndColumnAt(size_t offset, uint32_t* line, uint32_t* co
     srcCoords.lineNumAndColumnIndex(offset, line, column);
 }
 
+template<typename CharT, class AnyCharsAccess>
 void
-TokenStreamAnyChars::currentLineAndColumn(uint32_t* line, uint32_t* column) const
+TokenStreamSpecific<CharT, AnyCharsAccess>::currentLineAndColumn(uint32_t* line, uint32_t* column) const
 {
-    uint32_t offset = currentToken().pos.begin;
-    srcCoords.lineNumAndColumnIndex(offset, line, column);
+    const TokenStreamAnyChars& anyChars = anyCharsAccess();
+    uint32_t offset = anyChars.currentToken().pos.begin;
+    anyChars.srcCoords.lineNumAndColumnIndex(offset, line, column);
 }
 
 template<typename CharT, class AnyCharsAccess>
@@ -917,6 +921,17 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::reportError(unsigned errorNumber, ..
         ReportCompileError(anyChars.cx, Move(metadata), nullptr, JSREPORT_ERROR, errorNumber,
                            args);
     }
+
+    va_end(args);
+}
+
+void
+TokenStreamAnyChars::reportErrorNoOffset(unsigned errorNumber, ...)
+{
+    va_list args;
+    va_start(args, errorNumber);
+
+    reportErrorNoOffsetVA(errorNumber, args);
 
     va_end(args);
 }

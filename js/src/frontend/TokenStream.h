@@ -538,8 +538,7 @@ class MOZ_STACK_CLASS TokenStreamPosition final
 } JS_HAZ_ROOTED;
 
 class TokenStreamAnyChars
-  : public TokenStreamShared,
-    public ErrorReporter
+  : public TokenStreamShared
 {
   public:
     TokenStreamAnyChars(JSContext* cx, const ReadOnlyCompileOptions& options,
@@ -814,22 +813,20 @@ class TokenStreamAnyChars
     // Compute error metadata for an error at no offset.
     void computeErrorMetadataNoOffset(ErrorMetadata* err);
 
-  public:
-    // ErrorReporter API.
+    // ErrorReporter API Helpers
 
-    virtual const JS::ReadOnlyCompileOptions& options() const override final {
+    void lineAndColumnAt(size_t offset, uint32_t *line, uint32_t *column) const;
+
+    // This is just straight up duplicated from TokenStreamSpecific's inheritance of
+    // ErrorReporter's reportErrorNoOffset. varargs delenda est.
+    void reportErrorNoOffset(unsigned errorNumber, ...);
+    void reportErrorNoOffsetVA(unsigned errorNumber, va_list args);
+
+    const JS::ReadOnlyCompileOptions& options() const {
         return options_;
     }
 
-    virtual void
-    lineAndColumnAt(size_t offset, uint32_t* line, uint32_t* column) const override final;
-
-    virtual void currentLineAndColumn(uint32_t* line, uint32_t* column) const override final;
-
-    virtual bool hasTokenizationStarted() const override final;
-    virtual void reportErrorNoOffsetVA(unsigned errorNumber, va_list args) override final;
-
-    virtual const char* getFilename() const override final {
+    const char* getFilename() const {
         return filename_;
     }
 
@@ -1152,7 +1149,8 @@ class TokenStreamChars<char16_t, AnyCharsAccess>
 template<typename CharT, class AnyCharsAccess>
 class MOZ_STACK_CLASS TokenStreamSpecific
   : public TokenStreamChars<CharT, AnyCharsAccess>,
-    public TokenStreamShared
+    public TokenStreamShared,
+    public ErrorReporter
 {
   public:
     using CharsBase = TokenStreamChars<CharT, AnyCharsAccess>;
@@ -1207,6 +1205,28 @@ class MOZ_STACK_CLASS TokenStreamSpecific
         reportInvalidEscapeError(anyCharsAccess().invalidTemplateEscapeOffset,
                                  anyCharsAccess().invalidTemplateEscapeType);
         return false;
+    }
+
+    // ErrorReporter API.
+
+    const JS::ReadOnlyCompileOptions& options() const final {
+        return anyCharsAccess().options();
+    }
+
+    void
+    lineAndColumnAt(size_t offset, uint32_t* line, uint32_t* column) const final {
+        anyCharsAccess().lineAndColumnAt(offset, line, column);
+    }
+
+    void currentLineAndColumn(uint32_t* line, uint32_t* column) const final;
+    bool hasTokenizationStarted() const final;
+
+    void reportErrorNoOffsetVA(unsigned errorNumber, va_list args) final {
+        anyCharsAccess().reportErrorNoOffsetVA(errorNumber, args);
+    }
+
+    const char* getFilename() const final {
+        return anyCharsAccess().getFilename();
     }
 
     // TokenStream-specific error reporters.
