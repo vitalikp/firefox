@@ -238,6 +238,8 @@ class ParserBase
     bool leaveInnerFunction(ParseContext* outerpc);
 
     JSAtom* prefixAccessorName(PropertyType propType, HandleAtom propAtom);
+
+    MOZ_MUST_USE bool setSourceMapInfo();
 };
 
 inline

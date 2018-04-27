@@ -972,6 +972,42 @@ TraceParser(JSTracer* trc, AutoGCRooter* parser)
     static_cast<ParserBase*>(parser)->trace(trc);
 }
 
+bool
+ParserBase::setSourceMapInfo()
+{
+    if (anyChars.hasDisplayURL()) {
+        if (!ss->setDisplayURL(context, anyChars.displayURL()))
+            return false;
+    }
+
+    if (anyChars.hasSourceMapURL()) {
+        MOZ_ASSERT(!ss->hasSourceMapURL());
+        if (!ss->setSourceMapURL(context, anyChars.sourceMapURL()))
+            return false;
+    }
+
+    /*
+     * Source map URLs passed as a compile option (usually via a HTTP source map
+     * header) override any source map urls passed as comment pragmas.
+     */
+    if (options().sourceMapURL()) {
+        // Warn about the replacement, but use the new one.
+        if (ss->hasSourceMapURL()) {
+            if (!warningNoOffset(JSMSG_ALREADY_HAS_PRAGMA,
+                                 ss->filename(), "//# sourceMappingURL"))
+            {
+                return false;
+            }
+        }
+
+        if (!ss->setSourceMapURL(context, options().sourceMapURL()))
+            return false;
+    }
+
+    return true;
+}
+
+
 /*
  * Parse a top-level JS script.
  */
@@ -2153,6 +2189,9 @@ Parser<FullParseHandler, CharT>::evalBody(EvalSharedContext* evalsc)
     if (!FoldConstants(context, &body, this))
         return nullptr;
 
+    if (!this->setSourceMapInfo())
+        return nullptr;
+
     // For eval scripts, since all bindings are automatically considered
     // closed over, we don't need to call propagateFreeNamesAndMarkClosed-
     // OverBindings. However, Annex B.3.3 functions still need to be marked.
@@ -2187,6 +2226,9 @@ Parser<FullParseHandler, CharT>::globalBody(GlobalSharedContext* globalsc)
         return nullptr;
 
     if (!FoldConstants(context, &body, this))
+        return nullptr;
+
+    if (!this->setSourceMapInfo())
         return nullptr;
 
     // For global scripts, whether bindings are closed over or not doesn't
@@ -2260,6 +2302,9 @@ Parser<FullParseHandler, CharT>::moduleBody(ModuleSharedContext* modulesc)
     }
 
     if (!FoldConstants(context, &pn, this))
+        return null();
+
+    if (!this->setSourceMapInfo())
         return null();
 
     if (!propagateFreeNamesAndMarkClosedOverBindings(modulepc.varScope()))
@@ -2569,6 +2614,9 @@ Parser<FullParseHandler, CharT>::standaloneFunction(HandleFunction fun,
     }
 
     if (!FoldConstants(context, &fn, this))
+        return null();
+
+    if (!this->setSourceMapInfo())
         return null();
 
     return fn;

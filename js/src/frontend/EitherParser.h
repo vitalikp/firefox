@@ -150,14 +150,6 @@ struct TokenStreamMatcher
     }
 };
 
-struct ScriptSourceMatcher
-{
-    template<class Parser>
-    ScriptSource* match(Parser* parser) {
-        return parser->ss;
-    }
-};
-
 struct ParserBaseMatcher
 {
     template<class Parser>
@@ -201,10 +193,6 @@ class EitherParser
 
     const TokenStreamAnyChars& tokenStream() const {
         return parser.match(detail::TokenStreamMatcher());
-    }
-
-    ScriptSource* ss() {
-        return parser.match(detail::ScriptSourceMatcher());
     }
 
     ErrorReporter& errorReporter() {
