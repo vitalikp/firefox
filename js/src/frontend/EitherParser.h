@@ -142,14 +142,6 @@ struct TokenStreamReportExtraWarning
 
 // Generic matchers.
 
-struct TokenStreamMatcher
-{
-    template<class Parser>
-    frontend::TokenStreamAnyChars& match(Parser* parser) {
-        return parser->anyChars;
-    }
-};
-
 struct ParserBaseMatcher
 {
     template<class Parser>
@@ -187,15 +179,11 @@ class EitherParser
     template<class Parser>
     explicit EitherParser(Parser* parser) : parser(parser) {}
 
-    TokenStreamAnyChars& tokenStream() {
-        return parser.match(detail::TokenStreamMatcher());
-    }
-
-    const TokenStreamAnyChars& tokenStream() const {
-        return parser.match(detail::TokenStreamMatcher());
-    }
-
     ErrorReporter& errorReporter() {
+        return parser.match(detail::ErrorReporterMatcher());
+    }
+
+    const ErrorReporter& errorReporter() const {
         return parser.match(detail::ErrorReporterMatcher());
     }
 
