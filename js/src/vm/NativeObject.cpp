@@ -1238,7 +1238,8 @@ UpdateShapeTypeAndValue(JSContext* cx, NativeObject* obj, Shape* shape, jsid id,
         // Per the acquired properties analysis, when the shape of a partially
         // initialized object is changed to its fully initialized shape, its
         // group can be updated as well.
-        if (TypeNewScript* newScript = obj->groupRaw()->newScript()) {
+        AutoSweepObjectGroup sweep(obj->groupRaw());
+        if (TypeNewScript* newScript = obj->groupRaw()->newScript(sweep)) {
             if (newScript->initializedShape() == shape)
                 obj->setGroup(newScript->initializedGroup());
         }
@@ -1266,7 +1267,8 @@ UpdateShapeTypeAndValueForWritableDataProp(JSContext* cx, NativeObject* obj, Sha
     // Per the acquired properties analysis, when the shape of a partially
     // initialized object is changed to its fully initialized shape, its
     // group can be updated as well.
-    if (TypeNewScript* newScript = obj->groupRaw()->newScript()) {
+    AutoSweepObjectGroup sweep(obj->groupRaw());
+    if (TypeNewScript* newScript = obj->groupRaw()->newScript(sweep)) {
         if (newScript->initializedShape() == shape)
             obj->setGroup(newScript->initializedGroup());
     }
@@ -1275,16 +1277,18 @@ UpdateShapeTypeAndValueForWritableDataProp(JSContext* cx, NativeObject* obj, Sha
 void
 js::AddPropertyTypesAfterProtoChange(JSContext* cx, NativeObject* obj, ObjectGroup* oldGroup)
 {
+    AutoSweepObjectGroup sweepObjGroup(obj->group());
     MOZ_ASSERT(obj->group() != oldGroup);
-    MOZ_ASSERT(!obj->group()->unknownProperties());
+    MOZ_ASSERT(!obj->group()->unknownProperties(sweepObjGroup));
 
-    if (oldGroup->unknownProperties()) {
+    AutoSweepObjectGroup sweepOldGroup(oldGroup);
+    if (oldGroup->unknownProperties(sweepOldGroup)) {
         MarkObjectGroupUnknownProperties(cx, obj->group());
         return;
     }
 
     // First copy the dynamic flags.
-    MarkObjectGroupFlags(cx, obj, oldGroup->flags() &
+    MarkObjectGroupFlags(cx, obj, oldGroup->flags(sweepOldGroup) &
                          OBJECT_FLAG_DYNAMIC_MASK);
 
     // Now update all property types. If the object has many properties, this

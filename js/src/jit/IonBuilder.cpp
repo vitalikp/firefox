@@ -6181,8 +6181,9 @@ IonBuilder::jsop_newarray_copyonwrite()
     // with the copy on write flag set already. During the arguments usage
     // analysis the baseline compiler hasn't run yet, however, though in this
     // case the template object's type doesn't matter.
+    ObjectGroup* group = templateObject->group();
     MOZ_ASSERT_IF(info().analysisMode() != Analysis_ArgumentsUsage,
-                  templateObject->group()->hasAnyFlags(OBJECT_FLAG_COPY_ON_WRITE));
+                  group->hasAllFlagsDontCheckGeneration(OBJECT_FLAG_COPY_ON_WRITE));
 
 
     MConstant* templateConst = MConstant::NewConstraintlessObject(alloc(), templateObject);
@@ -6190,7 +6191,7 @@ IonBuilder::jsop_newarray_copyonwrite()
 
     MNewArrayCopyOnWrite* ins =
         MNewArrayCopyOnWrite::New(alloc(), constraints(), templateConst,
-                                  templateObject->group()->initialHeap(constraints()));
+                                  group->initialHeap(constraints()));
 
     current->add(ins);
     current->push(ins);
@@ -9763,8 +9764,10 @@ IonBuilder::getDefiniteSlot(TemporaryTypeSet* types, PropertyName* name, uint32_
         // allowable range for fixed slots, except for objects which were
         // converted from unboxed objects and have a smaller allocation size.
         size_t nfixed = NativeObject::MAX_FIXED_SLOTS;
-        if (ObjectGroup* group = key->group()->maybeOriginalUnboxedGroup())
-            nfixed = gc::GetGCKindSlots(group->unboxedLayout().getAllocKind());
+        if (ObjectGroup* group = key->group()->maybeOriginalUnboxedGroup()) {
+            AutoSweepObjectGroup sweepGroup(group);
+            nfixed = gc::GetGCKindSlots(group->unboxedLayout(sweepGroup).getAllocKind());
+        }
 
         uint32_t propertySlot = property.maybeTypes()->definiteSlot();
         if (slot == UINT32_MAX) {
@@ -9804,7 +9807,8 @@ IonBuilder::getUnboxedOffset(TemporaryTypeSet* types, PropertyName* name, JSValu
             return UINT32_MAX;
         }
 
-        UnboxedLayout* layout = key->group()->maybeUnboxedLayout();
+        AutoSweepObjectGroup sweep(key->group());
+        UnboxedLayout* layout = key->group()->maybeUnboxedLayout(sweep);
         if (!layout) {
             trackOptimizationOutcome(TrackedOutcome::NotUnboxed);
             return UINT32_MAX;
@@ -10827,7 +10831,8 @@ IonBuilder::convertUnboxedObjects(MDefinition* obj)
         if (!key || !key->isGroup())
             continue;
 
-        if (UnboxedLayout* layout = key->group()->maybeUnboxedLayout()) {
+        AutoSweepObjectGroup sweep(key->group());
+        if (UnboxedLayout* layout = key->group()->maybeUnboxedLayout(sweep)) {
             AutoEnterOOMUnsafeRegion oomUnsafe;
             if (layout->nativeGroup() && !list.append(key->group()))
                 oomUnsafe.crash("IonBuilder::convertUnboxedObjects");
@@ -11335,7 +11340,8 @@ IonBuilder::getPropTryInlineAccess(bool* emitted, MDefinition* obj, PropertyName
 
         obj = addGroupGuard(obj, group, Bailout_ShapeGuard);
 
-        const UnboxedLayout::Property* property = group->unboxedLayout().lookup(name);
+        AutoSweepObjectGroup sweep(group);
+        const UnboxedLayout::Property* property = group->unboxedLayout(sweep).lookup(name);
         MInstruction* load = loadUnboxedProperty(obj, property->offset, property->type, barrier, types);
         current->push(load);
 
@@ -12138,7 +12144,8 @@ IonBuilder::setPropTryInlineAccess(bool* emitted, MDefinition* obj,
         if (needsPostBarrier(value))
             current->add(MPostWriteBarrier::New(alloc(), obj, value));
 
-        const UnboxedLayout::Property* property = group->unboxedLayout().lookup(name);
+        AutoSweepObjectGroup sweep(group);
+        const UnboxedLayout::Property* property = group->unboxedLayout(sweep).lookup(name);
         MInstruction* store = storeUnboxedProperty(obj, property->offset, property->type, value);
 
         current->push(value);

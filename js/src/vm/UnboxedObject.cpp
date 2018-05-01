@@ -6,6 +6,7 @@
 
 #include "vm/UnboxedObject-inl.h"
 
+#include "mozilla/Maybe.h"
 #include "mozilla/MemoryChecking.h"
 
 #include "jit/BaselineIC.h"
@@ -75,7 +76,8 @@ UnboxedLayout::makeConstructorCode(JSContext* cx, HandleObjectGroup group)
     if (!cx->compartment()->ensureJitCompartmentExists(cx))
         return false;
 
-    UnboxedLayout& layout = group->unboxedLayout();
+    AutoSweepObjectGroup sweep(group);
+    UnboxedLayout& layout = group->unboxedLayout(sweep);
     MOZ_ASSERT(!layout.constructorCode());
 
     UnboxedPlainObject* templateObject = UnboxedPlainObject::create(cx, group, TenuredObject);
@@ -194,7 +196,7 @@ UnboxedLayout::makeConstructorCode(JSContext* cx, HandleObjectGroup group)
         masm.loadValue(valueAddress, valueOperand);
 
         if (property.type == JSVAL_TYPE_OBJECT) {
-            HeapTypeSet* types = group->maybeGetProperty(IdToTypeId(NameToId(property.name)));
+            HeapTypeSet* types = group->maybeGetProperty(sweep, IdToTypeId(NameToId(property.name)));
 
             Label notObject;
             masm.branchTestObject(Assembler::NotEqual, valueOperand,
@@ -490,7 +492,8 @@ UnboxedPlainObject::containsUnboxedOrExpandoProperty(JSContext* cx, jsid id) con
 static bool
 PropagatePropertyTypes(JSContext* cx, jsid id, ObjectGroup* oldGroup, ObjectGroup* newGroup)
 {
-    HeapTypeSet* typeProperty = oldGroup->maybeGetProperty(id);
+    AutoSweepObjectGroup sweepOld(oldGroup);
+    HeapTypeSet* typeProperty = oldGroup->maybeGetProperty(sweepOld, id);
     TypeSet::TypeList types;
     if (!typeProperty->enumerateTypes(&types)) {
         ReportOutOfMemory(cx);
@@ -529,7 +532,8 @@ UnboxedLayout::makeNativeGroup(JSContext* cx, ObjectGroup* group)
 {
     AutoEnterAnalysis enter(cx);
 
-    UnboxedLayout& layout = group->unboxedLayout();
+    AutoSweepObjectGroup sweep(group);
+    UnboxedLayout& layout = group->unboxedLayout(sweep);
     Rooted<TaggedProto> proto(cx, group->proto());
 
     MOZ_ASSERT(!layout.nativeGroup());
@@ -610,12 +614,13 @@ UnboxedLayout::makeNativeGroup(JSContext* cx, ObjectGroup* group)
 
     ObjectGroup* nativeGroup =
         ObjectGroupCompartment::makeGroup(cx, &PlainObject::class_, proto,
-                                          group->flags() & OBJECT_FLAG_DYNAMIC_MASK);
+                                          group->flags(sweep) & OBJECT_FLAG_DYNAMIC_MASK);
     if (!nativeGroup)
         return false;
 
     // No sense propagating if we don't know what we started with.
-    if (!group->unknownProperties()) {
+    AutoSweepObjectGroup sweepNative(nativeGroup);
+    if (!group->unknownProperties(sweep)) {
         for (size_t i = 0; i < layout.properties().length(); i++) {
             const UnboxedLayout::Property& property = layout.properties()[i];
             jsid id = NameToId(property.name);
@@ -623,16 +628,16 @@ UnboxedLayout::makeNativeGroup(JSContext* cx, ObjectGroup* group)
                 return false;
 
             // If we are OOM we may not be able to propagate properties.
-            if (nativeGroup->unknownProperties())
+            if (nativeGroup->unknownProperties(sweepNative))
                 break;
 
-            HeapTypeSet* nativeProperty = nativeGroup->maybeGetProperty(id);
+            HeapTypeSet* nativeProperty = nativeGroup->maybeGetProperty(sweepNative, id);
             if (nativeProperty && nativeProperty->canSetDefinite(i))
                 nativeProperty->setDefinite(i);
         }
     } else {
         // If we skip, though, the new group had better agree.
-        MOZ_ASSERT(nativeGroup->unknownProperties());
+        MOZ_ASSERT(nativeGroup->unknownProperties(sweepNative));
     }
 
     layout.nativeGroup_ = nativeGroup;
@@ -641,7 +646,7 @@ UnboxedLayout::makeNativeGroup(JSContext* cx, ObjectGroup* group)
 
     nativeGroup->setOriginalUnboxedGroup(group);
 
-    group->markStateChange(cx);
+    group->markStateChange(sweep, cx);
 
     return true;
 }
@@ -759,7 +764,12 @@ UnboxedPlainObject::create(JSContext* cx, HandleObjectGroup group, NewObjectKind
     AutoSetNewObjectMetadata metadata(cx);
 
     MOZ_ASSERT(group->clasp() == &class_);
-    gc::AllocKind allocKind = group->unboxedLayout().getAllocKind();
+
+    gc::AllocKind allocKind;
+    {
+        AutoSweepObjectGroup sweep(group);
+        allocKind = group->unboxedLayout(sweep).getAllocKind();
+    }
     gc::InitialHeap heap = GetInitialHeap(newKind, &class_);
 
     MOZ_ASSERT(newKind != SingletonObject);
@@ -799,39 +809,50 @@ UnboxedPlainObject::createWithProperties(JSContext* cx, HandleObjectGroup group,
 {
     MOZ_ASSERT(newKind == GenericObject || newKind == TenuredObject);
 
-    UnboxedLayout& layout = group->unboxedLayout();
+    {
+        AutoSweepObjectGroup sweep(group);
+        UnboxedLayout& layout = group->unboxedLayout(sweep);
 
-    if (layout.constructorCode()) {
-        MOZ_ASSERT(!cx->helperThread());
+        if (layout.constructorCode()) {
+            MOZ_ASSERT(!cx->helperThread());
 
-        typedef JSObject* (*ConstructorCodeSignature)(IdValuePair*, NewObjectKind);
-        ConstructorCodeSignature function =
-            reinterpret_cast<ConstructorCodeSignature>(layout.constructorCode()->raw());
+            typedef JSObject* (*ConstructorCodeSignature)(IdValuePair*, NewObjectKind);
+            ConstructorCodeSignature function =
+                reinterpret_cast<ConstructorCodeSignature>(layout.constructorCode()->raw());
 
-        JSObject* obj;
-        {
-            JS::AutoSuppressGCAnalysis nogc;
-            obj = reinterpret_cast<JSObject*>(CALL_GENERATED_2(function, properties, newKind));
+            JSObject* obj;
+            {
+                JS::AutoSuppressGCAnalysis nogc;
+                obj = reinterpret_cast<JSObject*>(CALL_GENERATED_2(function, properties, newKind));
+            }
+            if (obj > reinterpret_cast<JSObject*>(CLEAR_CONSTRUCTOR_CODE_TOKEN))
+                return obj;
+
+            if (obj == reinterpret_cast<JSObject*>(CLEAR_CONSTRUCTOR_CODE_TOKEN))
+                layout.setConstructorCode(nullptr);
         }
-        if (obj > reinterpret_cast<JSObject*>(CLEAR_CONSTRUCTOR_CODE_TOKEN))
-            return obj;
-
-        if (obj == reinterpret_cast<JSObject*>(CLEAR_CONSTRUCTOR_CODE_TOKEN))
-            layout.setConstructorCode(nullptr);
     }
 
     UnboxedPlainObject* obj = UnboxedPlainObject::create(cx, group, newKind);
     if (!obj)
         return nullptr;
 
+    // AutoSweepObjectGroup can't be live across a GC call, so we reset() it
+    // before calling NewPlainObjectWithProperties.
+    mozilla::Maybe<AutoSweepObjectGroup> sweep;
+    sweep.emplace(group);
+    UnboxedLayout& layout = group->unboxedLayout(*sweep);
+
     for (size_t i = 0; i < layout.properties().length(); i++) {
-        if (!obj->setValue(cx, layout.properties()[i], properties[i].value))
+        if (!obj->setValue(cx, layout.properties()[i], properties[i].value)) {
+            sweep.reset();
             return NewPlainObjectWithProperties(cx, properties, layout.properties().length(), newKind);
+        }
     }
 
 #ifndef JS_CODEGEN_NONE
     if (!cx->helperThread() &&
-        !group->unknownProperties() &&
+        !group->unknownProperties(*sweep) &&
         !layout.constructorCode() &&
         cx->runtime()->jitSupportsFloatingPoint &&
         jit::CanLikelyAllocateMoreExecutableMemory())
@@ -1285,6 +1306,8 @@ js::TryConvertToUnboxedLayout(JSContext* cx, AutoEnterAnalysis& enter, Shape* te
     if (jit::JitOptions.disableUnboxedObjects)
         return true;
 
+    AutoSweepObjectGroup sweep(group);
+
     MOZ_ASSERT(!templateShape->getObjectFlags());
 
     if (group->runtimeFromAnyThread()->isSelfHostingGlobal(cx->global()))
@@ -1386,7 +1409,7 @@ js::TryConvertToUnboxedLayout(JSContext* cx, AutoEnterAnalysis& enter, Shape* te
         }
     }
 
-    if (TypeNewScript* newScript = group->newScript())
+    if (TypeNewScript* newScript = group->newScript(sweep))
         layout->setNewScript(newScript);
 
     for (size_t i = 0; i < PreliminaryObjectArray::COUNT; i++) {
