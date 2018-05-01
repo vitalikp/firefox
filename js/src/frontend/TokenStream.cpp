@@ -10,6 +10,7 @@
 
 #include "mozilla/ArrayUtils.h"
 #include "mozilla/IntegerTypeTraits.h"
+#include "mozilla/MemoryChecking.h"
 #include "mozilla/PodOperations.h"
 #include "mozilla/ScopeExit.h"
 
@@ -1268,16 +1269,12 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getSourceMappingURL(bool isMultiline
 
 template<typename CharT, class AnyCharsAccess>
 MOZ_ALWAYS_INLINE Token*
-TokenStreamSpecific<CharT, AnyCharsAccess>::newToken(ptrdiff_t adjust)
+GeneralTokenStreamChars<CharT, AnyCharsAccess>::newToken(ptrdiff_t adjust)
 {
-    TokenStreamAnyChars& anyChars = anyCharsAccess();
-
-    anyChars.cursor = (anyChars.cursor + 1) & ntokensMask;
-    Token* tp = &anyChars.tokens[anyChars.cursor];
-    tp->pos.begin = sourceUnits.offset() + adjust;
+    Token* tp = anyCharsAccess().allocateToken();
 
     // NOTE: tp->pos.end is not set until the very end of getTokenInternal().
-    MOZ_MAKE_MEM_UNDEFINED(&tp->pos.end, sizeof(tp->pos.end));
+    tp->pos.begin = sourceUnits.offset() + adjust;
 
     return tp;
 }
@@ -1517,6 +1514,19 @@ static const uint8_t firstCharKinds[] = {
 
 static_assert(LastCharKind < (1 << (sizeof(firstCharKinds[0]) * 8)),
               "Elements of firstCharKinds[] are too small");
+
+template<typename CharT, class AnyCharsAccess>
+void
+GeneralTokenStreamChars<CharT, AnyCharsAccess>::consumeRestOfSingleLineComment()
+{
+    int32_t c;
+    do {
+        c = getCharIgnoreEOL();
+    } while (c != EOF && !SourceUnits::isRawEOLChar(c));
+
+    ungetCharIgnoreEOL(c);
+    anyCharsAccess().deallocateToken();
+}
 
 template<typename CharT, class AnyCharsAccess>
 MOZ_MUST_USE bool
@@ -1925,8 +1935,10 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* ttp, Mod
             // Treat HTML begin-comment as comment-till-end-of-line.
             if (matchChar('!')) {
                 if (matchChar('-')) {
-                    if (matchChar('-'))
-                        goto skipline;
+                    if (matchChar('-')) {
+                        consumeRestOfSingleLineComment();
+                        goto retry;
+                    }
                     ungetCharIgnoreEOL('-');
                 }
                 ungetCharIgnoreEOL('!');
@@ -1969,13 +1981,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* ttp, Mod
                 ungetCharIgnoreEOL(c);
             }
 
-        skipline:
-            do {
-                c = getCharIgnoreEOL();
-            } while (c != EOF && !SourceUnits::isRawEOLChar(c));
-
-            ungetCharIgnoreEOL(c);
-            anyCharsAccess().cursor = (anyCharsAccess().cursor - 1) & ntokensMask;
+            consumeRestOfSingleLineComment();
             goto retry;
         }
 
@@ -2086,8 +2092,10 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* ttp, Mod
             if (anyCharsAccess().options().allowHTMLComments &&
                 !anyCharsAccess().flags.isDirtyLine)
             {
-                if (matchChar('>'))
-                    goto skipline;
+                if (matchChar('>')) {
+                    consumeRestOfSingleLineComment();
+                    goto retry;
+                }
             }
 
             tp->type = TokenKind::Dec;
