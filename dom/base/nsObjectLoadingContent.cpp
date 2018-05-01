@@ -1492,6 +1492,19 @@ nsObjectLoadingContent::UpdateObjectParameters()
   ///
   /// Initial MIME Type
   ///
+
+
+  if (caps & eFallbackIfClassIDPresent) {
+    nsAutoString classIDAttr;
+    thisContent->GetAttr(kNameSpaceID_None, nsGkAtoms::classid, classIDAttr);
+    // We don't support class ID plugin references, so we should always treat
+    // having class Ids as attributes as invalid, and fallback accordingly.
+    if (!classIDAttr.IsEmpty()) {
+      newMime.Truncate();
+      stateInvalid = true;
+    }
+  }
+
   ///
   /// Codebase
   ///
