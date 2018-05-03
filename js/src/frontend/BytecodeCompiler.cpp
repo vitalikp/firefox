@@ -561,6 +561,43 @@ class MOZ_STACK_CLASS AutoInitializeSourceObject
     }
 };
 
+// RAII class to check the frontend reports an exception when it fails to
+// compile a script.
+class MOZ_RAII AutoAssertReportedException
+{
+#ifdef DEBUG
+    JSContext* cx_;
+    bool check_;
+
+  public:
+    explicit AutoAssertReportedException(JSContext* cx)
+      : cx_(cx),
+        check_(true)
+    {}
+    void reset() {
+        check_ = false;
+    }
+    ~AutoAssertReportedException() {
+        if (!check_)
+            return;
+
+        if (!cx_->helperThread()) {
+            MOZ_ASSERT(cx_->isExceptionPending());
+            return;
+        }
+
+        ParseTask* task = cx_->helperThread()->parseTask();
+        MOZ_ASSERT(task->outOfMemory ||
+                   task->overRecursed ||
+                   !task->errors.empty());
+    }
+#else
+  public:
+    explicit AutoAssertReportedException(JSContext*) {}
+    void reset() {}
+#endif
+};
+
 JSScript*
 frontend::CompileGlobalScript(JSContext* cx, LifoAlloc& alloc, ScopeKind scopeKind,
                               const ReadOnlyCompileOptions& options,
@@ -568,9 +605,14 @@ frontend::CompileGlobalScript(JSContext* cx, LifoAlloc& alloc, ScopeKind scopeKi
                               ScriptSourceObject** sourceObjectOut)
 {
     MOZ_ASSERT(scopeKind == ScopeKind::Global || scopeKind == ScopeKind::NonSyntactic);
+    AutoAssertReportedException assertException(cx);
     BytecodeCompiler compiler(cx, alloc, options, srcBuf, /* enclosingScope = */ nullptr);
     AutoInitializeSourceObject autoSSO(compiler, sourceObjectOut);
-    return compiler.compileGlobalScript(scopeKind);
+    JSScript* script = compiler.compileGlobalScript(scopeKind);
+    if (!script)
+        return nullptr;
+    assertException.reset();
+    return script;
 }
 
 JSScript*
@@ -580,9 +622,15 @@ frontend::CompileEvalScript(JSContext* cx, LifoAlloc& alloc,
                             SourceBufferHolder& srcBuf,
                             ScriptSourceObject** sourceObjectOut)
 {
+    AutoAssertReportedException assertException(cx);
     BytecodeCompiler compiler(cx, alloc, options, srcBuf, enclosingScope);
     AutoInitializeSourceObject autoSSO(compiler, sourceObjectOut);
-    return compiler.compileEvalScript(environment, enclosingScope);
+    JSScript* script = compiler.compileEvalScript(environment, enclosingScope);
+    if (!script)
+        return nullptr;
+    assertException.reset();
+    return script;
+
 }
 
 ModuleObject*
@@ -593,6 +641,8 @@ frontend::CompileModule(JSContext* cx, const ReadOnlyCompileOptions& optionsInpu
     MOZ_ASSERT(srcBuf.get());
     MOZ_ASSERT_IF(sourceObjectOut, *sourceObjectOut == nullptr);
 
+    AutoAssertReportedException assertException(cx);
+
     CompileOptions options(cx, optionsInput);
     options.maybeMakeStrictMode(true); // ES6 10.2.1 Module code is always strict mode code.
     options.setIsRunOnce(true);
@@ -601,13 +651,20 @@ frontend::CompileModule(JSContext* cx, const ReadOnlyCompileOptions& optionsInpu
     RootedScope emptyGlobalScope(cx, &cx->global()->emptyGlobalScope());
     BytecodeCompiler compiler(cx, alloc, options, srcBuf, emptyGlobalScope);
     AutoInitializeSourceObject autoSSO(compiler, sourceObjectOut);
-    return compiler.compileModule();
+    ModuleObject* module = compiler.compileModule();
+    if (!module)
+        return nullptr;
+
+    assertException.reset();
+    return module;
 }
 
 ModuleObject*
 frontend::CompileModule(JSContext* cx, const ReadOnlyCompileOptions& options,
                         SourceBufferHolder& srcBuf)
 {
+    AutoAssertReportedException assertException(cx);
+
     if (!GlobalObject::ensureModulePrototypesCreated(cx, cx->global()))
         return nullptr;
 
@@ -621,6 +678,7 @@ frontend::CompileModule(JSContext* cx, const ReadOnlyCompileOptions& options,
     if (!ModuleObject::Freeze(cx, module))
         return nullptr;
 
+    assertException.reset();
     return module;
 }
 
@@ -628,6 +686,8 @@ bool
 frontend::CompileLazyFunction(JSContext* cx, Handle<LazyScript*> lazy, const char16_t* chars, size_t length)
 {
     MOZ_ASSERT(cx->compartment() == lazy->functionNonDelazifying()->compartment());
+
+    AutoAssertReportedException assertException(cx);
 
     CompileOptions options(cx);
     options.setMutedErrors(lazy->mutedErrors())
@@ -696,6 +756,7 @@ frontend::CompileLazyFunction(JSContext* cx, Handle<LazyScript*> lazy, const cha
     if (!NameFunctions(cx, pn))
         return false;
 
+    assertException.reset();
     return true;
 }
 
@@ -706,14 +767,22 @@ frontend::CompileStandaloneFunction(JSContext* cx, MutableHandleFunction fun,
                                     const Maybe<uint32_t>& parameterListEnd,
                                     HandleScope enclosingScope /* = nullptr */)
 {
+    AutoAssertReportedException assertException(cx);
+
     RootedScope scope(cx, enclosingScope);
     if (!scope)
         scope = &cx->global()->emptyGlobalScope();
 
     BytecodeCompiler compiler(cx, cx->tempLifoAlloc(), options, srcBuf, scope);
-    return compiler.compileStandaloneFunction(fun, GeneratorKind::NotGenerator,
-                                              FunctionAsyncKind::SyncFunction,
-                                              parameterListEnd);
+    if (!compiler.compileStandaloneFunction(fun, GeneratorKind::NotGenerator,
+                                            FunctionAsyncKind::SyncFunction,
+                                            parameterListEnd))
+    {
+        return false;
+    }
+
+    assertException.reset();
+    return true;
 }
 
 bool
@@ -722,12 +791,20 @@ frontend::CompileStandaloneGenerator(JSContext* cx, MutableHandleFunction fun,
                                      JS::SourceBufferHolder& srcBuf,
                                      const Maybe<uint32_t>& parameterListEnd)
 {
+    AutoAssertReportedException assertException(cx);
+
     RootedScope emptyGlobalScope(cx, &cx->global()->emptyGlobalScope());
 
     BytecodeCompiler compiler(cx, cx->tempLifoAlloc(), options, srcBuf, emptyGlobalScope);
-    return compiler.compileStandaloneFunction(fun, GeneratorKind::Generator,
-                                              FunctionAsyncKind::SyncFunction,
-                                              parameterListEnd);
+    if (!compiler.compileStandaloneFunction(fun, GeneratorKind::Generator,
+                                            FunctionAsyncKind::SyncFunction,
+                                            parameterListEnd))
+    {
+        return false;
+    }
+
+    assertException.reset();
+    return true;
 }
 
 bool
@@ -736,12 +813,20 @@ frontend::CompileStandaloneAsyncFunction(JSContext* cx, MutableHandleFunction fu
                                          JS::SourceBufferHolder& srcBuf,
                                          const Maybe<uint32_t>& parameterListEnd)
 {
+    AutoAssertReportedException assertException(cx);
+
     RootedScope emptyGlobalScope(cx, &cx->global()->emptyGlobalScope());
 
     BytecodeCompiler compiler(cx, cx->tempLifoAlloc(), options, srcBuf, emptyGlobalScope);
-    return compiler.compileStandaloneFunction(fun, GeneratorKind::NotGenerator,
-                                              FunctionAsyncKind::AsyncFunction,
-                                              parameterListEnd);
+    if (!compiler.compileStandaloneFunction(fun, GeneratorKind::NotGenerator,
+                                            FunctionAsyncKind::AsyncFunction,
+                                            parameterListEnd))
+    {
+        return false;
+    }
+
+    assertException.reset();
+    return true;
 }
 
 bool
@@ -750,10 +835,18 @@ frontend::CompileStandaloneAsyncGenerator(JSContext* cx, MutableHandleFunction f
                                           JS::SourceBufferHolder& srcBuf,
                                           const Maybe<uint32_t>& parameterListEnd)
 {
+    AutoAssertReportedException assertException(cx);
+
     RootedScope emptyGlobalScope(cx, &cx->global()->emptyGlobalScope());
 
     BytecodeCompiler compiler(cx, cx->tempLifoAlloc(), options, srcBuf, emptyGlobalScope);
-    return compiler.compileStandaloneFunction(fun, GeneratorKind::Generator,
-                                              FunctionAsyncKind::AsyncFunction,
-                                              parameterListEnd);
+    if (!compiler.compileStandaloneFunction(fun, GeneratorKind::Generator,
+                                            FunctionAsyncKind::AsyncFunction,
+                                            parameterListEnd))
+    {
+        return false;
+    }
+
+    assertException.reset();
+    return true;
 }
