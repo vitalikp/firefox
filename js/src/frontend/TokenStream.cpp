@@ -1392,6 +1392,12 @@ MOZ_MUST_USE bool
 TokenStreamSpecific<CharT, AnyCharsAccess>::identifierName(Token* token, const CharT* identStart,
                                                            IdentifierEscapes escaping)
 {
+    // Run the bad-token code for every path out of this function except the
+    // two success-cases.
+    auto noteBadToken = MakeScopeExit([this]() {
+        this->badToken();
+    });
+
     int c;
     while (true) {
         c = getCharIgnoreEOL();
@@ -1434,6 +1440,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::identifierName(Token* token, const C
 
         // Represent reserved words lacking escapes as reserved word tokens.
         if (const ReservedWordInfo* rw = FindReservedWord(chars, length)) {
+            noteBadToken.release();
             token->type = rw->tokentype;
             return true;
         }
@@ -1443,6 +1450,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::identifierName(Token* token, const C
     if (!atom)
         return false;
 
+    noteBadToken.release();
     token->type = TokenKind::Name;
     token->setName(atom->asPropertyName());
     return true;
@@ -1727,7 +1735,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
                           "handled here");
             if (unicode::IsUnicodeIDStart(char16_t(c))) {
                 if (!identifierName(tp, identStart, IdentifierEscapes::None))
-                    return badToken();
+                    return false;
 
                 FinishToken(tp);
                 return true;
@@ -1739,7 +1747,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
 
             if (codePoint && unicode::IsUnicodeIDStart(codePoint)) {
                 if (!identifierName(tp, identStart, IdentifierEscapes::None))
-                    return badToken();
+                    return false;
 
                 FinishToken(tp);
                 return true;
@@ -1795,7 +1803,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
             if (!identifierName(tp, sourceUnits.addressOfNextCodeUnit() - 1,
                                 IdentifierEscapes::None))
             {
-                return badToken();
+                return false;
             }
 
             FinishToken(tp);
@@ -2032,7 +2040,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
                 if (!identifierName(tp, sourceUnits.addressOfNextCodeUnit() - escapeLength - 1,
                                     IdentifierEscapes::SawUnicodeEscape))
                 {
-                    return badToken();
+                    return false;
                 }
 
                 FinishToken(tp);
