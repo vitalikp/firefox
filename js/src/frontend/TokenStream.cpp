@@ -1269,12 +1269,12 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getSourceMappingURL(bool isMultiline
 
 template<typename CharT, class AnyCharsAccess>
 MOZ_ALWAYS_INLINE Token*
-GeneralTokenStreamChars<CharT, AnyCharsAccess>::newToken(ptrdiff_t adjust)
+GeneralTokenStreamChars<CharT, AnyCharsAccess>::newToken(TokenStart start)
 {
     Token* tp = anyCharsAccess().allocateToken();
 
     // NOTE: tp->pos.end is not set until the very end of getTokenInternal().
-    tp->pos.begin = sourceUnits.offset() + adjust;
+    tp->pos.begin = start.offset();
 
     return tp;
 }
@@ -1679,7 +1679,8 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
     // encountered.
     do {
         if (MOZ_UNLIKELY(!sourceUnits.hasRawChars())) {
-            Token* tp = newToken(0);
+            TokenStart start(sourceUnits, 0);
+            Token* tp = newToken(start);
             tp->type = TokenKind::Eof;
             anyCharsAccess().flags.isEOF = true;
             FinishToken(tp);
@@ -1707,7 +1708,8 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
                 continue;
             }
 
-            Token* tp = newToken(-1);
+            TokenStart start(sourceUnits, -1);
+            Token* tp = newToken(start);
 
             // If the first codepoint is really the start of an identifier, the
             // identifier starts at the previous raw char.  If it isn't, it's a
@@ -1777,7 +1779,8 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
         // Look for an unambiguous single-char token.
         //
         if (c1kind <= OneChar_Max) {
-            Token* tp = newToken(-1);
+            TokenStart start(sourceUnits, -1);
+            Token* tp = newToken(start);
             tp->type = TokenKind(c1kind);
             FinishToken(tp);
             return true;
@@ -1791,7 +1794,8 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
         // Look for an identifier.
         //
         if (c1kind == Ident) {
-            Token* tp = newToken(-1);
+            TokenStart start(sourceUnits, -1);
+            Token* tp = newToken(start);
 
             if (!identifierName(tp, sourceUnits.addressOfNextCodeUnit() - 1,
                                 IdentifierEscapes::None))
@@ -1807,7 +1811,8 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
         // Look for a decimal number.
         //
         if (c1kind == Dec) {
-            Token* tp = newToken(-1);
+            TokenStart start(sourceUnits, -1);
+            Token* tp = newToken(start);
 
             const CharT* numStart = sourceUnits.addressOfNextCodeUnit() - 1;
             if (!decimalNumber(c, tp, numStart)) {
@@ -1853,7 +1858,8 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
         // decimal) number.
         //
         if (c1kind == ZeroDigit) {
-            Token* tp = newToken(-1);
+            TokenStart start(sourceUnits, -1);
+            Token* tp = newToken(start);
 
             int radix;
             const CharT* numStart;
@@ -2003,7 +2009,8 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
         // This handles everything else.
         //
         MOZ_ASSERT(c1kind == Other);
-        Token* tp = newToken(-1);
+        TokenStart start(sourceUnits, -1);
+        Token* tp = newToken(start);
         switch (c) {
           case '.':
             c = getCharIgnoreEOL();
@@ -2333,7 +2340,8 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getStringOrTemplateToken(char untilC
     bool parsingTemplate = (untilChar == '`');
     bool templateHead = false;
 
-    *tp = newToken(-1);
+    TokenStart start(sourceUnits, -1);
+    *tp = newToken(start);
     tokenbuf.clear();
 
     // We need to detect any of these chars:  " or ', \n (or its
