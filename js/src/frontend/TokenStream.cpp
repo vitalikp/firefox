@@ -1151,8 +1151,12 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getDirectives(bool isMultiline,
     // comment. To avoid potentially expensive lookahead and backtracking, we
     // only check for this case if we encounter a '#' character.
 
-    return getDisplayURL(isMultiline, shouldWarnDeprecated) &&
-           getSourceMappingURL(isMultiline, shouldWarnDeprecated);
+    bool res = getDisplayURL(isMultiline, shouldWarnDeprecated) &&
+               getSourceMappingURL(isMultiline, shouldWarnDeprecated);
+    if (!res)
+        badToken();
+
+    return res;
 }
 
 template<>
@@ -2145,7 +2149,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
                 if (c == '@' || c == '#') {
                     bool shouldWarn = c == '@';
                     if (!getDirectives(false, shouldWarn))
-                        return badToken();
+                        return false;
                 } else {
                     ungetCharIgnoreEOL(c);
                 }
@@ -2174,7 +2178,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
                     if (c == '@' || c == '#') {
                         bool shouldWarn = c == '@';
                         if (!getDirectives(true, shouldWarn))
-                            return badToken();
+                            return false;
                     }
                 } while (true);
 
