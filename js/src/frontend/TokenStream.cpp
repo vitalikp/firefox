@@ -1557,6 +1557,12 @@ MOZ_MUST_USE bool
 TokenStreamSpecific<CharT, AnyCharsAccess>::decimalNumber(int c, Token* tp,
                                                           const CharT* numStart)
 {
+    // Run the bad-token code for every path out of this function except the
+    // one success-case.
+    auto noteBadToken = MakeScopeExit([this]() {
+        this->badToken();
+    });
+
     // Consume integral component digits.
     while (JS7_ISDEC(c))
         c = getCharIgnoreEOL();
@@ -1643,6 +1649,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::decimalNumber(int c, Token* tp,
         }
     }
 
+    noteBadToken.release();
     tp->type = TokenKind::Number;
     tp->setNumber(dval, decimalPoint);
     return true;
@@ -1818,7 +1825,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
 
             const CharT* numStart = sourceUnits.addressOfNextCodeUnit() - 1;
             if (!decimalNumber(c, tp, numStart))
-                return badToken();
+                return false;
 
             FinishToken(tp);
             return true;
@@ -1923,7 +1930,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
 
                         // Use the decimal scanner for the rest of the number.
                         if (!decimalNumber(c, tp, numStart))
-                            return badToken();
+                            return false;
 
                         FinishToken(tp);
                         return true;
@@ -1936,7 +1943,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
                 numStart = sourceUnits.addressOfNextCodeUnit() - 1;
 
                 if (!decimalNumber(c, tp, numStart))
-                    return badToken();
+                    return false;
 
                 FinishToken(tp);
                 return true;
@@ -1998,7 +2005,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
                 const CharT* numStart = sourceUnits.addressOfNextCodeUnit() - 2;
 
                 if (!decimalNumber('.', tp, numStart))
-                    return badToken();
+                    return false;
 
                 FinishToken(tp);
                 return true;
