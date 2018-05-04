@@ -109,6 +109,10 @@ class WasmToken
         Load,
         Local,
         Loop,
+#ifdef ENABLE_WASM_BULKMEM_OPS
+        MemCopy,
+        MemFill,
+#endif
         Module,
         Mutable,
         Name,
@@ -332,6 +336,10 @@ class WasmToken
           case If:
           case Load:
           case Loop:
+#ifdef ENABLE_WASM_BULKMEM_OPS
+          case MemCopy:
+          case MemFill:
+#endif
           case Nop:
           case RefNull:
           case Return:
@@ -1640,6 +1648,15 @@ WasmTokenStream::next()
         break;
 
       case 'm':
+#ifdef ENABLE_WASM_BULKMEM_OPS
+        if (consume(u"memory.")) {
+            if (consume(u"copy"))
+                return WasmToken(WasmToken::MemCopy, begin, cur_);
+            if (consume(u"fill"))
+                return WasmToken(WasmToken::MemFill, begin, cur_);
+            break;
+        }
+#endif
         if (consume(u"module"))
             return WasmToken(WasmToken::Module, begin, cur_);
         if (consume(u"memory"))
@@ -2945,6 +2962,44 @@ ParseGrowMemory(WasmParseContext& c, bool inParens)
     return new(c.lifo) AstGrowMemory(operand);
 }
 
+#ifdef ENABLE_WASM_BULKMEM_OPS
+static AstMemCopy*
+ParseMemCopy(WasmParseContext& c, bool inParens)
+{
+    AstExpr* dest = ParseExpr(c, inParens);
+    if (!dest)
+        return nullptr;
+
+    AstExpr* src = ParseExpr(c, inParens);
+    if (!src)
+        return nullptr;
+
+    AstExpr* len = ParseExpr(c, inParens);
+    if (!len)
+        return nullptr;
+
+    return new(c.lifo) AstMemCopy(dest, src, len);
+}
+
+static AstMemFill*
+ParseMemFill(WasmParseContext& c, bool inParens)
+{
+    AstExpr* start = ParseExpr(c, inParens);
+    if (!start)
+        return nullptr;
+
+    AstExpr* val = ParseExpr(c, inParens);
+    if (!val)
+        return nullptr;
+
+    AstExpr* len = ParseExpr(c, inParens);
+    if (!len)
+        return nullptr;
+
+    return new(c.lifo) AstMemFill(start, val, len);
+}
+#endif
+
 static AstExpr*
 ParseRefNull(WasmParseContext& c)
 {
@@ -3034,6 +3089,12 @@ ParseExprBody(WasmParseContext& c, WasmToken token, bool inParens)
         return new(c.lifo) AstCurrentMemory();
       case WasmToken::GrowMemory:
         return ParseGrowMemory(c, inParens);
+#ifdef ENABLE_WASM_BULKMEM_OPS
+      case WasmToken::MemCopy:
+        return ParseMemCopy(c, inParens);
+      case WasmToken::MemFill:
+        return ParseMemFill(c, inParens);
+#endif
       case WasmToken::RefNull:
         return ParseRefNull(c);
       default:
@@ -4345,6 +4406,24 @@ ResolveWake(Resolver& r, AstWake& s)
            ResolveExpr(r, s.count());
 }
 
+#ifdef ENABLE_WASM_BULKMEM_OPS
+static bool
+ResolveMemCopy(Resolver& r, AstMemCopy& s)
+{
+    return ResolveExpr(r, s.dest()) &&
+           ResolveExpr(r, s.src()) &&
+           ResolveExpr(r, s.len());
+}
+
+static bool
+ResolveMemFill(Resolver& r, AstMemFill& s)
+{
+    return ResolveExpr(r, s.start()) &&
+           ResolveExpr(r, s.val()) &&
+           ResolveExpr(r, s.len());
+}
+#endif
+
 static bool
 ResolveExpr(Resolver& r, AstExpr& expr)
 {
@@ -4417,6 +4496,12 @@ ResolveExpr(Resolver& r, AstExpr& expr)
         return ResolveWait(r, expr.as<AstWait>());
       case AstExprKind::Wake:
         return ResolveWake(r, expr.as<AstWake>());
+#ifdef ENABLE_WASM_BULKMEM_OPS
+    case AstExprKind::MemCopy:
+        return ResolveMemCopy(r, expr.as<AstMemCopy>());
+    case AstExprKind::MemFill:
+        return ResolveMemFill(r, expr.as<AstMemFill>());
+#endif
     }
     MOZ_CRASH("Bad expr kind");
 }
@@ -4958,6 +5043,26 @@ EncodeWake(Encoder& e, AstWake& s)
            EncodeLoadStoreFlags(e, s.address());
 }
 
+#ifdef ENABLE_WASM_BULKMEM_OPS
+static bool
+EncodeMemCopy(Encoder& e, AstMemCopy& s)
+{
+    return EncodeExpr(e, s.dest()) &&
+           EncodeExpr(e, s.src()) &&
+           EncodeExpr(e, s.len()) &&
+           e.writeOp(CopyOrFillOp::Copy);
+}
+
+static bool
+EncodeMemFill(Encoder& e, AstMemFill& s)
+{
+    return EncodeExpr(e, s.start()) &&
+           EncodeExpr(e, s.val()) &&
+           EncodeExpr(e, s.len()) &&
+           e.writeOp(CopyOrFillOp::Fill);
+}
+#endif
+
 static bool
 EncodeRefNull(Encoder& e, AstRefNull& s)
 {
@@ -5041,6 +5146,12 @@ EncodeExpr(Encoder& e, AstExpr& expr)
         return EncodeWait(e, expr.as<AstWait>());
       case AstExprKind::Wake:
         return EncodeWake(e, expr.as<AstWake>());
+#ifdef ENABLE_WASM_BULKMEM_OPS
+      case AstExprKind::MemCopy:
+        return EncodeMemCopy(e, expr.as<AstMemCopy>());
+      case AstExprKind::MemFill:
+        return EncodeMemFill(e, expr.as<AstMemFill>());
+#endif
     }
     MOZ_CRASH("Bad expr kind");
 }

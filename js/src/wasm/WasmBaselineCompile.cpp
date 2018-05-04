@@ -2006,6 +2006,7 @@ class BaseCompiler final : public BaseCompilerInterface
     MIRTypeVector               SigP_;
     MIRTypeVector               SigPI_;
     MIRTypeVector               SigPII_;
+    MIRTypeVector               SigPIII_;
     MIRTypeVector               SigPIIL_;
     MIRTypeVector               SigPILL_;
     NonAssertingLabel           returnLabel_;
@@ -5903,7 +5904,7 @@ class BaseCompiler final : public BaseCompilerInterface
     void endIfThenElse(ExprType type);
 
     void doReturn(ExprType returnType, bool popStack);
-    void pushReturned(const FunctionCall& call, ExprType type);
+    void pushReturnedIfNonVoid(const FunctionCall& call, ExprType type);
 
     void emitCompareI32(Assembler::Condition compareOp, ValType compareType);
     void emitCompareI64(Assembler::Condition compareOp, ValType compareType);
@@ -6025,6 +6026,10 @@ class BaseCompiler final : public BaseCompilerInterface
     MOZ_MUST_USE bool emitWake();
     MOZ_MUST_USE bool emitAtomicXchg(ValType type, Scalar::Type viewType);
     void emitAtomicXchg64(MemoryAccessDesc* access, ValType type, WantResult wantResult);
+#ifdef ENABLE_WASM_BULKMEM_OPS
+    MOZ_MUST_USE bool emitMemCopy();
+    MOZ_MUST_USE bool emitMemFill();
+#endif
 };
 
 void
@@ -7881,11 +7886,11 @@ BaseCompiler::emitCallArgs(const ValTypeVector& argTypes, FunctionCall* baseline
 }
 
 void
-BaseCompiler::pushReturned(const FunctionCall& call, ExprType type)
+BaseCompiler::pushReturnedIfNonVoid(const FunctionCall& call, ExprType type)
 {
     switch (type) {
       case ExprType::Void:
-        MOZ_CRASH("Compiler bug: attempt to push void return");
+        // There's no return value.  Do nothing.
         break;
       case ExprType::I32: {
         RegI32 rv = captureReturnedI32();
@@ -7966,8 +7971,7 @@ BaseCompiler::emitCall()
 
     popValueStackBy(numArgs);
 
-    if (!IsVoid(sig.ret()))
-        pushReturned(baselineCall, sig.ret());
+    pushReturnedIfNonVoid(baselineCall, sig.ret());
 
     return true;
 }
@@ -8013,8 +8017,7 @@ BaseCompiler::emitCallIndirect()
 
     popValueStackBy(numArgs);
 
-    if (!IsVoid(sig.ret()))
-        pushReturned(baselineCall, sig.ret());
+    pushReturnedIfNonVoid(baselineCall, sig.ret());
 
     return true;
 }
@@ -8072,7 +8075,7 @@ BaseCompiler::emitUnaryMathBuiltinCall(SymbolicAddress callee, ValType operandTy
 
     popValueStackBy(numArgs);
 
-    pushReturned(baselineCall, retType);
+    pushReturnedIfNonVoid(baselineCall, retType);
 
     return true;
 }
@@ -8958,7 +8961,7 @@ BaseCompiler::emitInstanceCall(uint32_t lineOrBytecode, const MIRTypeVector& sig
 
     popValueStackBy(numArgs);
 
-    pushReturned(baselineCall, retType);
+    pushReturnedIfNonVoid(baselineCall, retType);
 }
 
 bool
@@ -9322,6 +9325,52 @@ BaseCompiler::emitWake()
 
     return true;
 }
+
+#ifdef ENABLE_WASM_BULKMEM_OPS
+bool
+BaseCompiler::emitMemCopy()
+{
+    uint32_t lineOrBytecode = readCallSiteLineOrBytecode();
+
+    Nothing nothing;
+    if (!iter_.readMemCopy(ValType::I32, &nothing, &nothing, &nothing))
+        return false;
+
+    if (deadCode_)
+        return true;
+
+    emitInstanceCall(lineOrBytecode, SigPIII_, ExprType::Void, SymbolicAddress::MemCopy);
+
+    Label ok;
+    masm.branchTest32(Assembler::NotSigned, ReturnReg, ReturnReg, &ok);
+    trap(Trap::ThrowReported);
+    masm.bind(&ok);
+
+    return true;
+}
+
+bool
+BaseCompiler::emitMemFill()
+{
+    uint32_t lineOrBytecode = readCallSiteLineOrBytecode();
+
+    Nothing nothing;
+    if (!iter_.readMemFill(ValType::I32, &nothing, &nothing, &nothing))
+        return false;
+
+    if (deadCode_)
+        return true;
+
+    emitInstanceCall(lineOrBytecode, SigPIII_, ExprType::Void, SymbolicAddress::MemFill);
+
+    Label ok;
+    masm.branchTest32(Assembler::NotSigned, ReturnReg, ReturnReg, &ok);
+    trap(Trap::ThrowReported);
+    masm.bind(&ok);
+
+    return true;
+}
+#endif
 
 bool
 BaseCompiler::emitBody()
@@ -9883,6 +9932,21 @@ BaseCompiler::emitBody()
           case uint16_t(Op::CurrentMemory):
             CHECK_NEXT(emitCurrentMemory());
 
+#ifdef ENABLE_WASM_BULKMEM_OPS
+          // Bulk memory operations
+          case uint16_t(Op::CopyOrFillPrefix): {
+            switch (op.b1) {
+              case uint16_t(CopyOrFillOp::Copy):
+                CHECK_NEXT(emitMemCopy());
+              case uint16_t(CopyOrFillOp::Fill):
+                CHECK_NEXT(emitMemFill());
+              default:
+                return iter_.unrecognizedOpcode(&op);
+            }
+            break;
+          }
+#endif
+
 #ifdef ENABLE_WASM_GC
           case uint16_t(Op::RefNull):
             if (env_.gcTypesEnabled == HasGcTypes::False)
@@ -10193,6 +10257,11 @@ BaseCompiler::init()
         return false;
     if (!SigPII_.append(MIRType::Pointer) || !SigPII_.append(MIRType::Int32) ||
         !SigPII_.append(MIRType::Int32))
+    {
+        return false;
+    }
+    if (!SigPIII_.append(MIRType::Pointer) || !SigPIII_.append(MIRType::Int32) ||
+        !SigPIII_.append(MIRType::Int32) || !SigPIII_.append(MIRType::Int32))
     {
         return false;
     }
