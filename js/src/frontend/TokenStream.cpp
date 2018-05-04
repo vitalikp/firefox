@@ -1680,9 +1680,6 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
     // This loop runs more than once only when whitespace or comments are
     // encountered.
     do {
-        int c;
-        FirstCharKind c1kind;
-
         if (MOZ_UNLIKELY(!sourceUnits.hasRawChars())) {
             tp = newToken(0);
             tp->type = TokenKind::Eof;
@@ -1691,7 +1688,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
             return true;
         }
 
-        c = sourceUnits.getCodeUnit();
+        int c = sourceUnits.getCodeUnit();
         MOZ_ASSERT(c != EOF);
 
         // Chars not in the range 0..127 are rare.  Getting them out of the way
@@ -1777,7 +1774,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* const tt
         // frequencies used to break close categories (e.g. |Dec| and
         // |String|).  |Other| is biggish, but no other token kind is common
         // enough for it to be worth adding extra values to FirstCharKind.
-        c1kind = FirstCharKind(firstCharKinds[c]);
+        FirstCharKind c1kind = FirstCharKind(firstCharKinds[c]);
 
         // Look for an unambiguous single-char token.
         //
