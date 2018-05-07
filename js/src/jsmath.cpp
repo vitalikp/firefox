@@ -821,7 +821,7 @@ double
 js::math_round_impl(double x)
 {
     int32_t ignored;
-    if (NumberIsInt32(x, &ignored))
+    if (NumberEqualsInt32(x, &ignored))
         return x;
 
     /* Some numbers are so big that adding 0.5 would give the wrong number. */
@@ -836,7 +836,7 @@ float
 js::math_roundf_impl(float x)
 {
     int32_t ignored;
-    if (NumberIsInt32(x, &ignored))
+    if (NumberEqualsInt32(x, &ignored))
         return x;
 
     /* Some numbers are so big that adding 0.5 would give the wrong number. */
