@@ -80,7 +80,7 @@ class MOZ_STACK_CLASS BytecodeCompiler
 
     RootedScope enclosingScope;
 
-    RootedScriptSource sourceObject;
+    RootedScriptSourceObject sourceObject;
     ScriptSource* scriptSource;
 
     Maybe<UsedNameTracker> usedNames;
@@ -508,7 +508,7 @@ frontend::CreateScriptSourceObject(JSContext* cx, const ReadOnlyCompileOptions& 
     if (!ss->initFromOptions(cx, options, parameterListEnd))
         return nullptr;
 
-    RootedScriptSource sso(cx, ScriptSourceObject::create(cx, ss));
+    RootedScriptSourceObject sso(cx, ScriptSourceObject::create(cx, ss));
     if (!sso)
         return nullptr;
 
@@ -731,7 +731,7 @@ frontend::CompileLazyFunction(JSContext* cx, Handle<LazyScript*> lazy, const cha
     if (!pn)
         return false;
 
-    RootedScriptSource sourceObject(cx, lazy->sourceObject());
+    RootedScriptSourceObject sourceObject(cx, lazy->sourceObject());
     MOZ_ASSERT(sourceObject);
 
     Rooted<JSScript*> script(cx, JSScript::Create(cx, options, sourceObject,
