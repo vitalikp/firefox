@@ -555,7 +555,7 @@ wasm::CompiledModuleAssumptionsMatch(PRFileDesc* compiled, JS::BuildIdCharVector
 SharedModule
 wasm::DeserializeModule(PRFileDesc* bytecodeFile, PRFileDesc* maybeCompiledFile,
                         JS::BuildIdCharVector&& buildId, UniqueChars filename,
-                        unsigned line, unsigned column)
+                        unsigned line)
 {
     PRFileInfo bytecodeInfo;
     UniqueMapping bytecodeMapping = MapFile(bytecodeFile, &bytecodeInfo);
@@ -585,7 +585,6 @@ wasm::DeserializeModule(PRFileDesc* bytecodeFile, PRFileDesc* maybeCompiledFile,
     ScriptedCaller scriptedCaller;
     scriptedCaller.filename = Move(filename);
     scriptedCaller.line = line;
-    scriptedCaller.column = column;
 
     MutableCompileArgs args = js_new<CompileArgs>(Assumptions(Move(buildId)), Move(scriptedCaller));
     if (!args)

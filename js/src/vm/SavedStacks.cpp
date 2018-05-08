@@ -572,6 +572,29 @@ SavedFrame::isSelfHosted(JSContext* cx)
     return source == cx->names().selfHosted;
 }
 
+bool
+SavedFrame::isWasm()
+{
+    // See WasmFrameIter::computeLine() comment.
+    return bool(getColumn() & wasm::WasmFrameIter::ColumnBit);
+}
+
+uint32_t
+SavedFrame::wasmFuncIndex()
+{
+    // See WasmFrameIter::computeLine() comment.
+    MOZ_ASSERT(isWasm());
+    return getColumn() & ~wasm::WasmFrameIter::ColumnBit;
+}
+
+uint32_t
+SavedFrame::wasmBytecodeOffset()
+{
+    // See WasmFrameIter::computeLine() comment.
+    MOZ_ASSERT(isWasm());
+    return getLine();
+}
+
 /* static */ bool
 SavedFrame::construct(JSContext* cx, unsigned argc, Value* vp)
 {
@@ -946,6 +969,36 @@ GetSavedFrameParent(JSContext* cx, HandleObject savedFrame, MutableHandleObject 
 }
 
 static bool
+FormatStackFrameLine(JSContext* cx, js::StringBuffer& sb, js::HandleSavedFrame frame)
+{
+    if (frame->isWasm()) {
+        // See comment in WasmFrameIter::computeLine().
+        return sb.append("wasm-function[")
+            && NumberValueToStringBuffer(cx, NumberValue(frame->wasmFuncIndex()), sb)
+            && sb.append(']');
+    }
+
+    return NumberValueToStringBuffer(cx, NumberValue(frame->getLine()), sb);
+}
+
+static bool
+FormatStackFrameColumn(JSContext* cx, js::StringBuffer& sb, js::HandleSavedFrame frame)
+{
+    if (frame->isWasm()) {
+        // See comment in WasmFrameIter::computeLine().
+        js::ToCStringBuf cbuf;
+        const char* cstr = NumberToCString(cx, &cbuf, frame->wasmBytecodeOffset(), 16);
+        if (!cstr)
+            return false;
+
+        return sb.append("0x")
+            && sb.append(cstr, strlen(cstr));
+    }
+
+    return NumberValueToStringBuffer(cx, NumberValue(frame->getColumn()), sb);
+}
+
+static bool
 FormatSpiderMonkeyStackFrame(JSContext* cx, js::StringBuffer& sb,
                              js::HandleSavedFrame frame, size_t indent,
                              bool skippedAsync)
@@ -961,9 +1014,9 @@ FormatSpiderMonkeyStackFrame(JSContext* cx, js::StringBuffer& sb,
         && sb.append('@')
         && sb.append(frame->getSource())
         && sb.append(':')
-        && NumberValueToStringBuffer(cx, NumberValue(frame->getLine()), sb)
+        && FormatStackFrameLine(cx, sb, frame)
         && sb.append(':')
-        && NumberValueToStringBuffer(cx, NumberValue(frame->getColumn()), sb)
+        && FormatStackFrameColumn(cx, sb, frame)
         && sb.append('\n');
 }
 
@@ -981,9 +1034,9 @@ FormatV8StackFrame(JSContext* cx, js::StringBuffer& sb,
                       sb.append('(')))
         && sb.append(frame->getSource())
         && sb.append(':')
-        && NumberValueToStringBuffer(cx, NumberValue(frame->getLine()), sb)
+        && FormatStackFrameLine(cx, sb, frame)
         && sb.append(':')
-        && NumberValueToStringBuffer(cx, NumberValue(frame->getColumn()), sb)
+        && FormatStackFrameColumn(cx, sb, frame)
         && (!name || sb.append(')'))
         && (lastFrame || sb.append('\n'));
 }
@@ -1677,7 +1730,8 @@ SavedStacks::getLocation(JSContext* cx, const FrameIter& iter,
     // not have a |JSScript| for this frame (wasm frames), we take a slow path
     // that doesn't employ memoization, and update |locationp|'s slots directly.
 
-    if (!iter.hasScript()) {
+    if (iter.isWasm()) {
+        // Only asm.js has a displayURL.
         if (const char16_t* displayURL = iter.displayURL()) {
             locationp.setSource(AtomizeChars(cx, displayURL, js_strlen(displayURL)));
         } else {
@@ -1687,12 +1741,10 @@ SavedStacks::getLocation(JSContext* cx, const FrameIter& iter,
         if (!locationp.source())
             return false;
 
+        // See WasmFrameIter::computeLine() comment.
         uint32_t column = 0;
         locationp.setLine(iter.computeLine(&column));
-        // XXX: Make the column 1-based as in other browsers, instead of 0-based
-        // which is how SpiderMonkey stores it internally. This will be
-        // unnecessary once bug 1144340 is fixed.
-        locationp.setColumn(column + 1);
+        locationp.setColumn(column);
         return true;
     }
 
@@ -1813,6 +1865,23 @@ BuildUTF8StackString(JSContext* cx, HandleObject stack)
 
     char* chars = JS_EncodeStringToUTF8(cx, stackStr);
     return UTF8CharsZ(chars, strlen(chars));
+}
+
+uint32_t
+FixupColumnForDisplay(uint32_t column)
+{
+    // As described in WasmFrameIter::computeLine(), for wasm frames, the
+    // function index is returned as the column with the high bit set. In paths
+    // that format error stacks into strings, this information can be used to
+    // synthesize a proper wasm frame. But when raw column numbers are handed
+    // out, we just fix them to 1 to avoid confusion.
+    if (column & wasm::WasmFrameIter::ColumnBit)
+        return 1;
+
+    // XXX: Make the column 1-based as in other browsers, instead of 0-based
+    // which is how SpiderMonkey stores it internally. This will be
+    // unnecessary once bug 1144340 is fixed.
+    return column + 1;
 }
 
 } /* namespace js */

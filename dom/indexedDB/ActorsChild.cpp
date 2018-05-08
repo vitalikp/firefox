@@ -3543,7 +3543,6 @@ PreprocessHelper::ProcessCurrentStreamPair()
                               mCurrentCompiledFileDesc,
                               Move(buildId),
                               nullptr,
-                              0,
                               0);
   if (NS_WARN_IF(!module)) {
     ContinueWithStatus(NS_ERROR_FAILURE);

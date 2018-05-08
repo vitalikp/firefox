@@ -1014,11 +1014,8 @@ FrameIter::computeLine(uint32_t* column) const
         break;
       case INTERP:
       case JIT:
-        if (isWasm()) {
-            if (column)
-                *column = 0;
-            return wasmFrame().lineOrBytecode();
-        }
+        if (isWasm())
+            return wasmFrame().computeLine(column);
         return PCToLineNumber(script(), pc(), column);
     }
 
