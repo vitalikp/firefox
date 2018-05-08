@@ -1390,7 +1390,9 @@ SavedStacks::insertFrames(JSContext* cx, MutableHandleSavedFrame frame,
             if (!cx->compartment()->savedStacks().getLocation(cx, iter, &location))
                 return false;
         }
-        auto displayAtom = (iter.isWasm() || iter.isFunctionFrame()) ? iter.functionDisplayAtom() : nullptr;
+
+        RootedAtom displayAtom(cx, iter.maybeFunctionDisplayAtom());
+
         auto principals = iter.compartment()->principals();
         MOZ_ASSERT_IF(framePtr && !iter.isWasm(), iter.pc());
 
