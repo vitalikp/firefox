@@ -135,6 +135,7 @@ struct NoteWeakMapChildrenTracer : public JS::CallbackTracer
     : JS::CallbackTracer(aRt), mCb(aCb), mTracedAny(false), mMap(nullptr),
       mKey(nullptr), mKeyDelegate(nullptr)
   {
+    setCanSkipJsids(true);
   }
   void onChild(const JS::GCCellPtr& aThing) override;
   nsCycleCollectionNoteRootCallback& mCb;
@@ -391,6 +392,7 @@ struct TraversalTracer : public JS::CallbackTracer
   TraversalTracer(JSRuntime* aRt, nsCycleCollectionTraversalCallback& aCb)
     : JS::CallbackTracer(aRt, DoNotTraceWeakMaps), mCb(aCb)
   {
+    setCanSkipJsids(true);
   }
   void onChild(const JS::GCCellPtr& aThing) override;
   nsCycleCollectionTraversalCallback& mCb;

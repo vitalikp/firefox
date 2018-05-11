@@ -87,6 +87,7 @@ class JS_PUBLIC_API(JSTracer)
     bool isCallbackTracer() const { return tag_ == TracerKindTag::Callback; }
     inline JS::CallbackTracer* asCallbackTracer();
     bool traceWeakEdges() const { return traceWeakEdges_; }
+    bool canSkipJsids() const { return canSkipJsids_; }
 #ifdef DEBUG
     bool checkEdges() { return checkEdges_; }
 #endif
@@ -101,6 +102,7 @@ class JS_PUBLIC_API(JSTracer)
 #endif
       , tag_(tag)
       , traceWeakEdges_(true)
+      , canSkipJsids_(false)
     {}
 
 #ifdef DEBUG
@@ -120,6 +122,7 @@ class JS_PUBLIC_API(JSTracer)
   protected:
     TracerKindTag tag_;
     bool traceWeakEdges_;
+    bool canSkipJsids_;
 };
 
 namespace JS {
@@ -248,6 +251,12 @@ class JS_PUBLIC_API(CallbackTracer) : public JSTracer
   protected:
     void setTraceWeakEdges(bool value) {
         traceWeakEdges_ = value;
+    }
+
+    // If this is set to false, then the tracer will skip some jsids
+    // to improve performance. This is needed for the cycle collector.
+    void setCanSkipJsids(bool value) {
+        canSkipJsids_ = value;
     }
 
   private:

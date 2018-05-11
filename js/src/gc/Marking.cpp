@@ -1434,10 +1434,13 @@ js::GCMarker::eagerlyMarkChildren(Scope* scope)
 void
 js::ObjectGroup::traceChildren(JSTracer* trc)
 {
-    unsigned count = getPropertyCount();
-    for (unsigned i = 0; i < count; i++) {
-        if (ObjectGroup::Property* prop = getProperty(i))
-            TraceEdge(trc, &prop->id, "group_property");
+
+    if (!trc->canSkipJsids()) {
+        unsigned count = getPropertyCount();
+        for (unsigned i = 0; i < count; i++) {
+            if (ObjectGroup::Property* prop = getProperty(i))
+                TraceEdge(trc, &prop->id, "group_property");
+        }
     }
 
     if (proto().isObject())
