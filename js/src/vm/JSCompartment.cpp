@@ -1155,10 +1155,10 @@ static bool
 AddLazyFunctionsForCompartment(JSContext* cx, AutoObjectVector& lazyFunctions, AllocKind kind)
 {
     // Find all live root lazy functions in the compartment: those which have a
-    // source object, indicating that they have a parent, and which do not have
-    // an uncompiled enclosing script. The last condition is so that we don't
-    // compile lazy scripts whose enclosing scripts failed to compile,
-    // indicating that the lazy script did not escape the script.
+    // non-lazy enclosing script, and which do not have an uncompiled enclosing
+    // script. The last condition is so that we don't compile lazy scripts
+    // whose enclosing scripts failed to compile, indicating that the lazy
+    // script did not escape the script.
     //
     // Some LazyScripts have a non-null |JSScript* script| pointer. We still
     // want to delazify in that case: this pointer is weak so the JSScript
@@ -1178,7 +1178,7 @@ AddLazyFunctionsForCompartment(JSContext* cx, AutoObjectVector& lazyFunctions, A
 
         if (fun->isInterpretedLazy()) {
             LazyScript* lazy = fun->lazyScriptOrNull();
-            if (lazy && lazy->sourceObject() && !lazy->hasUncompiledEnclosingScript()) {
+            if (lazy && !lazy->isEnclosingScriptLazy() && !lazy->hasUncompletedEnclosingScript()) {
                 if (!lazyFunctions.append(fun))
                     return false;
             }
