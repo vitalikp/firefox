@@ -121,6 +121,8 @@ class ParserBase
 
     ScriptSource*       ss;
 
+    RootedScriptSourceObject sourceObject;
+
     /* Root atoms and objects allocated for the parsed tree. */
     AutoKeepAtoms       keepAtoms;
 
@@ -146,7 +148,8 @@ class ParserBase
     template<class, typename> friend class AutoAwaitIsKeyword;
 
     ParserBase(JSContext* cx, LifoAlloc& alloc, const ReadOnlyCompileOptions& options,
-               bool foldConstants, UsedNameTracker& usedNames);
+               bool foldConstants, UsedNameTracker& usedNames,
+               ScriptSourceObject* sourceObject);
     ~ParserBase();
 
     bool checkOptions();
@@ -303,7 +306,8 @@ class PerHandlerParser
   protected:
     PerHandlerParser(JSContext* cx, LifoAlloc& alloc, const ReadOnlyCompileOptions& options,
                      bool foldConstants, UsedNameTracker& usedNames,
-                     LazyScript* lazyOuterFunction);
+                     LazyScript* lazyOuterFunction,
+                     ScriptSourceObject* sourceObject);
 
     static Node null() { return ParseHandler::null(); }
 
@@ -705,7 +709,8 @@ class GeneralParser
     GeneralParser(JSContext* cx, LifoAlloc& alloc, const ReadOnlyCompileOptions& options,
                   const CharT* chars, size_t length, bool foldConstants,
                   UsedNameTracker& usedNames, SyntaxParser* syntaxParser,
-                  LazyScript* lazyOuterFunction);
+                  LazyScript* lazyOuterFunction,
+                  ScriptSourceObject* sourceObject);
 
     inline void setAwaitHandling(AwaitHandling awaitHandling);
 

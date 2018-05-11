@@ -7755,8 +7755,7 @@ BytecodeEmitter::emitFunction(ParseNode* pn, bool needsProto)
             // fact. If we attempt to compile the outer script again, the
             // static scope chain will be newly allocated and will mismatch
             // the previously compiled LazyScript's.
-            ScriptSourceObject* source = &script->sourceObject()->as<ScriptSourceObject>();
-            fun->lazyScript()->setEnclosingScopeAndSource(innermostScope(), source);
+            fun->lazyScript()->setEnclosingScope(innermostScope());
             if (emittingRunOnceLambda)
                 fun->lazyScript()->setTreatAsRunOnce();
         } else {
