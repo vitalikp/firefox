@@ -795,7 +795,7 @@ ParserBase::ParserBase(JSContext* cx, LifoAlloc& alloc,
                        bool foldConstants,
                        UsedNameTracker& usedNames,
                        ScriptSourceObject* sourceObject)
-  : AutoGCRooter(cx, PARSER),
+  : AutoGCRooter(cx, AutoGCRooter::Tag::Parser),
     context(cx),
     alloc(alloc),
     anyChars(cx, options, thisForCtor()),

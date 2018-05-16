@@ -138,7 +138,7 @@ JS_FOR_EACH_TRACEKIND(FINISH_ROOT_LIST)
     FinishPersistentRootedChain<Value>(heapRoots.ref()[JS::RootKind::Value]);
 
     // Note that we do not finalize the Traceable list as we do not know how to
-    // safely clear memebers. We instead assert that none escape the RootLists.
+    // safely clear members. We instead assert that none escape the RootLists.
     // See the comment on RootLists::~RootLists for details.
 }
 
@@ -146,11 +146,11 @@ inline void
 AutoGCRooter::trace(JSTracer* trc)
 {
     switch (tag_) {
-      case PARSER:
+      case Tag::Parser:
         frontend::TraceParser(trc, this);
         return;
 
-      case VALARRAY: {
+      case Tag::ValueArray: {
         /*
          * We don't know the template size parameter, but we can safely treat it
          * as an AutoValueArray<1> because the length is stored separately.
@@ -160,18 +160,18 @@ AutoGCRooter::trace(JSTracer* trc)
         return;
       }
 
-      case WRAPPER: {
+      case Tag::Wrapper: {
         /*
          * We need to use TraceManuallyBarrieredEdge here because we trace
          * wrapper roots in every slice. This is because of some rule-breaking
          * in RemapAllWrappersForObject; see comment there.
          */
         TraceManuallyBarrieredEdge(trc, &static_cast<AutoWrapperRooter*>(this)->value.get(),
-                                   "JS::AutoWrapperRooter.value");
+                                   "js::AutoWrapperRooter.value");
         return;
       }
 
-      case WRAPVECTOR: {
+      case Tag::WrapperVector: {
         auto vector = static_cast<AutoWrapperVector*>(this);
         /*
          * We need to use TraceManuallyBarrieredEdge here because we trace
@@ -183,14 +183,19 @@ AutoGCRooter::trace(JSTracer* trc)
         return;
       }
 
-      case CUSTOM:
+      case Tag::Custom:
         static_cast<JS::CustomAutoRooter*>(this)->trace(trc);
         return;
+
+      case Tag::Array: {
+        auto array = static_cast<AutoArrayRooter*>(this);
+        if (Value* vp = array->begin())
+            TraceRootRange(trc, array->length(), vp, "js::AutoArrayRooter");
+        return;
+      }
     }
 
-    MOZ_ASSERT(tag_ >= 0);
-    if (Value* vp = static_cast<AutoArrayRooter*>(this)->array)
-        TraceRootRange(trc, tag_, vp, "JS::AutoArrayRooter.array");
+    MOZ_CRASH("Bad AutoGCRooter::Tag");
 }
 
 /* static */ void
@@ -204,7 +209,7 @@ AutoGCRooter::traceAll(JSContext* cx, JSTracer* trc)
 AutoGCRooter::traceAllWrappers(JSContext* cx, JSTracer* trc)
 {
     for (AutoGCRooter* gcr = cx->autoGCRooters_; gcr; gcr = gcr->down) {
-        if (gcr->tag_ == WRAPVECTOR || gcr->tag_ == WRAPPER)
+        if (gcr->tag_ == Tag::WrapperVector || gcr->tag_ == Tag::Wrapper)
             gcr->trace(trc);
     }
 }
