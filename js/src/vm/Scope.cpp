@@ -295,7 +295,7 @@ Scope::XDRSizedBindingNames(XDRState<mode>* xdr, Handle<ConcreteScope*> scope,
     });
 
     for (uint32_t i = 0; i < length; i++)
-        MOZ_TRY(XDRBindingName(xdr, &data->names[i]));
+        MOZ_TRY(XDRBindingName(xdr, &data->trailingNames[i]));
 
     dataGuard.release();
     return Ok();
@@ -1250,18 +1250,19 @@ WasmInstanceScope::create(JSContext* cx, WasmInstanceObject* instance)
             return nullptr;
 
         size_t nameIndex = 0;
+        RootedAtom name(cx);
         if (instance->instance().memory()) {
-            RootedAtom name(cx, GenerateWasmName(cx, "memory", /* index = */ 0));
+            name = GenerateWasmName(cx, "memory", /* index = */ 0);
             if (!name)
                 return nullptr;
-            data->names[nameIndex] = BindingName(name, false);
+            new (&data->trailingNames[nameIndex]) BindingName(name, false);
             nameIndex++;
         }
         for (size_t i = 0; i < globalsCount; i++) {
-            RootedAtom name(cx, GenerateWasmName(cx, "global", i));
+            name = GenerateWasmName(cx, "global", i);
             if (!name)
                 return nullptr;
-            data->names[nameIndex] = BindingName(name, false);
+            new (&data->trailingNames[nameIndex]) BindingName(name, false);
             nameIndex++;
         }
         MOZ_ASSERT(nameIndex == namesCount);
@@ -1318,11 +1319,12 @@ WasmFunctionScope::create(JSContext* cx, HandleScope enclosing, uint32_t funcInd
 
     data->funcIndex = funcIndex;
     data->length = namesCount;
+    RootedAtom name(cx);
     for (size_t i = 0; i < namesCount; i++) {
-        RootedAtom name(cx, GenerateWasmName(cx, "var", i));
+        name = GenerateWasmName(cx, "var", i);
         if (!name)
             return nullptr;
-        data->names[i] = BindingName(name, false);
+        new (&data->trailingNames[i]) BindingName(name, false);
     }
 
     Scope* scope = Scope::create(cx, ScopeKind::WasmFunction, enclosing, /* envShape = */ nullptr);
@@ -1417,7 +1419,7 @@ BindingIter::init(LexicalScope::Data& data, uint32_t firstFrameSlot, uint8_t fla
         init(0, 0, 0, 0, 0, 0,
              CanHaveEnvironmentSlots | flags,
              firstFrameSlot, JSSLOT_FREE(&LexicalEnvironmentObject::class_),
-             data.names, data.length);
+             data.trailingNames.start(), data.length);
     } else {
         //            imports - [0, 0)
         // positional formals - [0, 0)
@@ -1429,7 +1431,7 @@ BindingIter::init(LexicalScope::Data& data, uint32_t firstFrameSlot, uint8_t fla
         init(0, 0, 0, 0, 0, data.constStart,
              CanHaveFrameSlots | CanHaveEnvironmentSlots | flags,
              firstFrameSlot, JSSLOT_FREE(&LexicalEnvironmentObject::class_),
-             data.names, data.length);
+             data.trailingNames.start(), data.length);
     }
 }
 
@@ -1450,7 +1452,7 @@ BindingIter::init(FunctionScope::Data& data, uint8_t flags)
     init(0, data.nonPositionalFormalStart, data.varStart, data.varStart, data.length, data.length,
          flags,
          0, JSSLOT_FREE(&CallObject::class_),
-         data.names, data.length);
+         data.trailingNames.start(), data.length);
 }
 
 void
@@ -1466,7 +1468,7 @@ BindingIter::init(VarScope::Data& data, uint32_t firstFrameSlot)
     init(0, 0, 0, 0, data.length, data.length,
          CanHaveFrameSlots | CanHaveEnvironmentSlots,
          firstFrameSlot, JSSLOT_FREE(&VarEnvironmentObject::class_),
-         data.names, data.length);
+         data.trailingNames.start(), data.length);
 }
 
 void
@@ -1482,7 +1484,7 @@ BindingIter::init(GlobalScope::Data& data)
     init(0, 0, 0, data.varStart, data.letStart, data.constStart,
          CannotHaveSlots,
          UINT32_MAX, UINT32_MAX,
-         data.names, data.length);
+         data.trailingNames.start(), data.length);
 }
 
 void
@@ -1510,7 +1512,7 @@ BindingIter::init(EvalScope::Data& data, bool strict)
     //             consts - [data.length, data.length)
     init(0, 0, 0, data.varStart, data.length, data.length,
          flags, firstFrameSlot, firstEnvironmentSlot,
-         data.names, data.length);
+         data.trailingNames.start(), data.length);
 }
 
 void
@@ -1526,7 +1528,7 @@ BindingIter::init(ModuleScope::Data& data)
     init(data.varStart, data.varStart, data.varStart, data.varStart, data.letStart, data.constStart,
          CanHaveFrameSlots | CanHaveEnvironmentSlots,
          0, JSSLOT_FREE(&ModuleEnvironmentObject::class_),
-         data.names, data.length);
+         data.trailingNames.start(), data.length);
 }
 
 void
@@ -1542,7 +1544,7 @@ BindingIter::init(WasmInstanceScope::Data& data)
     init(0, 0, 0, 0, data.length, data.length,
          CanHaveFrameSlots | CanHaveEnvironmentSlots,
          UINT32_MAX, UINT32_MAX,
-         data.names, data.length);
+         data.trailingNames.start(), data.length);
 }
 
 void
@@ -1558,7 +1560,7 @@ BindingIter::init(WasmFunctionScope::Data& data)
     init(0, 0, 0, 0, data.length, data.length,
          CanHaveFrameSlots | CanHaveEnvironmentSlots,
          UINT32_MAX, UINT32_MAX,
-         data.names, data.length);
+         data.trailingNames.start(), data.length);
 }
 
 PositionalFormalParameterIter::PositionalFormalParameterIter(JSScript* script)

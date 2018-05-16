@@ -23,6 +23,8 @@
 #include "mozilla/Sprintf.h"
 #include "mozilla/TypeTraits.h"
 
+#include <new>
+
 #include "jsapi.h"
 #include "jstypes.h"
 
@@ -1756,13 +1758,25 @@ static typename Scope::Data*
 NewEmptyBindingData(JSContext* cx, LifoAlloc& alloc, uint32_t numBindings)
 {
     size_t allocSize = Scope::sizeOfData(numBindings);
-    typename Scope::Data* bindings = static_cast<typename Scope::Data*>(alloc.alloc(allocSize));
+    auto* bindings = static_cast<typename Scope::Data*>(alloc.alloc(allocSize));
     if (!bindings) {
         ReportOutOfMemory(cx);
         return nullptr;
     }
     PodZero(bindings);
     return bindings;
+}
+
+/**
+ * Copy-construct |BindingName|s from |bindings| into |cursor|, then return
+ * the location one past the newly-constructed |BindingName|s.
+ */
+static MOZ_MUST_USE BindingName*
+FreshlyInitializeBindings(BindingName* cursor, const Vector<BindingName>& bindings)
+{
+    for (const BindingName& binding : bindings)
+        new (cursor++) BindingName(binding);
+    return cursor;
 }
 
 Maybe<GlobalScope::Data*>
@@ -1808,22 +1822,20 @@ ParserBase::newGlobalScopeData(ParseContext::Scope& scope)
             return Nothing();
 
         // The ordering here is important. See comments in GlobalScope.
-        BindingName* start = bindings->names;
+        BindingName* start = bindings->trailingNames.start();
         BindingName* cursor = start;
 
-        PodCopy(cursor, funs.begin(), funs.length());
-        cursor += funs.length();
+        cursor = FreshlyInitializeBindings(cursor, funs);
 
         bindings->varStart = cursor - start;
-        PodCopy(cursor, vars.begin(), vars.length());
-        cursor += vars.length();
+        cursor = FreshlyInitializeBindings(cursor, vars);
 
         bindings->letStart = cursor - start;
-        PodCopy(cursor, lets.begin(), lets.length());
-        cursor += lets.length();
+        cursor = FreshlyInitializeBindings(cursor, lets);
 
         bindings->constStart = cursor - start;
-        PodCopy(cursor, consts.begin(), consts.length());
+        cursor = FreshlyInitializeBindings(cursor, consts);
+
         bindings->length = numBindings;
     }
 
@@ -1874,22 +1886,20 @@ ParserBase::newModuleScopeData(ParseContext::Scope& scope)
             return Nothing();
 
         // The ordering here is important. See comments in ModuleScope.
-        BindingName* start = bindings->names;
+        BindingName* start = bindings->trailingNames.start();
         BindingName* cursor = start;
 
-        PodCopy(cursor, imports.begin(), imports.length());
-        cursor += imports.length();
+        cursor = FreshlyInitializeBindings(cursor, imports);
 
         bindings->varStart = cursor - start;
-        PodCopy(cursor, vars.begin(), vars.length());
-        cursor += vars.length();
+        cursor = FreshlyInitializeBindings(cursor, vars);
 
         bindings->letStart = cursor - start;
-        PodCopy(cursor, lets.begin(), lets.length());
-        cursor += lets.length();
+        cursor = FreshlyInitializeBindings(cursor, lets);
 
         bindings->constStart = cursor - start;
-        PodCopy(cursor, consts.begin(), consts.length());
+        cursor = FreshlyInitializeBindings(cursor, consts);
+
         bindings->length = numBindings;
     }
 
@@ -1924,16 +1934,16 @@ ParserBase::newEvalScopeData(ParseContext::Scope& scope)
         if (!bindings)
             return Nothing();
 
-        BindingName* start = bindings->names;
+        BindingName* start = bindings->trailingNames.start();
         BindingName* cursor = start;
 
         // Keep track of what vars are functions. This is only used in BCE to omit
         // superfluous DEFVARs.
-        PodCopy(cursor, funs.begin(), funs.length());
-        cursor += funs.length();
+        cursor = FreshlyInitializeBindings(cursor, funs);
 
         bindings->varStart = cursor - start;
-        PodCopy(cursor, vars.begin(), vars.length());
+        cursor = FreshlyInitializeBindings(cursor, vars);
+
         bindings->length = numBindings;
     }
 
@@ -2016,18 +2026,17 @@ ParserBase::newFunctionScopeData(ParseContext::Scope& scope, bool hasParameterEx
             return Nothing();
 
         // The ordering here is important. See comments in FunctionScope.
-        BindingName* start = bindings->names;
+        BindingName* start = bindings->trailingNames.start();
         BindingName* cursor = start;
 
-        PodCopy(cursor, positionalFormals.begin(), positionalFormals.length());
-        cursor += positionalFormals.length();
+        cursor = FreshlyInitializeBindings(cursor, positionalFormals);
 
         bindings->nonPositionalFormalStart = cursor - start;
-        PodCopy(cursor, formals.begin(), formals.length());
-        cursor += formals.length();
+        cursor = FreshlyInitializeBindings(cursor, formals);
 
         bindings->varStart = cursor - start;
-        PodCopy(cursor, vars.begin(), vars.length());
+        cursor = FreshlyInitializeBindings(cursor, vars);
+
         bindings->length = numBindings;
     }
 
@@ -2056,10 +2065,11 @@ ParserBase::newVarScopeData(ParseContext::Scope& scope)
             return Nothing();
 
         // The ordering here is important. See comments in FunctionScope.
-        BindingName* start = bindings->names;
+        BindingName* start = bindings->trailingNames.start();
         BindingName* cursor = start;
 
-        PodCopy(cursor, vars.begin(), vars.length());
+        cursor = FreshlyInitializeBindings(cursor, vars);
+
         bindings->length = numBindings;
     }
 
@@ -2103,14 +2113,14 @@ ParserBase::newLexicalScopeData(ParseContext::Scope& scope)
             return Nothing();
 
         // The ordering here is important. See comments in LexicalScope.
-        BindingName* cursor = bindings->names;
+        BindingName* cursor = bindings->trailingNames.start();
         BindingName* start = cursor;
 
-        PodCopy(cursor, lets.begin(), lets.length());
-        cursor += lets.length();
+        cursor = FreshlyInitializeBindings(cursor, lets);
 
         bindings->constStart = cursor - start;
-        PodCopy(cursor, consts.begin(), consts.length());
+        cursor = FreshlyInitializeBindings(cursor, consts);
+
         bindings->length = numBindings;
     }
 
