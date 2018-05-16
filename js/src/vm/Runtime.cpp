@@ -175,7 +175,8 @@ JSRuntime::JSRuntime(JSRuntime* parentRuntime)
     performanceMonitoring_(),
     stackFormat_(parentRuntime ? js::StackFormat::Default
                                : js::StackFormat::SpiderMonkey),
-    wasmInstances(mutexid::WasmRuntimeInstances)
+    wasmInstances(mutexid::WasmRuntimeInstances),
+    moduleResolveHook()
 {
     JS_COUNT_CTOR(JSRuntime);
     liveRuntimesCount++;

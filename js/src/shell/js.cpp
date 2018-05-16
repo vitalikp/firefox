@@ -529,7 +529,8 @@ ShellContext::ShellContext(JSContext* cx)
     readLineBufPos(0),
     errFilePtr(nullptr),
     outFilePtr(nullptr),
-    offThreadMonitor(mutexid::ShellOffThreadState)
+    offThreadMonitor(mutexid::ShellOffThreadState),
+    moduleResolveHook(cx)
 {}
 
 ShellContext::~ShellContext()
@@ -763,6 +764,7 @@ RunFile(JSContext* cx, const char* filename, FILE* file, bool compileOnly)
 static bool
 InitModuleLoader(JSContext* cx)
 {
+
     // Decompress and evaluate the embedded module loader source to initialize
     // the module loader for the current compartment.
 
@@ -4200,11 +4202,32 @@ SetModuleResolveHook(JSContext* cx, unsigned argc, Value* vp)
         return false;
     }
 
-    RootedFunction hook(cx, &args[0].toObject().as<JSFunction>());
-    Rooted<GlobalObject*> global(cx, cx->global());
-    global->setModuleResolveHook(hook);
+    ShellContext* sc = GetShellContext(cx);
+    sc->moduleResolveHook = &args[0].toObject().as<JSFunction>();
+
     args.rval().setUndefined();
     return true;
+}
+
+static JSObject*
+CallModuleResolveHook(JSContext* cx, HandleObject module, HandleString specifier)
+{
+    ShellContext* sc = GetShellContext(cx);
+
+    JS::AutoValueArray<2> args(cx);
+    args[0].setObject(*module);
+    args[1].setString(specifier);
+
+    RootedValue result(cx);
+    if (!JS_CallFunction(cx, nullptr, sc->moduleResolveHook, args, &result))
+        return nullptr;
+
+    if (!result.isObject() || !result.toObject().is<ModuleObject>()) {
+         JS_ReportErrorASCII(cx, "Module resolve hook did not return Module object");
+         return nullptr;
+    }
+
+    return &result.toObject();
 }
 
 static bool
@@ -8872,6 +8895,8 @@ main(int argc, char** argv, char** envp)
 #endif
 
     js::SetPreserveWrapperCallback(cx, DummyPreserveWrapperCallback);
+
+    JS::SetModuleResolveHook(cx->runtime(), CallModuleResolveHook);
 
     result = Shell(cx, &op, envp);
 
