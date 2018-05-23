@@ -140,16 +140,22 @@ class ParserBase
 
     /* AwaitHandling */ uint8_t awaitHandling_:2;
 
+    /* ParseGoal */ uint8_t parseGoal_:1;
+
   public:
     bool awaitIsKeyword() const {
       return awaitHandling_ != AwaitIsName;
+    }
+
+    ParseGoal parseGoal() const {
+        return ParseGoal(parseGoal_);
     }
 
     template<class, typename> friend class AutoAwaitIsKeyword;
 
     ParserBase(JSContext* cx, LifoAlloc& alloc, const ReadOnlyCompileOptions& options,
                bool foldConstants, UsedNameTracker& usedNames,
-               ScriptSourceObject* sourceObject);
+               ScriptSourceObject* sourceObject, ParseGoal parseGoal);
     ~ParserBase();
 
     bool checkOptions();
@@ -307,7 +313,8 @@ class PerHandlerParser
     PerHandlerParser(JSContext* cx, LifoAlloc& alloc, const ReadOnlyCompileOptions& options,
                      bool foldConstants, UsedNameTracker& usedNames,
                      LazyScript* lazyOuterFunction,
-                     ScriptSourceObject* sourceObject);
+                     ScriptSourceObject* sourceObject,
+                     ParseGoal parseGoal);
 
     static Node null() { return ParseHandler::null(); }
 
@@ -500,6 +507,7 @@ class GeneralParser
 
     using Base::alloc;
     using Base::awaitIsKeyword;
+    using Base::parseGoal;
 #if DEBUG
     using Base::checkOptionsCalled;
 #endif
@@ -710,7 +718,8 @@ class GeneralParser
                   const CharT* chars, size_t length, bool foldConstants,
                   UsedNameTracker& usedNames, SyntaxParser* syntaxParser,
                   LazyScript* lazyOuterFunction,
-                  ScriptSourceObject* sourceObject);
+                  ScriptSourceObject* sourceObject,
+                  ParseGoal parseGoal);
 
     inline void setAwaitHandling(AwaitHandling awaitHandling);
 
@@ -851,6 +860,7 @@ class GeneralParser
     Node lexicalDeclaration(YieldHandling yieldHandling, DeclarationKind kind);
 
     inline Node importDeclaration();
+    Node importDeclarationOrImportMeta(YieldHandling yieldHandling);
 
     Node exportFrom(uint32_t begin, Node specList);
     Node exportBatch(uint32_t begin);
@@ -949,6 +959,8 @@ class GeneralParser
                       TripledotHandling tripledotHandling, PossibleError* possibleError = nullptr);
 
     bool tryNewTarget(Node& newTarget);
+
+    Node importMeta();
 
     Node methodDefinition(uint32_t toStringStart, PropertyType propType, HandleAtom funName);
 

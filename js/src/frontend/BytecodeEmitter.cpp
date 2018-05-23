@@ -3140,6 +3140,7 @@ BytecodeEmitter::checkSideEffects(ParseNode* pn, bool* answer)
 
       // Trivial binary nodes with more token pos holders.
       case ParseNodeKind::NewTarget:
+      case ParseNodeKind::ImportMeta:
         MOZ_ASSERT(pn->isArity(PN_BINARY));
         MOZ_ASSERT(pn->pn_left->isKind(ParseNodeKind::PosHolder));
         MOZ_ASSERT(pn->pn_right->isKind(ParseNodeKind::PosHolder));
@@ -10979,6 +10980,10 @@ BytecodeEmitter::emitTree(ParseNode* pn, ValueUsage valueUsage /* = ValueUsage::
       case ParseNodeKind::NewTarget:
         if (!emit1(JSOP_NEWTARGET))
             return false;
+        break;
+
+      case ParseNodeKind::ImportMeta:
+        MOZ_CRASH("NYI");
         break;
 
       case ParseNodeKind::SetThis:
