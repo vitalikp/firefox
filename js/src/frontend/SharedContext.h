@@ -233,10 +233,6 @@ class SharedContext
     bool needStrictChecks() const {
         return strict() || extraWarnings;
     }
-
-    bool isDotVariable(JSAtom* atom) const {
-        return atom == context->names().dotGenerator || atom == context->names().dotThis;
-    }
 };
 
 class MOZ_STACK_CLASS GlobalSharedContext : public SharedContext
