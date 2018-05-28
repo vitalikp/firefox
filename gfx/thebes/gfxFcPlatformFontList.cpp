@@ -1341,7 +1341,8 @@ GetSystemFontList(nsTArray<nsString>& aListOfFonts, nsIAtom *aLangGroup)
     // add the lang to the pattern
     nsAutoCString fcLang;
     gfxFcPlatformFontList* pfl = gfxFcPlatformFontList::PlatformFontList();
-    pfl->GetSampleLangForGroup(aLangGroup, fcLang);
+    pfl->GetSampleLangForGroup(aLangGroup, fcLang,
+                               /*aForFontEnumerationThread*/ true);
     if (!fcLang.IsEmpty()) {
         FcPatternAddString(pat, FC_LANG, ToFcChar8Ptr(fcLang.get()));
     }
@@ -1971,7 +1972,8 @@ const MozLangGroupData MozLangGroups[] = {
 bool
 gfxFcPlatformFontList::TryLangForGroup(const nsACString& aOSLang,
                                        nsIAtom* aLangGroup,
-                                       nsACString& aFcLang)
+                                       nsACString& aFcLang,
+                                       bool aForFontEnumerationThread)
 {
     // Truncate at '.' or '@' from aOSLang, and convert '_' to '-'.
     // aOSLang is in the form "language[_territory][.codeset][@modifier]".
@@ -1998,13 +2000,26 @@ gfxFcPlatformFontList::TryLangForGroup(const nsACString& aOSLang,
         ++pos;
     }
 
-    nsIAtom *atom = mLangService->LookupLanguage(aFcLang);
-    return atom == aLangGroup;
+    if (!aForFontEnumerationThread) {
+        nsIAtom *atom = mLangService->LookupLanguage(aFcLang);
+        return atom == aLangGroup;
+    }
+
+    // If we were called by the font enumeration thread, we can't use
+    // mLangService->LookupLanguage because it is not thread-safe.
+    // Use GetUncachedLanguageGroup to avoid unsafe access to the lang-group
+    // mapping cache hashtable.
+    nsAutoCString lowered(aFcLang);
+    ToLowerCase(lowered);
+    RefPtr<nsIAtom> lang = NS_Atomize(lowered);
+    RefPtr<nsIAtom> group = mLangService->GetUncachedLanguageGroup(lang);
+    return group.get() == aLangGroup;
 }
 
 void
 gfxFcPlatformFontList::GetSampleLangForGroup(nsIAtom* aLanguage,
-                                             nsACString& aLangStr)
+                                             nsACString& aLangStr,
+                                             bool aForFontEnumerationThread)
 {
     aLangStr.Truncate();
     if (!aLanguage) {
@@ -2041,7 +2056,8 @@ gfxFcPlatformFontList::GetSampleLangForGroup(nsIAtom* aLanguage,
             if (*pos == '\0' || *pos == separator) {
                 if (languages < pos &&
                     TryLangForGroup(Substring(languages, pos),
-                                    aLanguage, aLangStr)) {
+                                    aLanguage, aLangStr,
+                                    aForFontEnumerationThread)) {
                     return;
                 }
 
@@ -2055,7 +2071,8 @@ gfxFcPlatformFontList::GetSampleLangForGroup(nsIAtom* aLanguage,
     }
     const char *ctype = setlocale(LC_CTYPE, nullptr);
     if (ctype &&
-        TryLangForGroup(nsDependentCString(ctype), aLanguage, aLangStr)) {
+        TryLangForGroup(nsDependentCString(ctype), aLanguage, aLangStr,
+                        aForFontEnumerationThread)) {
         return;
     }
 
