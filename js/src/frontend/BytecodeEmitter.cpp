@@ -1506,7 +1506,7 @@ BytecodeEmitter::TDZCheckCache::noteTDZCheck(BytecodeEmitter* bce, JSAtom* name,
 // Usage: (check for the return value is omitted for simplicity)
 //
 //   `try { try_block } catch (ex) { catch_block }`
-//     TryEmitter tryCatch(this, TryEmitter::TryCatch);
+//     TryEmitter tryCatch(this, TryEmitter::Kind::TryCatch);
 //     tryCatch.emitTry();
 //     emit(try_block);
 //     tryCatch.emitCatch();
@@ -1514,7 +1514,7 @@ BytecodeEmitter::TDZCheckCache::noteTDZCheck(BytecodeEmitter* bce, JSAtom* name,
 //     tryCatch.emitEnd();
 //
 //   `try { try_block } finally { finally_block }`
-//     TryEmitter tryCatch(this, TryEmitter::TryFinally);
+//     TryEmitter tryCatch(this, TryEmitter::Kind::TryFinally);
 //     tryCatch.emitTry();
 //     emit(try_block);
 //     // finally_pos: The "{" character's position in the source code text.
@@ -1523,7 +1523,7 @@ BytecodeEmitter::TDZCheckCache::noteTDZCheck(BytecodeEmitter* bce, JSAtom* name,
 //     tryCatch.emitEnd();
 //
 //   `try { try_block } catch (ex) {catch_block} finally { finally_block }`
-//     TryEmitter tryCatch(this, TryEmitter::TryCatchFinally);
+//     TryEmitter tryCatch(this, TryEmitter::Kind::TryCatchFinally);
 //     tryCatch.emitTry();
 //     emit(try_block);
 //     tryCatch.emitCatch();
@@ -1535,7 +1535,7 @@ BytecodeEmitter::TDZCheckCache::noteTDZCheck(BytecodeEmitter* bce, JSAtom* name,
 class MOZ_STACK_CLASS TryEmitter
 {
   public:
-    enum Kind {
+    enum class Kind {
         TryCatch,
         TryCatchFinally,
         TryFinally
@@ -1652,7 +1652,7 @@ class MOZ_STACK_CLASS TryEmitter
     //                           |  v emitFinally +---------+  |
     //                           +->+------------>| Finally |--+
     //                                            +---------+
-    enum State {
+    enum class State {
         // The initial state.
         Start,
 
@@ -1671,10 +1671,10 @@ class MOZ_STACK_CLASS TryEmitter
     State state_;
 
     bool hasCatch() const {
-        return kind_ == TryCatch || kind_ == TryCatchFinally;
+        return kind_ == Kind::TryCatch || kind_ == Kind::TryCatchFinally;
     }
     bool hasFinally() const {
-        return kind_ == TryCatchFinally || kind_ == TryFinally;
+        return kind_ == Kind::TryCatchFinally || kind_ == Kind::TryFinally;
     }
 
   public:
@@ -1686,7 +1686,7 @@ class MOZ_STACK_CLASS TryEmitter
         depth_(0),
         noteIndex_(0),
         tryStart_(0),
-        state_(Start)
+        state_(State::Start)
     {
         if (controlKind == UseControl)
             controlInfo_.emplace(bce_, hasFinally() ? StatementKind::Finally : StatementKind::Try);
@@ -1702,7 +1702,7 @@ class MOZ_STACK_CLASS TryEmitter
     }
 
     bool emitTry() {
-        MOZ_ASSERT(state_ == Start);
+        MOZ_ASSERT(state_ == State::Start);
 
         // Since an exception can be thrown at any place inside the try block,
         // we need to restore the stack and the scope chain before we transfer
@@ -1720,13 +1720,13 @@ class MOZ_STACK_CLASS TryEmitter
             return false;
         tryStart_ = bce_->offset();
 
-        state_ = Try;
+        state_ = State::Try;
         return true;
     }
 
   private:
     bool emitTryEnd() {
-        MOZ_ASSERT(state_ == Try);
+        MOZ_ASSERT(state_ == State::Try);
         MOZ_ASSERT(depth_ == bce_->stackDepth);
 
         // GOSUB to finally, if present.
@@ -1751,7 +1751,7 @@ class MOZ_STACK_CLASS TryEmitter
 
   public:
     bool emitCatch() {
-        MOZ_ASSERT(state_ == Try);
+        MOZ_ASSERT(state_ == State::Try);
         if (!emitTryEnd())
             return false;
 
@@ -1768,13 +1768,13 @@ class MOZ_STACK_CLASS TryEmitter
                 return false;
         }
 
-        state_ = Catch;
+        state_ = State::Catch;
         return true;
     }
 
   private:
     bool emitCatchEnd() {
-        MOZ_ASSERT(state_ == Catch);
+        MOZ_ASSERT(state_ == State::Catch);
 
         if (!controlInfo_)
             return true;
@@ -1805,17 +1805,17 @@ class MOZ_STACK_CLASS TryEmitter
         // IteratorClose inside for-of loops, we can emitFinally even without
         // specifying up front, since the internal try blocks emit no GOSUBs.
         if (!controlInfo_) {
-            if (kind_ == TryCatch)
-                kind_ = TryCatchFinally;
+            if (kind_ == Kind::TryCatch)
+                kind_ = Kind::TryCatchFinally;
         } else {
             MOZ_ASSERT(hasFinally());
         }
 
-        if (state_ == Try) {
+        if (state_ == State::Try) {
             if (!emitTryEnd())
                 return false;
         } else {
-            MOZ_ASSERT(state_ == Catch);
+            MOZ_ASSERT(state_ == State::Catch);
             if (!emitCatchEnd())
                 return false;
         }
@@ -1854,13 +1854,13 @@ class MOZ_STACK_CLASS TryEmitter
                 return false;
         }
 
-        state_ = Finally;
+        state_ = State::Finally;
         return true;
     }
 
   private:
     bool emitFinallyEnd() {
-        MOZ_ASSERT(state_ == Finally);
+        MOZ_ASSERT(state_ == State::Finally);
 
         if (retValKind_ == UseRetVal) {
             if (!bce_->emit1(JSOP_SETRVAL))
@@ -1876,12 +1876,12 @@ class MOZ_STACK_CLASS TryEmitter
 
   public:
     bool emitEnd() {
-        if (state_ == Catch) {
+        if (state_ == State::Catch) {
             MOZ_ASSERT(!hasFinally());
             if (!emitCatchEnd())
                 return false;
         } else {
-            MOZ_ASSERT(state_ == Finally);
+            MOZ_ASSERT(state_ == State::Finally);
             MOZ_ASSERT(hasFinally());
             if (!emitFinallyEnd())
                 return false;
@@ -1913,7 +1913,7 @@ class MOZ_STACK_CLASS TryEmitter
                 return false;
         }
 
-        state_ = End;
+        state_ = State::End;
         return true;
     }
 };
@@ -2264,7 +2264,7 @@ class ForOfLoopControl : public LoopControl
     }
 
     bool emitBeginCodeNeedingIteratorClose(BytecodeEmitter* bce) {
-        tryCatch_.emplace(bce, TryEmitter::TryCatch, TryEmitter::DontUseRetVal,
+        tryCatch_.emplace(bce, TryEmitter::Kind::TryCatch, TryEmitter::DontUseRetVal,
                           TryEmitter::DontUseControl);
 
         if (!tryCatch_->emitTry())
@@ -5546,7 +5546,7 @@ BytecodeEmitter::emitIteratorCloseInScope(EmitterScope& currentScope,
     Maybe<TryEmitter> tryCatch;
 
     if (completionKind == CompletionKind::Throw) {
-        tryCatch.emplace(this, TryEmitter::TryCatch, TryEmitter::DontUseRetVal,
+        tryCatch.emplace(this, TryEmitter::Kind::TryCatch, TryEmitter::DontUseRetVal,
                          TryEmitter::DontUseControl);
 
         // Mutate stack to balance stack for try-catch.
@@ -6874,12 +6874,12 @@ BytecodeEmitter::emitTry(ParseNode* pn)
     TryEmitter::Kind kind;
     if (catchScope) {
         if (finallyNode)
-            kind = TryEmitter::TryCatchFinally;
+            kind = TryEmitter::Kind::TryCatchFinally;
         else
-            kind = TryEmitter::TryCatch;
+            kind = TryEmitter::Kind::TryCatch;
     } else {
         MOZ_ASSERT(finallyNode);
-        kind = TryEmitter::TryFinally;
+        kind = TryEmitter::Kind::TryFinally;
     }
     TryEmitter tryCatch(this, kind);
 
@@ -8627,7 +8627,7 @@ BytecodeEmitter::emitYieldStar(ParseNode* iter)
     int32_t startDepth = stackDepth;
     MOZ_ASSERT(startDepth >= 3);
 
-    TryEmitter tryCatch(this, TryEmitter::TryCatchFinally, TryEmitter::DontUseRetVal,
+    TryEmitter tryCatch(this, TryEmitter::Kind::TryCatchFinally, TryEmitter::DontUseRetVal,
                         TryEmitter::DontUseControl);
     if (!tryCatch.emitJumpOverCatchAndFinally())          // NEXT ITER RESULT
         return false;
