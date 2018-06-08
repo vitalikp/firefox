@@ -991,13 +991,11 @@ GlobalScope::XDR(XDRState<mode>* xdr, ScopeKind kind, MutableHandleScope scope)
         if (mode == XDR_DECODE)
             uniqueData.emplace(cx, data);
 
-        MOZ_TRY(xdr->codeUint32(&data->varStart));
         MOZ_TRY(xdr->codeUint32(&data->letStart));
         MOZ_TRY(xdr->codeUint32(&data->constStart));
 
         if (mode == XDR_DECODE) {
             if (!data->length) {
-                MOZ_ASSERT(!data->varStart);
                 MOZ_ASSERT(!data->letStart);
                 MOZ_ASSERT(!data->constStart);
             }
@@ -1416,7 +1414,7 @@ BindingIter::init(LexicalScope::Data& data, uint32_t firstFrameSlot, uint8_t fla
     if (flags & IsNamedLambda) {
         // Named lambda binding is weird. Normal BindingKind ordering rules
         // don't apply.
-        init(0, 0, 0, 0, 0, 0,
+        init(0, 0, 0, 0, 0,
              CanHaveEnvironmentSlots | flags,
              firstFrameSlot, JSSLOT_FREE(&LexicalEnvironmentObject::class_),
              data.trailingNames.start(), data.length);
@@ -1424,11 +1422,10 @@ BindingIter::init(LexicalScope::Data& data, uint32_t firstFrameSlot, uint8_t fla
         //            imports - [0, 0)
         // positional formals - [0, 0)
         //      other formals - [0, 0)
-        //    top-level funcs - [0, 0)
         //               vars - [0, 0)
         //               lets - [0, data.constStart)
         //             consts - [data.constStart, data.length)
-        init(0, 0, 0, 0, 0, data.constStart,
+        init(0, 0, 0, 0, data.constStart,
              CanHaveFrameSlots | CanHaveEnvironmentSlots | flags,
              firstFrameSlot, JSSLOT_FREE(&LexicalEnvironmentObject::class_),
              data.trailingNames.start(), data.length);
@@ -1445,11 +1442,10 @@ BindingIter::init(FunctionScope::Data& data, uint8_t flags)
     //            imports - [0, 0)
     // positional formals - [0, data.nonPositionalFormalStart)
     //      other formals - [data.nonPositionalParamStart, data.varStart)
-    //    top-level funcs - [data.varStart, data.varStart)
     //               vars - [data.varStart, data.length)
     //               lets - [data.length, data.length)
     //             consts - [data.length, data.length)
-    init(0, data.nonPositionalFormalStart, data.varStart, data.varStart, data.length, data.length,
+    init(0, data.nonPositionalFormalStart, data.varStart, data.length, data.length,
          flags,
          0, JSSLOT_FREE(&CallObject::class_),
          data.trailingNames.start(), data.length);
@@ -1461,11 +1457,10 @@ BindingIter::init(VarScope::Data& data, uint32_t firstFrameSlot)
     //            imports - [0, 0)
     // positional formals - [0, 0)
     //      other formals - [0, 0)
-    //    top-level funcs - [0, 0)
     //               vars - [0, data.length)
     //               lets - [data.length, data.length)
     //             consts - [data.length, data.length)
-    init(0, 0, 0, 0, data.length, data.length,
+    init(0, 0, 0, data.length, data.length,
          CanHaveFrameSlots | CanHaveEnvironmentSlots,
          firstFrameSlot, JSSLOT_FREE(&VarEnvironmentObject::class_),
          data.trailingNames.start(), data.length);
@@ -1477,11 +1472,10 @@ BindingIter::init(GlobalScope::Data& data)
     //            imports - [0, 0)
     // positional formals - [0, 0)
     //      other formals - [0, 0)
-    //    top-level funcs - [0, data.varStart)
-    //               vars - [data.varStart, data.letStart)
+    //               vars - [0, data.letStart)
     //               lets - [data.letStart, data.constStart)
     //             consts - [data.constStart, data.length)
-    init(0, 0, 0, data.varStart, data.letStart, data.constStart,
+    init(0, 0, 0, data.letStart, data.constStart,
          CannotHaveSlots,
          UINT32_MAX, UINT32_MAX,
          data.trailingNames.start(), data.length);
@@ -1506,11 +1500,10 @@ BindingIter::init(EvalScope::Data& data, bool strict)
     //            imports - [0, 0)
     // positional formals - [0, 0)
     //      other formals - [0, 0)
-    //    top-level funcs - [0, data.varStart)
-    //               vars - [data.varStart, data.length)
+    //               vars - [0, data.length)
     //               lets - [data.length, data.length)
     //             consts - [data.length, data.length)
-    init(0, 0, 0, data.varStart, data.length, data.length,
+    init(0, 0, 0, data.length, data.length,
          flags, firstFrameSlot, firstEnvironmentSlot,
          data.trailingNames.start(), data.length);
 }
@@ -1521,11 +1514,10 @@ BindingIter::init(ModuleScope::Data& data)
     //            imports - [0, data.varStart)
     // positional formals - [data.varStart, data.varStart)
     //      other formals - [data.varStart, data.varStart)
-    //    top-level funcs - [data.varStart, data.varStart)
     //               vars - [data.varStart, data.letStart)
     //               lets - [data.letStart, data.constStart)
     //             consts - [data.constStart, data.length)
-    init(data.varStart, data.varStart, data.varStart, data.varStart, data.letStart, data.constStart,
+    init(data.varStart, data.varStart, data.varStart, data.letStart, data.constStart,
          CanHaveFrameSlots | CanHaveEnvironmentSlots,
          0, JSSLOT_FREE(&ModuleEnvironmentObject::class_),
          data.trailingNames.start(), data.length);
@@ -1537,11 +1529,10 @@ BindingIter::init(WasmInstanceScope::Data& data)
     //            imports - [0, 0)
     // positional formals - [0, 0)
     //      other formals - [0, 0)
-    //    top-level funcs - [0, 0)
     //               vars - [0, data.length)
     //               lets - [data.length, data.length)
     //             consts - [data.length, data.length)
-    init(0, 0, 0, 0, data.length, data.length,
+    init(0, 0, 0, data.length, data.length,
          CanHaveFrameSlots | CanHaveEnvironmentSlots,
          UINT32_MAX, UINT32_MAX,
          data.trailingNames.start(), data.length);
@@ -1553,11 +1544,10 @@ BindingIter::init(WasmFunctionScope::Data& data)
     //            imports - [0, 0)
     // positional formals - [0, 0)
     //      other formals - [0, 0)
-    //    top-level funcs - [0, 0)
     //               vars - [0, data.length)
     //               lets - [data.length, data.length)
     //             consts - [data.length, data.length)
-    init(0, 0, 0, 0, data.length, data.length,
+    init(0, 0, 0, data.length, data.length,
          CanHaveFrameSlots | CanHaveEnvironmentSlots,
          UINT32_MAX, UINT32_MAX,
          data.trailingNames.start(), data.length);
