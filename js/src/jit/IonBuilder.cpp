@@ -1619,8 +1619,7 @@ IonBuilder::blockIsOSREntry(const CFGBlock* block, const CFGBlock* predecessor)
     }
 
     MOZ_ASSERT(*info().osrPc() == JSOP_LOOPENTRY);
-    // Skip over the LOOPENTRY to match.
-    return GetNextPc(info().osrPc()) == entryPc;
+    return info().osrPc() == entryPc;
 }
 
 AbortReasonOr<Ok>
@@ -1725,17 +1724,18 @@ IonBuilder::visitLoopEntry(CFGLoopEntry* loopEntry)
     setCurrent(header);
     pc = header->pc();
 
-    initLoopEntry();
     return Ok();
 }
 
-bool
-IonBuilder::initLoopEntry()
+AbortReasonOr<Ok>
+IonBuilder::jsop_loopentry()
 {
+    MOZ_ASSERT(*pc == JSOP_LOOPENTRY);
+
     current->add(MInterruptCheck::New(alloc()));
     insertRecompileCheck();
 
-    return true;
+    return Ok();
 }
 
 AbortReasonOr<Ok>
@@ -1793,7 +1793,6 @@ IonBuilder::inspectOpcode(JSOp op)
       case JSOP_THROW:
       case JSOP_GOTO:
       case JSOP_CONDSWITCH:
-      case JSOP_LOOPENTRY:
       case JSOP_TABLESWITCH:
       case JSOP_CASE:
       case JSOP_DEFAULT:
@@ -2372,6 +2371,9 @@ IonBuilder::inspectOpcode(JSOp op)
       case JSOP_IMPORTMETA:
         return jsop_importmeta();
 
+      case JSOP_LOOPENTRY:
+        return jsop_loopentry();
+
       // ===== NOT Yet Implemented =====
       // Read below!
 
@@ -2499,7 +2501,6 @@ IonBuilder::restartLoop(const CFGBlock* cfgHeader)
     setCurrent(header);
     pc = header->pc();
 
-    initLoopEntry();
     return Ok();
 }
 
@@ -6629,7 +6630,8 @@ AbortReasonOr<MBasicBlock*>
 IonBuilder::newOsrPreheader(MBasicBlock* predecessor, jsbytecode* loopEntry,
                             jsbytecode* beforeLoopEntry)
 {
-    MOZ_ASSERT(loopEntry == GetNextPc(info().osrPc()));
+    MOZ_ASSERT(JSOp(*loopEntry) == JSOP_LOOPENTRY);
+    MOZ_ASSERT(loopEntry == info().osrPc());
 
     // Create two blocks: one for the OSR entry with no predecessors, one for
     // the preheader, which has the OSR entry block as a predecessor. The
