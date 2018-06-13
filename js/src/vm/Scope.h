@@ -8,7 +8,10 @@
 #define vm_Scope_h
 
 #include "mozilla/Maybe.h"
+#include "mozilla/TypeTraits.h"
 #include "mozilla/Variant.h"
+
+#include <stddef.h>
 
 #include "jsutil.h"
 
@@ -423,6 +426,20 @@ class Scope : public js::gc::TenuredCell
     void dump();
 };
 
+/** Empty base class for scope Data classes to inherit from. */
+class BaseScopeData
+{};
+
+template<class Data>
+inline size_t
+SizeOfData(uint32_t numBindings)
+{
+    static_assert(mozilla::IsBaseOf<BaseScopeData, Data>::value,
+                  "Data must be the correct sort of data, i.e. it must "
+                  "inherit from BaseScopeData");
+    return sizeof(Data) + (numBindings ? numBindings - 1 : 0) * sizeof(BindingName);
+}
+
 //
 // A lexical scope that holds let and const bindings. There are 4 kinds of
 // LexicalScopes.
@@ -452,7 +469,7 @@ class LexicalScope : public Scope
   public:
     // Data is public because it is created by the frontend. See
     // Parser<FullParseHandler>::newLexicalScopeData.
-    struct Data
+    struct Data : BaseScopeData
     {
         // Bindings are sorted by kind in both frames and environments.
         //
@@ -474,15 +491,6 @@ class LexicalScope : public Scope
 
         void trace(JSTracer* trc);
     };
-
-    static size_t sizeOfData(uint32_t length) {
-        return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
-    }
-
-    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
-        *names = data->trailingNames.start();
-        *length = data->length;
-    }
 
     static LexicalScope* create(JSContext* cx, ScopeKind kind, Handle<Data*> data,
                                 uint32_t firstFrameSlot, HandleScope enclosing);
@@ -558,7 +566,7 @@ class FunctionScope : public Scope
   public:
     // Data is public because it is created by the
     // frontend. See Parser<FullParseHandler>::newFunctionScopeData.
-    struct Data
+    struct Data : BaseScopeData
     {
         // The canonical function of the scope, as during a scope walk we
         // often query properties of the JSFunction (e.g., is the function an
@@ -600,15 +608,6 @@ class FunctionScope : public Scope
         void trace(JSTracer* trc);
         Zone* zone() const;
     };
-
-    static size_t sizeOfData(uint32_t length) {
-        return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
-    }
-
-    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
-        *names = data->trailingNames.start();
-        *length = data->length;
-    }
 
     static FunctionScope* create(JSContext* cx, Handle<Data*> data,
                                  bool hasParameterExprs, bool needsEnvironment,
@@ -686,7 +685,7 @@ class VarScope : public Scope
   public:
     // Data is public because it is created by the
     // frontend. See Parser<FullParseHandler>::newVarScopeData.
-    struct Data
+    struct Data : BaseScopeData
     {
         // All bindings are vars.
         uint32_t length = 0;
@@ -704,15 +703,6 @@ class VarScope : public Scope
 
         void trace(JSTracer* trc);
     };
-
-    static size_t sizeOfData(uint32_t length) {
-        return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
-    }
-
-    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
-        *names = data->trailingNames.start();
-        *length = data->length;
-    }
 
     static VarScope* create(JSContext* cx, ScopeKind kind, Handle<Data*> data,
                             uint32_t firstFrameSlot, bool needsEnvironment,
@@ -779,7 +769,7 @@ class GlobalScope : public Scope
   public:
     // Data is public because it is created by the frontend. See
     // Parser<FullParseHandler>::newGlobalScopeData.
-    struct Data
+    struct Data : BaseScopeData
     {
         // Bindings are sorted by kind.
         // `vars` includes top-level functions which is distinguished by a bit
@@ -801,15 +791,6 @@ class GlobalScope : public Scope
 
         void trace(JSTracer* trc);
     };
-
-    static size_t sizeOfData(uint32_t length) {
-        return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
-    }
-
-    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
-        *names = data->trailingNames.start();
-        *length = data->length;
-    }
 
     static GlobalScope* create(JSContext* cx, ScopeKind kind, Handle<Data*> data);
 
@@ -884,7 +865,7 @@ class EvalScope : public Scope
   public:
     // Data is public because it is created by the frontend. See
     // Parser<FullParseHandler>::newEvalScopeData.
-    struct Data
+    struct Data : BaseScopeData
     {
         // All bindings in an eval script are 'var' bindings. The implicit
         // lexical scope around the eval is present regardless of strictness
@@ -909,15 +890,6 @@ class EvalScope : public Scope
 
         void trace(JSTracer* trc);
     };
-
-    static size_t sizeOfData(uint32_t length) {
-        return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
-    }
-
-    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
-        *names = data->trailingNames.start();
-        *length = data->length;
-    }
 
     static EvalScope* create(JSContext* cx, ScopeKind kind, Handle<Data*> data,
                              HandleScope enclosing);
@@ -989,7 +961,7 @@ class ModuleScope : public Scope
   public:
     // Data is public because it is created by the frontend. See
     // Parser<FullParseHandler>::newModuleScopeData.
-    struct Data
+    struct Data : BaseScopeData
     {
         // The module of the scope.
         GCPtr<ModuleObject*> module = {};
@@ -1019,15 +991,6 @@ class ModuleScope : public Scope
         void trace(JSTracer* trc);
         Zone* zone() const;
     };
-
-    static size_t sizeOfData(uint32_t length) {
-        return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
-    }
-
-    static void getDataNamesAndLength(Data* data, BindingName** names, uint32_t* length) {
-        *names = data->trailingNames.start();
-        *length = data->length;
-    }
 
     static ModuleScope* create(JSContext* cx, Handle<Data*> data,
                                Handle<ModuleObject*> module, HandleScope enclosing);
@@ -1065,7 +1028,7 @@ class WasmInstanceScope : public Scope
     static const ScopeKind classScopeKind_ = ScopeKind::WasmInstance;
 
   public:
-    struct Data
+    struct Data : BaseScopeData
     {
         uint32_t memoriesStart = 0;
         uint32_t globalsStart = 0;
@@ -1084,10 +1047,6 @@ class WasmInstanceScope : public Scope
     };
 
     static WasmInstanceScope* create(JSContext* cx, WasmInstanceObject* instance);
-
-    static size_t sizeOfData(uint32_t length) {
-        return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
-    }
 
   private:
     Data& data() {
@@ -1128,7 +1087,7 @@ class WasmFunctionScope : public Scope
     static const ScopeKind classScopeKind_ = ScopeKind::WasmFunction;
 
   public:
-    struct Data
+    struct Data : BaseScopeData
     {
         uint32_t length = 0;
         uint32_t nextFrameSlot = 0;
@@ -1143,10 +1102,6 @@ class WasmFunctionScope : public Scope
     };
 
     static WasmFunctionScope* create(JSContext* cx, HandleScope enclosing, uint32_t funcIndex);
-
-    static size_t sizeOfData(uint32_t length) {
-        return sizeof(Data) + (length ? length - 1 : 0) * sizeof(BindingName);
-    }
 
   private:
     Data& data() {

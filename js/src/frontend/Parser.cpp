@@ -1759,7 +1759,7 @@ static typename Scope::Data*
 NewEmptyBindingData(JSContext* cx, LifoAlloc& alloc, uint32_t numBindings)
 {
     using Data = typename Scope::Data;
-    size_t allocSize = Scope::sizeOfData(numBindings);
+    size_t allocSize = SizeOfData<typename Scope::Data>(numBindings);
     auto* bindings = alloc.allocInSize<Data>(allocSize, numBindings);
     if (!bindings)
         ReportOutOfMemory(cx);
