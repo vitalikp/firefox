@@ -1290,7 +1290,7 @@ Module::instantiate(JSContext* cx,
 
     const ShareableBytes* maybeBytecode = nullptr;
     if (cx->compartment()->isDebuggee() || metadata().debugEnabled ||
-        !metadata().funcNames.empty())
+        !metadata().funcNames.empty() || !!metadata().moduleName)
     {
         maybeBytecode = bytecode_.get();
     }
