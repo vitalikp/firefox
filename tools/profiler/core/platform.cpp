@@ -70,6 +70,8 @@
 #include "prdtoa.h"
 #include "prtime.h"
 
+#include <unistd.h> // for getpid()
+
 #ifdef MOZ_TASK_TRACER
 #include "GeckoTaskTracer.h"
 #endif
@@ -356,6 +358,14 @@ private:
       // Crude, non UTF-8 compatible, case insensitive substring search
       if (name.find(filter) != std::string::npos) {
         return true;
+      }
+
+      // If the filter starts with pid:, check for a pid match
+      if (filter.find("pid:") == 0) {
+        std::string mypid = std::to_string(getpid());
+        if (filter.compare(4, std::string::npos, mypid) == 0) {
+          return true;
+        }
       }
     }
 
