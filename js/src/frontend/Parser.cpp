@@ -861,9 +861,10 @@ PerHandlerParser<ParseHandler>::PerHandlerParser(JSContext* cx, LifoAlloc& alloc
                                                  bool foldConstants, UsedNameTracker& usedNames,
                                                  LazyScript* lazyOuterFunction,
                                                  ScriptSourceObject* sourceObject,
-                                                 ParseGoal parseGoal)
+                                                 ParseGoal parseGoal, void* internalSyntaxParser)
   : ParserBase(cx, alloc, options, foldConstants, usedNames, sourceObject, parseGoal),
-    handler(cx, alloc, lazyOuterFunction)
+    handler(cx, alloc, lazyOuterFunction),
+    internalSyntaxParser_(internalSyntaxParser)
 {
 
 }
@@ -878,17 +879,10 @@ GeneralParser<ParseHandler, CharT>::GeneralParser(JSContext* cx, LifoAlloc& allo
                                                   LazyScript* lazyOuterFunction,
                                                   ScriptSourceObject* sourceObject,
                                                   ParseGoal parseGoal)
-  : Base(cx, alloc, options, foldConstants, usedNames, lazyOuterFunction, sourceObject, parseGoal),
+  : Base(cx, alloc, options, foldConstants, usedNames, syntaxParser, lazyOuterFunction,
+         sourceObject, parseGoal),
     tokenStream(cx, options, chars, length)
-{
-    // The Mozilla specific JSOPTION_EXTRA_WARNINGS option adds extra warnings
-    // which are not generated if functions are parsed lazily. Note that the
-    // standard "use strict" does not inhibit lazy parsing.
-    if (options.extraWarningsOption)
-        disableSyntaxParser();
-    else
-        setSyntaxParser(syntaxParser);
-}
+{}
 
 template <typename CharT>
 void
