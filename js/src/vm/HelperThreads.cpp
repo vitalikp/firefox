@@ -2064,8 +2064,11 @@ void
 GlobalHelperThreadState::trace(JSTracer* trc, gc::AutoTraceSession& session)
 {
     AutoLockHelperThreadState lock;
-    for (auto builder : ionWorklist(lock))
+    for (auto builder : ionWorklist(lock)) {
+        builder->alloc().lifoAlloc()->setReadWrite();
         builder->trace(trc);
+        builder->alloc().lifoAlloc()->setReadOnly();
+    }
     for (auto builder : ionFinishedList(lock))
         builder->trace(trc);
 
