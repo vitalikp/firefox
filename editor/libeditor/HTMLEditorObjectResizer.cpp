@@ -378,13 +378,13 @@ HTMLEditor::ShowResizersInner(Element& aResizedElement)
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
+
+  MOZ_ASSERT(mResizedObject == &aResizedElement);
+
   // XXX Even when it failed to add event listener, should we need to set
   //     _moz_resizing attribute?
   aResizedElement.SetAttr(kNameSpaceID_None, nsGkAtoms::_moz_resizing,
                           NS_LITERAL_STRING("true"), true);
-
-  MOZ_ASSERT(mResizedObject == &aResizedElement);
-
   return NS_OK;
 }
 
