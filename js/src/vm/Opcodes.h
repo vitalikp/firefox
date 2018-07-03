@@ -1453,7 +1453,7 @@
      * Pushes a JS_UNINITIALIZED_LEXICAL value onto the stack, representing an
      * uninitialized lexical binding.
      *
-     * This opcode is used with the JSOP_INITLET opcode.
+     * This opcode is used with the JSOP_INITLEXICAL opcode.
      *   Category: Literals
      *   Type: Constants
      *   Operands:
@@ -2023,7 +2023,7 @@
     /* Lexical environment support. */ \
     /*
      * Replaces the current block on the env chain with a fresh block
-     * that copies all the bindings in the bock.  This operation implements the
+     * that copies all the bindings in the block.  This operation implements the
      * behavior of inducing a fresh lexical environment for every iteration of a
      * for(let ...; ...; ...) loop, if any declarations induced by such a loop
      * are captured within the loop.
