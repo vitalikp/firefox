@@ -108,7 +108,7 @@ gc::AllocKind
 ProxyObject::allocKindForTenure() const
 {
     MOZ_ASSERT(usingInlineValueArray());
-    Value priv = const_cast<ProxyObject*>(this)->private_();
+    Value priv = private_();
     return GetProxyGCObjectKind(getClass(), data.handler, priv);
 }
 
