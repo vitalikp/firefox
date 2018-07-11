@@ -177,18 +177,17 @@ class MOZ_RAII AutoScopedAssign
 };
 
 template <typename T, typename U>
-static inline U
+static constexpr U
 ComputeByteAlignment(T bytes, U alignment)
 {
     static_assert(mozilla::IsUnsigned<U>::value,
                   "alignment amount must be unsigned");
 
-    MOZ_ASSERT(mozilla::IsPowerOfTwo(alignment));
     return (alignment - (bytes % alignment)) % alignment;
 }
 
 template <typename T, typename U>
-static inline T
+static constexpr T
 AlignBytes(T bytes, U alignment)
 {
     static_assert(mozilla::IsUnsigned<U>::value,
