@@ -991,7 +991,7 @@ class GeneralParser
 
     Node condition(InHandling inHandling, YieldHandling yieldHandling);
 
-    bool argumentList(YieldHandling yieldHandling, Node listNode, bool* isSpread,
+    Node argumentList(YieldHandling yieldHandling, bool* isSpread,
                       PossibleError* possibleError = nullptr);
     Node destructuringDeclaration(DeclarationKind kind, YieldHandling yieldHandling,
                                   TokenKind tt);

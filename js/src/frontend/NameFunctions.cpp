@@ -314,17 +314,17 @@ class NameResolver
     bool resolveTaggedTemplate(ParseNode* node, HandleAtom prefix) {
         MOZ_ASSERT(node->isKind(ParseNodeKind::TaggedTemplate));
 
-        ParseNode* element = node->pn_head;
+        ParseNode* tag = node->pn_left;
 
-        // The list head is a leading expression, e.g. |tag| in |tag`foo`|,
+        // The leading expression, e.g. |tag| in |tag`foo`|,
         // that might contain functions.
-        if (!resolve(element, prefix))
+        if (!resolve(tag, prefix))
             return false;
 
-        // Next is the callsite object node.  This node only contains
+        // The callsite object node is first.  This node only contains
         // internal strings or undefined and an array -- no user-controlled
         // expressions.
-        element = element->pn_next;
+        ParseNode* element = node->pn_right->pn_head;
 #ifdef DEBUG
         {
             MOZ_ASSERT(element->isKind(ParseNodeKind::CallSiteObj));
@@ -696,9 +696,6 @@ class NameResolver
           case ParseNodeKind::Pow:
           case ParseNodeKind::Pipeline:
           case ParseNodeKind::Comma:
-          case ParseNodeKind::New:
-          case ParseNodeKind::Call:
-          case ParseNodeKind::SuperCall:
           case ParseNodeKind::Array:
           case ParseNodeKind::StatementList:
           case ParseNodeKind::ParamsBody:
@@ -732,9 +729,30 @@ class NameResolver
             break;
 
           case ParseNodeKind::TaggedTemplate:
-            MOZ_ASSERT(cur->isArity(PN_LIST));
+            MOZ_ASSERT(cur->isArity(PN_BINARY));
             if (!resolveTaggedTemplate(cur, prefix))
                 return false;
+            break;
+
+          case ParseNodeKind::New:
+          case ParseNodeKind::Call:
+          case ParseNodeKind::SuperCall:
+            MOZ_ASSERT(cur->isArity(PN_BINARY));
+            if (!resolve(cur->pn_left, prefix))
+                return false;
+            if (!resolve(cur->pn_right, prefix))
+                return false;
+            break;
+
+          // Handles the arguments for new/call/supercall, but does _not_ handle
+          // the Arguments node used by tagged template literals, since that is
+          // special-cased inside of resolveTaggedTemplate.
+          case ParseNodeKind::Arguments:
+            MOZ_ASSERT(cur->isArity(PN_LIST));
+            for (ParseNode* element = cur->pn_head; element; element = element->pn_next) {
+                if (!resolve(element, prefix))
+                    return false;
+            }
             break;
 
           // Import/export spec lists contain import/export specs containing
