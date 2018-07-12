@@ -74,11 +74,11 @@ class NameResolver
     bool nameExpression(ParseNode* n, bool* foundName) {
         switch (n->getKind()) {
           case ParseNodeKind::Dot:
-            if (!nameExpression(n->expr(), foundName))
+            if (!nameExpression(n->pn_left, foundName))
                 return false;
             if (!*foundName)
                 return true;
-            return appendPropertyReference(n->pn_atom);
+            return appendPropertyReference(n->pn_right->pn_atom);
 
           case ParseNodeKind::Name:
             *foundName = true;
@@ -783,12 +783,12 @@ class NameResolver
           }
 
           case ParseNodeKind::Dot:
-            MOZ_ASSERT(cur->isArity(PN_NAME));
+            MOZ_ASSERT(cur->isArity(PN_BINARY));
 
             // Super prop nodes do not have a meaningful LHS
             if (cur->as<PropertyAccess>().isSuper())
                 break;
-            if (!resolve(cur->expr(), prefix))
+            if (!resolve(cur->pn_left, prefix))
                 return false;
             break;
 
@@ -827,6 +827,7 @@ class NameResolver
           case ParseNodeKind::ExportSpec: // by ParseNodeKind::ExportSpecList
           case ParseNodeKind::CallSiteObj: // by ParseNodeKind::TaggedTemplate
           case ParseNodeKind::ClassNames:  // by ParseNodeKind::Class
+          case ParseNodeKind::PropertyName:  // by ParseNodeKind::Dot
             MOZ_CRASH("should have been handled by a parent node");
 
           case ParseNodeKind::Limit: // invalid sentinel value

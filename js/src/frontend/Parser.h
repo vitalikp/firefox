@@ -405,8 +405,12 @@ class PerHandlerParser
     bool isValidSimpleAssignmentTarget(Node node,
                                        FunctionCallBehavior behavior = ForbidAssignmentToFunctionCalls);
 
-    Node newPropertyAccess(Node expr, PropertyName* key, uint32_t end) {
-        return handler.newPropertyAccess(expr, key, end);
+    Node newPropertyName(PropertyName* key, const TokenPos& pos) {
+        return handler.newPropertyName(key, pos);
+    }
+
+    Node newPropertyAccess(Node expr, Node key) {
+        return handler.newPropertyAccess(expr, key);
     }
 
     FunctionBox* newFunctionBox(Node fn, JSFunction* fun, uint32_t toStringStart,
