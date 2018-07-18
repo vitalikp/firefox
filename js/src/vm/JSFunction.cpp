@@ -1509,6 +1509,8 @@ JSFunction::createScriptForLazilyInterpretedFunction(JSContext* cx, HandleFuncti
         bool canRelazify = !lazy->numInnerFunctions() && !lazy->hasDirectEval();
 
         if (script) {
+            // This function is non-canonical function, and the canonical
+            // function is already delazified.
             fun->setUnlazifiedScript(script);
             // Remember the lazy script on the compiled script, so it can be
             // stored on the function again in case of re-lazification.
@@ -1518,6 +1520,10 @@ JSFunction::createScriptForLazilyInterpretedFunction(JSContext* cx, HandleFuncti
         }
 
         if (fun != lazy->functionNonDelazifying()) {
+            // This function is non-canonical function, and the canonical
+            // function is lazy.
+            // Delazify the canonical function, which will result in calling
+            // this function again with the canonical function.
             if (!LazyScript::functionDelazifying(cx, lazy))
                 return false;
             script = lazy->functionNonDelazifying()->nonLazyScript();
@@ -1527,6 +1533,8 @@ JSFunction::createScriptForLazilyInterpretedFunction(JSContext* cx, HandleFuncti
             fun->setUnlazifiedScript(script);
             return true;
         }
+
+        // This is lazy canonical-function.
 
         MOZ_ASSERT(lazy->scriptSource()->hasSourceData());
 
@@ -2031,7 +2039,7 @@ js::CanReuseScriptForClone(JSCompartment* compartment, HandleFunction fun,
     // non-syntactic scope.
     return fun->hasScript()
         ? fun->nonLazyScript()->hasNonSyntacticScope()
-        : fun->lazyScript()->enclosingScope()->hasOnChain(ScopeKind::NonSyntactic);
+        : fun->lazyScript()->hasNonSyntacticScope();
 }
 
 static inline JSFunction*
