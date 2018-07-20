@@ -22,6 +22,7 @@
 #include "mozilla/Range.h"
 #include "mozilla/Sprintf.h"
 #include "mozilla/TypeTraits.h"
+#include "mozilla/Unused.h"
 
 #include <memory>
 #include <new>
@@ -58,6 +59,7 @@ using mozilla::Nothing;
 using mozilla::PodCopy;
 using mozilla::PodZero;
 using mozilla::Some;
+using mozilla::Unused;
 
 using JS::AutoGCRooter;
 
@@ -1832,7 +1834,7 @@ ParserBase::newGlobalScopeData(ParseContext::Scope& scope)
         cursor = FreshlyInitializeBindings(cursor, lets);
 
         bindings->constStart = cursor - start;
-        cursor = FreshlyInitializeBindings(cursor, consts);
+        Unused << FreshlyInitializeBindings(cursor, consts);
 
         bindings->length = numBindings;
     }
@@ -1896,7 +1898,7 @@ ParserBase::newModuleScopeData(ParseContext::Scope& scope)
         cursor = FreshlyInitializeBindings(cursor, lets);
 
         bindings->constStart = cursor - start;
-        cursor = FreshlyInitializeBindings(cursor, consts);
+        Unused << FreshlyInitializeBindings(cursor, consts);
 
         bindings->length = numBindings;
     }
@@ -1930,7 +1932,7 @@ ParserBase::newEvalScopeData(ParseContext::Scope& scope)
         BindingName* start = bindings->trailingNames.start();
         BindingName* cursor = start;
 
-        cursor = FreshlyInitializeBindings(cursor, vars);
+        Unused << FreshlyInitializeBindings(cursor, vars);
 
         bindings->length = numBindings;
     }
@@ -2023,7 +2025,7 @@ ParserBase::newFunctionScopeData(ParseContext::Scope& scope, bool hasParameterEx
         cursor = FreshlyInitializeBindings(cursor, formals);
 
         bindings->varStart = cursor - start;
-        cursor = FreshlyInitializeBindings(cursor, vars);
+        Unused << FreshlyInitializeBindings(cursor, vars);
 
         bindings->length = numBindings;
     }
@@ -2056,7 +2058,7 @@ ParserBase::newVarScopeData(ParseContext::Scope& scope)
         BindingName* start = bindings->trailingNames.start();
         BindingName* cursor = start;
 
-        cursor = FreshlyInitializeBindings(cursor, vars);
+        Unused << FreshlyInitializeBindings(cursor, vars);
 
         bindings->length = numBindings;
     }
@@ -2107,7 +2109,7 @@ ParserBase::newLexicalScopeData(ParseContext::Scope& scope)
         cursor = FreshlyInitializeBindings(cursor, lets);
 
         bindings->constStart = cursor - start;
-        cursor = FreshlyInitializeBindings(cursor, consts);
+        Unused << FreshlyInitializeBindings(cursor, consts);
 
         bindings->length = numBindings;
     }
