@@ -2711,8 +2711,11 @@ SrcNotes(JSContext* cx, HandleScript script, Sprinter* sp)
 
           case SRC_TRY:
             MOZ_ASSERT(JSOp(script->code()[offset]) == JSOP_TRY);
-            if (!sp->jsprintf(" offset to jump %u", unsigned(GetSrcNoteOffset(sn, 0))))
+            if (!sp->jsprintf(" offset to jump %u",
+                              unsigned(GetSrcNoteOffset(sn, SrcNote::Try::EndOfTryJumpOffset))))
+            {
                 return false;
+            }
             break;
 
           case SRC_CLASS_SPAN: {
