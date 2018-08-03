@@ -47,7 +47,6 @@ public:
   NS_DECL_ISUPPORTS
 
   // nsIXULChromeRegistry methods:
-  NS_IMETHOD ReloadChrome() override;
   NS_IMETHOD RefreshSkins() override;
   NS_IMETHOD AllowScriptsForPackage(nsIURI* url,
                                     bool* _retval) override;
