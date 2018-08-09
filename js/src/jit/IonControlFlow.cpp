@@ -292,7 +292,7 @@ ControlFlowGenerator::snoopControlFlow(JSOp op)
           case SRC_FOR_IN:
           case SRC_FOR_OF:
             // while (cond) { }
-            return processWhileOrForInLoop(sn);
+            return processWhileOrForInOrForOfLoop(sn);
 
           default:
             // Hard assert for now - make an error later.
@@ -896,7 +896,7 @@ ControlFlowGenerator::processForUpdateEnd(CFGState& state)
 }
 
 ControlFlowGenerator::ControlStatus
-ControlFlowGenerator::processWhileOrForInLoop(jssrcnote* sn)
+ControlFlowGenerator::processWhileOrForInOrForOfLoop(jssrcnote* sn)
 {
     // while (cond) { } loops have the following structure:
     //    GOTO cond   ; SRC_WHILE (offset to IFNE)
@@ -906,11 +906,13 @@ ControlFlowGenerator::processWhileOrForInLoop(jssrcnote* sn)
     //    LOOPENTRY
     //    ...
     //    IFNE        ; goes to LOOPHEAD
-    // for-in/for-of loops are similar;
-    // for-in has IFEQ as the back jump, and the cond will be a MOREITER.
+    // for-in/for-of loops are similar; for-in/for-of have IFEQ as the back
+    // jump, and the cond of for-in will be a MOREITER.
     MOZ_ASSERT(SN_TYPE(sn) == SRC_FOR_OF || SN_TYPE(sn) == SRC_FOR_IN || SN_TYPE(sn) == SRC_WHILE);
     // FIXME: Replaced in the subsequent patch.
     static_assert(unsigned(SrcNote::ForIn::BackJumpOffset) == 0,
+                  "SrcNote::{While,ForIn,ForOf}::BackJumpOffset should be same");
+    static_assert(unsigned(SrcNote::ForOf::BackJumpOffset) == 0,
                   "SrcNote::{While,ForIn,ForOf}::BackJumpOffset should be same");
     int backjumppcOffset = GetSrcNoteOffset(sn, SrcNote::ForIn::BackJumpOffset);
     jsbytecode* backjumppc = pc + backjumppcOffset;
