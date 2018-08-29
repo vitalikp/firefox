@@ -799,7 +799,7 @@
             throw new File.Error("iter (FindNextFile)", error, this._path);
 
 
-     },
+     };
 
      /**
       * Return the next entry in the directory, if any such entry is
