@@ -114,6 +114,7 @@ class ObjectBox;
     F(SuperCall) \
     F(SetThis) \
     F(ImportMeta) \
+    F(CallImport) \
     \
     /* Unary operators. */ \
     F(TypeOfName) \
