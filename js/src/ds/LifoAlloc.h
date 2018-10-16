@@ -575,20 +575,18 @@ class LifoAlloc
         curSize_ -= size;
     }
 
+    void* allocImplColdPath(size_t n);
+
     MOZ_ALWAYS_INLINE
     void* allocImpl(size_t n) {
         void* result;
         if (!chunks_.empty() && (result = chunks_.last()->tryAlloc(n)))
             return result;
-
-        if (!getOrCreateChunk(n))
-            return nullptr;
-
-        // Since we just created a large enough chunk, this can't fail.
-        result = chunks_.last()->tryAlloc(n);
-        MOZ_ASSERT(result);
-        return result;
+        return allocImplColdPath(n);
     }
+
+    // Check for space in unused chunks or allocate a new unused chunk.
+    MOZ_MUST_USE bool ensureUnusedApproximateColdPath(size_t n, size_t total);
 
   public:
     explicit LifoAlloc(size_t defaultChunkSize)
@@ -601,25 +599,7 @@ class LifoAlloc
     }
 
     // Steal allocated chunks from |other|.
-    void steal(LifoAlloc* other) {
-        MOZ_ASSERT(!other->markCount);
-        MOZ_DIAGNOSTIC_ASSERT(unused_.empty());
-        MOZ_DIAGNOSTIC_ASSERT(chunks_.empty());
-
-        // Copy everything from |other| to |this| except for |peakSize_|, which
-        // requires some care.
-        chunks_ = std::move(other->chunks_);
-        unused_ = std::move(other->unused_);
-        markCount = other->markCount;
-        defaultChunkSize_ = other->defaultChunkSize_;
-        curSize_ = other->curSize_;
-        peakSize_ = Max(peakSize_, other->peakSize_);
-#if defined(DEBUG) || defined(JS_OOM_BREAKPOINT)
-        fallibleScope_ = other->fallibleScope_;
-#endif
-
-        other->reset(defaultChunkSize_);
-    }
+    void steal(LifoAlloc* other);
 
     // Append all chunks from |other|. They are removed from |other|.
     void transferFrom(LifoAlloc* other);
@@ -672,7 +652,7 @@ class LifoAlloc
 
     template<typename T, typename... Args>
     MOZ_ALWAYS_INLINE T*
-    allocInSize(size_t n, Args&&... args)
+    newWithSize(size_t n, Args&&... args)
     {
         MOZ_ASSERT(n >= sizeof(T), "must request enough space to store a T");
         static_assert(alignof(T) <= detail::LIFO_ALLOC_ALIGN,
@@ -706,19 +686,7 @@ class LifoAlloc
                 return true;
         }
 
-        for (detail::BumpChunk& bc : unused_) {
-            total += bc.unused();
-            if (total >= n)
-                return true;
-        }
-
-        UniqueBumpChunk newChunk = newChunkWithCapacity(n);
-        if (!newChunk)
-            return false;
-        size_t size = newChunk->computedSizeOfIncludingThis();
-        unused_.pushFront(std::move(newChunk));
-        incrementCurSize(size);
-        return true;
+        return ensureUnusedApproximateColdPath(n, total);
     }
 
     MOZ_ALWAYS_INLINE
@@ -770,33 +738,8 @@ class LifoAlloc
     }
 
     using Mark = detail::BumpChunk::Mark;
-
-    Mark mark() {
-        markCount++;
-        if (chunks_.empty())
-            return Mark();
-        return chunks_.last()->mark();
-    }
-
-    void release(Mark mark) {
-        markCount--;
-
-        // Move the blocks which are after the mark to the set of unused chunks.
-        BumpChunkList released;
-        if (!mark.markedChunk())
-            released = std::move(chunks_);
-        else
-            released = std::move(chunks_.splitAfter(mark.markedChunk()));
-
-        // Release the content of all the blocks which are after the marks.
-        for (detail::BumpChunk& bc : released)
-            bc.release();
-        unused_.appendAll(std::move(released));
-
-        // Release everything which follows the mark in the last chunk.
-        if (!chunks_.empty())
-            chunks_.last()->release(mark);
-    }
+    Mark mark();
+    void release(Mark mark);
 
   private:
     void cancelMark(Mark mark) {
@@ -813,18 +756,8 @@ class LifoAlloc
 
     // Protect the content of the LifoAlloc chunks.
 #ifdef LIFO_CHUNK_PROTECT
-    void setReadOnly() {
-        for (detail::BumpChunk& bc : chunks_)
-            bc.setReadOnly();
-        for (detail::BumpChunk& bc : unused_)
-            bc.setReadOnly();
-    }
-    void setReadWrite() {
-        for (detail::BumpChunk& bc : chunks_)
-            bc.setReadWrite();
-        for (detail::BumpChunk& bc : unused_)
-            bc.setReadWrite();
-    }
+    void setReadOnly();
+    void setReadWrite();
 #else
     void setReadOnly() const {}
     void setReadWrite() const {}
