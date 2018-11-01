@@ -76,6 +76,9 @@ private:
   /// Surface format for the current frame.
   gfx::SurfaceFormat mFormat;
 
+  /// Frame rect for the current frame.
+  IntRect mFrameRect;
+
   /// The last row of decoded pixels written to mPipe.
   int mLastRow;
 
