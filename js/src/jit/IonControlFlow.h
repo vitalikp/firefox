@@ -551,6 +551,7 @@ class CFGLoopEntry : public CFGUnaryControlInstruction
 {
     bool canOsr_;
     bool isForIn_;
+    bool isBrokenLoop_;
     size_t stackPhiCount_;
     jsbytecode* loopStopPc_;
 
@@ -558,15 +559,17 @@ class CFGLoopEntry : public CFGUnaryControlInstruction
       : CFGUnaryControlInstruction(block),
         canOsr_(false),
         isForIn_(false),
+        isBrokenLoop_(false),
         stackPhiCount_(stackPhiCount),
         loopStopPc_(nullptr)
     {}
 
-    CFGLoopEntry(CFGBlock* block, bool canOsr, bool isForIn, size_t stackPhiCount,
-                 jsbytecode* loopStopPc)
+    CFGLoopEntry(CFGBlock* block, bool canOsr, bool isForIn, bool isBrokenLoop,
+                 size_t stackPhiCount, jsbytecode* loopStopPc)
       : CFGUnaryControlInstruction(block),
         canOsr_(canOsr),
         isForIn_(isForIn),
+        isBrokenLoop_(isBrokenLoop),
         stackPhiCount_(stackPhiCount),
         loopStopPc_(loopStopPc)
     {}
@@ -579,11 +582,20 @@ class CFGLoopEntry : public CFGUnaryControlInstruction
                                             CFGBlock* loopEntry)
     {
         return new(alloc) CFGLoopEntry(loopEntry, old->canOsr(), old->isForIn(),
-                                       old->stackPhiCount(), old->loopStopPc());
+                                       old->isBrokenLoop(), old->stackPhiCount(),
+                                       old->maybeLoopStopPc());
     }
 
     void setCanOsr() {
         canOsr_ = true;
+    }
+
+    bool isBrokenLoop() const {
+        return isBrokenLoop_;
+    }
+
+    void setIsBrokenLoop() {
+        isBrokenLoop_ = true;
     }
 
     bool canOsr() const {
@@ -593,12 +605,17 @@ class CFGLoopEntry : public CFGUnaryControlInstruction
     void setIsForIn() {
         isForIn_ = true;
     }
+
     bool isForIn() const {
         return isForIn_;
     }
 
     size_t stackPhiCount() const {
         return stackPhiCount_;
+    }
+
+    jsbytecode* maybeLoopStopPc() const {
+        return loopStopPc_;
     }
 
     jsbytecode* loopStopPc() const {
