@@ -113,7 +113,7 @@ LifoAlloc::reset(size_t defaultChunkSize)
         chunks_.popFirst();
 
     while (!oversize_.empty())
-        chunks_.popFirst();
+        oversize_.popFirst();
 
     while (!unused_.empty())
         unused_.popFirst();
@@ -122,12 +122,17 @@ LifoAlloc::reset(size_t defaultChunkSize)
     oversizeThreshold_ = defaultChunkSize;
     markCount = 0;
     curSize_ = 0;
-    oversizeSize_ = 0;
+    smallAllocsSize_ = 0;
 }
 
 void
 LifoAlloc::freeAll()
 {
+    // When free-ing all chunks, we can no longer determine which chunks were
+    // transferred and which were not, so simply clear the heuristic to zero
+    // right away.
+    smallAllocsSize_ = 0;
+
     while (!chunks_.empty()) {
         UniqueBumpChunk bc = std::move(chunks_.popFirst());
         decrementCurSize(bc->computedSizeOfIncludingThis());
@@ -136,7 +141,6 @@ LifoAlloc::freeAll()
     while (!oversize_.empty()) {
         UniqueBumpChunk bc = oversize_.popFirst();
         decrementCurSize(bc->computedSizeOfIncludingThis());
-        oversizeSize_ -= bc->computedSizeOfIncludingThis();
     }
 
     while (!unused_.empty()) {
@@ -147,7 +151,6 @@ LifoAlloc::freeAll()
     // Nb: maintaining curSize_ correctly isn't easy.  Fortunately, this is an
     // excellent sanity check.
     MOZ_ASSERT(curSize_ == 0);
-    MOZ_ASSERT(oversizeSize_ == 0);
 }
 
 // Round at the same page granularity used by malloc.
@@ -193,11 +196,14 @@ LifoAlloc::newChunkWithCapacity(size_t n, bool oversize)
         return nullptr;
     }
 
-    MOZ_ASSERT(curSize_ >= oversizeSize_);
+    // Note: When computing chunkSize growth, we only are interested in chunks
+    // used for small allocations. This excludes unused chunks, oversized chunks,
+    // and chunks transferred in from another LifoAlloc.
+    MOZ_ASSERT(curSize_ >= smallAllocsSize_);
     const size_t chunkSize =
         (oversize || minSize > defaultChunkSize_)
             ? MallocGoodSize(minSize)
-            : NextSize(defaultChunkSize_, curSize_ - oversizeSize_);
+            : NextSize(defaultChunkSize_, smallAllocsSize_);
 
     // Create a new BumpChunk, and allocate space for it.
     UniqueBumpChunk result = detail::BumpChunk::newWithCapacity(chunkSize);
@@ -235,8 +241,7 @@ LifoAlloc::getOrCreateChunk(size_t n)
     UniqueBumpChunk newChunk = newChunkWithCapacity(n, false);
     if (!newChunk)
         return newChunk;
-    size_t size = newChunk->computedSizeOfIncludingThis();
-    incrementCurSize(size);
+    incrementCurSize(newChunk->computedSizeOfIncludingThis());
     return newChunk;
 }
 
@@ -247,6 +252,9 @@ LifoAlloc::allocImplColdPath(size_t n)
     UniqueBumpChunk newChunk = getOrCreateChunk(n);
     if (!newChunk)
         return nullptr;
+
+    // This new chunk is about to be used for small allocations.
+    smallAllocsSize_ += newChunk->computedSizeOfIncludingThis();
 
     // Since we just created a large enough chunk, this can't fail.
     chunks_.append(std::move(newChunk));
@@ -264,7 +272,6 @@ LifoAlloc::allocImplOversize(size_t n)
         return nullptr;
 
     incrementCurSize(newChunk->computedSizeOfIncludingThis());
-    oversizeSize_ += newChunk->computedSizeOfIncludingThis();
 
     // Since we just created a large enough chunk, this can't fail.
     oversize_.append(std::move(newChunk));
@@ -286,9 +293,8 @@ LifoAlloc::ensureUnusedApproximateColdPath(size_t n, size_t total)
     if (!newChunk)
         return false;
 
-    size_t size = newChunk->computedSizeOfIncludingThis();
+    incrementCurSize(newChunk->computedSizeOfIncludingThis());
     unused_.pushFront(std::move(newChunk));
-    incrementCurSize(size);
     return true;
 }
 
@@ -343,8 +349,13 @@ LifoAlloc::release(Mark mark)
     // Release the content of all the blocks which are after the marks, and keep
     // blocks as unused.
     cutAtMark(mark.chunk, chunks_);
-    for (detail::BumpChunk& bc : released)
+    for (detail::BumpChunk& bc : released) {
         bc.release();
+
+        // Chunks moved from (after a mark) in chunks_ to unused_ are no longer
+        // considered small allocations.
+        smallAllocsSize_ -= bc.computedSizeOfIncludingThis();
+    }
     unused_.appendAll(std::move(released));
 
     // Free the content of all the blocks which are after the marks.
@@ -352,7 +363,6 @@ LifoAlloc::release(Mark mark)
     while (!released.empty()) {
         UniqueBumpChunk bc = released.popFirst();
         decrementCurSize(bc->computedSizeOfIncludingThis());
-        oversizeSize_ -= bc->computedSizeOfIncludingThis();
     }
 }
 
@@ -374,7 +384,7 @@ LifoAlloc::steal(LifoAlloc* other)
     oversizeThreshold_ = other->oversizeThreshold_;
     curSize_ = other->curSize_;
     peakSize_ = Max(peakSize_, other->peakSize_);
-    oversizeSize_ = other->oversizeSize_;
+    smallAllocsSize_ = other->smallAllocsSize_;
 #if defined(DEBUG) || defined(JS_OOM_BREAKPOINT)
     fallibleScope_ = other->fallibleScope_;
 #endif
@@ -388,13 +398,19 @@ LifoAlloc::transferFrom(LifoAlloc* other)
     MOZ_ASSERT(!markCount);
     MOZ_ASSERT(!other->markCount);
 
+    // Transferred chunks are not counted as part of |smallAllocsSize| as this
+    // could introduce bias in the |NextSize| heuristics, leading to
+    // over-allocations in *this* LifoAlloc. As well, to avoid interference with
+    // small allocations made with |this|, the last chunk of the |chunks_| list
+    // should remain the last chunk. Therefore, the transferred chunks are
+    // prepended to the |chunks_| list.
     incrementCurSize(other->curSize_);
-    oversizeSize_ += other->oversizeSize_;
+
     appendUnused(std::move(other->unused_));
     chunks_.prependAll(std::move(other->chunks_));
     oversize_.prependAll(std::move(other->oversize_));
     other->curSize_ = 0;
-    other->oversizeSize_ = 0;
+    other->smallAllocsSize_ = 0;
 }
 
 void
