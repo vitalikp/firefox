@@ -1325,6 +1325,8 @@ GetCacheIRExpectedInputType(ICCacheIR_Monitored* stub)
         return MIRType::Object;
     if (reader.matchOp(CacheOp::GuardIsString, ValOperandId(0)))
         return MIRType::String;
+    if (reader.matchOp(CacheOp::GuardIsNumber, ValOperandId(0)))
+        return MIRType::Double;
     if (reader.matchOp(CacheOp::GuardType, ValOperandId(0))) {
         JSValueType type = reader.valueType();
         return MIRTypeFromValueType(type);
