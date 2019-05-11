@@ -1168,7 +1168,7 @@ struct DefaultHasher<AbstractFramePtr> {
 //
 //     P  > Q  > T  > U
 //
-// Some details:
+// Details:
 //
 // - When we find a cache entry whose frame address matches our frame F, we know
 //   that F has never left the stack, but it may certainly be the case that
@@ -1243,6 +1243,17 @@ struct DefaultHasher<AbstractFramePtr> {
 //   select the appropriate parent at that point: rather than the next-older
 //   frame, we find the SavedFrame for the eval's target frame. The skip appears
 //   in the SavedFrame chains, even as the traversal covers all the frames.
+//
+// - Rematerialized frames (see ../jit/RematerializedFrame.h) are always created
+//   with their hasCachedSavedFrame bits clear: although there may be extant
+//   SavedFrames built from the original IonMonkey frame, the Rematerialized
+//   frames will not have cache entries for them until they are traversed in a
+//   capture themselves.
+//
+//   This means that, oddly, it is not always true that, once we reach a frame
+//   with its hasCachedSavedFrame bit set, all its parents will have the bit set
+//   as well. However, clear bits under younger set bits will only occur on
+//   Rematerialized frames.
 class LiveSavedFrameCache
 {
   public:
@@ -1281,6 +1292,9 @@ class LiveSavedFrameCache
 
         // If this FramePtr is an interpreter frame, return a pointer to it.
         inline InterpreterFrame& asInterpreterFrame() const { return *ptr.as<InterpreterFrame*>(); }
+
+        // Return true if this FramePtr refers to a rematerialized frame.
+        inline bool isRematerializedFrame() const { return ptr.is<jit::RematerializedFrame*>(); }
 
         bool operator==(const FramePtr& rhs) const { return rhs.ptr == this->ptr; }
         bool operator!=(const FramePtr& rhs) const { return !(rhs == *this); }

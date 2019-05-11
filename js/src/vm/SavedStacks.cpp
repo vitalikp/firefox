@@ -1361,7 +1361,10 @@ SavedStacks::insertFrames(JSContext* cx, MutableHandleSavedFrame frame,
         Maybe<LiveSavedFrameCache::FramePtr> framePtr = LiveSavedFrameCache::FramePtr::create(iter);
 
         if (framePtr) {
-            MOZ_ASSERT_IF(seenCached, framePtr->hasCachedSavedFrame());
+            // See the comment in Stack.h for why RematerializedFrames
+            // are a special case here.
+            MOZ_ASSERT_IF(seenCached, framePtr->hasCachedSavedFrame() ||
+                                          framePtr->isRematerializedFrame());
             seenCached |= framePtr->hasCachedSavedFrame();
         }
 
