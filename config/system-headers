@@ -1248,14 +1248,6 @@ png.h
 #if MOZ_SYSTEM_ZLIB==1
 zlib.h
 #endif
-#ifdef MOZ_ENABLE_STARTUP_NOTIFICATION
-libsn/sn.h
-libsn/sn-common.h
-libsn/sn-launchee.h
-libsn/sn-launcher.h
-libsn/sn-monitor.h
-libsn/sn-util.h
-#endif
 hunspell.hxx
 #if MOZ_SYSTEM_BZ2==1
 bzlib.h

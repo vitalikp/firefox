@@ -243,7 +243,6 @@ nsString gAbsoluteArgv0Path;
 #ifdef MOZ_X11
 #include <gdk/gdkx.h>
 #endif /* MOZ_X11 */
-#include "nsGTKToolkit.h"
 #include <fontconfig/fontconfig.h>
 #endif
 #include "BinaryPath.h"
@@ -3412,7 +3411,6 @@ XREMain::XRE_mainStartup(bool* aExitFlag)
 #endif
 #if defined(MOZ_WIDGET_GTK)
   g_set_application_name(mAppData->name);
-  gtk_window_set_auto_startup_notification(false);
 
 #if (MOZ_WIDGET_GTK == 2)
   gtk_widget_set_default_colormap(gdk_rgb_get_colormap());
@@ -3837,10 +3835,6 @@ XREMain::XRE_mainRun()
     NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
 
 #if defined(HAVE_DESKTOP_STARTUP_ID) && defined(MOZ_WIDGET_GTK)
-    nsGTKToolkit* toolkit = nsGTKToolkit::GetToolkit();
-    if (toolkit && !mDesktopStartupID.IsEmpty()) {
-      toolkit->SetDesktopStartupID(mDesktopStartupID);
-    }
     // Clear the environment variable so it won't be inherited by
     // child processes and confuse things.
     g_unsetenv ("DESKTOP_STARTUP_ID");
