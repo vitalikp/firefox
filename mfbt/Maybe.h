@@ -79,17 +79,16 @@ struct Nothing { };
  *     functions |Some()| and |Nothing()|.
  */
 template<class T>
-class MOZ_NON_PARAM Maybe
-{
-  alignas(T) unsigned char mStorage[sizeof(T)];
+class Maybe {
+  using NonConstT = typename RemoveConst<T>::Type;
+  union Union {
+    Union() {}
+    ~Union() {}
+    NonConstT val;
+  } mStorage;
   char mIsSome; // not bool -- guarantees minimal space consumption
 
-  // GCC fails due to -Werror=strict-aliasing if |mStorage| is directly cast to
-  // T*.  Indirecting through these functions addresses the problem.
-  void* data() { return mStorage; }
-  const void* data() const { return mStorage; }
-
-public:
+ public:
   using ValueType = T;
 
   Maybe() : mIsSome(false) { }
@@ -465,7 +464,7 @@ T&
 Maybe<T>::ref()
 {
   MOZ_DIAGNOSTIC_ASSERT(mIsSome);
-  return *static_cast<T*>(data());
+  return mStorage.val;
 }
 
 template<typename T>
@@ -473,7 +472,7 @@ const T&
 Maybe<T>::ref() const
 {
   MOZ_DIAGNOSTIC_ASSERT(mIsSome);
-  return *static_cast<const T*>(data());
+  return mStorage.val;
 }
 
 template<typename T>
@@ -498,7 +497,7 @@ void
 Maybe<T>::emplace(Args&&... aArgs)
 {
   MOZ_DIAGNOSTIC_ASSERT(!mIsSome);
-  ::new (KnownNotNull, data()) T(Forward<Args>(aArgs)...);
+  ::new (KnownNotNull, &mStorage.val) T(Forward<Args>(aArgs)...);
   mIsSome = true;
 }
 
