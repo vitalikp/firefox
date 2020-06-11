@@ -1591,8 +1591,18 @@ SavedStacks::checkForEvalInFramePrev(JSContext* cx, SavedFrame::HandleLookup loo
     if (!interpreterFrame.isDebuggerEvalFrame())
         return true;
 
-    LiveSavedFrameCache::FramePtr target =
-        LiveSavedFrameCache::FramePtr::create(interpreterFrame.evalInFramePrev());
+    FrameIter iter(cx, FrameIter::IGNORE_DEBUGGER_EVAL_PREV_LINK);
+    while (!iter.done() &&
+           (!iter.hasUsableAbstractFramePtr() ||
+            iter.abstractFramePtr() != interpreterFrame.evalInFramePrev())) {
+        ++iter;
+    }
+
+    Maybe<LiveSavedFrameCache::FramePtr> maybeTarget =
+        LiveSavedFrameCache::FramePtr::create(iter);
+    MOZ_ASSERT(maybeTarget);
+
+    LiveSavedFrameCache::FramePtr target = *maybeTarget;
 
     // If we're caching the frame to which |lookup| refers, then we should
     // definitely have the target frame in the cache as well.
