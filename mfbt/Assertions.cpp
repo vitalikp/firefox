@@ -5,6 +5,7 @@
 
 #include "mozilla/Assertions.h"
 #include "mozilla/Atomics.h"
+#include "mozilla/Sprintf.h"
 
 #include <stdarg.h>
 
@@ -51,8 +52,7 @@ MOZ_CrashPrintf(const char* aFilename, int aLine, const char* aFormat, ...)
   }
   va_list aArgs;
   va_start(aArgs, aFormat);
-  int ret = vsnprintf(sPrintfCrashReason, sPrintfCrashReasonSize,
-                      aFormat, aArgs);
+  int ret = VsprintfLiteral(sPrintfCrashReason, aFormat, aArgs);
   va_end(aArgs);
   MOZ_RELEASE_ASSERT(ret >= 0 && size_t(ret) < sPrintfCrashReasonSize,
     "Could not write the explanation string to the supplied buffer!");
