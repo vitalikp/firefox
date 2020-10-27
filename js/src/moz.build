@@ -56,7 +56,7 @@ if CONFIG['JS_BUNDLED_EDITLINE']:
 if not CONFIG['JS_DISABLE_SHELL']:
     DIRS += ['shell']
 
-TEST_DIRS += ['jsapi-tests', 'gdb']
+TEST_DIRS += ['jsapi-tests']
 
 CONFIGURE_SUBST_FILES += [
     'devtools/rootAnalysis/Makefile',

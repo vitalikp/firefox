@@ -112,7 +112,7 @@ DIST_GARBAGE = config.cache config.log config.status* \
    config/autoconf.mk config/emptyvars.mk \
    js-config.h js-confdefs.h \
    backend.mk config/backend.mk devtools/backend.mk editline/backend.mk \
-   gdb/backend.mk jsapi-tests/backend.mk shell/backend.mk tests/backend.mk \
+   jsapi-tests/backend.mk shell/backend.mk tests/backend.mk \
    backend.RecursiveMakeBackend backend.RecursiveMakeBackend.pp \
    devtools/rootAnalysis/Makefile
 
