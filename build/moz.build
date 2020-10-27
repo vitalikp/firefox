@@ -51,10 +51,6 @@ if CONFIG['ENABLE_TESTS'] or CONFIG['MOZ_DMD']:
 if CONFIG['MOZ_DMD']:
     FINAL_TARGET_FILES += ['/memory/replace/dmd/dmd.py']
 
-# Put a useful .gdbinit in the bin directory, to be picked up automatically
-# by GDB when we debug executables there.
-FINAL_TARGET_FILES += ['/.gdbinit']
-
 # Install the clang-cl runtime library for ASAN next to the binaries we produce.
 if CONFIG['MOZ_ASAN'] and CONFIG['CLANG_CL']:
     FINAL_TARGET_FILES += ['%' + CONFIG['MOZ_CLANG_RT_ASAN_LIB_PATH']]
@@ -71,9 +67,6 @@ if CONFIG['MOZ_APP_BASENAME']:
         appini.inputs = ['!/dist/bin/application.ini']
 
 DEFINES['TOPOBJDIR'] = TOPOBJDIR
-
-# NOTE: Keep .gdbinit in the topsrcdir for people who run gdb from the topsrcdir.
-OBJDIR_FILES += ['/.gdbinit']
 
 # Put a .lldbinit in the bin directory and the objdir, to be picked up
 # automatically by LLDB when we debug executables using either of those two
