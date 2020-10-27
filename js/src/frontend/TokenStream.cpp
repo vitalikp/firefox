@@ -25,6 +25,7 @@
 #include "frontend/Parser.h"
 #include "frontend/ReservedWords.h"
 #include "js/CharacterEncoding.h"
+#include "js/Printf.h"       // JS_smprintf
 #include "js/UniquePtr.h"
 #include "vm/HelperThreads.h"
 #include "vm/JSAtom.h"
@@ -823,6 +824,17 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::computeErrorMetadata(ErrorMetadata* 
     return computeLineOfContext(err, offset);
 }
 
+template <typename Unit, class AnyCharsAccess>
+void TokenStreamSpecific<Unit, AnyCharsAccess>::reportIllegalCharacter(
+    int32_t cp) {
+  UniqueChars display = JS_smprintf("U+%04X", cp);
+  if (!display) {
+    ReportOutOfMemory(anyCharsAccess().cx);
+    return;
+  }
+  error(JSMSG_ILLEGAL_CHARACTER, display.get());
+}
+
 template<typename CharT, class AnyCharsAccess>
 bool
 TokenStreamSpecific<CharT, AnyCharsAccess>::computeLineOfContext(ErrorMetadata* err,
@@ -1560,7 +1572,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* ttp, Mod
         }
 
         ungetCodePointIgnoreEOL(codePoint);
-        error(JSMSG_ILLEGAL_CHARACTER);
+        reportIllegalCharacter(codePoint);
         goto error;
     }
 
@@ -2067,7 +2079,7 @@ TokenStreamSpecific<CharT, AnyCharsAccess>::getTokenInternal(TokenKind* ttp, Mod
         // We consumed a bad character/code point.  Put it back so the error
         // location is the bad character.
         ungetCodePointIgnoreEOL(c);
-        error(JSMSG_ILLEGAL_CHARACTER);
+        reportIllegalCharacter(c);
         goto error;
     }
 
