@@ -317,9 +317,8 @@ wasm::DecodeFunctionSection(Decoder& d, const SigWithIdVector& sigs, size_t numI
     if (!d.readVarU32(&numDefs))
         return d.fail("expected number of function definitions");
 
-    CheckedInt<uint32_t> numFuncs = numImportedFunc;
-    numFuncs += numDefs;
-    if (!numFuncs.isValid() || numFuncs.value() > MaxFuncs)
+    uint32_t numFuncs = numImportedFunc + numDefs;
+    if (numFuncs > MaxFuncs)
         return d.fail("too many functions");
 
     if (!funcSigIndexes->reserve(numDefs))
