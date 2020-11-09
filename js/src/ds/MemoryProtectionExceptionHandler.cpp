@@ -95,8 +95,8 @@ static ProtectedRegionTree sProtectedRegions;
 bool
 MemoryProtectionExceptionHandler::isDisabled()
 {
-    // Disabled everywhere for this release.
-    return true;
+    // There isn't currently any reason to disable it.
+    return false;
 }
 
 void

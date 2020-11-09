@@ -54,7 +54,7 @@ class PageProtectingVector final
      * the whole page). As a result, if |unprotectedBytes >= pageSize|, we know
      * we can protect at least one more page, and |unprotectedBytes & ~pageMask|
      * is always the number of additional bytes we can protect. Put another way,
-     * |offsetToPage + protectedBytes + unprotectedBytes == [size in bytes]|
+     * |offsetToPage + protectedBytes + unprotectedBytes == vector.length()|
      * always holds, and if |protectedBytes != 0| then |unprotectedBytes >= 0|.
      */
     intptr_t unprotectedBytes;
@@ -73,10 +73,8 @@ class PageProtectingVector final
         unprotectedBytes += offsetToPage;
         offsetToPage = (pageSize - (uintptr_t(vector.begin()) & pageMask)) & pageMask;
         unprotectedBytes -= offsetToPage;
-#if 0
-        protectionEnabled = vector.capacity() * sizeof(T) >= protectionLowerBound &&
-                            vector.capacity() * sizeof(T) >= pageSize + offsetToPage;
-#endif
+        protectionEnabled = vector.capacity() >= protectionLowerBound &&
+                            vector.capacity() >= pageSize + offsetToPage;
     }
 
     void protect() {
@@ -102,7 +100,7 @@ class PageProtectingVector final
     void protectNewBuffer() {
         updateOffsetToPage();
         if (protectionEnabled)
-            MemoryProtectionExceptionHandler::addRegion(vector.begin(), vector.capacity() * sizeof(T));
+            MemoryProtectionExceptionHandler::addRegion(vector.begin(), vector.capacity());
         protect();
     }
 
