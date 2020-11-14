@@ -106,7 +106,6 @@ nsContextMenu.prototype = {
   initItems: function CM_initItems() {
     this.initPageMenuSeparator();
     this.initOpenItems();
-    this.initNavigationItems();
     this.initViewItems();
     this.initMiscItems();
     this.initSpellingItems();
@@ -169,27 +168,6 @@ nsContextMenu.prototype = {
     this.showItem("context-openlinkinusercontext-menu", shouldShow && !isWindowPrivate && showContainers);
     this.showItem("context-openlinkincurrent", this.onPlainTextLink);
     this.showItem("context-sep-open", shouldShow);
-  },
-
-  initNavigationItems: function CM_initNavigationItems() {
-    var shouldShow = !(this.isContentSelected || this.onLink || this.onImage ||
-                       this.onCanvas || this.onVideo || this.onAudio ||
-                       this.onTextInput || this.onSocial);
-    this.showItem("context-navigation", shouldShow);
-    this.showItem("context-sep-navigation", shouldShow);
-
-    let stopped = XULBrowserWindow.stopCommand.getAttribute("disabled") == "true";
-
-    let stopReloadItem = "";
-    if (shouldShow || this.onSocial) {
-      stopReloadItem = (stopped || this.onSocial) ? "reload" : "stop";
-    }
-
-    this.showItem("context-reload", stopReloadItem == "reload");
-    this.showItem("context-stop", stopReloadItem == "stop");
-
-    // XXX: Stop is determined in browser.js; the canStop broadcaster is broken
-    //this.setItemAttrFromNode( "context-stop", "disabled", "canStop" );
   },
 
   initLeaveDOMFullScreenItems: function CM_initLeaveFullScreenItem() {

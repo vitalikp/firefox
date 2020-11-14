@@ -1639,12 +1639,6 @@ notification.pluginVulnerable > .notification-inner > .messageCloseButton:not(:h
 
 %include ../shared/contextmenu.inc.css
 
-#context-navigation > .menuitem-iconic > .menu-iconic-left {
-  /* override toolkit/themes/linux/global/menu.css */
-  padding-inline-end: 0 !important;
-  margin-inline-end: 0 !important;
-}
-
 .browser-extension-panel > .panel-arrowcontainer > .panel-arrowcontent {
   padding: 0;
   overflow: hidden;

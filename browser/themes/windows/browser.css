@@ -2623,16 +2623,6 @@ notification.pluginVulnerable > .notification-inner > .messageCloseButton {
 
 %include ../shared/contextmenu.inc.css
 
-#context-navigation {
-  background-color: menu;
-  padding-bottom: 4px;
-}
-
-#context-sep-navigation {
-  margin-inline-start: -28px;
-  margin-top: -4px;
-}
-
 
 @media not all and (-moz-os-version: windows-xp) {
 %include browser-aero.css
