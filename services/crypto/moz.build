@@ -9,8 +9,6 @@ with Files('**'):
 
 DIRS += ['component']
 
-XPCSHELL_TESTS_MANIFESTS += ['tests/unit/xpcshell.ini']
-
 EXTRA_JS_MODULES['services-crypto'] += [
     'modules/utils.js',
     'modules/WeaveCrypto.js',
