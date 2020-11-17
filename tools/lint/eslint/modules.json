@@ -16,7 +16,6 @@
   "async.js": ["Async"],
   "AsyncSpellCheckTestHelper.jsm": ["onSpellCheck"],
   "Battery.jsm": ["GetBattery", "Battery"],
-  "blocklist-clients.js": ["AddonBlocklistClient", "GfxBlocklistClient", "OneCRLBlocklistClient", "PluginBlocklistClient", "FILENAME_ADDONS_JSON", "FILENAME_GFX_JSON", "FILENAME_PLUGINS_JSON"],
   "bogus_element_type.jsm": [],
   "bookmark_validator.js": ["BookmarkValidator", "BookmarkProblemData"],
   "bookmarks.js": ["BookmarksEngine", "PlacesItem", "Bookmark", "BookmarkFolder", "BookmarkQuery", "Livemark", "BookmarkSeparator"],
