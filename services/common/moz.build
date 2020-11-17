@@ -7,8 +7,6 @@
 with Files('**'):
     BUG_COMPONENT = ('Mozilla Services', 'Firefox: Common')
 
-TEST_DIRS += ['tests']
-
 EXTRA_COMPONENTS += [
     'servicesComponents.manifest',
 ]
