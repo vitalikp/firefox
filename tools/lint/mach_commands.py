@@ -4,7 +4,6 @@
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-import argparse
 import os
 
 from mozbuild.base import (
@@ -13,7 +12,6 @@ from mozbuild.base import (
 
 
 from mach.decorators import (
-    CommandArgument,
     CommandProvider,
     Command,
 )
@@ -41,22 +39,3 @@ class MachCommands(MachCommandBase):
         cli.SEARCH_PATHS.append(here)
         self._activate_virtualenv()
         return cli.run(*runargs, **lintargs)
-
-    @Command('eslint', category='devenv',
-             description='Run eslint or help configure eslint for optimal development.')
-    @CommandArgument('paths', default=None, nargs='*',
-                     help="Paths to file or directories to lint, like "
-                          "'browser/components/loop' Defaults to the "
-                          "current directory if not given.")
-    @CommandArgument('-s', '--setup', default=False, action='store_true',
-                     help='Configure eslint for optimal development.')
-    @CommandArgument('-b', '--binary', default=None,
-                     help='Path to eslint binary.')
-    @CommandArgument('--fix', default=False, action='store_true',
-                     help='Request that eslint automatically fix errors, where possible.')
-    @CommandArgument('extra_args', nargs=argparse.REMAINDER,
-                     help='Extra args that will be forwarded to eslint.')
-    def eslint(self, paths, extra_args=[], **kwargs):
-        self._mach_context.commands.dispatch('lint', self._mach_context,
-                                             linters=['eslint'], paths=paths,
-                                             argv=extra_args, **kwargs)
