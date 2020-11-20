@@ -110,7 +110,7 @@ pref("app.update.log", false);
 pref("app.update.backgroundMaxErrors", 10);
 
 // Whether or not app updates are enabled
-pref("app.update.enabled", true);
+pref("app.update.enabled", false);
 
 // If set to true, the Update Service will automatically download updates when
 // app updates are enabled per the app.update.enabled preference and if the user

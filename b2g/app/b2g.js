@@ -460,7 +460,7 @@ pref("b2g.update.apply-idle-timeout", 600000); // milliseconds
 pref("b2g.update.download-watchdog-timeout", 120000); // milliseconds
 pref("b2g.update.download-watchdog-max-retries", 5);
 
-pref("app.update.enabled", true);
+pref("app.update.enabled", false);
 pref("app.update.auto", false);
 pref("app.update.silent", false);
 pref("app.update.staging.enabled", true);
