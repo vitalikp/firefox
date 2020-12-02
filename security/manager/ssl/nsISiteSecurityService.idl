@@ -149,11 +149,6 @@ interface nsISiteSecurityService : nsISupports
     void clearAll();
 
     /**
-     * Removes all preloaded security state.
-     */
-    void clearPreloads();
-
-    /**
      * Returns an array of sha256-hashed key pins for the given domain, if any.
      * If these pins also apply to subdomains of the given domain,
      * aIncludeSubdomains will be true. Pins returned are only for non-built-in
@@ -181,13 +176,10 @@ interface nsISiteSecurityService : nsISupports
      * @param aExpires the time this pin should expire (millis since epoch)
      * @param aPinCount number of keys being pinnned
      * @param aSha256Pins array of hashed key fingerprints (SHA-256, base64)
-     * @param aIsPreload are these key pins for a preload entry? (false by
-     *        default)
      */
      boolean setKeyPins(in string aHost, in boolean aIncludeSubdomains,
                         in int64_t aExpires, in unsigned long aPinCount,
-                        [array, size_is(aPinCount)] in string aSha256Pins,
-                        [optional] in boolean aIsPreload);
+                        [array, size_is(aPinCount)] in string aSha256Pins);
 
     /**
      * Mark a host as declining to provide a given security state so that features

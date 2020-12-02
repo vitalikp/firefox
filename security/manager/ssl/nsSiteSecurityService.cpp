@@ -236,22 +236,15 @@ nsSiteSecurityService::Init()
     "test.currentTimeOffsetSeconds");
   mSiteStateStorage =
     mozilla::DataStorage::Get(NS_LITERAL_STRING("SiteSecurityServiceState.txt"));
-  mPreloadStateStorage =
-    mozilla::DataStorage::Get(NS_LITERAL_STRING("SecurityPreloadState.txt"));
   bool storageWillPersist = false;
-  bool preloadStorageWillPersist = false;
   nsresult rv = mSiteStateStorage->Init(storageWillPersist);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-  rv = mPreloadStateStorage->Init(preloadStorageWillPersist);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
   // This is not fatal. There are some cases where there won't be a
   // profile directory (e.g. running xpcshell). There isn't the
   // expectation that site information will be presisted in those cases.
-  if (!storageWillPersist || !preloadStorageWillPersist) {
+  if (!storageWillPersist) {
     NS_WARNING("site security information will not be persisted");
   }
 
@@ -799,7 +792,7 @@ nsSiteSecurityService::ProcessPKPHeader(nsIURI* aSourceURI,
   SSSLOG(("SSS: about to set pins for  %s, expires=%ld now=%ld maxAge=%lu\n",
            host.get(), expireTime, PR_Now() / PR_USEC_PER_MSEC, maxAge));
 
-  rv = SetHPKPState(host.get(), dynamicEntry, aFlags, false);
+  rv = SetHPKPState(host.get(), dynamicEntry, aFlags);
   if (NS_FAILED(rv)) {
     SSSLOG(("SSS: failed to set pins for %s\n", host.get()));
     if (aFailureResult) {
@@ -1069,17 +1062,6 @@ nsSiteSecurityService::ClearAll()
   return mSiteStateStorage->Clear();
 }
 
-NS_IMETHODIMP
-nsSiteSecurityService::ClearPreloads()
-{
-  // Child processes are not allowed direct access to this.
-  if (!XRE_IsParentProcess()) {
-    MOZ_CRASH("Child process: no direct access to nsISiteSecurityService::ClearPreloads");
-  }
-
-  return mPreloadStateStorage->Clear();
-}
-
 bool entryStateNotOK(SiteHPKPState& state, mozilla::pkix::Time& aEvalTime) {
   return state.mState != SecurityPropertySet || state.IsExpired(aEvalTime) ||
          state.mSHA256keys.Length() < 1;
@@ -1119,14 +1101,7 @@ nsSiteSecurityService::GetKeyPinsForHostname(const char* aHostname,
     value = mSiteStateStorage->Get(storageKey, mozilla::DataStorage_Private);
     SiteHPKPState privateEntry(value);
     if (entryStateNotOK(privateEntry, aEvalTime)) {
-      // not in private storage, try dynamic preload
-      value = mPreloadStateStorage->Get(storageKey,
-                                        mozilla::DataStorage_Persistent);
-      SiteHPKPState preloadEntry(value);
-      if (entryStateNotOK(preloadEntry, aEvalTime)) {
-        return NS_OK;
-      }
-      foundEntry = preloadEntry;
+      return NS_OK;
     } else {
       foundEntry = privateEntry;
     }
@@ -1141,7 +1116,6 @@ NS_IMETHODIMP
 nsSiteSecurityService::SetKeyPins(const char* aHost, bool aIncludeSubdomains,
                                   int64_t aExpires, uint32_t aPinCount,
                                   const char** aSha256Pins,
-                                  bool aIsPreload,
                                   /*out*/ bool* aResult)
 {
    // Child processes are not allowed direct access to this.
@@ -1168,12 +1142,12 @@ nsSiteSecurityService::SetKeyPins(const char* aHost, bool aIncludeSubdomains,
                              aIncludeSubdomains, sha256keys);
   // we always store data in permanent storage (ie no flags)
   nsAutoCString host(PublicKeyPinningService::CanonicalizeHostname(aHost));
-  return SetHPKPState(host.get(), dynamicEntry, 0, aIsPreload);
+  return SetHPKPState(host.get(), dynamicEntry, 0);
 }
 
 nsresult
 nsSiteSecurityService::SetHPKPState(const char* aHost, SiteHPKPState& entry,
-                                    uint32_t aFlags, bool aIsPreload)
+                                    uint32_t aFlags)
 {
   SSSLOG(("Top of SetPKPState"));
   nsAutoCString host(aHost);
@@ -1187,11 +1161,9 @@ nsSiteSecurityService::SetHPKPState(const char* aHost, SiteHPKPState& entry,
   entry.ToString(stateString);
 
   nsresult rv;
-  if (aIsPreload) {
-    rv = mPreloadStateStorage->Put(storageKey, stateString, storageType);
-  } else {
-    rv = mSiteStateStorage->Put(storageKey, stateString, storageType);
-  }
+
+  rv = mSiteStateStorage->Put(storageKey, stateString, storageType);
+
   NS_ENSURE_SUCCESS(rv, rv);
   return NS_OK;
 }
