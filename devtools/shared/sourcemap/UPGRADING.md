@@ -9,5 +9,4 @@ To upgrade the source-map library:
     $ npm install
     $ npm run-script build  -or-  nodejs Makefile.dryice.js (if you have issues with npm)
     $ cp dist/source-map.js /path/to/mozilla-central/devtools/shared/sourcemap/source-map.js
-    $ cp dist/test/* /path/to/mozilla-central/devtools/shared/sourcemap/tests/unit/
 
