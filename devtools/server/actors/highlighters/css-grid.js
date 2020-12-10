@@ -222,11 +222,6 @@ CssGridHighlighter.prototype = extend(AutoRefreshHighlighter.prototype, {
     this.highlighterEnv.off("navigate", this.onNavigate);
     this.highlighterEnv.off("will-navigate", this.onWillNavigate);
     this.markup.destroy();
-
-    // Clear the pattern cache to avoid dead object exceptions (Bug 1342051).
-    gCachedGridPattern.delete(ROW_KEY);
-    gCachedGridPattern.delete(COLUMN_KEY);
-
     AutoRefreshHighlighter.prototype.destroy.call(this);
   },
 
