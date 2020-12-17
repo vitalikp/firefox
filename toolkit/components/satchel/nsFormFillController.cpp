@@ -527,8 +527,7 @@ NS_IMETHODIMP
 nsFormFillController::GetTextValue(nsAString & aTextValue)
 {
   if (mFocusedInput) {
-    nsCOMPtr<nsIDOMHTMLInputElement> input = mFocusedInput;
-    input->GetValue(aTextValue);
+    mFocusedInput->GetValue(aTextValue);
   } else {
     aTextValue.Truncate();
   }
@@ -557,30 +556,24 @@ nsFormFillController::SetTextValueWithReason(const nsAString & aTextValue,
 NS_IMETHODIMP
 nsFormFillController::GetSelectionStart(int32_t *aSelectionStart)
 {
-  if (mFocusedInput) {
-    nsCOMPtr<nsIDOMHTMLInputElement> input = mFocusedInput;
-    input->GetSelectionStart(aSelectionStart);
-  }
+  if (mFocusedInput)
+    mFocusedInput->GetSelectionStart(aSelectionStart);
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsFormFillController::GetSelectionEnd(int32_t *aSelectionEnd)
 {
-  if (mFocusedInput) {
-    nsCOMPtr<nsIDOMHTMLInputElement> input = mFocusedInput;
-    input->GetSelectionEnd(aSelectionEnd);
-  }
+  if (mFocusedInput)
+    mFocusedInput->GetSelectionEnd(aSelectionEnd);
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsFormFillController::SelectTextRange(int32_t aStartIndex, int32_t aEndIndex)
 {
- if (mFocusedInput) {
-   nsCOMPtr<nsIDOMHTMLInputElement> input = mFocusedInput;
-   input->SetSelectionRange(aStartIndex, aEndIndex, EmptyString());
- }
+ if (mFocusedInput)
+    mFocusedInput->SetSelectionRange(aStartIndex, aEndIndex, EmptyString());
   return NS_OK;
 }
 
