@@ -3730,8 +3730,8 @@ nsGlobalWindow::CancelOrUpdateBackPressure()
   // can be quite expensive.  We only want to call that method if the back log
   // is really clearing.
   else if (newBackPressureDelayMS == 0 ||
-           (mBackPressureDelayMS >
-           (newBackPressureDelayMS + kBackPressureDelayReductionThresholdMS))) {
+           (newBackPressureDelayMS <=
+           (mBackPressureDelayMS - kBackPressureDelayReductionThresholdMS))) {
     int32_t oldBackPressureDelayMS = mBackPressureDelayMS;
     mBackPressureDelayMS = newBackPressureDelayMS;
 
