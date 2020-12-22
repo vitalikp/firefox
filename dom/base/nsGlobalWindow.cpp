@@ -13037,13 +13037,11 @@ nsGlobalWindow::RescheduleTimeout(Timeout* aTimeout, const TimeStamp& now,
   }
 
   if (!aTimeout->mTimer) {
-    if (IsFrozen()) {
-      aTimeout->mTimeRemaining = delay;
-    } else if (IsSuspended()) {
-      aTimeout->mWhen = currentNow + delay;
-    } else {
-      MOZ_ASSERT_UNREACHABLE("Window should be frozen or suspended.");
-    }
+    NS_ASSERTION(IsFrozen() || IsSuspended(),
+                 "How'd our timer end up null if we're not frozen or "
+                 "suspended?");
+
+    aTimeout->mTimeRemaining = delay;
     return true;
   }
 
