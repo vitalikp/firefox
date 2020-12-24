@@ -91,7 +91,7 @@ public:
   // Run some code for each Timeout in our list, but let the callback cancel
   // the iteration by returning true.
   template <class Callable>
-  void ForEachTimeoutAbortable(Callable c)
+  void ForEachUnorderedTimeoutAbortable(Callable c)
   {
     mTimeouts.ForEachAbortable(c);
   }

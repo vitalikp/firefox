@@ -261,7 +261,7 @@ TimeoutManager::ClearTimeout(int32_t aTimerId, Timeout::Reason aReason)
 {
   uint32_t timerId = (uint32_t)aTimerId;
 
-  ForEachTimeoutAbortable([&](Timeout* aTimeout) {
+  ForEachUnorderedTimeoutAbortable([&](Timeout* aTimeout) {
     if (aTimeout->mTimeoutId == timerId && aTimeout->mReason == aReason) {
       if (aTimeout->mRunning) {
         /* We're running from inside the aTimeout. Mark this
