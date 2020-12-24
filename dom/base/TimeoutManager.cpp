@@ -420,7 +420,7 @@ TimeoutManager::RunTimeout(Timeout* aTimeout)
       // ClearAllTimeouts() was called from a *nested* call, possibly
       // through a timeout that fired while a modal (to this window)
       // dialog was open or through other non-obvious paths.
-      MOZ_ASSERT(dummy_timeout->HasRefCntOne(), "dummy_timeout may leak");
+      MOZ_ASSERT(dummy_timeout->HasRefCnt(), "dummy_timeout may leak");
       Unused << timeoutExtraRef.forget().take();
 
       mTimeouts.SetInsertionPoint(last_insertion_point);
@@ -452,7 +452,7 @@ TimeoutManager::RunTimeout(Timeout* aTimeout)
   // Take the dummy timeout off the head of the list
   dummy_timeout->remove();
   timeoutExtraRef = nullptr;
-  MOZ_ASSERT(dummy_timeout->HasRefCntOne(), "dummy_timeout may leak");
+  MOZ_ASSERT(dummy_timeout->HasRefCnt(), "dummy_timeout may leak");
 
   mTimeouts.SetInsertionPoint(last_insertion_point);
 
