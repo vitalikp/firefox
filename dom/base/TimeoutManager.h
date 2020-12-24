@@ -100,7 +100,6 @@ private:
   nsresult ResetTimersForThrottleReduction(int32_t aPreviousThrottleDelayMS);
 
 private:
-  typedef mozilla::LinkedList<mozilla::dom::Timeout> TimeoutList;
   struct Timeouts {
     Timeouts()
       : mTimeoutInsertionPoint(nullptr)
@@ -147,19 +146,23 @@ private:
       }
     }
 
+    // Returns true when a callback aborts iteration.
     template <class Callable>
-    void ForEachAbortable(Callable c)
+    bool ForEachAbortable(Callable c)
     {
       for (Timeout* timeout = GetFirst();
            timeout;
            timeout = timeout->getNext()) {
         if (c(timeout)) {
-          break;
+          return true;
         }
       }
+      return false;
     }
 
   private:
+    typedef mozilla::LinkedList<mozilla::dom::Timeout> TimeoutList;
+
     // mTimeoutList is generally sorted by mWhen, unless mTimeoutInsertionPoint is
     // non-null.  In that case, the dummy timeout pointed to by
     // mTimeoutInsertionPoint may have a later mWhen than some of the timeouts
