@@ -642,14 +642,14 @@ TimeoutManager::ResetTimersForThrottleReduction(int32_t aPreviousThrottleDelayMS
 
   nsCOMPtr<nsIEventTarget> queue = mWindow.EventTargetFor(TaskCategory::Timer);
   return mTimeouts.ResetTimersForThrottleReduction(aPreviousThrottleDelayMS,
-                                                   DOMMinTimeoutValue(),
+                                                   *this,
                                                    sortBy,
                                                    queue);
 }
 
 nsresult
 TimeoutManager::Timeouts::ResetTimersForThrottleReduction(int32_t aPreviousThrottleDelayMS,
-                                                          int32_t aMinTimeoutValueMS,
+                                                          const TimeoutManager& aTimeoutManager,
                                                           SortBy aSortBy,
                                                           nsIEventTarget* aQueue)
 {
@@ -686,7 +686,7 @@ TimeoutManager::Timeouts::ResetTimersForThrottleReduction(int32_t aPreviousThrot
     // background window
     TimeDuration interval =
       TimeDuration::FromMilliseconds(std::max(timeout->mInterval,
-                                            uint32_t(aMinTimeoutValueMS)));
+                                            uint32_t(aTimeoutManager.DOMMinTimeoutValue())));
     uint32_t oldIntervalMillisecs = 0;
     timeout->mTimer->GetDelay(&oldIntervalMillisecs);
     TimeDuration oldInterval = TimeDuration::FromMilliseconds(oldIntervalMillisecs);
