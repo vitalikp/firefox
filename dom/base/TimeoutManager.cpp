@@ -767,7 +767,7 @@ TimeoutManager::ClearAllTimeouts()
 {
   bool seenRunningTimeout = false;
 
-  ForEachTimeout([&](Timeout* aTimeout) {
+  ForEachUnorderedTimeout([&](Timeout* aTimeout) {
     /* If RunTimeout() is higher up on the stack for this
        window, e.g. as a result of document.write from a timeout,
        then we need to reset the list insertion point for
@@ -857,7 +857,7 @@ TimeoutManager::EndRunningTimeout(Timeout* aTimeout)
 void
 TimeoutManager::UnmarkGrayTimers()
 {
-  ForEachTimeout([](Timeout* aTimeout) {
+  ForEachUnorderedTimeout([](Timeout* aTimeout) {
     if (aTimeout->mScriptHandler) {
       aTimeout->mScriptHandler->MarkForCC();
     }
@@ -867,7 +867,7 @@ TimeoutManager::UnmarkGrayTimers()
 void
 TimeoutManager::Suspend()
 {
-  ForEachTimeout([](Timeout* aTimeout) {
+  ForEachUnorderedTimeout([](Timeout* aTimeout) {
     // Leave the timers with the current time remaining.  This will
     // cause the timers to potentially fire when the window is
     // Resume()'d.  Time effectively passes while suspended.
@@ -890,7 +890,7 @@ TimeoutManager::Resume()
   TimeStamp now = TimeStamp::Now();
   DebugOnly<bool> _seenDummyTimeout = false;
 
-  ForEachTimeout([&](Timeout* aTimeout) {
+  ForEachUnorderedTimeout([&](Timeout* aTimeout) {
     // There's a chance we're being called with RunTimeout on the stack in which
     // case we have a dummy timeout in the list that *must not* be resumed. It
     // can be identified by a null mWindow.
@@ -937,7 +937,7 @@ void
 TimeoutManager::Freeze()
 {
   TimeStamp now = TimeStamp::Now();
-  ForEachTimeout([&](Timeout* aTimeout) {
+  ForEachUnorderedTimeout([&](Timeout* aTimeout) {
     // Save the current remaining time for this timeout.  We will
     // re-apply it when the window is Thaw()'d.  This effectively
     // shifts timers to the right as if time does not pass while
@@ -960,7 +960,7 @@ TimeoutManager::Thaw()
   TimeStamp now = TimeStamp::Now();
   DebugOnly<bool> _seenDummyTimeout = false;
 
-  ForEachTimeout([&](Timeout* aTimeout) {
+  ForEachUnorderedTimeout([&](Timeout* aTimeout) {
     // There's a chance we're being called with RunTimeout on the stack in which
     // case we have a dummy timeout in the list that *must not* be resumed. It
     // can be identified by a null mWindow.

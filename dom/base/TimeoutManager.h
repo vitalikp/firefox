@@ -83,7 +83,7 @@ public:
 
   // Run some code for each Timeout in our list.
   template <class Callable>
-  void ForEachTimeout(Callable c)
+  void ForEachUnorderedTimeout(Callable c)
   {
     mTimeouts.ForEach(c);
   }
