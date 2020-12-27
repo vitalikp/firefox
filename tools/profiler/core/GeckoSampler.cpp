@@ -1279,7 +1279,7 @@ SyncProfile* GeckoSampler::GetBacktrace()
   TickSample sample;
   sample.threadProfile = profile;
 
-#if defined(HAVE_NATIVE_UNWIND) || defined(USE_LUL_STACKWALK)
+#if defined(HAVE_NATIVE_UNWIND)
 #if defined(XP_WIN) || defined(LINUX)
   tickcontext_t context;
   sample.PopulateContext(&context);
