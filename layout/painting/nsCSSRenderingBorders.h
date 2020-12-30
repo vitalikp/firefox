@@ -173,8 +173,7 @@ private:
   // Return start or end point for dashed/dotted side
   Point GetStraightBorderPoint(mozilla::css::Side aSide,
                                mozilla::css::Corner aCorner,
-                               bool* aIsUnfilled,
-                               Float aDotOffset = 0.0f);
+                               bool* aIsUnfilled);
 
   // Return bezier control points for the outer and the inner curve for given
   // corner
