@@ -68,6 +68,11 @@ public:
     LayerComposite::SetLayerManager(aManager);
     mManager = aManager;
     mLastIntermediateSurface = nullptr;
+
+    for (Layer* l = GetFirstChild(); l; l = l->GetNextSibling()) {
+      LayerComposite* child = l->AsLayerComposite();
+      child->SetLayerManager(aManager);
+    }
   }
 
   virtual void Destroy() override;
@@ -153,13 +158,6 @@ protected:
 public:
   /** LayerOGL implementation */
   Layer* GetLayer() override { return this; }
-
-  virtual void SetLayerManager(LayerManagerComposite* aManager) override
-  {
-    LayerComposite::SetLayerManager(aManager);
-    mManager = aManager;
-    mLastIntermediateSurface = nullptr;
-  }
 
   void Destroy() override;
 

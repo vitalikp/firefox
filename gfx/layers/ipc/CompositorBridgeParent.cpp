@@ -1814,7 +1814,10 @@ CompositorBridgeParent::RecvAdoptChild(const uint64_t& child)
     MonitorAutoLock lock(*sIndirectLayerTreesLock);
     NotifyChildCreated(child);
     if (sIndirectLayerTrees[child].mLayerTree) {
-      sIndirectLayerTrees[child].mLayerTree->SetLayerManager(mLayerManager);
+      sIndirectLayerTrees[child].mLayerTree->mLayerManager = mLayerManager;
+    }
+    if (sIndirectLayerTrees[child].mRoot) {
+      sIndirectLayerTrees[child].mRoot->AsLayerComposite()->SetLayerManager(mLayerManager);
     }
     parent = sIndirectLayerTrees[child].mApzcTreeManagerParent;
   }
