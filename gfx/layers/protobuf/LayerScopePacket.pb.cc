@@ -480,6 +480,7 @@ bool LayersPacket_Layer_LayerType_IsValid(int value) {
     case 6:
     case 7:
     case 8:
+    case 9:
       return true;
     default:
       return false;
@@ -494,6 +495,7 @@ const LayersPacket_Layer_LayerType LayersPacket_Layer::PaintedLayer;
 const LayersPacket_Layer_LayerType LayersPacket_Layer::CanvasLayer;
 const LayersPacket_Layer_LayerType LayersPacket_Layer::ImageLayer;
 const LayersPacket_Layer_LayerType LayersPacket_Layer::ColorLayer;
+const LayersPacket_Layer_LayerType LayersPacket_Layer::TextLayer;
 const LayersPacket_Layer_LayerType LayersPacket_Layer::RefLayer;
 const LayersPacket_Layer_LayerType LayersPacket_Layer::ReadbackLayer;
 const LayersPacket_Layer_LayerType LayersPacket_Layer::LayerType_MIN;
