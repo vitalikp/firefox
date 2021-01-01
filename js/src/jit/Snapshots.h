@@ -32,8 +32,6 @@ class RValueAllocation;
 //
 // It is used with the SnapshotIterator to recover a Value from the stack,
 // spilled registers or the list of constant of the compiled script.
-//
-// Unit tests are located in jsapi-tests/testJitRValueAlloc.cpp.
 class RValueAllocation
 {
   public:

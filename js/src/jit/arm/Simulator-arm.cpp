@@ -1457,8 +1457,6 @@ void Simulator::getFromVFPRegister(int reg_index, ReturnType* out)
     memcpy(out, buffer, register_size * sizeof(vfp_registers_[0]));
 }
 
-// These forced-instantiations are for jsapi-tests. Evidently, nothing
-// requires these to be instantiated.
 template void Simulator::getFromVFPRegister<double, 2>(int reg_index, double* out);
 template void Simulator::getFromVFPRegister<float, 1>(int reg_index, float* out);
 template void Simulator::setVFPRegister<double, 2>(int reg_index, const double& value);

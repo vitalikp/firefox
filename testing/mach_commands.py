@@ -409,10 +409,6 @@ class CheckSpiderMonkeyCommand(MachCommandBase):
               js, '--jitflags=all']
         jstest_result = subprocess.call(jstest_cmd)
 
-        print('running jsapi-tests')
-        jsapi_tests_cmd = [os.path.join(self.bindir, executable_name('jsapi-tests'))]
-        jsapi_tests_result = subprocess.call(jsapi_tests_cmd)
-
         print('running check-style')
         check_style_cmd = [sys.executable, os.path.join(self.topsrcdir, 'config', 'check_spidermonkey_style.py')]
         check_style_result = subprocess.call(check_style_cmd, cwd=os.path.join(self.topsrcdir, 'js', 'src'))
@@ -428,29 +424,6 @@ class CheckSpiderMonkeyCommand(MachCommandBase):
         all_passed = jstest_result and jsapi_tests_result and check_style_result and check_masm_result and check_js_msg_result
 
         return all_passed
-
-@CommandProvider
-class JsapiTestsCommand(MachCommandBase):
-    @Command('jsapi-tests', category='testing', description='Run jsapi tests (JavaScript engine).')
-    @CommandArgument('test_name', nargs='?', metavar='N',
-        help='Test to run. Can be a prefix or omitted. If omitted, the entire ' \
-             'test suite is executed.')
-
-    def run_jsapitests(self, **params):
-        import subprocess
-
-        bin_suffix = ''
-        if sys.platform.startswith('win'):
-            bin_suffix = '.exe'
-
-        print('running jsapi-tests')
-        jsapi_tests_cmd = [os.path.join(self.bindir, executable_name('jsapi-tests'))]
-        if params['test_name']:
-            jsapi_tests_cmd.append(params['test_name'])
-
-        jsapi_tests_result = subprocess.call(jsapi_tests_cmd)
-
-        return jsapi_tests_result
 
 def autotry_parser():
     from autotry import arg_parser

@@ -305,7 +305,7 @@ def run_test_command(command, **kwargs):
     _, _, status = run_command(COMMAND_PREFIX + command, check=False, **kwargs)
     return status
 
-test_suites = set(['jstests', 'jittest', 'jsapitests', 'checks'])
+test_suites = set(['jstests', 'jittest', 'checks'])
 
 
 def normalize_tests(tests):
@@ -347,9 +347,6 @@ if 'checks' in test_suites:
 elif 'check-style' in test_suites:
     results.append(run_test_command([MAKE, 'check-style']))
 
-if 'jsapitests' in test_suites:
-    jsapi_test_binary = os.path.join(OBJDIR, 'dist', 'bin', 'jsapi-tests')
-    results.append(run_test_command([jsapi_test_binary]))
 if 'jstests' in test_suites:
     results.append(run_test_command([MAKE, 'check-jstests']))
 
