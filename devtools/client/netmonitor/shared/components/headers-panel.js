@@ -239,7 +239,7 @@ const HeadersPanel = createClass({
           object,
           filterPlaceHolder: HEADERS_FILTER_TEXT,
           sectionNames: Object.keys(object),
-          renderValue: this.renderValue,
+          /*renderValue: this.renderValue,*/
         }),
       )
     );
