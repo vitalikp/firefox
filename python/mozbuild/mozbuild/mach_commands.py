@@ -497,9 +497,6 @@ class Build(MachCommandBase):
             # if excessive:
             #    print(EXCESSIVE_SWAP_MESSAGE)
 
-            print('To view resource usage of the build, run |mach '
-                'resource-usage|.')
-
             telemetry_handler = getattr(self._mach_context,
                                         'telemetry_handler', None)
             telemetry_data = monitor.get_resource_usage()
@@ -527,23 +524,6 @@ class Build(MachCommandBase):
                         pass
 
             telemetry_handler(self._mach_context, telemetry_data)
-
-        # Only for full builds because incremental builders likely don't
-        # need to be burdened with this.
-        if not what:
-            try:
-                # Fennec doesn't have useful output from just building. We should
-                # arguably make the build action useful for Fennec. Another day...
-                if self.substs['MOZ_BUILD_APP'] != 'mobile/android':
-                    print('To take your build for a test drive, run: |mach run|')
-                app = self.substs['MOZ_BUILD_APP']
-                if app in ('browser', 'mobile/android'):
-                    print('For more information on what to do now, see '
-                        'https://developer.mozilla.org/docs/Developer_Guide/So_You_Just_Built_Firefox')
-            except Exception:
-                # Ignore Exceptions in case we can't find config.status (such
-                # as when doing OSX Universal builds)
-                pass
 
         return status
 
