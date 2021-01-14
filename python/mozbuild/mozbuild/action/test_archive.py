@@ -178,14 +178,6 @@ ARCHIVE_FILES = {
             'base': '',
             'pattern': 'cppunittest/**',
         },
-        # We don't ship these files if startup cache is disabled, which is
-        # rare. But it shouldn't matter for test archives.
-        {
-            'source': buildconfig.topsrcdir,
-            'base': 'startupcache/test',
-            'pattern': 'TestStartupCacheTelemetry.*',
-            'dest': 'cppunittest',
-        },
         {
             'source': buildconfig.topsrcdir,
             'base': 'testing',
