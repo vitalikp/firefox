@@ -616,7 +616,7 @@ LayerTransactionParent::RecvUpdate(InfallibleTArray<Edit>&& cset,
         // content cannot handle errors.
         return IPC_OK();
       }
-      ImageBridgeParent* imageBridge = ImageBridgeParent::GetInstance(OtherPid());
+      RefPtr<ImageBridgeParent> imageBridge = ImageBridgeParent::GetInstance(OtherPid());
       if (!imageBridge) {
         return IPC_FAIL_NO_REASON(this);
       }
