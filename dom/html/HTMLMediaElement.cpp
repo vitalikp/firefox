@@ -6650,15 +6650,17 @@ HTMLMediaElement::SetAudibleState(bool aAudible)
 void
 HTMLMediaElement::NotifyAudioPlaybackChanged(AudibleChangedReasons aReason)
 {
+  if (MaybeCreateAudioChannelAgent() &&
+      !mAudioChannelAgent->IsPlayingStarted()) {
+    return;
+  }
+
   if (mAudible == IsAudible()) {
     return;
   }
 
   mAudible = IsAudible();
-
-  if (mAudioChannelAgent && mAudioChannelAgent->IsPlayingStarted()) {
-    mAudioChannelAgent->NotifyStartedAudible(mAudible, aReason);
-  }
+  mAudioChannelAgent->NotifyStartedAudible(mAudible, aReason);
 }
 
 AudibleState
