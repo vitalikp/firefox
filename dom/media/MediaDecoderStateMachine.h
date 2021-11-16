@@ -98,7 +98,6 @@ hardware (via AudioStream).
 #include "ImageContainer.h"
 #include "SeekJob.h"
 #include "SeekTask.h"
-#include "MediaDecoderReaderWrapper.h"
 
 namespace mozilla {
 
@@ -340,11 +339,6 @@ private:
                                          TrackInfo::kVideoTrack));
   // Sets mMediaSeekable to false.
   void SetMediaNotSeekable();
-
-  void OnAudioCallback(AudioCallbackData aData);
-  void OnVideoCallback(VideoCallbackData aData);
-  void OnAudioWaitCallback(WaitCallbackData aData);
-  void OnVideoWaitCallback(WaitCallbackData aData);
 
 protected:
   virtual ~MediaDecoderStateMachine();

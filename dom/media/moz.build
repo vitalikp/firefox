@@ -92,7 +92,6 @@ EXPORTS += [
     'MediaDecoder.h',
     'MediaDecoderOwner.h',
     'MediaDecoderReader.h',
-    'MediaDecoderReaderWrapper.h',
     'MediaDecoderStateMachine.h',
     'MediaEventSource.h',
     'MediaFormatReader.h',
