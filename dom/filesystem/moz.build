@@ -6,8 +6,6 @@
 
 DIRS += ['compat']
 
-TEST_DIRS += ['tests']
-
 EXPORTS.mozilla.dom += [
     'Directory.h',
     'FileSystemBase.h',
