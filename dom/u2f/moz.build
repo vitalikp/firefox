@@ -39,5 +39,3 @@ LOCAL_INCLUDES += [
     '/security/pkix/include',
     '/security/pkix/lib',
 ]
-
-MOCHITEST_MANIFESTS += ['tests/mochitest.ini']
