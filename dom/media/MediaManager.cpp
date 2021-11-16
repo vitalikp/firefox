@@ -2288,24 +2288,24 @@ if (privileged) {
       (!privileged || Preferences::GetBool("media.navigator.permission.force")) &&
       (!fake || Preferences::GetBool("media.navigator.permission.fake"));
 
-  RefPtr<MediaManager> self = this;
   RefPtr<PledgeSourceSet> p = EnumerateDevicesImpl(windowID, videoType,
                                                    audioType, fake);
-  p->Then([self, onSuccess, onFailure, windowID, c, listener, askPermission,
+  p->Then([this, onSuccess, onFailure, windowID, c, listener, askPermission,
            prefs, isHTTPS, callID, origin, isChrome](SourceSet*& aDevices) mutable {
 
     RefPtr<Refcountable<UniquePtr<SourceSet>>> devices(
          new Refcountable<UniquePtr<SourceSet>>(aDevices)); // grab result
 
-    // Ensure that our windowID is still good.
-    if (!nsGlobalWindow::GetInnerWindowWithId(windowID)) {
+    // Ensure that the captured 'this' pointer and our windowID are still good.
+    if (!MediaManager::Exists() ||
+        !nsGlobalWindow::GetInnerWindowWithId(windowID)) {
       return;
     }
 
     // Apply any constraints. This modifies the passed-in list.
-    RefPtr<PledgeChar> p2 = self->SelectSettings(c, isChrome, devices);
+    RefPtr<PledgeChar> p2 = SelectSettings(c, isChrome, devices);
 
-    p2->Then([self, onSuccess, onFailure, windowID, c,
+    p2->Then([this, onSuccess, onFailure, windowID, c,
               listener, askPermission, prefs, isHTTPS, callID,
               origin, isChrome, devices](const char*& badConstraint) mutable {
 
@@ -2353,13 +2353,13 @@ if (privileged) {
                                                           isChrome,
                                                           devices->release()));
       // Store the task w/callbacks.
-      self->mActiveCallbacks.Put(callID, task.forget());
+      mActiveCallbacks.Put(callID, task.forget());
 
       // Add a WindowID cross-reference so OnNavigation can tear things down
       nsTArray<nsString>* array;
-      if (!self->mCallIds.Get(windowID, &array)) {
+      if (!mCallIds.Get(windowID, &array)) {
         array = new nsTArray<nsString>();
-        self->mCallIds.Put(windowID, array);
+        mCallIds.Put(windowID, array);
       }
       array->AppendElement(callID);
 
@@ -2907,9 +2907,7 @@ MediaManager::Shutdown()
   // cleared until the lambda function clears it.
 
   // note that this == sSingleton
-  MOZ_ASSERT(this == sSingleton);
-  RefPtr<MediaManager> that = this;
-
+  RefPtr<MediaManager> that(sSingleton);
   // Release the backend (and call Shutdown()) from within the MediaManager thread
   // Don't use MediaManager::PostTask() because we're sInShutdown=true here!
   RefPtr<ShutdownTask> shutdown = new ShutdownTask(this,

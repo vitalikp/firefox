@@ -2043,10 +2043,9 @@ nsresult MediaDecoderStateMachine::Init(MediaDecoder* aDecoder)
 
   mMetadataManager.Connect(mReader->TimedMetadataEvent(), OwnerThread());
 
-  RefPtr<MediaDecoderStateMachine> self = this;
   mOnMediaNotSeekable = mReader->OnMediaNotSeekable().Connect(
-    OwnerThread(), [self] () {
-      self->mMediaSeekable = false;
+    OwnerThread(), [this] () {
+      mMediaSeekable = false;
     });
 
   mMediaSink = CreateMediaSink(mAudioCaptured);
@@ -2059,6 +2058,7 @@ nsresult MediaDecoderStateMachine::Init(MediaDecoder* aDecoder)
   nsresult rv = mReader->Init();
   NS_ENSURE_SUCCESS(rv, rv);
 
+  RefPtr<MediaDecoderStateMachine> self = this;
   OwnerThread()->Dispatch(NS_NewRunnableFunction([self] () {
     MOZ_ASSERT(self->mState == DECODER_STATE_DECODING_METADATA);
     MOZ_ASSERT(!self->mStateObj);
@@ -2075,38 +2075,37 @@ MediaDecoderStateMachine::SetMediaDecoderReaderWrapperCallback()
 {
   MOZ_ASSERT(OnTaskQueue());
 
-  RefPtr<MediaDecoderStateMachine> self = this;
   mAudioCallback = mReader->AudioCallback().Connect(
-    mTaskQueue, [self] (AudioCallbackData aData) {
+    mTaskQueue, [this] (AudioCallbackData aData) {
     if (aData.is<MediaData*>()) {
-      self->OnAudioDecoded(aData.as<MediaData*>());
+      OnAudioDecoded(aData.as<MediaData*>());
     } else {
-      self->OnNotDecoded(MediaData::AUDIO_DATA, aData.as<MediaResult>());
+      OnNotDecoded(MediaData::AUDIO_DATA, aData.as<MediaResult>());
     }
   });
 
   mVideoCallback = mReader->VideoCallback().Connect(
-    mTaskQueue, [self] (VideoCallbackData aData) {
+    mTaskQueue, [this] (VideoCallbackData aData) {
     typedef Tuple<MediaData*, TimeStamp> Type;
     if (aData.is<Type>()) {
       auto&& v = aData.as<Type>();
-      self->OnVideoDecoded(Get<0>(v), Get<1>(v));
+      OnVideoDecoded(Get<0>(v), Get<1>(v));
     } else {
-      self->OnNotDecoded(MediaData::VIDEO_DATA, aData.as<MediaResult>());
+      OnNotDecoded(MediaData::VIDEO_DATA, aData.as<MediaResult>());
     }
   });
 
   mAudioWaitCallback = mReader->AudioWaitCallback().Connect(
-    mTaskQueue, [self] (WaitCallbackData aData) {
+    mTaskQueue, [this] (WaitCallbackData aData) {
     if (aData.is<MediaData::Type>()) {
-      self->EnsureAudioDecodeTaskQueued();
+      EnsureAudioDecodeTaskQueued();
     }
   });
 
   mVideoWaitCallback = mReader->VideoWaitCallback().Connect(
-    mTaskQueue, [self] (WaitCallbackData aData) {
+    mTaskQueue, [this] (WaitCallbackData aData) {
     if (aData.is<MediaData::Type>()) {
-      self->EnsureVideoDecodeTaskQueued();
+      EnsureVideoDecodeTaskQueued();
     }
   });
 }
@@ -2884,10 +2883,9 @@ MediaDecoderStateMachine::ScheduleStateMachineIn(int64_t aMicroseconds)
 
   // It is OK to capture 'this' without causing UAF because the callback
   // always happens before shutdown.
-  RefPtr<MediaDecoderStateMachine> self = this;
-  mDelayedScheduler.Ensure(target, [self] () {
-    self->mDelayedScheduler.CompleteRequest();
-    self->RunStateMachine();
+  mDelayedScheduler.Ensure(target, [this] () {
+    mDelayedScheduler.CompleteRequest();
+    RunStateMachine();
   }, [] () {
     MOZ_DIAGNOSTIC_ASSERT(false);
   });
@@ -3088,8 +3086,7 @@ MediaDecoderStateMachine::DumpDebugInfo()
 
   // It is fine to capture a raw pointer here because MediaDecoder only call
   // this function before shutdown begins.
-  RefPtr<MediaDecoderStateMachine> self = this;
-  nsCOMPtr<nsIRunnable> r = NS_NewRunnableFunction([this, self] () {
+  nsCOMPtr<nsIRunnable> r = NS_NewRunnableFunction([this] () {
     mMediaSink->DumpDebugInfo();
     mStateObj->DumpDebugInfo();
     DUMP_LOG(

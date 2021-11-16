@@ -332,14 +332,13 @@ OpusDataDecoder::Flush()
     return;
   }
   mIsFlushing = true;
-  RefPtr<OpusDataDecoder> self = this;
-  nsCOMPtr<nsIRunnable> runnable = NS_NewRunnableFunction([self] () {
-    MOZ_ASSERT(self->mOpusDecoder);
+  nsCOMPtr<nsIRunnable> runnable = NS_NewRunnableFunction([this] () {
+    MOZ_ASSERT(mOpusDecoder);
     // Reset the decoder.
-    opus_multistream_decoder_ctl(self->mOpusDecoder, OPUS_RESET_STATE);
-    self->mSkip = self->mOpusParser->mPreSkip;
-    self->mPaddingDiscarded = false;
-    self->mLastFrameTime.reset();
+    opus_multistream_decoder_ctl(mOpusDecoder, OPUS_RESET_STATE);
+    mSkip = mOpusParser->mPreSkip;
+    mPaddingDiscarded = false;
+    mLastFrameTime.reset();
   });
   SyncRunnable::DispatchToThread(mTaskQueue, runnable);
   mIsFlushing = false;
