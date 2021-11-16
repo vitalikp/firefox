@@ -6,8 +6,6 @@
 
 DIRS += ['build']
 
-TEST_DIRS += ['test']
-
 XPIDL_SOURCES += [
     'mozIStorageAggregateFunction.idl',
     'mozIStorageAsyncConnection.idl',
