@@ -40,6 +40,7 @@ void Ebml_Write(EbmlGlobal *glob, const void *buffer_in, unsigned long len) {
   glob->offset += len;
 }
 
+/*
 static void _Serialize(EbmlGlobal *glob, const unsigned char *p, const unsigned char *q) {
   while (q != p) {
     --q;
@@ -49,7 +50,6 @@ static void _Serialize(EbmlGlobal *glob, const unsigned char *p, const unsigned 
   }
 }
 
-/*
 void Ebml_Serialize(EbmlGlobal *glob, const void *buffer_in, unsigned long len) {
   // assert(buf);
 

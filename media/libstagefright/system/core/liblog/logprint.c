@@ -85,16 +85,6 @@ static FilterInfo * filterinfo_new(const char * tag, android_LogPriority pri)
     return p_ret;
 }
 
-static void filterinfo_free(FilterInfo *p_info)
-{
-    if (p_info == NULL) {
-        return;
-    }
-
-    free(p_info->mTag);
-    p_info->mTag = NULL;
-}
-
 /*
  * Note: also accepts 0-9 priorities
  * returns ANDROID_LOG_UNKNOWN if the character is unrecognized
@@ -170,23 +160,6 @@ static android_LogPriority filterPriForTag(
     }
 
     return p_format->global_pri;
-}
-
-/** for debugging */
-static void dumpFilters(AndroidLogFormat *p_format)
-{
-    FilterInfo *p_fi;
-
-    for (p_fi = p_format->filters ; p_fi != NULL ; p_fi = p_fi->p_next) {
-        char cPri = filterPriToChar(p_fi->mPri);
-        if (p_fi->mPri == ANDROID_LOG_DEFAULT) {
-            cPri = filterPriToChar(p_format->global_pri);
-        }
-        fprintf(stderr,"%s:%c\n", p_fi->mTag, cPri);
-    }
-
-    fprintf(stderr,"*:%c\n", filterPriToChar(p_format->global_pri));
-
 }
 
 /**
