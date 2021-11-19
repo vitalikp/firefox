@@ -5244,7 +5244,7 @@ Parser<ParseHandler>::consequentOrAlternative(YieldHandling yieldHandling)
         //   if (true)
         //     async       // ASI opportunity
         //   function clownshoes() {}
-        TokenKind maybeFunction;
+        TokenKind maybeFunction = TOK_EOF;
         if (!tokenStream.peekTokenSameLine(&maybeFunction))
             return null();
 
@@ -6894,7 +6894,7 @@ Parser<ParseHandler>::statement(YieldHandling yieldHandling)
                 //
                 // Note that this ignores 'yield' as TOK_YIELD: we'll handle it
                 // correctly but with a worse error message.
-                TokenKind nextSameLine;
+                TokenKind nextSameLine = TOK_EOF;
                 if (!tokenStream.peekTokenSameLine(&nextSameLine))
                     return null();
 
