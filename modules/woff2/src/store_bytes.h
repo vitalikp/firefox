@@ -57,7 +57,6 @@ inline void Store16(int val, size_t* offset, uint8_t* dst) {
 #if (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__))
   uint16_t v = ((val & 0xFF) << 8) | ((val & 0xFF00) >> 8);
   memcpy(dst + *offset, &v, 2);
-      ((val & 0xFF) << 8) | ((val & 0xFF00) >> 8);
   *offset += 2;
 #elif (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
   uint16_t v = static_cast<uint16_t>(val);

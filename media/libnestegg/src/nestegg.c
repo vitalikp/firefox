@@ -1086,7 +1086,10 @@ ne_parse(nestegg * ctx, struct ebml_element_desc * top_level, int64_t max_offset
 {
   int r;
   int64_t * data_offset;
-  uint64_t id, size, peeked_id;
+  uint64_t id, size;
+#ifdef DEBUG
+  uint64_t peeked_id;
+#endif
   struct ebml_element_desc * element;
 
   assert(ctx->ancestor);
@@ -1100,7 +1103,9 @@ ne_parse(nestegg * ctx, struct ebml_element_desc * top_level, int64_t max_offset
     r = ne_peek_element(ctx, &id, &size);
     if (r != 1)
       break;
+#ifdef DEBUG
     peeked_id = id;
+#endif
 
     element = ne_find_element(id, ctx->ancestor->node);
     if (element) {
