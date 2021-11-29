@@ -110,13 +110,7 @@ WidevineVideoDecoder::Decode(GMPVideoEncodedFrame* aInputFrame,
   mSentInput = true;
   InputBuffer sample;
 
-  RefPtr<MediaRawData> raw(
-    new MediaRawData(aInputFrame->Buffer(), aInputFrame->Size()));
-  if (!raw->Data()) {
-    // OOM.
-    mCallback->Error(GMPAllocErr);
-    return;
-  }
+  RefPtr<MediaRawData> raw(new MediaRawData(aInputFrame->Buffer(), aInputFrame->Size()));
   raw->mExtraData = mExtraData;
   raw->mKeyframe = (aInputFrame->FrameType() == kGMPKeyFrame);
   if (mCodecType == kGMPVideoCodecH264) {
