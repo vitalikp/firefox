@@ -646,13 +646,12 @@ U2FRegisterRunnable::Run()
   // recognized.
   if (status->IsStopped()) {
     status->WaitGroupAdd();
-    RefPtr<U2FRegisterRunnable> self = this;
     AbstractThread::MainThread()->Dispatch(NS_NewRunnableFunction(
-      [status, self] () {
+      [status, this] () {
         RegisterResponse response;
         response.mErrorCode.Construct(
             static_cast<uint32_t>(status->GetErrorCode()));
-        self->SendResponse(response);
+        SendResponse(response);
         status->WaitGroupDone();
       }
     ));
@@ -729,9 +728,8 @@ U2FRegisterRunnable::Run()
 
   // Transmit back to the JS engine from the Main Thread
   status->WaitGroupAdd();
-  RefPtr<U2FRegisterRunnable> self = this;
   AbstractThread::MainThread()->Dispatch(NS_NewRunnableFunction(
-    [status, self] () {
+    [status, this] () {
       RegisterResponse response;
       if (status->GetErrorCode() == ErrorCode::OK) {
         response.Init(status->GetResponse());
@@ -739,7 +737,7 @@ U2FRegisterRunnable::Run()
         response.mErrorCode.Construct(
             static_cast<uint32_t>(status->GetErrorCode()));
       }
-      self->SendResponse(response);
+      SendResponse(response);
       status->WaitGroupDone();
     }
   ));
@@ -916,9 +914,8 @@ U2FSignRunnable::Run()
 
   // Transmit back to the JS engine from the Main Thread
   status->WaitGroupAdd();
-  RefPtr<U2FSignRunnable> self = this;
   AbstractThread::MainThread()->Dispatch(NS_NewRunnableFunction(
-    [status, self] () {
+    [status, this] () {
       SignResponse response;
       if (status->GetErrorCode() == ErrorCode::OK) {
         response.Init(status->GetResponse());
@@ -926,7 +923,7 @@ U2FSignRunnable::Run()
         response.mErrorCode.Construct(
           static_cast<uint32_t>(status->GetErrorCode()));
       }
-      self->SendResponse(response);
+      SendResponse(response);
       status->WaitGroupDone();
     }
   ));
