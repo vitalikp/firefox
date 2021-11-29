@@ -185,33 +185,26 @@ OpusDataDecoder::DoDecode(MediaRawData* aSample)
   }
 
   // Maximum value is 63*2880, so there's no chance of overflow.
-  int frames_number =
-    opus_packet_get_nb_frames(aSample->Data(), aSample->Size());
+  uint32_t frames_number = opus_packet_get_nb_frames(aSample->Data(),
+                                                    aSample->Size());
   if (frames_number <= 0) {
-    OPUS_DEBUG("Invalid packet header: r=%d length=%u",
-               frames_number, uint32_t(aSample->Size()));
+    OPUS_DEBUG("Invalid packet header: r=%ld length=%ld",
+               frames_number, aSample->Size());
     return MediaResult(NS_ERROR_DOM_MEDIA_DECODE_ERR,
                        RESULT_DETAIL("Invalid packet header: r=%d length=%u",
                                      frames_number, uint32_t(aSample->Size())));
   }
 
-  int samples = opus_packet_get_samples_per_frame(
+  uint32_t samples = opus_packet_get_samples_per_frame(
     aSample->Data(), opus_int32(mOpusParser->mRate));
 
 
   // A valid Opus packet must be between 2.5 and 120 ms long (48kHz).
-  CheckedInt32 totalFrames =
-    CheckedInt32(frames_number) * CheckedInt32(samples);
-  if (!totalFrames.isValid()) {
-    return MediaResult(NS_ERROR_DOM_MEDIA_DECODE_ERR,
-                       RESULT_DETAIL("Frames count overflow"));
-  }
-
-  int frames = totalFrames.value();
+  uint32_t frames = frames_number*samples;
   if (frames < 120 || frames > 5760) {
-    OPUS_DEBUG("Invalid packet frames: %d", frames);
+    OPUS_DEBUG("Invalid packet frames: %u", frames);
     return MediaResult(NS_ERROR_DOM_MEDIA_DECODE_ERR,
-                       RESULT_DETAIL("Invalid packet frames:%d", frames));
+                       RESULT_DETAIL("Invalid packet frames:%u", frames));
   }
 
   AlignedAudioBuffer buffer(frames * channels);
@@ -233,15 +226,14 @@ OpusDataDecoder::DoDecode(MediaRawData* aSample)
     return MediaResult(NS_ERROR_DOM_MEDIA_DECODE_ERR,
                        RESULT_DETAIL("Opus decoding error:%d", ret));
   }
-  NS_ASSERTION(ret == frames, "Opus decoded too few audio samples");
+  NS_ASSERTION(uint32_t(ret) == frames, "Opus decoded too few audio samples");
   CheckedInt64 startTime = aSample->mTime;
 
   // Trim the initial frames while the decoder is settling.
   if (mSkip > 0) {
     int32_t skipFrames = std::min<int32_t>(mSkip, frames);
     int32_t keepFrames = frames - skipFrames;
-    OPUS_DEBUG(
-      "Opus decoder skipping %d of %d frames", skipFrames, frames);
+    OPUS_DEBUG("Opus decoder skipping %d of %d frames", skipFrames, frames);
     PodMove(buffer.get(),
             buffer.get() + skipFrames * channels,
             keepFrames * channels);
@@ -251,13 +243,13 @@ OpusDataDecoder::DoDecode(MediaRawData* aSample)
   }
 
   if (aSample->mDiscardPadding > 0) {
-    OPUS_DEBUG("Opus decoder discarding %u of %d frames",
+    OPUS_DEBUG("Opus decoder discarding %u of %u frames",
                aSample->mDiscardPadding, frames);
     // Padding discard is only supposed to happen on the final packet.
     // Record the discard so we can return an error if another packet is
     // decoded.
-    if (aSample->mDiscardPadding > uint32_t(frames)) {
-      // Discarding more than the entire packet is invalid.
+    if (aSample->mDiscardPadding > frames) {
+    // Discarding more than the entire packet is invalid.
       OPUS_DEBUG("Opus error, discard padding larger than packet");
       return MediaResult(NS_ERROR_DOM_MEDIA_FATAL_ERR,
                          RESULT_DETAIL("Discard padding larger than packet"));
