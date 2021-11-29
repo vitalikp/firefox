@@ -141,7 +141,6 @@ EXPORTS.mozilla += [
     'FeedWriterEnabled.h',
     'FlushType.h',
     'TextInputProcessor.h',
-    'TimerClamping.h',
     'UseCounter.h',
 ]
 
@@ -366,7 +365,6 @@ UNIFIED_SOURCES += [
     'ThirdPartyUtil.cpp',
     'Timeout.cpp',
     'TimeoutManager.cpp',
-    'TimerClamping.cpp',
     'TreeWalker.cpp',
     'WebKitCSSMatrix.cpp',
     'WebSocket.cpp',

@@ -9,7 +9,6 @@
 #include "nsIScriptError.h"
 #include "nsIUUIDGenerator.h"
 #include "nsPIDOMWindow.h"
-#include "mozilla/TimerClamping.h"
 #include "mozilla/dom/MediaStreamBinding.h"
 #include "mozilla/dom/MediaStreamTrackEvent.h"
 #include "mozilla/dom/LocalMediaStreamBinding.h"
@@ -545,8 +544,8 @@ DOMMediaStream::CurrentTime()
   if (!mPlaybackStream) {
     return 0.0;
   }
-  return TimerClamping::ReduceSTimeValue(mPlaybackStream->
-    StreamTimeToSeconds(mPlaybackStream->GetCurrentTime() - mLogicalStreamStartTime));
+  return mPlaybackStream->
+    StreamTimeToSeconds(mPlaybackStream->GetCurrentTime() - mLogicalStreamStartTime);
 }
 
 void
