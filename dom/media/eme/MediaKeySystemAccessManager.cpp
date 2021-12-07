@@ -93,29 +93,6 @@ MediaKeySystemAccessManager::Request(DetailedPromise* aPromise,
 
   DecoderDoctorDiagnostics diagnostics;
 
-  // Ensure keysystem is supported.
-  if (!IsClearkeyKeySystem(aKeySystem)) {
-    // Not to inform user, because nothing to do if the keySystem is not
-    // supported.
-    aPromise->MaybeReject(NS_ERROR_DOM_NOT_SUPPORTED_ERR,
-                          NS_LITERAL_CSTRING("Key system is unsupported"));
-    diagnostics.StoreMediaKeySystemAccess(mWindow->GetExtantDoc(),
-                                          aKeySystem, false, __func__);
-    return;
-  }
-
-  if (!IsClearkeyKeySystem(aKeySystem)) {
-    // EME disabled by user, send notification to chrome so UI can inform user.
-    MediaKeySystemAccess::NotifyObservers(mWindow,
-                                          aKeySystem,
-                                          MediaKeySystemStatus::Api_disabled);
-    aPromise->MaybeReject(NS_ERROR_DOM_NOT_SUPPORTED_ERR,
-                          NS_LITERAL_CSTRING("EME has been preffed off"));
-    diagnostics.StoreMediaKeySystemAccess(mWindow->GetExtantDoc(),
-                                          aKeySystem, false, __func__);
-    return;
-  }
-
   nsAutoCString message;
   MediaKeySystemStatus status =
     MediaKeySystemAccess::GetKeySystemStatus(aKeySystem, message);

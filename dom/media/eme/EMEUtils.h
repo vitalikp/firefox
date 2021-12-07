@@ -83,14 +83,10 @@ GetArrayBufferViewOrArrayBufferData(const dom::ArrayBufferViewOrArrayBuffer& aBu
 nsString
 KeySystemToGMPName(const nsAString& aKeySystem);
 
-bool
-IsClearkeyKeySystem(const nsAString& aKeySystem);
-
 // Note: Primetime is now unsupported, but we leave it in the enum so
 // that the telemetry enum values are not changed; doing so would break
 // existing telemetry probes.
 enum CDMType {
-  eClearKey = 0,
   ePrimetime = 1, // Note: Unsupported.
   eUnknown = 2
 };

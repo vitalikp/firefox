@@ -1084,14 +1084,6 @@ if (isGonk) {
       Services.prefs.setIntPref("browser.cache.disk.capacity", size);
     }
   })();
-
-  try {
-    let gmpService = Cc["@mozilla.org/gecko-media-plugin-service;1"]
-                       .getService(Ci.mozIGeckoMediaPluginChromeService);
-    gmpService.addPluginDirectory("/system/b2g/gmp-clearkey/0.1");
-  } catch(e) {
-    dump("Failed to add clearkey path! " + e + "\n");
-  }
 }
 
 // Calling this observer will cause a shutdown an a profile reset.

@@ -95,9 +95,6 @@ private:
   // VideoSink
   DECL_MEDIA_PREF("media.ruin-av-sync.enabled",               RuinAvSync, bool, false);
 
-  // Encrypted Media Extensions
-  DECL_MEDIA_PREF("media.clearkey.persistent-license.enabled", ClearKeyPersistentLicenseEnabled, bool, false);
-
   // PlatformDecoderModule
   DECL_MEDIA_PREF("media.apple.forcevda",                     AppleForceVDA, bool, false);
   DECL_MEDIA_PREF("media.gmp.insecure.allow",                 GMPAllowInsecure, bool, false);

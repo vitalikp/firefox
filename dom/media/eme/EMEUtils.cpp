@@ -47,18 +47,9 @@ CopyArrayBufferViewOrArrayBufferData(const dom::ArrayBufferViewOrArrayBuffer& aB
   aOutData.AppendElements(data.mData, data.mLength);
 }
 
-bool
-IsClearkeyKeySystem(const nsAString& aKeySystem)
-{
-  return !CompareUTF8toUTF16(kEMEKeySystemClearkey, aKeySystem);
-}
-
 nsString
 KeySystemToGMPName(const nsAString& aKeySystem)
 {
-  if (IsClearkeyKeySystem(aKeySystem)) {
-    return NS_LITERAL_STRING("gmp-clearkey");
-  }
   MOZ_ASSERT(false, "We should only call this for known GMPs");
   return EmptyString();
 }
@@ -66,9 +57,6 @@ KeySystemToGMPName(const nsAString& aKeySystem)
 CDMType
 ToCDMTypeTelemetryEnum(const nsString& aKeySystem)
 {
-  if (IsClearkeyKeySystem(aKeySystem)) {
-    return CDMType::eClearKey;
-  }
   return CDMType::eUnknown;
 }
 

@@ -326,8 +326,6 @@ class MacArtifactJob(ArtifactJob):
             paths_keep_path = ('Contents/Resources', [
                 'browser/components/libbrowsercomps.dylib',
                 'dependentlibs.list',
-                # 'firefox',
-                'gmp-clearkey/0.1/libclearkey.dylib',
                 # 'gmp-fake/1.0/libfake.dylib',
                 '**/interfaces.xpt',
             ])

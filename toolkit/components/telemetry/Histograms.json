@@ -9182,7 +9182,7 @@
     "bug_numbers": [1304207],
     "kind": "enumerated",
     "n_values": 6,
-    "description": "Note the type of CDM (0=ClearKey, 1=Primetime, 2=unknown) every time we successfully instantiate an EME MediaKeys object.",
+    "description": "Note the type of CDM (1=Primetime, 2=unknown) every time we successfully instantiate an EME MediaKeys object.",
     "releaseChannelCollection": "opt-out"
   },
   "VIDEO_CDM_GENERATE_REQUEST_CALLED": {
@@ -9191,7 +9191,7 @@
     "bug_numbers": [1305552],
     "kind": "enumerated",
     "n_values": 6,
-    "description": "Note the type of CDM (0=ClearKey, 1=Primetime, 2=unknown) every time we call MediaKeySession.generateRequest().",
+    "description": "Note the type of CDM (1=Primetime, 2=unknown) every time we call MediaKeySession.generateRequest().",
     "releaseChannelCollection": "opt-out"
   },
   "MEDIA_CODEC_USED": {

@@ -44,10 +44,8 @@ var gEMEHandler = {
     switch (status) {
       case "available":
       case "cdm-created":
-        // Only show the chain icon for proprietary CDMs. Clearkey is not one.
-        if (keySystem != "org.w3.clearkey") {
-          this.showPopupNotificationForSuccess(browser, keySystem);
-        }
+        // Only show the chain icon for proprietary CDMs.
+        this.showPopupNotificationForSuccess(browser, keySystem);
         // ... and bail!
         return;
 

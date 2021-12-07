@@ -44,9 +44,6 @@ namespace mozilla {
 
 class MediaContainerType;
 
-// EME Key System String.
-extern const nsLiteralCString kEMEKeySystemClearkey;
-
 /**
  * ReentrantMonitorConditionallyEnter
  *

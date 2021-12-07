@@ -151,7 +151,6 @@ DIRS += ['/addon-sdk']
 
 DIRS += [
     '/tools/quitter',
-    '/media/gmp-clearkey/0.1',
 ]
 
 if CONFIG['ENABLE_TESTS']:

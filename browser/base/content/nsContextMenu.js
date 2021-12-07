@@ -921,8 +921,7 @@ nsContextMenu.prototype = {
   },
 
   _isProprietaryDRM: function() {
-    return this.target.isEncrypted && this.target.mediaKeys &&
-           this.target.mediaKeys.keySystem != "org.w3.clearkey";
+    return this.target.isEncrypted && this.target.mediaKeys;
   },
 
   _openLinkInParameters : function (extra) {

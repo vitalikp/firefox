@@ -95,43 +95,11 @@ MediaKeySystemAccess::CreateMediaKeys(ErrorResult& aRv)
   return keys->Init(aRv);
 }
 
-static bool
-HavePluginForKeySystem(const nsCString& aKeySystem)
-{
-  bool havePlugin = HaveGMPFor(NS_LITERAL_CSTRING(GMP_API_DECRYPTOR),
-                               { aKeySystem });
-#ifdef MOZ_WIDGET_ANDROID
-  // Check if we can use MediaDrm for this keysystem.
-  if (!havePlugin) {
-    havePlugin = mozilla::java::MediaDrmProxy::IsSchemeSupported(aKeySystem);
-  }
-#endif
-  return havePlugin;
-}
-
-static MediaKeySystemStatus
-EnsureCDMInstalled(const nsAString& aKeySystem,
-                    nsACString& aOutMessage)
-{
-  if (!HavePluginForKeySystem(NS_ConvertUTF16toUTF8(aKeySystem))) {
-    aOutMessage = NS_LITERAL_CSTRING("CDM is not installed");
-    return MediaKeySystemStatus::Cdm_not_installed;
-  }
-
-  return MediaKeySystemStatus::Available;
-}
-
 /* static */
 MediaKeySystemStatus
 MediaKeySystemAccess::GetKeySystemStatus(const nsAString& aKeySystem,
                                          nsACString& aOutMessage)
 {
-  MOZ_ASSERT(IsClearkeyKeySystem(aKeySystem));
-
-  if (IsClearkeyKeySystem(aKeySystem)) {
-    return EnsureCDMInstalled(aKeySystem, aOutMessage);
-  }
-
   return MediaKeySystemStatus::Cdm_not_supported;
 }
 
@@ -233,60 +201,9 @@ struct KeySystemConfig
   KeySystemContainerSupport mWebM;
 };
 
-static nsTArray<KeySystemConfig>
-GetSupportedKeySystems()
-{
-  nsTArray<KeySystemConfig> keySystemConfigs;
-
-  {
-    if (HavePluginForKeySystem(kEMEKeySystemClearkey)) {
-      KeySystemConfig clearkey;
-      clearkey.mKeySystem = NS_ConvertUTF8toUTF16(kEMEKeySystemClearkey);
-      clearkey.mInitDataTypes.AppendElement(NS_LITERAL_STRING("cenc"));
-      clearkey.mInitDataTypes.AppendElement(NS_LITERAL_STRING("keyids"));
-      clearkey.mInitDataTypes.AppendElement(NS_LITERAL_STRING("webm"));
-      clearkey.mPersistentState = KeySystemFeatureSupport::Requestable;
-      clearkey.mDistinctiveIdentifier = KeySystemFeatureSupport::Prohibited;
-      clearkey.mSessionTypes.AppendElement(MediaKeySessionType::Temporary);
-      if (MediaPrefs::ClearKeyPersistentLicenseEnabled()) {
-        clearkey.mSessionTypes.AppendElement(MediaKeySessionType::Persistent_license);
-      }
-#if defined(XP_WIN)
-      // Clearkey CDM uses WMF decoders on Windows.
-      if (WMFDecoderModule::HasAAC()) {
-        clearkey.mMP4.SetCanDecryptAndDecode(EME_CODEC_AAC);
-      } else {
-        clearkey.mMP4.SetCanDecrypt(EME_CODEC_AAC);
-      }
-      if (WMFDecoderModule::HasH264()) {
-        clearkey.mMP4.SetCanDecryptAndDecode(EME_CODEC_H264);
-      } else {
-        clearkey.mMP4.SetCanDecrypt(EME_CODEC_H264);
-      }
-#else
-      clearkey.mMP4.SetCanDecrypt(EME_CODEC_AAC);
-      clearkey.mMP4.SetCanDecrypt(EME_CODEC_H264);
-#endif
-      clearkey.mWebM.SetCanDecrypt(EME_CODEC_VORBIS);
-      clearkey.mWebM.SetCanDecrypt(EME_CODEC_OPUS);
-      clearkey.mWebM.SetCanDecrypt(EME_CODEC_VP8);
-      clearkey.mWebM.SetCanDecrypt(EME_CODEC_VP9);
-      keySystemConfigs.AppendElement(Move(clearkey));
-    }
-  }
-
-  return keySystemConfigs;
-}
-
 static bool
 GetKeySystemConfig(const nsAString& aKeySystem, KeySystemConfig& aOutKeySystemConfig)
 {
-  for (auto&& config : GetSupportedKeySystems()) {
-    if (config.mKeySystem.Equals(aKeySystem)) {
-      aOutKeySystemConfig = mozilla::Move(config);
-      return true;
-    }
-  }
   // No matching key system found.
   return false;
 }
