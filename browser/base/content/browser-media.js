@@ -132,35 +132,6 @@ var gEMEHandler = {
     if (PopupNotifications.getNotification("drmContentPlaying", browser)) {
       return;
     }
-
-    let msgPrefix = "emeNotifications.drmContentPlaying.";
-    let msgId = msgPrefix + "message2";
-    let btnLabelId = msgPrefix + "button.label";
-    let btnAccessKeyId = msgPrefix + "button.accesskey";
-
-    let message = gNavigatorBundle.getFormattedString(msgId, [this._brandShortName]);
-    let anchorId = "eme-notification-icon";
-    let firstPlayPref = "browser.eme.ui.firstContentShown";
-    if (!Services.prefs.getPrefType(firstPlayPref) ||
-        !Services.prefs.getBoolPref(firstPlayPref)) {
-      document.getElementById(anchorId).setAttribute("firstplay", "true");
-      Services.prefs.setBoolPref(firstPlayPref, true);
-    } else {
-      document.getElementById(anchorId).removeAttribute("firstplay");
-    }
-
-    let mainAction = {
-      label: gNavigatorBundle.getString(btnLabelId),
-      accessKey: gNavigatorBundle.getString(btnAccessKeyId),
-      callback: function() { openPreferences("paneContent"); },
-      dismiss: true
-    };
-    let options = {
-      dismissed: true,
-      eventCallback: aTopic => aTopic == "swapping",
-      learnMoreURL: Services.urlFormatter.formatURLPref("app.support.baseURL") + "drm-content",
-    };
-    PopupNotifications.show(browser, "drmContentPlaying", message, anchorId, mainAction, null, options);
   },
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMessageListener])
 };
