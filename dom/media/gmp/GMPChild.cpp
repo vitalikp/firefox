@@ -21,7 +21,6 @@
 #include "GMPUtils.h"
 #include "prio.h"
 #include "base/task.h"
-#include "widevine-adapter/WidevineAdapter.h"
 
 using namespace mozilla::ipc;
 
@@ -371,12 +370,8 @@ GMPChild::AnswerStartPlugin(const nsString& aAdapter)
     return IPC_FAIL_NO_REASON(this);
   }
 
-  bool isWidevine = aAdapter.EqualsLiteral("widevine");
 #if defined(MOZ_GMP_SANDBOX) && defined(XP_MACOSX)
   MacSandboxPluginType pluginType = MacSandboxPluginType_GMPlugin_Default;
-  if (isWidevine) {
-    pluginType = MacSandboxPluginType_GMPlugin_EME_Widevine;
-  }
   if (!SetMacSandboxInfo(pluginType)) {
     NS_WARNING("Failed to set Mac GMP sandbox info");
     delete platformAPI;
@@ -384,7 +379,7 @@ GMPChild::AnswerStartPlugin(const nsString& aAdapter)
   }
 #endif
 
-  GMPAdapter* adapter = (isWidevine) ? new WidevineAdapter() : nullptr;
+  GMPAdapter* adapter = nullptr;
   if (!mGMPLoader->Load(libPath.get(),
                         libPath.Length(),
                         mNodeId.BeginWriting(),

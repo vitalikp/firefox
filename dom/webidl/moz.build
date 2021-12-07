@@ -561,7 +561,6 @@ WEBIDL_FILES = [
     'WebKitCSSMatrix.webidl',
     'WebSocket.webidl',
     'WheelEvent.webidl',
-    'WidevineCDMManifest.webidl',
     'WindowOrWorkerGlobalScope.webidl',
     'WindowRoot.webidl',
     'Worker.webidl',

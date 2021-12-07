@@ -354,7 +354,7 @@ GMPAddon.prototype = {
       GMPPrefs.get(GMPPrefs.KEY_PLUGIN_VERSION, "", this.id) === this.version;
   },
   get isEME() {
-    return this.id == "gmp-widevinecdm" || this.id.indexOf("gmp-eme-") == 0;
+    return this.id.indexOf("gmp-eme-") == 0;
   },
   /**
    * @return true if the addon has been previously installed and this is

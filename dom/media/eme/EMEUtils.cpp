@@ -53,20 +53,11 @@ IsClearkeyKeySystem(const nsAString& aKeySystem)
   return !CompareUTF8toUTF16(kEMEKeySystemClearkey, aKeySystem);
 }
 
-bool
-IsWidevineKeySystem(const nsAString& aKeySystem)
-{
-  return !CompareUTF8toUTF16(kEMEKeySystemWidevine, aKeySystem);
-}
-
 nsString
 KeySystemToGMPName(const nsAString& aKeySystem)
 {
   if (IsClearkeyKeySystem(aKeySystem)) {
     return NS_LITERAL_STRING("gmp-clearkey");
-  }
-  if (IsWidevineKeySystem(aKeySystem)) {
-    return NS_LITERAL_STRING("gmp-widevinecdm");
   }
   MOZ_ASSERT(false, "We should only call this for known GMPs");
   return EmptyString();
@@ -75,9 +66,7 @@ KeySystemToGMPName(const nsAString& aKeySystem)
 CDMType
 ToCDMTypeTelemetryEnum(const nsString& aKeySystem)
 {
-  if (IsWidevineKeySystem(aKeySystem)) {
-    return CDMType::eWidevine;
-  } else if (IsClearkeyKeySystem(aKeySystem)) {
+  if (IsClearkeyKeySystem(aKeySystem)) {
     return CDMType::eClearKey;
   }
   return CDMType::eUnknown;

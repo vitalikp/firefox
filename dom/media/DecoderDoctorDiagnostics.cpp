@@ -247,9 +247,6 @@ DecoderDoctorDocumentWatcher::EnsureTimerIsStarted()
 }
 
 // Note: ReportStringIds are limited to alphanumeric only.
-static const NotificationAndReportStringId sMediaWidevineNoWMFNoSilverlight =
-  { dom::DecoderDoctorNotificationType::Platform_decoder_not_found,
-    "MediaWidevineNoWMFNoSilverlight" };
 static const NotificationAndReportStringId sMediaWMFNeeded =
   { dom::DecoderDoctorNotificationType::Platform_decoder_not_found,
     "MediaWMFNeeded" };
@@ -272,7 +269,6 @@ static const NotificationAndReportStringId sUnsupportedLibavcodec =
 static const NotificationAndReportStringId*
 sAllNotificationsAndReportStringIds[] =
 {
-  &sMediaWidevineNoWMFNoSilverlight,
   &sMediaWMFNeeded,
   &sMediaUnsupportedBeforeWindowsVista,
   &sMediaPlatformDecoderNotFound,
@@ -373,27 +369,6 @@ enum SilverlightPresence {
   eSilverlightDisabled,
   eSilverlightEnabled
 };
-static SilverlightPresence
-CheckSilverlight()
-{
-  MOZ_ASSERT(NS_IsMainThread());
-  RefPtr<nsPluginHost> pluginHost = nsPluginHost::GetInst();
-  if (!pluginHost) {
-    return eNoSilverlight;
-  }
-  nsTArray<nsCOMPtr<nsIInternalPluginTag>> plugins;
-  pluginHost->GetPlugins(plugins, /*aIncludeDisabled*/ true);
-  for (const auto& plugin : plugins) {
-    for (const auto& mime : plugin->MimeTypes()) {
-      if (mime.LowerCaseEqualsLiteral("application/x-silverlight")
-          || mime.LowerCaseEqualsLiteral("application/x-silverlight-2")) {
-        return plugin->IsEnabled() ? eSilverlightEnabled : eSilverlightDisabled;
-      }
-    }
-  }
-
-  return eNoSilverlight;
-}
 
 static nsString
 CleanItemForFormatsList(const nsAString& aItem)
@@ -539,24 +514,6 @@ DecoderDoctorDocumentWatcher::SynthesizeAnalysis()
                  this, mDocument, id->mReportStringId, formatsPref.Data(),
                  NS_ConvertUTF16toUTF8(formatsWithIssues).get());
       }
-    }
-  }
-
-  // Look at Key System issues first, as they take precedence over format checks.
-  if (!unsupportedKeySystems.IsEmpty() && supportedKeySystems.IsEmpty()) {
-    // No supported key systems!
-    switch (lastKeySystemIssue) {
-      case DecoderDoctorDiagnostics::eWidevineWithNoWMF:
-        if (CheckSilverlight() != eSilverlightEnabled) {
-          DD_INFO("DecoderDoctorDocumentWatcher[%p, doc=%p]::SynthesizeAnalysis() - unsupported key systems: %s, widevine without WMF nor Silverlight",
-                  this, mDocument, NS_ConvertUTF16toUTF8(unsupportedKeySystems).get());
-          ReportAnalysis(mDocument, sMediaWidevineNoWMFNoSilverlight,
-                         false, unsupportedKeySystems);
-          return;
-        }
-        break;
-      default:
-        break;
     }
   }
 
@@ -799,13 +756,6 @@ DecoderDoctorDiagnostics::GetDescription() const
       s = "key system='";
       s += NS_ConvertUTF16toUTF8(mKeySystem).get();
       s += mIsKeySystemSupported ? "', supported" : "', not supported";
-      switch (mKeySystemIssue) {
-        case eUnset:
-          break;
-        case eWidevineWithNoWMF:
-          s += ", Widevine with no WMF";
-          break;
-      }
       break;
     case eEvent:
       s = nsPrintfCString("event domain %s result=%u",

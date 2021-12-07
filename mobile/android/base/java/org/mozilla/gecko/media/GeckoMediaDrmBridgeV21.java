@@ -32,10 +32,7 @@ import android.util.Log;
 public class GeckoMediaDrmBridgeV21 implements GeckoMediaDrm {
     protected final String LOGTAG;
     private static final String INVALID_SESSION_ID = "Invalid";
-    private static final String WIDEVINE_KEY_SYSTEM = "com.widevine.alpha";
     private static final boolean DEBUG = false;
-    private static final UUID WIDEVINE_SCHEME_UUID =
-        new UUID(0xedef8ba979d64aceL, 0xa3c827dcd51d21edL);
     // MediaDrm.KeyStatus information listener is supported on M+, adding a
     // dummy key id to report key status.
     private static final byte[] DUMMY_KEY_ID = new byte[] {0};
@@ -93,10 +90,6 @@ public class GeckoMediaDrmBridgeV21 implements GeckoMediaDrm {
         assertTrue(mDrm != null);
         // Support L3 for now
         mDrm.setPropertyString("securityLevel", "L3");
-        // Refer to chromium, set multi-session mode for Widevine.
-        if (mSchemeUUID.equals(WIDEVINE_SCHEME_UUID)) {
-            mDrm.setPropertyString("sessionSharing", "enable");
-        }
     }
 
     GeckoMediaDrmBridgeV21(String keySystem) throws Exception {
@@ -606,9 +599,6 @@ public class GeckoMediaDrmBridgeV21 implements GeckoMediaDrm {
     }
 
     private UUID convertKeySystemToSchemeUUID(String keySystem) {
-      if (WIDEVINE_KEY_SYSTEM.equals(keySystem)) {
-          return WIDEVINE_SCHEME_UUID;
-      }
       if (DEBUG) Log.d(LOGTAG, "Cannot convert unsupported key system : " + keySystem);
       return null;
     }
@@ -616,7 +606,7 @@ public class GeckoMediaDrmBridgeV21 implements GeckoMediaDrm {
     private String getCDMUserAgent() {
         // This user agent is found and hard-coded in Android(L) source code and
         // Chromium project. Not sure if it's gonna change in the future.
-        String ua = "Widevine CDM v1.0";
+        String ua = "CDM v1.0";
         return ua;
     }
 }

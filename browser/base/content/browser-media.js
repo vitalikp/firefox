@@ -16,21 +16,11 @@ var gEMEHandler = {
   },
   ensureEMEEnabled(browser, keySystem) {
     Services.prefs.setBoolPref("media.eme.enabled", true);
-    if (keySystem &&
-        keySystem == "com.widevine.alpha" &&
-        Services.prefs.getPrefType("media.gmp-widevinecdm.enabled") &&
-        !Services.prefs.getBoolPref("media.gmp-widevinecdm.enabled")) {
-      Services.prefs.setBoolPref("media.gmp-widevinecdm.enabled", true);
-    }
     browser.reload();
   },
   isKeySystemVisible(keySystem) {
     if (!keySystem) {
       return false;
-    }
-    if (keySystem == "com.widevine.alpha" &&
-        Services.prefs.getPrefType("media.gmp-widevinecdm.visible")) {
-      return Services.prefs.getBoolPref("media.gmp-widevinecdm.visible");
     }
     return true;
   },

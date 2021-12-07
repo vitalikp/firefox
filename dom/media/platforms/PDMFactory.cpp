@@ -449,12 +449,6 @@ PDMFactory::SetCDMProxy(CDMProxy* aProxy)
 {
   MOZ_ASSERT(aProxy);
 
-#ifdef MOZ_WIDGET_ANDROID
-  if (IsWidevineKeySystem(aProxy->KeySystem())) {
-    mEMEPDM = new AndroidDecoderModule(aProxy);
-    return;
-  }
-#endif
   RefPtr<PDMFactory> m = new PDMFactory();
   mEMEPDM = new EMEDecoderModule(aProxy, m);
 }

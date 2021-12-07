@@ -9,16 +9,14 @@ const {classes: Cc, interfaces: Ci, results: Cr, utils: Cu, manager: Cm} =
 
 this.EXPORTED_SYMBOLS = [ "GMP_PLUGIN_IDS",
                           "GMPPrefs",
-                          "GMPUtils",
-                          "WIDEVINE_ID" ];
+                          "GMPUtils" ];
 
 Cu.import("resource://gre/modules/Preferences.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/AppConstants.jsm");
 
 // GMP IDs
-const WIDEVINE_ID   = "gmp-widevinecdm";
-const GMP_PLUGIN_IDS = [ WIDEVINE_ID ];
+const GMP_PLUGIN_IDS = [];
 
 var GMPPluginUnsupportedReason = {
   NOT_WINDOWS: 1,
@@ -67,13 +65,6 @@ this.GMPUtils = {
   _isPluginSupported(aPlugin) {
     if (this._isPluginForceSupported(aPlugin)) {
       return true;
-    }
-    if (aPlugin.id == WIDEVINE_ID) {
-      // The Widevine plugin is available for Windows versions Vista and later,
-      // Mac OSX, and Linux.
-      return AppConstants.isPlatformAndVersionAtLeast("win", "6") ||
-             AppConstants.platform == "macosx" ||
-             AppConstants.platform == "linux";
     }
 
     return true;

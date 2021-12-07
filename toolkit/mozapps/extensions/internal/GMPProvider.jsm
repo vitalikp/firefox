@@ -20,7 +20,7 @@ Cu.import("resource://gre/modules/osfile.jsm");
 Cu.import("resource://gre/modules/Log.jsm");
 Cu.import("resource://gre/modules/Task.jsm");
 Cu.import("resource://gre/modules/GMPUtils.jsm");
-/* globals GMP_PLUGIN_IDS, GMPPrefs, GMPUtils, WIDEVINE_ID */
+/* globals GMP_PLUGIN_IDS, GMPPrefs, GMPUtils */
 Cu.import("resource://gre/modules/AppConstants.jsm");
 Cu.import("resource://gre/modules/UpdateUtils.jsm");
 
@@ -45,16 +45,7 @@ const GMP_PRIVACY_INFO       = "gmp_privacy_info";
 const GMP_LEARN_MORE         = "learn_more_label";
 
 const GMP_PLUGINS = [
-  {
-    id:              WIDEVINE_ID,
-    name:            "widevine_description",
-    // Describe the purpose of both CDMs in the same way.
-    description:     "cdm_description",
-    licenseURL:      "https://www.google.com/policies/privacy/",
-    homepageURL:     "https://www.widevine.com/",
-    optionsURL:      "chrome://mozapps/content/extensions/gmpPrefs.xul",
-    isEME:           true
-  }];
+];
 XPCOMUtils.defineConstant(this, "GMP_PLUGINS", GMP_PLUGINS);
 
 XPCOMUtils.defineLazyGetter(this, "pluginsBundle",
@@ -464,11 +455,8 @@ GMPWrapper.prototype = {
     let id = this._plugin.id.substring(4);
     let libName = AppConstants.DLL_PREFIX + id + AppConstants.DLL_SUFFIX;
     let infoName;
-    if (this._plugin.id == WIDEVINE_ID) {
-      infoName = "manifest.json";
-    } else {
-      infoName = id + ".info";
-    }
+
+    infoName = id + ".info";
 
     return fileExists(this.gmpPath, libName) &&
            fileExists(this.gmpPath, infoName);
@@ -625,8 +613,7 @@ var GMPProvider = {
   generateFullDescription: function(aPlugin) {
     let rv = [];
     for (let [urlProp, labelId] of [["learnMoreURL", GMP_LEARN_MORE],
-                                    ["licenseURL", aPlugin.id == WIDEVINE_ID ?
-                                     GMP_PRIVACY_INFO : GMP_LICENSE_INFO]]) {
+                                    ["licenseURL", GMP_LICENSE_INFO]]) {
       if (aPlugin[urlProp]) {
         let label = pluginsBundle.GetStringFromName(labelId);
         rv.push(`<xhtml:a href="${aPlugin[urlProp]}" target="_blank">${label}</xhtml:a>.`);

@@ -91,8 +91,7 @@ public:
   const nsAString& KeySystem() const { return mKeySystem; }
   bool IsKeySystemSupported() const { return mIsKeySystemSupported; }
   enum KeySystemIssue {
-    eUnset,
-    eWidevineWithNoWMF
+    eUnset
   };
   void SetKeySystemIssue(KeySystemIssue aKeySystemIssue)
   {

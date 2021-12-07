@@ -6,10 +6,8 @@
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
-const LOCAL_EME_SOURCES = [{
-  "id": "gmp-widevinecdm",
-  "src": "chrome://global/content/gmp-sources/widevinecdm.json"
-}];
+const LOCAL_EME_SOURCES = [
+];
 
 this.EXPORTED_SYMBOLS = [ "ProductAddonChecker" ];
 

@@ -22,10 +22,7 @@ import android.os.Build;
 public final class MediaDrmProxy {
     private static final String LOGTAG = "GeckoMediaDrmProxy";
     private static final boolean DEBUG = false;
-    private static final UUID WIDEVINE_SCHEME_UUID =
-            new UUID(0xedef8ba979d64aceL, 0xa3c827dcd51d21edL);
 
-    private static final String WIDEVINE_KEY_SYSTEM = "com.widevine.alpha";
     @WrapForJNI
     private static final String AAC = "audio/mp4a-latm";
     @WrapForJNI
@@ -60,10 +57,6 @@ public final class MediaDrmProxy {
         if (!isSystemSupported()) {
             return false;
         }
-        if (keySystem.equals(WIDEVINE_KEY_SYSTEM)) {
-            return MediaDrm.isCryptoSchemeSupported(WIDEVINE_SCHEME_UUID)
-                    && MediaCrypto.isCryptoSchemeSupported(WIDEVINE_SCHEME_UUID);
-        }
         if (DEBUG) Log.d(LOGTAG, "isSchemeSupported key sytem = " + keySystem);
         return false;
     }
@@ -73,9 +66,6 @@ public final class MediaDrmProxy {
                                                   String container) {
         if (!isSystemSupported()) {
             return false;
-        }
-        if (keySystem.equals(WIDEVINE_KEY_SYSTEM)) {
-            return MediaDrm.isCryptoSchemeSupported(WIDEVINE_SCHEME_UUID, container);
         }
         if (DEBUG) Log.d(LOGTAG, "cannot decrypt key sytem = " + keySystem + ", container = " + container);
         return false;

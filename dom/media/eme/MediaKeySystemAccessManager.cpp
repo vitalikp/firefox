@@ -94,7 +94,7 @@ MediaKeySystemAccessManager::Request(DetailedPromise* aPromise,
   DecoderDoctorDiagnostics diagnostics;
 
   // Ensure keysystem is supported.
-  if (!IsWidevineKeySystem(aKeySystem) && !IsClearkeyKeySystem(aKeySystem)) {
+  if (!IsClearkeyKeySystem(aKeySystem)) {
     // Not to inform user, because nothing to do if the keySystem is not
     // supported.
     aPromise->MaybeReject(NS_ERROR_DOM_NOT_SUPPORTED_ERR,
@@ -129,33 +129,6 @@ MediaKeySystemAccessManager::Request(DetailedPromise* aPromise,
                       message.get());
   LogToBrowserConsole(NS_ConvertUTF8toUTF16(msg));
 
-  if (status == MediaKeySystemStatus::Cdm_not_installed &&
-      IsWidevineKeySystem(aKeySystem)) {
-    // These are cases which could be resolved by downloading a new(er) CDM.
-    // When we send the status to chrome, chrome's GMPProvider will attempt to
-    // download or update the CDM. In AwaitInstall() we add listeners to wait
-    // for the update to complete, and we'll call this function again with
-    // aType==Subsequent once the download has completed and the GMPService
-    // has had a new plugin added. AwaitInstall() sets a timer to fail if the
-    // update/download takes too long or fails.
-    if (aType == RequestType::Initial &&
-        AwaitInstall(aPromise, aKeySystem, aConfigs)) {
-      // Notify chrome that we're going to wait for the CDM to download/update.
-      // Note: If we're re-trying, we don't re-send the notification,
-      // as chrome is already displaying the "we can't play, updating"
-      // notification.
-      MediaKeySystemAccess::NotifyObservers(mWindow, aKeySystem, status);
-    } else {
-      // We waited or can't wait for an update and we still can't service
-      // the request. Give up. Chrome will still be showing a "I can't play,
-      // updating" notification.
-      aPromise->MaybeReject(NS_ERROR_DOM_NOT_SUPPORTED_ERR,
-                            NS_LITERAL_CSTRING("Gave up while waiting for a CDM update"));
-    }
-    diagnostics.StoreMediaKeySystemAccess(mWindow->GetExtantDoc(),
-                                          aKeySystem, false, __func__);
-    return;
-  }
   if (status != MediaKeySystemStatus::Available) {
     // Failed due to user disabling something, send a notification to
     // chrome, so we can show some UI to explain how the user can rectify

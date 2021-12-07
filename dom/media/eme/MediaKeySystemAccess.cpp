@@ -132,26 +132,6 @@ MediaKeySystemAccess::GetKeySystemStatus(const nsAString& aKeySystem,
     return EnsureCDMInstalled(aKeySystem, aOutMessage);
   }
 
-  if (IsWidevineKeySystem(aKeySystem)) {
-    if (Preferences::GetBool("media.gmp-widevinecdm.visible", false)) {
-      if (!Preferences::GetBool("media.gmp-widevinecdm.enabled", false)) {
-        aOutMessage = NS_LITERAL_CSTRING("Widevine EME disabled");
-        return MediaKeySystemStatus::Cdm_disabled;
-      }
-      return EnsureCDMInstalled(aKeySystem, aOutMessage);
-#ifdef MOZ_WIDGET_ANDROID
-    } else if (Preferences::GetBool("media.mediadrm-widevinecdm.visible", false)) {
-        nsCString keySystem = NS_ConvertUTF16toUTF8(aKeySystem);
-        bool supported = mozilla::java::MediaDrmProxy::IsSchemeSupported(keySystem);
-        if (!supported) {
-          aOutMessage = NS_LITERAL_CSTRING("Widevine CDM is not available");
-          return MediaKeySystemStatus::Cdm_not_installed;
-        }
-        return MediaKeySystemStatus::Available;
-#endif
-    }
-  }
-
   return MediaKeySystemStatus::Cdm_not_supported;
 }
 
@@ -294,75 +274,6 @@ GetSupportedKeySystems()
       keySystemConfigs.AppendElement(Move(clearkey));
     }
   }
-  {
-    if (HavePluginForKeySystem(kEMEKeySystemWidevine)) {
-      KeySystemConfig widevine;
-      widevine.mKeySystem = NS_ConvertUTF8toUTF16(kEMEKeySystemWidevine);
-      widevine.mInitDataTypes.AppendElement(NS_LITERAL_STRING("cenc"));
-      widevine.mInitDataTypes.AppendElement(NS_LITERAL_STRING("keyids"));
-      widevine.mInitDataTypes.AppendElement(NS_LITERAL_STRING("webm"));
-      widevine.mPersistentState = KeySystemFeatureSupport::Requestable;
-      widevine.mDistinctiveIdentifier = KeySystemFeatureSupport::Prohibited;
-      widevine.mSessionTypes.AppendElement(MediaKeySessionType::Temporary);
-#ifdef MOZ_WIDGET_ANDROID
-      widevine.mSessionTypes.AppendElement(MediaKeySessionType::Persistent_license);
-#endif
-      widevine.mAudioRobustness.AppendElement(NS_LITERAL_STRING("SW_SECURE_CRYPTO"));
-      widevine.mVideoRobustness.AppendElement(NS_LITERAL_STRING("SW_SECURE_DECODE"));
-#if defined(XP_WIN)
-      // Widevine CDM doesn't include an AAC decoder. So if WMF can't
-      // decode AAC, and a codec wasn't specified, be conservative
-      // and reject the MediaKeys request, since we assume Widevine
-      // will be used with AAC.
-      if (WMFDecoderModule::HasAAC()) {
-        widevine.mMP4.SetCanDecrypt(EME_CODEC_AAC);
-      }
-#elif !defined(MOZ_WIDGET_ANDROID)
-      widevine.mMP4.SetCanDecrypt(EME_CODEC_AAC);
-#endif
-
-#if defined(MOZ_WIDGET_ANDROID)
-      using namespace mozilla::java;
-      // MediaDrm.isCryptoSchemeSupported only allows passing
-      // "video/mp4" or "video/webm" for mimetype string.
-      // See https://developer.android.com/reference/android/media/MediaDrm.html#isCryptoSchemeSupported(java.util.UUID, java.lang.String)
-      // for more detail.
-      typedef struct {
-        const nsCString& mMimeType;
-        const nsCString& mEMECodecType;
-        const char16_t* mCodecType;
-        KeySystemContainerSupport* mSupportType;
-      } DataForValidation;
-
-      DataForValidation validationList[] = {
-        { nsCString("video/mp4"), EME_CODEC_H264, MediaDrmProxy::AVC, &widevine.mMP4 },
-        { nsCString("audio/mp4"), EME_CODEC_AAC, MediaDrmProxy::AAC, &widevine.mMP4 },
-        { nsCString("video/webm"), EME_CODEC_VP8, MediaDrmProxy::VP8, &widevine.mWebM },
-        { nsCString("video/webm"), EME_CODEC_VP9, MediaDrmProxy::VP9, &widevine.mWebM},
-        { nsCString("audio/webm"), EME_CODEC_VORBIS, MediaDrmProxy::VORBIS, &widevine.mWebM},
-        { nsCString("audio/webm"), EME_CODEC_OPUS, MediaDrmProxy::OPUS, &widevine.mWebM},
-      };
-
-      for (const auto& data: validationList) {
-        if (MediaDrmProxy::IsCryptoSchemeSupported(kEMEKeySystemWidevine,
-                                                   data.mMimeType)) {
-          if (MediaDrmProxy::CanDecode(data.mCodecType)) {
-            data.mSupportType->SetCanDecryptAndDecode(data.mEMECodecType);
-          } else {
-            data.mSupportType->SetCanDecrypt(data.mEMECodecType);
-          }
-        }
-      }
-#else
-      widevine.mMP4.SetCanDecryptAndDecode(EME_CODEC_H264);
-      widevine.mWebM.SetCanDecrypt(EME_CODEC_VORBIS);
-      widevine.mWebM.SetCanDecrypt(EME_CODEC_OPUS);
-      widevine.mWebM.SetCanDecryptAndDecode(EME_CODEC_VP8);
-      widevine.mWebM.SetCanDecryptAndDecode(EME_CODEC_VP9);
-#endif
-      keySystemConfigs.AppendElement(Move(widevine));
-    }
-  }
 
   return keySystemConfigs;
 }
@@ -424,20 +335,6 @@ CanDecryptAndDecode(const nsString& aKeySystem,
     // Neither the GMP nor Gecko can both decrypt and decode. We don't
     // support this codec.
 
-#if defined(XP_WIN)
-    // Widevine CDM doesn't include an AAC decoder. So if WMF can't
-    // decode AAC, and a codec wasn't specified, be conservative
-    // and reject the MediaKeys request, since we assume Widevine
-    // will be used with AAC.
-    if (codec == EME_CODEC_AAC &&
-        IsWidevineKeySystem(aKeySystem) &&
-        !WMFDecoderModule::HasAAC()) {
-      if (aDiagnostics) {
-        aDiagnostics->SetKeySystemIssue(
-          DecoderDoctorDiagnostics::eWidevineWithNoWMF);
-      }
-    }
-#endif
     return false;
   }
   return true;
@@ -1024,24 +921,6 @@ GetSupportedConfig(const KeySystemConfig& aKeySystem,
   }
 
   // Note: Omitting steps 20-22. We don't ask for consent.
-
-#if defined(XP_WIN)
-  // Widevine CDM doesn't include an AAC decoder. So if WMF can't decode AAC,
-  // and a codec wasn't specified, be conservative and reject the MediaKeys request.
-  if (IsWidevineKeySystem(aKeySystem.mKeySystem) &&
-      (aCandidate.mAudioCapabilities.IsEmpty() ||
-       aCandidate.mVideoCapabilities.IsEmpty()) &&
-     !WMFDecoderModule::HasAAC()) {
-    if (aDiagnostics) {
-      aDiagnostics->SetKeySystemIssue(
-        DecoderDoctorDiagnostics::eWidevineWithNoWMF);
-    }
-    EME_LOG("MediaKeySystemConfiguration (label='%s') rejected; "
-            "WMF required for Widevine decoding, but it's not available.",
-            NS_ConvertUTF16toUTF8(aCandidate.mLabel).get());
-    return false;
-  }
-#endif
 
   // Return accumulated configuration.
   aOutConfig = config;

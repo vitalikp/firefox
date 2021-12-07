@@ -332,14 +332,6 @@ already_AddRefed<CDMProxy>
 MediaKeys::CreateCDMProxy()
 {
   RefPtr<CDMProxy> proxy;
-#ifdef MOZ_WIDGET_ANDROID
-  if (IsWidevineKeySystem(mKeySystem)) {
-    proxy = new MediaDrmCDMProxy(this,
-                                 mKeySystem,
-                                 mConfig.mDistinctiveIdentifier == MediaKeysRequirement::Required,
-                                 mConfig.mPersistentState == MediaKeysRequirement::Required);
-  } else
-#endif
   {
     proxy = new GMPCDMProxy(this,
                             mKeySystem,
