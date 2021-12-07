@@ -97,8 +97,6 @@ function GMPWrapper(aPluginInfo) {
                                           this._plugin.id),
                       this.onPrefVersionChanged, this);
   if (this._plugin.isEME) {
-    Preferences.observe(GMPPrefs.KEY_EME_ENABLED,
-                        this.onPrefEMEGlobalEnabledChanged, this);
     messageManager.addMessageListener("EMEVideo:ContentMediaKeysRequest", this);
   }
 }
@@ -142,8 +140,7 @@ GMPWrapper.prototype = {
            !GMPUtils.isPluginHidden(this._plugin);
   },
   get appDisabled() {
-    if (this._plugin.isEME && !GMPPrefs.get(GMPPrefs.KEY_EME_ENABLED, true)) {
-      // If "media.eme.enabled" is false, all EME plugins are disabled.
+    if (this._plugin.isEME) {
       return true;
     }
     return false;
@@ -326,29 +323,6 @@ GMPWrapper.prototype = {
                                            this);
   },
 
-  onPrefEMEGlobalEnabledChanged: function() {
-    this._log.info("onPrefEMEGlobalEnabledChanged() id=" + this._plugin.id +
-      " appDisabled=" + this.appDisabled + " isActive=" + this.isActive +
-      " hidden=" + GMPUtils.isPluginHidden(this._plugin));
-
-    AddonManagerPrivate.callAddonListeners("onPropertyChanged", this,
-                                           ["appDisabled"]);
-    // If EME or the GMP itself are disabled, uninstall the GMP.
-    // Otherwise, check for updates, so we download and install the GMP.
-    if (this.appDisabled) {
-      this.uninstallPlugin();
-    } else if (!GMPUtils.isPluginHidden(this._plugin)) {
-      AddonManagerPrivate.callInstallListeners("onExternalInstall", null, this,
-                                               null, false);
-      AddonManagerPrivate.callAddonListeners("onInstalling", this, false);
-      AddonManagerPrivate.callAddonListeners("onInstalled", this);
-      this.checkForUpdates(GMP_CHECK_DELAY);
-    }
-    if (!this.userDisabled) {
-      this._handleEnabledChanged();
-    }
-  },
-
   checkForUpdates: function(delay) {
     if (this._isUpdateCheckPending) {
       return;
@@ -437,8 +411,6 @@ GMPWrapper.prototype = {
                                            this._plugin.id),
                        this.onPrefVersionChanged, this);
     if (this._plugin.isEME) {
-      Preferences.ignore(GMPPrefs.KEY_EME_ENABLED,
-                         this.onPrefEMEGlobalEnabledChanged, this);
       messageManager.removeMessageListener("EMEVideo:ContentMediaKeysRequest", this);
     }
     return this._updateTask;
@@ -641,12 +613,10 @@ var GMPProvider = {
   },
 
   ensureProperCDMInstallState: function() {
-    if (!GMPPrefs.get(GMPPrefs.KEY_EME_ENABLED, true)) {
-      for (let [id, plugin] of this._plugins) {
-        if (plugin.isEME && plugin.wrapper.isInstalled) {
-          gmpService.addPluginDirectory(plugin.wrapper.gmpPath);
-          plugin.wrapper.uninstallPlugin();
-        }
+    for (let [id, plugin] of this._plugins) {
+      if (plugin.isEME && plugin.wrapper.isInstalled) {
+        gmpService.addPluginDirectory(plugin.wrapper.gmpPath);
+        plugin.wrapper.uninstallPlugin();
       }
     }
   },

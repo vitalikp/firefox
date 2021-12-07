@@ -1317,18 +1317,6 @@ pref("ui.key.menuAccessKeyFocuses", true);
 #endif
 
 // Encrypted media extensions.
-#ifdef XP_LINUX
-// On Linux EME is visible but disabled by default. This is so that the
-// "Play DRM content" checkbox in the Firefox UI is unchecked by default.
-// DRM requires downloading and installing proprietary binaries, which
-// users on an open source operating systems didn't opt into. The first
-// time a site using EME is encountered, the user will be prompted to
-// enable DRM, whereupon the EME plugin binaries will be downloaded if
-// permission is granted.
-pref("media.eme.enabled", false);
-#else
-pref("media.eme.enabled", true);
-#endif
 pref("media.eme.apiVisible", true);
 
 // Whether we should run a test-pattern through EME GMPs before assuming they'll

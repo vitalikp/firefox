@@ -4270,11 +4270,6 @@ HTMLMediaElement::ReportEMETelemetry()
 {
   // Report telemetry for EME videos when a page is unloaded.
   NS_ASSERTION(NS_IsMainThread(), "Should be on main thread.");
-  if (mIsEncrypted && Preferences::GetBool("media.eme.enabled")) {
-    Telemetry::Accumulate(Telemetry::VIDEO_EME_PLAY_SUCCESS, mLoadedDataFired);
-    LOG(LogLevel::Debug, ("%p VIDEO_EME_PLAY_SUCCESS = %s",
-                       this, mLoadedDataFired ? "true" : "false"));
-  }
 }
 
 void

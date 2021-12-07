@@ -157,9 +157,6 @@ GMPInstallManager.prototype = {
     }
     return now - lastCheck;
   },
-  get _isEMEEnabled() {
-    return GMPPrefs.get(GMPPrefs.KEY_EME_ENABLED, true);
-  },
   _isAddonEnabled: function(aAddon) {
     return GMPPrefs.get(GMPPrefs.KEY_PLUGIN_ENABLED, true, aAddon);
   },

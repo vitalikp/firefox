@@ -6,11 +6,6 @@
 
 <preferences id="contentPreferences" hidden="true" data-category="paneContent">
 
-  <!-- DRM content -->
-  <preference id="media.eme.enabled"
-              name="media.eme.enabled"
-              type="bool"/>
-
   <!-- Popups -->
   <preference id="dom.disable_open_during_load"
               name="dom.disable_open_during_load"

@@ -10,7 +10,6 @@ var gEMEHandler = {
     return false;
   },
   ensureEMEEnabled(browser, keySystem) {
-    Services.prefs.setBoolPref("media.eme.enabled", true);
     browser.reload();
   },
   isKeySystemVisible(keySystem) {

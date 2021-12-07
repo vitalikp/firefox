@@ -320,7 +320,6 @@ pref("media.gonk.enabled", true);
 #endif
 
 //Encrypted media extensions.
-pref("media.eme.enabled", true);
 pref("media.eme.apiVisible", true);
 // The default number of decoded video frames that are enqueued in
 // MediaDecoderReader's mVideoQueue.
