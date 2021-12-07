@@ -40,27 +40,6 @@
   <html:a class="help-button" target="_blank" aria-label="&helpButton.label;"></html:a>
 </hbox>
 
-<groupbox id="drmGroup" data-category="paneContent" hidden="true">
-  <caption><label>&drmContent.label;</label></caption>
-  <grid id="contentGrid2">
-    <columns>
-      <column flex="1"/>
-      <column/>
-    </columns>
-    <rows id="contentRows-2">
-      <row id="playDRMContentRow">
-        <vbox align="start">
-          <checkbox id="playDRMContent" preference="media.eme.enabled"
-                    label="&playDRMContent.label;" accesskey="&playDRMContent.accesskey;"/>
-        </vbox>
-        <hbox pack="end" align="center">
-          <label id="playDRMContentLink" class="text-link" value="&playDRMContent.learnMore.label;"/>
-        </hbox>
-      </row>
-    </rows>
-  </grid>
-</groupbox>
-
 <groupbox id="notificationsGroup" data-category="paneContent" hidden="true">
   <caption><label>&notificationsPolicy.label;</label></caption>
   <grid>
