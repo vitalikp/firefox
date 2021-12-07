@@ -437,12 +437,6 @@ def eme(value, fmp4):
     if enabled:
         return True
 
-@depends(enable_eme)
-def eme_modules(value):
-    return value
-
-set_config('MOZ_EME_MODULES', eme_modules)
-
 option(name='--enable-chrome-format',
        help='Select FORMAT of chrome files during packaging.',
        nargs=1,
