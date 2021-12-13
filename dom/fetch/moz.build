@@ -23,7 +23,6 @@ UNIFIED_SOURCES += [
     'BodyExtractor.cpp',
     'ChannelInfo.cpp',
     'Fetch.cpp',
-    'FetchConsumer.cpp',
     'FetchDriver.cpp',
     'FetchUtil.cpp',
     'Headers.cpp',
