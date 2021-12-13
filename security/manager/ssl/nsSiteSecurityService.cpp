@@ -274,7 +274,7 @@ nsSiteSecurityService::GetHost(nsIURI* aURI, nsACString& aResult)
 }
 
 static void
-SetStorageKey(nsAutoCString& storageKey, nsCString& hostname, uint32_t aType)
+SetStorageKey(nsAutoCString& storageKey, const nsACString& hostname, uint32_t aType)
 {
   storageKey = hostname;
   switch (aType) {
