@@ -4512,7 +4512,9 @@ nsDocument::SetScopeObject(nsIGlobalObject* aGlobal)
       // window, we should be able to join a DocGroup!
       nsAutoCString docGroupKey;
       mozilla::dom::DocGroup::GetKey(NodePrincipal(), docGroupKey);
-      if (!mDocGroup) {
+      if (mDocGroup) {
+        MOZ_RELEASE_ASSERT(mDocGroup->MatchesKey(docGroupKey));
+      } else {
         mDocGroup = tabgroup->AddDocument(docGroupKey, this);
         MOZ_ASSERT(mDocGroup);
       }
