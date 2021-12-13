@@ -1133,7 +1133,7 @@ nsSiteSecurityService::SetKeyPins(const nsACString& aHost,
   NS_ENSURE_ARG_POINTER(aResult);
   NS_ENSURE_ARG_POINTER(aSha256Pins);
 
-  SSSLOG(("Top of SetPins"));
+  SSSLOG(("Top of SetKeyPins"));
 
   nsTArray<nsCString> sha256keys;
   for (unsigned int i = 0; i < aPinCount; i++) {
