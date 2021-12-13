@@ -143,7 +143,8 @@ private:
                             uint64_t* aMaxAge, bool* aIncludeSubdomains,
                             uint32_t* aFailureResult);
   nsresult SetHPKPState(const char* aHost, SiteHPKPState& entry, uint32_t flags);
-  nsresult RemoveStateInternal(uint32_t aType, nsIURI* aURI, uint32_t aFlags);
+  nsresult RemoveStateInternal(uint32_t aType, const nsAutoCString& aHost,
+                               uint32_t aFlags);
   nsresult IsSecureHost(uint32_t aType, const nsACString& aHost,
                         uint32_t aFlags, bool* aCached, bool* aResult);
 

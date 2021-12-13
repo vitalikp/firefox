@@ -305,10 +305,13 @@ nsSiteSecurityService::SetHSTSState(uint32_t aType,
                                     uint32_t flags,
                                     SecurityPropertyState aHSTSState)
 {
+  nsAutoCString hostname;
+  nsresult rv = GetHost(aSourceURI, hostname);
+  NS_ENSURE_SUCCESS(rv, rv);
   // If max-age is zero, that's an indication to immediately remove the
   // security state, so here's a shortcut.
   if (!maxage) {
-    return RemoveStateInternal(aType, aSourceURI, flags);
+    return RemoveStateInternal(aType, hostname, flags);
   }
 
   MOZ_ASSERT((aHSTSState == SecurityPropertySet ||
@@ -319,9 +322,6 @@ nsSiteSecurityService::SetHSTSState(uint32_t aType,
   SiteHSTSState siteState(expiretime, aHSTSState, includeSubdomains);
   nsAutoCString stateString;
   siteState.ToString(stateString);
-  nsAutoCString hostname;
-  nsresult rv = GetHost(aSourceURI, hostname);
-  NS_ENSURE_SUCCESS(rv, rv);
   SSSLOG(("SSS: setting state for %s", hostname.get()));
   bool isPrivate = flags & nsISocketProvider::NO_PERMANENT_STORAGE;
   mozilla::DataStorageType storageType = isPrivate
@@ -345,7 +345,7 @@ nsSiteSecurityService::CacheNegativeHSTSResult(nsIURI* aSourceURI,
 
 nsresult
 nsSiteSecurityService::RemoveStateInternal(uint32_t aType,
-                                           nsIURI* aURI,
+                                           const nsAutoCString& aHost,
                                            uint32_t aFlags)
 {
    // Child processes are not allowed direct access to this.
@@ -358,18 +358,14 @@ nsSiteSecurityService::RemoveStateInternal(uint32_t aType,
                  aType == nsISiteSecurityService::HEADER_HPKP,
                  NS_ERROR_NOT_IMPLEMENTED);
 
-  nsAutoCString hostname;
-  nsresult rv = GetHost(aURI, hostname);
-  NS_ENSURE_SUCCESS(rv, rv);
-
   bool isPrivate = aFlags & nsISocketProvider::NO_PERMANENT_STORAGE;
   mozilla::DataStorageType storageType = isPrivate
                                          ? mozilla::DataStorage_Private
                                          : mozilla::DataStorage_Persistent;
 
-  SSSLOG(("SSS: removing entry for %s", hostname.get()));
+  SSSLOG(("SSS: removing entry for %s", aHost.get()));
   nsAutoCString storageKey;
-  SetStorageKey(storageKey, hostname, aType);
+  SetStorageKey(storageKey, aHost, aType);
   mSiteStateStorage->Remove(storageKey, storageType);
 
   return NS_OK;
@@ -379,7 +375,9 @@ NS_IMETHODIMP
 nsSiteSecurityService::RemoveState(uint32_t aType, nsIURI* aURI,
                                    uint32_t aFlags)
 {
-  return RemoveStateInternal(aType, aURI, aFlags);
+  nsAutoCString hostname;
+  GetHost(aURI, hostname);
+  return RemoveStateInternal(aType, hostname, aFlags);
 }
 
 static bool
