@@ -299,15 +299,13 @@ ExpireTimeFromMaxAge(uint64_t maxAge)
 
 nsresult
 nsSiteSecurityService::SetHSTSState(uint32_t aType,
-                                    nsIURI* aSourceURI,
+                                    const char* aHost,
                                     int64_t maxage,
                                     bool includeSubdomains,
                                     uint32_t flags,
                                     SecurityPropertyState aHSTSState)
 {
-  nsAutoCString hostname;
-  nsresult rv = GetHost(aSourceURI, hostname);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsAutoCString hostname(aHost);
   // If max-age is zero, that's an indication to immediately remove the
   // security state, so here's a shortcut.
   if (!maxage) {
@@ -329,6 +327,8 @@ nsSiteSecurityService::SetHSTSState(uint32_t aType,
                                          : mozilla::DataStorage_Persistent;
   nsAutoCString storageKey;
   SetStorageKey(storageKey, hostname, aType);
+  nsresult rv;
+  SSSLOG(("SSS: storing HSTS site entry for %s", hostname.get()));
   rv = mSiteStateStorage->Put(storageKey, stateString, storageType);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -339,7 +339,10 @@ NS_IMETHODIMP
 nsSiteSecurityService::CacheNegativeHSTSResult(nsIURI* aSourceURI,
                                                uint64_t aMaxAge)
 {
-  return SetHSTSState(nsISiteSecurityService::HEADER_HSTS, aSourceURI,
+  nsAutoCString hostname;
+  nsresult rv = GetHost(aSourceURI, hostname);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return SetHSTSState(nsISiteSecurityService::HEADER_HSTS, hostname.get(),
                       aMaxAge, false, 0, SecurityPropertyNegative);
 }
 
@@ -845,9 +848,13 @@ nsSiteSecurityService::ProcessSTSHeader(nsIURI* aSourceURI,
     return NS_ERROR_FAILURE;
   }
 
+  nsAutoCString hostname;
+  nsresult rv = GetHost(aSourceURI, hostname);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // record the successfully parsed header data.
-  nsresult rv = SetHSTSState(aType, aSourceURI, maxAge, foundIncludeSubdomains,
-                             aFlags, SecurityPropertySet);
+  rv = SetHSTSState(aType, hostname.get(), maxAge, foundIncludeSubdomains,
+                    aFlags, SecurityPropertySet);
   if (NS_FAILED(rv)) {
     SSSLOG(("SSS: failed to set STS state"));
     if (aFailureResult) {

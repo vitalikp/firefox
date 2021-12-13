@@ -126,7 +126,7 @@ protected:
 
 private:
   nsresult GetHost(nsIURI *aURI, nsACString &aResult);
-  nsresult SetHSTSState(uint32_t aType, nsIURI* aSourceURI, int64_t maxage,
+  nsresult SetHSTSState(uint32_t aType, const char* aHost, int64_t maxage,
                         bool includeSubdomains, uint32_t flags,
                         SecurityPropertyState aHSTSState);
   nsresult ProcessHeaderInternal(uint32_t aType, nsIURI* aSourceURI,
