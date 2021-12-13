@@ -8,7 +8,6 @@
 
 #ifdef XP_WIN
 #include "WMFDecoderModule.h"
-
 #endif
 #ifdef MOZ_FFMPEG
 #include "FFmpegDecoderModule.h"
@@ -345,7 +344,7 @@ PDMFactory::CreatePDMs()
   }
 #endif
 #ifdef XP_WIN
-  if (MediaPrefs::PDMWMFEnabled() && IsVistaOrLater() && !IsWin7AndPre2000Compatible()) {
+  if (MediaPrefs::PDMWMFEnabled() && IsVistaOrLater()) {
     // *Only* use WMF on Vista and later, as if Firefox is run in Windows 95
     // compatibility mode on Windows 7 (it does happen!) we may crash trying
     // to startup WMF. So we need to detect the OS version here, as in
@@ -353,8 +352,6 @@ PDMFactory::CreatePDMs()
     // the emulated version of Windows. See bug 1279171.
     // Additionally, we don't want to start the RemoteDecoderModule if we
     // expect it's not going to work (i.e. on Windows older than Vista).
-    // IsWin7AndPre2000Compatible() uses GetVersionEx as the user specified OS version can
-    // be reflected when compatibility mode is in effect.
     m = new WMFDecoderModule();
     RefPtr<PlatformDecoderModule> remote = new dom::RemoteDecoderModule(m);
     StartupPDM(remote);
