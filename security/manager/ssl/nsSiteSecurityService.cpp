@@ -308,7 +308,7 @@ nsSiteSecurityService::SetHSTSState(uint32_t aType,
   // If max-age is zero, that's an indication to immediately remove the
   // security state, so here's a shortcut.
   if (!maxage) {
-    return RemoveState(aType, aSourceURI, flags);
+    return RemoveStateInternal(aType, aSourceURI, flags);
   }
 
   MOZ_ASSERT((aHSTSState == SecurityPropertySet ||
@@ -343,13 +343,14 @@ nsSiteSecurityService::CacheNegativeHSTSResult(nsIURI* aSourceURI,
                       aMaxAge, false, 0, SecurityPropertyNegative);
 }
 
-NS_IMETHODIMP
-nsSiteSecurityService::RemoveState(uint32_t aType, nsIURI* aURI,
-                                   uint32_t aFlags)
+nsresult
+nsSiteSecurityService::RemoveStateInternal(uint32_t aType,
+                                           nsIURI* aURI,
+                                           uint32_t aFlags)
 {
    // Child processes are not allowed direct access to this.
    if (!XRE_IsParentProcess()) {
-     MOZ_CRASH("Child process: no direct access to nsISiteSecurityService::RemoveState");
+     MOZ_CRASH("Child process: no direct access to nsISiteSecurityService::RemoveStateInternal");
    }
 
   // Only HSTS is supported at the moment.
@@ -372,6 +373,13 @@ nsSiteSecurityService::RemoveState(uint32_t aType, nsIURI* aURI,
   mSiteStateStorage->Remove(storageKey, storageType);
 
   return NS_OK;
+}
+
+NS_IMETHODIMP
+nsSiteSecurityService::RemoveState(uint32_t aType, nsIURI* aURI,
+                                   uint32_t aFlags)
+{
+  return RemoveStateInternal(aType, aURI, aFlags);
 }
 
 static bool
