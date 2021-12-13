@@ -145,6 +145,10 @@ private:
   nsresult SetHPKPState(const char* aHost, SiteHPKPState& entry, uint32_t flags);
   nsresult RemoveStateInternal(uint32_t aType, const nsAutoCString& aHost,
                                uint32_t aFlags);
+  bool HostHasHSTSEntry(const nsAutoCString& aHost,
+                        bool aRequireIncludeSubdomains, uint32_t aFlags,
+                        bool* aResult, bool* aCached);
+
   nsresult IsSecureHost(uint32_t aType, const nsACString& aHost,
                         uint32_t aFlags, bool* aCached, bool* aResult);
 

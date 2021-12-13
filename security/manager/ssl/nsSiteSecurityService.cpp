@@ -906,6 +906,62 @@ nsSiteSecurityService::IsSecureURI(uint32_t aType, nsIURI* aURI,
   return IsSecureHost(aType, hostname, aFlags, aCached, aResult);
 }
 
+// Allows us to determine if we have an HSTS entry for a given host (and, if
+// so, what that state is). The return value says whether or not we know
+// anything about this host (true if the host has an HSTS entry). aHost is
+// the host which we wish to deteming HSTS information on,
+// aRequireIncludeSubdomains specifies whether we require includeSubdomains
+// to be set on the entry (with the other parameters being as per IsSecureHost).
+bool
+nsSiteSecurityService::HostHasHSTSEntry(const nsAutoCString& aHost,
+                                        bool aRequireIncludeSubdomains,
+                                        uint32_t aFlags, bool* aResult,
+                                        bool* aCached)
+{
+  // We check for an entry in site security storage. We only want to use the
+  // stored value if it is not a knockout entry, however.
+  // Additionally, if it is a knockout entry, we want to stop looking for data
+  // on the host, because the knockout entry indicates "we have no information
+  // regarding the security status of this host".
+  bool isPrivate = aFlags & nsISocketProvider::NO_PERMANENT_STORAGE;
+  mozilla::DataStorageType storageType = isPrivate
+                                         ? mozilla::DataStorage_Private
+                                         : mozilla::DataStorage_Persistent;
+  nsAutoCString storageKey;
+  SSSLOG(("Seeking HSTS entry for %s", aHost.get()));
+  SetStorageKey(storageKey, aHost, nsISiteSecurityService::HEADER_HSTS);
+  nsCString value = mSiteStateStorage->Get(storageKey, storageType);
+  SiteHSTSState siteState(value);
+  if (siteState.mHSTSState != SecurityPropertyUnset) {
+    SSSLOG(("Found HSTS entry for %s", aHost.get()));
+    bool expired = siteState.IsExpired(nsISiteSecurityService::HEADER_HSTS);
+    if (!expired) {
+      SSSLOG(("Entry for %s is not expired", aHost.get()));
+      if (aCached) {
+        *aCached = true;
+      }
+      if (siteState.mHSTSState == SecurityPropertySet) {
+        *aResult = aRequireIncludeSubdomains ? siteState.mHSTSIncludeSubdomains
+                                             : true;
+        return true;
+      } else if (siteState.mHSTSState == SecurityPropertyNegative) {
+        *aResult = false;
+        return true;
+      }
+    }
+
+    if (expired) {
+      SSSLOG(("Entry %s is expired", aHost.get()));
+      // If the entry is expired, we can remove it.
+      SSSLOG(("Removing expired entry"));
+      mSiteStateStorage->Remove(storageKey, storageType);
+    }
+    return false;
+  }
+
+  return false;
+}
+
 nsresult
 nsSiteSecurityService::IsSecureHost(uint32_t aType, const nsACString& aHost,
                                     uint32_t aFlags, bool* aCached,
@@ -963,42 +1019,11 @@ nsSiteSecurityService::IsSecureHost(uint32_t aType, const nsACString& aHost,
     return NS_OK;
   }
 
-  // First check the exact host. This involves first checking for an entry in
-  // site security storage. If that entry exists, we don't want to check
-  // in the preload list. We only want to use the stored value if it is not a
-  // knockout entry, however.
-  // Additionally, if it is a knockout entry, we want to stop looking for data
-  // on the host, because the knockout entry indicates "we have no information
-  // regarding the security status of this host".
-  bool isPrivate = aFlags & nsISocketProvider::NO_PERMANENT_STORAGE;
-  mozilla::DataStorageType storageType = isPrivate
-                                         ? mozilla::DataStorage_Private
-                                         : mozilla::DataStorage_Persistent;
-  nsAutoCString storageKey;
-  SetStorageKey(storageKey, host, aType);
-  nsCString value = mSiteStateStorage->Get(storageKey, storageType);
-  SiteHSTSState siteState(value);
-  if (siteState.mHSTSState != SecurityPropertyUnset) {
-    SSSLOG(("Found entry for %s", host.get()));
-    bool expired = siteState.IsExpired(aType);
-    if (!expired) {
-      if (aCached) {
-        *aCached = true;
-      }
-      if (siteState.mHSTSState == SecurityPropertySet) {
-        *aResult = true;
-        return NS_OK;
-      } else if (siteState.mHSTSState == SecurityPropertyNegative) {
-        *aResult = false;
-        return NS_OK;
-      }
-    }
-
-    // If the entry is expired, we can remove it.
-    if (expired) {
-      mSiteStateStorage->Remove(storageKey, storageType);
-    }
+  // First check the exact host.
+  if (HostHasHSTSEntry(host, false, aFlags, aResult, aCached)) {
+     return NS_OK;
   }
+
 
   const char *subdomain;
 
@@ -1014,37 +1039,13 @@ nsSiteSecurityService::IsSecureHost(uint32_t aType, const nsACString& aHost,
       break;
     }
 
-    // Do the same thing as with the exact host, except now we're looking at
-    // ancestor domains of the original host. So, we have to look at the
-    // include subdomains flag (although we still have to check for a
-    // SecurityPropertySet flag first to check that this is a secure host and
-    // not a knockout entry - and again, if it is a knockout entry, we stop
-    // looking for data on it and skip to the next higher up ancestor domain).
-    nsCString subdomainString(subdomain);
-    nsAutoCString storageKey;
-    SetStorageKey(storageKey, subdomainString, aType);
-    value = mSiteStateStorage->Get(storageKey, storageType);
-    SiteHSTSState siteState(value);
-    if (siteState.mHSTSState != SecurityPropertyUnset) {
-      SSSLOG(("Found entry for %s", subdomain));
-      bool expired = siteState.IsExpired(aType);
-      if (!expired) {
-        if (aCached) {
-          *aCached = true;
-        }
-        if (siteState.mHSTSState == SecurityPropertySet) {
-          *aResult = siteState.mHSTSIncludeSubdomains;
-          break;
-        } else if (siteState.mHSTSState == SecurityPropertyNegative) {
-          *aResult = false;
-          break;
-        }
-      }
+    // Do the same thing as with the exact host except now we're looking at
+    // ancestor domains of the original host and, therefore, we have to require
+    // that the entry includes subdomains.
+    nsAutoCString subdomainString(subdomain);
 
-      // If the entry is expired, we can remove it.
-      if (expired) {
-        mSiteStateStorage->Remove(storageKey, storageType);
-      }
+    if (HostHasHSTSEntry(subdomainString, true, aFlags, aResult, aCached)) {
+      break;
     }
   }
 
