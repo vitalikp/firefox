@@ -1333,7 +1333,6 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(HTMLMediaElement, nsGenericHTM
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mErrorSink->mError)
   for (uint32_t i = 0; i < tmp->mOutputStreams.Length(); ++i) {
     NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mOutputStreams[i].mStream);
-    NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mOutputStreams[i].mPreCreatedTracks)
   }
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mPlayed);
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mTextTrackManager)
@@ -1598,17 +1597,6 @@ void HTMLMediaElement::ShutdownDecoder()
   RemoveMediaElementFromURITable();
   NS_ASSERTION(mDecoder, "Must have decoder to shut down");
   mWaitingForKeyListener.DisconnectIfExists();
-  for (OutputMediaStream& out : mOutputStreams) {
-    if (!out.mCapturingDecoder) {
-      continue;
-    }
-    if (!out.mStream) {
-      continue;
-    }
-    out.mNextAvailableTrackID = std::max<TrackID>(
-      mDecoder->NextAvailableTrackIDFor(out.mStream->GetInputStream()),
-      out.mNextAvailableTrackID);
-  }
   mDecoder->Shutdown();
   mDecoder = nullptr;
 }
@@ -3310,7 +3298,6 @@ HTMLMediaElement::CaptureStreamInternal(bool aFinishWhenEnded,
   if (mDecoder) {
     out->mCapturingDecoder = true;
     mDecoder->AddOutputStream(out->mStream->GetInputStream()->AsProcessedStream(),
-                              out->mNextAvailableTrackID,
                               aFinishWhenEnded);
   } else if (mSrcStream) {
     out->mCapturingMediaStream = true;
@@ -3324,26 +3311,23 @@ HTMLMediaElement::CaptureStreamInternal(bool aFinishWhenEnded,
 
   if (mDecoder) {
     if (HasAudio()) {
-      TrackID audioTrackId = out->mNextAvailableTrackID++;
+      TrackID audioTrackId = mMediaInfo.mAudio.mTrackId;
       RefPtr<MediaStreamTrackSource> trackSource =
         getter->GetMediaStreamTrackSource(audioTrackId);
       RefPtr<MediaStreamTrack> track =
-        out->mStream->CreateDOMTrack(audioTrackId,
-                                     MediaSegment::AUDIO,
+        out->mStream->CreateDOMTrack(audioTrackId, MediaSegment::AUDIO,
                                      trackSource);
-      out->mPreCreatedTracks.AppendElement(track);
       out->mStream->AddTrackInternal(track);
       LOG(LogLevel::Debug,
           ("Created audio track %d for captured decoder", audioTrackId));
     }
     if (IsVideo() && HasVideo() && !out->mCapturingAudioOnly) {
-      TrackID videoTrackId = out->mNextAvailableTrackID++;
+      TrackID videoTrackId = mMediaInfo.mVideo.mTrackId;
       RefPtr<MediaStreamTrackSource> trackSource =
         getter->GetMediaStreamTrackSource(videoTrackId);
       RefPtr<MediaStreamTrack> track =
         out->mStream->CreateDOMTrack(videoTrackId, MediaSegment::VIDEO,
                                      trackSource);
-      out->mPreCreatedTracks.AppendElement(track);
       out->mStream->AddTrackInternal(track);
       LOG(LogLevel::Debug,
           ("Created video track %d for captured decoder", videoTrackId));
@@ -3430,25 +3414,6 @@ NS_IMETHODIMP HTMLMediaElement::GetMozAudioCaptured(bool* aCaptured)
 {
   *aCaptured = MozAudioCaptured();
   return NS_OK;
-}
-
-void
-HTMLMediaElement::EndPreCreatedCapturedDecoderTracks()
-{
-  MOZ_ASSERT(NS_IsMainThread());
-  for (OutputMediaStream& ms : mOutputStreams) {
-    if (!ms.mCapturingDecoder) {
-      continue;
-    }
-    for (RefPtr<MediaStreamTrack>& t : ms.mPreCreatedTracks) {
-      if (t->Ended()) {
-        continue;
-      }
-      NS_DispatchToMainThread(NewRunnableMethod(
-        t, &MediaStreamTrack::OverrideEnded));
-    }
-    ms.mPreCreatedTracks.Clear();
-  }
 }
 
 class MediaElementSetForURI : public nsURIHashKey {
@@ -4057,12 +4022,11 @@ HTMLMediaElement::WakeLockRelease()
 }
 
 HTMLMediaElement::OutputMediaStream::OutputMediaStream()
-  : mNextAvailableTrackID(1)
-  , mFinishWhenEnded(false)
+  : mFinishWhenEnded(false)
   , mCapturingAudioOnly(false)
   , mCapturingDecoder(false)
   , mCapturingMediaStream(false)
-{}
+  , mNextAvailableTrackID(1) {}
 
 HTMLMediaElement::OutputMediaStream::~OutputMediaStream()
 {
@@ -4684,7 +4648,6 @@ nsresult HTMLMediaElement::FinishDecoderSetup(MediaDecoder* aDecoder,
 
     ms.mCapturingDecoder = true;
     aDecoder->AddOutputStream(ms.mStream->GetInputStream()->AsProcessedStream(),
-                              ms.mNextAvailableTrackID,
                               ms.mFinishWhenEnded);
   }
 
