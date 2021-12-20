@@ -3166,9 +3166,6 @@ protected:
   // Do we currently have an event posted to call FlushUserFontSet?
   bool mPostedFlushUserFontSet : 1;
 
-  // True is document has ever been in a foreground window.
-  bool mEverInForeground : 1;
-
   // True if we have fired the DOMContentLoaded event, or don't plan to fire one
   // (e.g. we're not being parsed at all).
   bool mDidFireDOMContentLoaded : 1;

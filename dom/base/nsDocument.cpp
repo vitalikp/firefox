@@ -1342,7 +1342,6 @@ nsIDocument::nsIDocument()
     mFontFaceSetDirty(true),
     mGetUserFontSetCalled(false),
     mPostedFlushUserFontSet(false),
-    mEverInForeground(false),
     mCompatMode(eCompatibility_FullStandards),
     mReadyState(ReadyState::READYSTATE_UNINITIALIZED),
     mStyleBackendType(StyleBackendType::Gecko),
@@ -1442,8 +1441,6 @@ nsDocument::nsDocument(const char* aContentType)
 
   // void state used to differentiate an empty source from an unselected source
   mPreloadPictureFoundSource.SetIsVoid(true);
-
-  mEverInForeground = false;
 }
 
 void
@@ -12078,19 +12075,10 @@ nsDocument::PostVisibilityUpdateEvent()
 void
 nsDocument::MaybeActiveMediaComponents()
 {
-  if (mEverInForeground) {
-    return;
-  }
-
   if (!mWindow) {
     return;
   }
 
-  if (mMediaContent.IsEmpty()) {
-    return;
-  }
-
-  mEverInForeground = true;
   GetWindow()->MaybeActiveMediaComponents();
 }
 
