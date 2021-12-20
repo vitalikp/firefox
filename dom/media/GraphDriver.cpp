@@ -190,7 +190,7 @@ public:
       LOG(LogLevel::Debug,
           ("%p releasing an AudioCallbackDriver(%p), for graph %p",
            mDriver.get(),
-           previousDriver,
+           previousDriver.get(),
            mDriver->GraphImpl()));
       MOZ_ASSERT(!mDriver->AsAudioCallbackDriver());
       RefPtr<AsyncCubebTask> releaseEvent =
