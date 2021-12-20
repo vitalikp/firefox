@@ -115,8 +115,8 @@ ContentProcess::Init(int aArgc, char* aArgv[])
   bool foundBoolPrefs = false;
   bool foundStringPrefs = false;
 
-  uint64_t childID;
-  bool isForBrowser;
+  uint64_t childID = uint64_t(-1);
+  bool isForBrowser = false;
 
 #if defined(XP_MACOSX) && defined(MOZ_CONTENT_SANDBOX)
   // If passed in grab the profile path for sandboxing
