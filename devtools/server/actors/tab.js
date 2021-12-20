@@ -1622,6 +1622,10 @@ DebuggerProgressListener.prototype = {
     if (!this._tabActor.attached) {
       return;
     }
+    progress.QueryInterface(Ci.nsIDocShell);
+    if (progress.isBeingDestroyed()) {
+      return;
+    }
 
     let isStart = flag & Ci.nsIWebProgressListener.STATE_START;
     let isStop = flag & Ci.nsIWebProgressListener.STATE_STOP;
@@ -1631,7 +1635,6 @@ DebuggerProgressListener.prototype = {
     // Catch any iframe location change
     if (isDocument && isStop) {
       // Watch document stop to ensure having the new iframe url.
-      progress.QueryInterface(Ci.nsIDocShell);
       this._tabActor._notifyDocShellsUpdate([progress]);
     }
 
