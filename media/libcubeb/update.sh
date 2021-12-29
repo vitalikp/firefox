@@ -17,6 +17,7 @@ cp $1/src/cubeb_audiounit.cpp src
 cp $1/src/cubeb_osx_run_loop.h src
 cp $1/src/cubeb_jack.cpp src
 cp $1/src/cubeb_opensl.c src
+cp $1/src/cubeb_array_queue.h src
 cp $1/src/cubeb_panner.cpp src
 cp $1/src/cubeb_panner.h src
 cp $1/src/cubeb_resampler.cpp src
@@ -29,9 +30,12 @@ cp $1/src/cubeb_utils_unix.h src
 cp $1/src/cubeb_utils_win.h src
 cp $1/src/cubeb_wasapi.cpp src
 cp $1/src/cubeb_winmm.c src
+cp $1/src/cubeb_mixer.h src
+cp $1/src/cubeb_mixer.cpp src
 
 if [ -d $1/.git ]; then
   rev=$(cd $1 && git rev-parse --verify HEAD)
+  date=$(cd $1 && git show -s --format=%ci HEAD)
   dirty=$(cd $1 && git diff-index --name-only HEAD)
 fi
 
@@ -41,35 +45,8 @@ if [ -n "$rev" ]; then
     version=$version-dirty
     echo "WARNING: updating from a dirty git repository."
   fi
-  sed -i.bak -e "/The git commit ID used was/ s/[0-9a-f]\{40\}\(-dirty\)\{0,1\}\./$version./" README_MOZILLA
+  sed -i.bak -e "/The git commit ID used was/ s/[0-9a-f]\{40\}\(-dirty\)\{0,1\} .\{1,100\}/$version ($date)/" README_MOZILLA
   rm README_MOZILLA.bak
 else
   echo "Remember to update README_MOZILLA with the version details."
 fi
-
-echo "Applying a patch on top of $version"
-patch -p1 < ./unresampled-frames.patch
-
-echo "Applying a patch on top of $version"
-patch -p1 < ./bug1302231_emergency_bailout.patch
-
-echo "Applying a patch on top of $version"
-patch -p1 < ./osx-linearize-operations.patch
-
-echo "Applying a patch on top of $version"
-patch -p1 < ./prevent-double-free.patch
-
-echo "Applying a patch on top of $version"
-patch -p1 < ./uplift-wasapi-part-to-beta.patch
-
-echo "Applying a patch on top of $version"
-patch -p3 < ./fix-crashes.patch
-
-echo "Applying a patch on top of $version"
-patch -p3 < ./uplift-part-of-f07ee6d-esr52.patch
-
-echo "Applying a patch on top of $version"
-patch -p3 < ./uplift-system-listener-patch.patch
-
-echo "Applying a patch on top of $version"
-patch -p1 < ./uplift-patch-7a4c711.patch
