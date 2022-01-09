@@ -31,8 +31,8 @@ public:
   static already_AddRefed<SharedJSAllocatedData>
   CreateFromExternalData(const char* aData, size_t aDataLength)
   {
-    JSStructuredCloneData buf(JS::StructuredCloneScope::DifferentProcess);
-    buf.AppendBytes(aData, aDataLength);
+    JSStructuredCloneData buf;
+    buf.WriteBytes(aData, aDataLength);
     RefPtr<SharedJSAllocatedData> sharedData =
       new SharedJSAllocatedData(Move(buf));
     return sharedData.forget();
@@ -41,8 +41,12 @@ public:
   static already_AddRefed<SharedJSAllocatedData>
   CreateFromExternalData(const JSStructuredCloneData& aData)
   {
-    JSStructuredCloneData buf(aData.scope());
-    buf.Append(aData);
+    JSStructuredCloneData buf;
+    auto iter = aData.Iter();
+    while (!iter.Done()) {
+      buf.WriteBytes(iter.Data(), iter.RemainingInSegment());
+      iter.Advance(aData, iter.RemainingInSegment());
+    }
     RefPtr<SharedJSAllocatedData> sharedData =
       new SharedJSAllocatedData(Move(buf));
     return sharedData.forget();
@@ -66,7 +70,6 @@ public:
     : StructuredCloneHolder(StructuredCloneHolder::CloningSupported,
                             StructuredCloneHolder::TransferringSupported,
                             StructuredCloneHolder::StructuredCloneScope::DifferentProcess)
-    , mExternalData(StructuredCloneHolder::StructuredCloneScope::DifferentProcess)
     , mInitialized(false)
   {}
 
@@ -110,9 +113,10 @@ public:
 
   bool UseExternalData(const JSStructuredCloneData& aData)
   {
-    auto iter = aData.Start();
+    auto iter = aData.Iter();
     bool success = false;
-    mExternalData = aData.Borrow(iter, aData.Size(), &success);
+    mExternalData =
+      aData.Borrow<js::SystemAllocPolicy>(iter, aData.Size(), &success);
     mInitialized = true;
     return success;
   }
@@ -127,11 +131,6 @@ public:
   const JSStructuredCloneData& Data() const
   {
     return mSharedData ? mSharedData->Data() : mExternalData;
-  }
-
-  void InitScope(JS::StructuredCloneScope aScope)
-  {
-    Data().initScope(aScope);
   }
 
   size_t DataLength() const

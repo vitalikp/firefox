@@ -137,7 +137,7 @@ nsStructuredCloneContainer::GetDataAsBase64(nsAString &aOut)
     return NS_ERROR_FAILURE;
   }
 
-  auto iter = Data().Start();
+  auto iter = Data().Iter();
   size_t size = Data().Size();
   nsAutoCString binaryData;
   binaryData.SetLength(size);

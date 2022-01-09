@@ -88,7 +88,7 @@ StructuredCloneData::Write(JSContext* aCx,
     return;
   }
 
-  JSStructuredCloneData data(mBuffer->scope());
+  JSStructuredCloneData data;
   mBuffer->abandon();
   mBuffer->steal(&data);
   mBuffer = nullptr;
@@ -107,7 +107,7 @@ StructuredCloneData::ReadIPCParams(const IPC::Message* aMsg,
                                    PickleIterator* aIter)
 {
   MOZ_ASSERT(!mInitialized);
-  JSStructuredCloneData data(JS::StructuredCloneScope::DifferentProcess);
+  JSStructuredCloneData data;
   if (!ReadParam(aMsg, aIter, &data)) {
     return false;
   }

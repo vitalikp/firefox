@@ -161,16 +161,16 @@ template<typename T, typename AllocPolicy>
 struct BufferIterator {
     typedef mozilla::BufferList<AllocPolicy> BufferList;
 
-    explicit BufferIterator(const BufferList& buffer)
+    explicit BufferIterator(BufferList& buffer)
         : mBuffer(buffer)
         , mIter(buffer.Iter())
     {
         JS_STATIC_ASSERT(8 % sizeof(T) == 0);
     }
 
-    explicit BufferIterator(const JSStructuredCloneData& data)
-      : mBuffer(data.bufList_)
-      , mIter(data.Start())
+    BufferIterator(const BufferIterator& other)
+        : mBuffer(other.mBuffer)
+        , mIter(other.mIter)
     {
     }
 
@@ -229,26 +229,17 @@ struct BufferIterator {
         return mIter.HasRoomFor(sizeof(T));
     }
 
-    const BufferList& mBuffer;
+    BufferList& mBuffer;
     typename BufferList::IterImpl mIter;
 };
 
-// SCOutput provides an interface to write raw data -- eg uint64_ts, doubles,
-// arrays of bytes -- into a structured clone data output stream. It also knows
-// how to free any transferable data within that stream.
-//
-// Note that it contains a full JSStructuredCloneData object, which holds the
-// callbacks necessary to read/write/transfer/free the data. For the purpose of
-// this class, only the freeTransfer callback is relevant; the rest of the callbacks
-// are used by the higher-level JSStructuredCloneWriter interface.
 struct SCOutput {
   public:
-    using Iter = BufferIterator<uint64_t, SystemAllocPolicy>;
+    using Iter = BufferIterator<uint64_t, TempAllocPolicy>;
 
-    SCOutput(JSContext* cx, JS::StructuredCloneScope scope);
+    explicit SCOutput(JSContext* cx);
 
     JSContext* context() const { return cx; }
-    JS::StructuredCloneScope scope() const { return buf.scope(); }
 
     bool write(uint64_t u);
     bool writePair(uint32_t tag, uint32_t data);
@@ -261,25 +252,22 @@ struct SCOutput {
     template <class T>
     bool writeArray(const T* p, size_t nbytes);
 
-    void setCallbacks(const JSStructuredCloneCallbacks* callbacks,
-                      void* closure,
-                      OwnTransferablePolicy policy)
-    {
-        buf.setCallbacks(callbacks, closure, policy);
-    }
-    void extractBuffer(JSStructuredCloneData* data) { *data = Move(buf); }
-    void discardTransferables();
+    bool extractBuffer(JSStructuredCloneData* data);
+    void discardTransferables(const JSStructuredCloneCallbacks* cb, void* cbClosure);
 
     uint64_t tell() const { return buf.Size(); }
     uint64_t count() const { return buf.Size() / sizeof(uint64_t); }
-    Iter iter() { return Iter(buf); }
+    Iter iter() {
+        return BufferIterator<uint64_t, TempAllocPolicy>(buf);
+    }
 
     size_t offset(Iter dest) {
         return dest - iter();
     }
 
+  private:
     JSContext* cx;
-    JSStructuredCloneData buf;
+    mozilla::BufferList<TempAllocPolicy> buf;
 };
 
 class SCInput {
@@ -369,6 +357,13 @@ struct JSStructuredCloneReader {
     // be valid cross-process.)
     JS::StructuredCloneScope allowedScope;
 
+    // The scope the buffer was generated for (what sort of buffer it is.) The
+    // scope is not just a permissions thing; it also affects the storage
+    // format (eg a Transferred ArrayBuffer can be stored as a pointer for
+    // SameProcessSameThread but must have its contents in the clone buffer for
+    // DifferentProcess.)
+    JS::StructuredCloneScope storedScope;
+
     // Stack of objects with properties remaining to be read.
     AutoValueVector objs;
 
@@ -392,15 +387,13 @@ struct JSStructuredCloneWriter {
                                      const JSStructuredCloneCallbacks* cb,
                                      void* cbClosure,
                                      const Value& tVal)
-        : out(cx, scope), objs(out.context()),
+        : out(cx), scope(scope), objs(out.context()),
           counts(out.context()), entries(out.context()),
-          memory(out.context()),
-          transferable(out.context(), tVal),
+          memory(out.context()), callbacks(cb),
+          closure(cbClosure), transferable(out.context(), tVal),
           transferableObjects(out.context(), GCHashSet<JSObject*>(cx)),
           cloneDataPolicy(cloneDataPolicy)
-    {
-        out.setCallbacks(cb, cbClosure, OwnTransferablePolicy::NoTransferables);
-    }
+    {}
 
     ~JSStructuredCloneWriter();
 
@@ -416,9 +409,16 @@ struct JSStructuredCloneWriter {
 
     SCOutput& output() { return out; }
 
-    void extractBuffer(JSStructuredCloneData* newData) {
-        out.extractBuffer(newData);
+    bool extractBuffer(JSStructuredCloneData* data) {
+        bool success = out.extractBuffer(data);
+        if (success) {
+            data->setOptionalCallbacks(callbacks, closure,
+                                       OwnTransferablePolicy::OwnsTransferablesIfAny);
+        }
+        return success;
     }
+
+    JS::StructuredCloneScope cloneScope() const { return scope; }
 
   private:
     JSStructuredCloneWriter() = delete;
@@ -450,6 +450,9 @@ struct JSStructuredCloneWriter {
 
     SCOutput out;
 
+    // The (address space, thread) scope within which this clone is valid.
+    JS::StructuredCloneScope scope;
+
     // Vector of objects with properties remaining to be written.
     //
     // NB: These can span multiple compartments, so the compartment must be
@@ -474,6 +477,12 @@ struct JSStructuredCloneWriter {
                                   MovableCellHasher<JSObject*>,
                                   SystemAllocPolicy>;
     Rooted<CloneMemory> memory;
+
+    // The user defined callbacks that will be used for cloning.
+    const JSStructuredCloneCallbacks* callbacks;
+
+    // Any value passed to JS_WriteStructuredClone.
+    void* closure;
 
     // Set of transferable objects
     RootedValue transferable;
@@ -534,12 +543,7 @@ WriteStructuredClone(JSContext* cx, HandleValue v, JSStructuredCloneData* bufp,
                      const Value& transferable)
 {
     JSStructuredCloneWriter w(cx, scope, cloneDataPolicy, cb, cbClosure, transferable);
-    if (!w.init())
-        return false;
-    if (!w.write(v))
-        return false;
-    w.extractBuffer(bufp);
-    return true;
+    return w.init() && w.write(v) && w.extractBuffer(bufp);
 }
 
 bool
@@ -552,15 +556,91 @@ ReadStructuredClone(JSContext* cx, JSStructuredCloneData& data,
     return r.read(vp);
 }
 
+// If the given buffer contains Transferables, free them. Note that custom
+// Transferables will use the JSStructuredCloneCallbacks::freeTransfer() to
+// delete their transferables.
+template<typename AllocPolicy>
+static void
+DiscardTransferables(mozilla::BufferList<AllocPolicy>& buffer,
+                     const JSStructuredCloneCallbacks* cb, void* cbClosure)
+{
+    auto point = BufferIterator<uint64_t, AllocPolicy>(buffer);
+    if (point.done())
+        return; // Empty buffer
+
+    uint32_t tag, data;
+    MOZ_RELEASE_ASSERT(point.canPeek());
+    SCInput::getPair(point.peek(), &tag, &data);
+    point.next();
+
+    if (tag == SCTAG_HEADER) {
+        if (point.done())
+            return;
+
+        MOZ_RELEASE_ASSERT(point.canPeek());
+        SCInput::getPair(point.peek(), &tag, &data);
+        point.next();
+    }
+
+    if (tag != SCTAG_TRANSFER_MAP_HEADER)
+        return;
+
+    if (TransferableMapHeader(data) == SCTAG_TM_TRANSFERRED)
+        return;
+
+    // freeTransfer should not GC
+    JS::AutoSuppressGCAnalysis nogc;
+
+    if (point.done())
+        return;
+
+    uint64_t numTransferables = NativeEndian::swapFromLittleEndian(point.peek());
+    point.next();
+    while (numTransferables--) {
+        if (!point.canPeek())
+            return;
+
+        uint32_t ownership;
+        SCInput::getPair(point.peek(), &tag, &ownership);
+        point.next();
+        MOZ_ASSERT(tag >= SCTAG_TRANSFER_MAP_PENDING_ENTRY);
+        if (!point.canPeek())
+            return;
+
+        void* content;
+        SCInput::getPtr(point.peek(), &content);
+        point.next();
+        if (!point.canPeek())
+            return;
+
+        uint64_t extraData = NativeEndian::swapFromLittleEndian(point.peek());
+        point.next();
+
+        if (ownership < JS::SCTAG_TMO_FIRST_OWNED)
+            continue;
+
+        if (ownership == JS::SCTAG_TMO_ALLOC_DATA) {
+            js_free(content);
+        } else if (ownership == JS::SCTAG_TMO_MAPPED_DATA) {
+            JS_ReleaseMappedArrayBufferContents(content, extraData);
+        } else if (cb && cb->freeTransfer) {
+            cb->freeTransfer(tag, JS::TransferableOwnership(ownership), content, extraData, cbClosure);
+        } else {
+            MOZ_ASSERT(false, "unknown ownership");
+        }
+    }
+}
+
 static bool
 StructuredCloneHasTransferObjects(const JSStructuredCloneData& data)
 {
+    auto iter = data.Iter();
+
     if (data.Size() < sizeof(uint64_t))
         return false;
 
     uint64_t u;
-    BufferIterator<uint64_t, SystemAllocPolicy> iter(data);
-    MOZ_ALWAYS_TRUE(iter.readBytes(reinterpret_cast<char*>(&u), sizeof(u)));
+    data.ReadBytes(iter, reinterpret_cast<char*>(&u), sizeof(u));
     uint32_t tag = uint32_t(u >> 32);
     return (tag == SCTAG_TRANSFER_MAP_HEADER);
 }
@@ -571,7 +651,7 @@ SCInput::SCInput(JSContext* cx, JSStructuredCloneData& data)
     : cx(cx), point(data)
 {
 
-    static_assert(JSStructuredCloneData::BufferList::kSegmentAlignment % 8 == 0,
+    static_assert(JSStructuredCloneData::kSegmentAlignment % 8 == 0,
                   "structured clone buffer reads should be aligned");
     MOZ_ASSERT(data.Size() % 8 == 0);
 }
@@ -733,8 +813,9 @@ SCInput::readPtr(void** p)
     return true;
 }
 
-SCOutput::SCOutput(JSContext* cx, JS::StructuredCloneScope scope)
-  : cx(cx), buf(scope)
+SCOutput::SCOutput(JSContext* cx)
+    : cx(cx)
+    , buf(0, 0, 4096, cx)
 {
 }
 
@@ -742,11 +823,7 @@ bool
 SCOutput::write(uint64_t u)
 {
     uint64_t v = NativeEndian::swapToLittleEndian(u);
-    if (!buf.AppendBytes(reinterpret_cast<char*>(&v), sizeof(u))) {
-        ReportOutOfMemory(context());
-        return false;
-    }
-    return true;
+    return buf.WriteBytes(reinterpret_cast<char*>(&v), sizeof(u));
 }
 
 bool
@@ -807,7 +884,7 @@ SCOutput::writeArray(const T* p, size_t nelems)
 
     for (size_t i = 0; i < nelems; i++) {
         T value = swapToLittleEndian(p[i]);
-        if (!buf.AppendBytes(reinterpret_cast<char*>(&value), sizeof(value)))
+        if (!buf.WriteBytes(reinterpret_cast<char*>(&value), sizeof(value)))
             return false;
     }
 
@@ -816,7 +893,7 @@ SCOutput::writeArray(const T* p, size_t nelems)
     size_t padbytes = sizeof(uint64_t) * nwords - sizeof(T) * nelems;
     char zero = 0;
     for (size_t i = 0; i < padbytes; i++) {
-        if (!buf.AppendBytes(&zero, sizeof(zero)))
+        if (!buf.WriteBytes(&zero, sizeof(zero)))
             return false;
     }
 
@@ -851,101 +928,34 @@ SCOutput::writePtr(const void* p)
     return write(reinterpret_cast<uint64_t>(p));
 }
 
-void
-SCOutput::discardTransferables()
+bool
+SCOutput::extractBuffer(JSStructuredCloneData* data)
 {
-    buf.discardTransferables();
+    bool success;
+    mozilla::BufferList<SystemAllocPolicy> out =
+        buf.MoveFallible<SystemAllocPolicy>(&success);
+    if (!success) {
+        ReportOutOfMemory(cx);
+        return false;
+    }
+    *data = JSStructuredCloneData(Move(out));
+    return true;
+}
+
+void
+SCOutput::discardTransferables(const JSStructuredCloneCallbacks* cb, void* cbClosure)
+{
+    DiscardTransferables(buf, cb, cbClosure);
 }
 
 } /* namespace js */
 
-
-// If the buffer contains Transferables, free them. Note that custom
-// Transferables will use the JSStructuredCloneCallbacks::freeTransfer() to
-// delete their transferables.
-void
-JSStructuredCloneData::discardTransferables()
+JSStructuredCloneData::~JSStructuredCloneData()
 {
     if (!Size())
         return;
-
-    if (ownTransferables_ != OwnTransferablePolicy::OwnsTransferablesIfAny)
-        return;
-
-    // DifferentProcess clones cannot contain pointers, so nothing needs to be
-    // released.
-    if (scope_ == JS::StructuredCloneScope::DifferentProcess)
-        return;
-
-    FreeTransferStructuredCloneOp freeTransfer = nullptr;
-    if (callbacks_)
-        freeTransfer = callbacks_->freeTransfer;
-
-    auto point = BufferIterator<uint64_t, SystemAllocPolicy>(*this);
-    if (point.done())
-        return; // Empty buffer
-
-    uint32_t tag, data;
-    MOZ_RELEASE_ASSERT(point.canPeek());
-    SCInput::getPair(point.peek(), &tag, &data);
-    point.next();
-
-    if (tag == SCTAG_HEADER) {
-        if (point.done())
-            return;
-
-        MOZ_RELEASE_ASSERT(point.canPeek());
-        SCInput::getPair(point.peek(), &tag, &data);
-        point.next();
-    }
-
-    if (tag != SCTAG_TRANSFER_MAP_HEADER)
-        return;
-
-    if (TransferableMapHeader(data) == SCTAG_TM_TRANSFERRED)
-        return;
-
-    // freeTransfer should not GC
-    JS::AutoSuppressGCAnalysis nogc;
-
-    if (point.done())
-        return;
-
-    uint64_t numTransferables = NativeEndian::swapFromLittleEndian(point.peek());
-    point.next();
-    while (numTransferables--) {
-        if (!point.canPeek())
-            return;
-
-        uint32_t ownership;
-        SCInput::getPair(point.peek(), &tag, &ownership);
-        point.next();
-        MOZ_ASSERT(tag >= SCTAG_TRANSFER_MAP_PENDING_ENTRY);
-        if (!point.canPeek())
-            return;
-
-        void* content;
-        SCInput::getPtr(point.peek(), &content);
-        point.next();
-        if (!point.canPeek())
-            return;
-
-        uint64_t extraData = NativeEndian::swapFromLittleEndian(point.peek());
-        point.next();
-
-        if (ownership < JS::SCTAG_TMO_FIRST_OWNED)
-            continue;
-
-        if (ownership == JS::SCTAG_TMO_ALLOC_DATA) {
-            js_free(content);
-        } else if (ownership == JS::SCTAG_TMO_MAPPED_DATA) {
-            JS_ReleaseMappedArrayBufferContents(content, extraData);
-        } else if (freeTransfer) {
-            freeTransfer(tag, JS::TransferableOwnership(ownership), content, extraData, closure_);
-        } else {
-            MOZ_ASSERT(false, "unknown ownership");
-        }
-    }
+    if (ownTransferables_ == OwnTransferablePolicy::OwnsTransferablesIfAny)
+        DiscardTransferables(*this, callbacks_, closure_);
 }
 
 JS_STATIC_ASSERT(JSString::MAX_LENGTH < UINT32_MAX);
@@ -953,8 +963,9 @@ JS_STATIC_ASSERT(JSString::MAX_LENGTH < UINT32_MAX);
 JSStructuredCloneWriter::~JSStructuredCloneWriter()
 {
     // Free any transferable data left lying around in the buffer
-    if (out.count())
-        out.discardTransferables();
+    if (out.count()) {
+        out.discardTransferables(callbacks, closure);
+    }
 }
 
 bool
@@ -1028,7 +1039,7 @@ JSStructuredCloneWriter::parseTransferable()
 bool
 JSStructuredCloneWriter::reportDataCloneError(uint32_t errorId)
 {
-    ReportDataCloneError(context(), out.buf.callbacks_, errorId);
+    ReportDataCloneError(context(), callbacks, errorId);
     return false;
 }
 
@@ -1447,8 +1458,8 @@ JSStructuredCloneWriter::startWrite(HandleValue v)
             return traverseSavedFrame(obj);
         }
 
-        if (out.buf.callbacks_ && out.buf.callbacks_->write)
-            return out.buf.callbacks_->write(context(), this, obj, out.buf.closure_);
+        if (callbacks && callbacks->write)
+            return callbacks->write(context(), this, obj, closure);
         /* else fall through */
     }
 
@@ -1458,7 +1469,7 @@ JSStructuredCloneWriter::startWrite(HandleValue v)
 bool
 JSStructuredCloneWriter::writeHeader()
 {
-    return out.writePair(SCTAG_HEADER, (uint32_t)output().scope());
+    return out.writePair(SCTAG_HEADER, (uint32_t)scope);
 }
 
 bool
@@ -1516,7 +1527,6 @@ JSStructuredCloneWriter::transferOwnership()
 
     JSContext* cx = context();
     RootedObject obj(cx);
-    JS::StructuredCloneScope scope = output().scope();
     for (auto tr = transferableObjects.all(); !tr.empty(); tr.popFront()) {
         obj = tr.front();
 
@@ -1549,9 +1559,7 @@ JSStructuredCloneWriter::transferOwnership()
                 return false;
             }
 
-            if (scope == JS::StructuredCloneScope::DifferentProcess ||
-                scope == JS::StructuredCloneScope::DifferentProcessForIndexedDB)
-            {
+            if (scope == JS::StructuredCloneScope::DifferentProcess) {
                 // Write Transferred ArrayBuffers in DifferentProcess scope at
                 // the end of the clone buffer, and store the offset within the
                 // buffer to where the ArrayBuffer was written. Note that this
@@ -1588,9 +1596,9 @@ JSStructuredCloneWriter::transferOwnership()
                 extraData = nbytes;
             }
         } else {
-            if (!out.buf.callbacks_ || !out.buf.callbacks_->writeTransfer)
+            if (!callbacks || !callbacks->writeTransfer)
                 return reportDataCloneError(JS_SCERR_TRANSFERABLE);
-            if (!out.buf.callbacks_->writeTransfer(cx, obj, out.buf.closure_, &tag, &ownership, &content, &extraData))
+            if (!callbacks->writeTransfer(cx, obj, closure, &tag, &ownership, &content, &extraData))
                 return false;
             MOZ_ASSERT(tag > SCTAG_TRANSFER_MAP_PENDING_ENTRY);
         }
@@ -2183,33 +2191,25 @@ JSStructuredCloneReader::readHeader()
     if (!in.getPair(&tag, &data))
         return in.reportTruncated();
 
-    JS::StructuredCloneScope storedScope;
-    if (tag == SCTAG_HEADER) {
-        MOZ_ALWAYS_TRUE(in.readPair(&tag, &data));
-        storedScope = JS::StructuredCloneScope(data);
-    } else {
+    if (tag != SCTAG_HEADER) {
         // Old structured clone buffer. We must have read it from disk.
-        storedScope = JS::StructuredCloneScope::DifferentProcessForIndexedDB;
+        storedScope = JS::StructuredCloneScope::DifferentProcess;
+        return true;
     }
 
-    if (storedScope < JS::StructuredCloneScope::SameProcessSameThread ||
-        storedScope > JS::StructuredCloneScope::DifferentProcessForIndexedDB)
+    MOZ_ALWAYS_TRUE(in.readPair(&tag, &data));
+    storedScope = JS::StructuredCloneScope(data);
+
+    if (data != uint32_t(JS::StructuredCloneScope::SameProcessSameThread) &&
+        data != uint32_t(JS::StructuredCloneScope::SameProcessDifferentThread) &&
+        data != uint32_t(JS::StructuredCloneScope::DifferentProcess))
     {
         JS_ReportErrorNumberASCII(context(), GetErrorMessage, nullptr, JSMSG_SC_BAD_SERIALIZED_DATA,
                                   "invalid structured clone scope");
         return false;
     }
-
-    if (allowedScope == JS::StructuredCloneScope::DifferentProcessForIndexedDB) {
-        // Bug 1434308 and bug 1458320 - the scopes stored in old IndexedDB
-        // clones are incorrect. Treat them as if they were DifferentProcess.
-        allowedScope = JS::StructuredCloneScope::DifferentProcess;
-        return true;
-    }
-
     if (storedScope < allowedScope) {
-        JS_ReportErrorNumberASCII(context(), GetErrorMessage, nullptr,
-                                  JSMSG_SC_BAD_SERIALIZED_DATA,
+        JS_ReportErrorNumberASCII(context(), GetErrorMessage, nullptr, JSMSG_SC_BAD_SERIALIZED_DATA,
                                   "incompatible structured clone scope");
         return false;
     }
@@ -2253,14 +2253,10 @@ JSStructuredCloneReader::readTransferMap()
             return false;
 
         if (tag == SCTAG_TRANSFER_MAP_ARRAY_BUFFER) {
-            if (allowedScope == JS::StructuredCloneScope::DifferentProcess ||
-                allowedScope == JS::StructuredCloneScope::DifferentProcessForIndexedDB)
-            {
+            if (storedScope == JS::StructuredCloneScope::DifferentProcess) {
                 // Transferred ArrayBuffers in a DifferentProcess clone buffer
-                // are treated as if they weren't Transferred at all. We should
-                // only see SCTAG_TRANSFER_MAP_STORED_ARRAY_BUFFER.
-                ReportDataCloneError(cx, callbacks, JS_SCERR_TRANSFERABLE);
-                return false;
+                // are treated as if they weren't Transferred at all.
+                continue;
             }
 
             size_t nbytes = extraData;
@@ -2595,7 +2591,7 @@ JS_StructuredClone(JSContext* cx, HandleValue value, MutableHandleValue vp,
 }
 
 JSAutoStructuredCloneBuffer::JSAutoStructuredCloneBuffer(JSAutoStructuredCloneBuffer&& other)
-  : scope_(other.scope()), data_(other.scope())
+    : scope_(other.scope_)
 {
     data_.ownTransferables_ = other.data_.ownTransferables_;
     other.steal(&data_, &version_, &data_.callbacks_, &data_.closure_);
@@ -2613,12 +2609,43 @@ JSAutoStructuredCloneBuffer::operator=(JSAutoStructuredCloneBuffer&& other)
 }
 
 void
-JSAutoStructuredCloneBuffer::clear()
+JSAutoStructuredCloneBuffer::clear(const JSStructuredCloneCallbacks* optionalCallbacks,
+                                   void* optionalClosure)
 {
-    data_.discardTransferables();
+    if (!data_.Size())
+        return;
+
+    const JSStructuredCloneCallbacks* callbacks =
+        optionalCallbacks ?  optionalCallbacks : data_.callbacks_;
+    void* closure = optionalClosure ?  optionalClosure : data_.closure_;
+
+    if (data_.ownTransferables_ == OwnTransferablePolicy::OwnsTransferablesIfAny)
+        DiscardTransferables(data_, callbacks, closure);
     data_.ownTransferables_ = OwnTransferablePolicy::NoTransferables;
     data_.Clear();
     version_ = 0;
+}
+
+bool
+JSAutoStructuredCloneBuffer::copy(const JSStructuredCloneData& srcData, uint32_t version,
+                                  const JSStructuredCloneCallbacks* callbacks,
+                                  void* closure)
+{
+    // transferable objects cannot be copied
+    if (StructuredCloneHasTransferObjects(srcData))
+        return false;
+
+    clear();
+
+    auto iter = srcData.Iter();
+    while (!iter.Done()) {
+            data_.WriteBytes(iter.Data(), iter.RemainingInSegment());
+            iter.Advance(srcData, iter.RemainingInSegment());
+    }
+
+    version_ = version;
+    data_.setOptionalCallbacks(callbacks, closure, OwnTransferablePolicy::NoTransferables);
+    return true;
 }
 
 void
@@ -2629,7 +2656,7 @@ JSAutoStructuredCloneBuffer::adopt(JSStructuredCloneData&& data, uint32_t versio
     clear();
     data_ = Move(data);
     version_ = version;
-    data_.setCallbacks(callbacks, closure, OwnTransferablePolicy::OwnsTransferablesIfAny);
+    data_.setOptionalCallbacks(callbacks, closure, OwnTransferablePolicy::OwnsTransferablesIfAny);
 }
 
 void
@@ -2646,7 +2673,7 @@ JSAutoStructuredCloneBuffer::steal(JSStructuredCloneData* data, uint32_t* versio
     *data = Move(data_);
 
     version_ = 0;
-    data_.setCallbacks(nullptr, nullptr, OwnTransferablePolicy::NoTransferables);
+    data_.setOptionalCallbacks(nullptr, nullptr, OwnTransferablePolicy::NoTransferables);
 }
 
 bool
@@ -2760,5 +2787,5 @@ JS_ObjectNotWritten(JSStructuredCloneWriter* w, HandleObject obj)
 JS_PUBLIC_API(JS::StructuredCloneScope)
 JS_GetStructuredCloneScope(JSStructuredCloneWriter* w)
 {
-    return w->output().scope();
+    return w->cloneScope();
 }

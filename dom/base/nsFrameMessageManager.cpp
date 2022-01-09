@@ -266,10 +266,10 @@ BuildClonedMessageData(typename BlobTraits<Flavor>::ConcreteContentManagerType* 
                        ClonedMessageData& aClonedData)
 {
   SerializedStructuredCloneBuffer& buffer = aClonedData.data();
-  auto iter = aData.Data().Start();
+  auto iter = aData.Data().Iter();
   size_t size = aData.Data().Size();
   bool success;
-  buffer.data = aData.Data().Borrow(iter, size, &success);
+  buffer.data = aData.Data().Borrow<js::SystemAllocPolicy>(iter, size, &success);
   if (NS_WARN_IF(!success)) {
     return false;
   }
@@ -1191,7 +1191,6 @@ nsFrameMessageManager::ReceiveMessage(nsISupports* aTarget,
         if (aRetVal) {
           ErrorResult rv;
           StructuredCloneData* data = aRetVal->AppendElement();
-          data->InitScope(JS::StructuredCloneScope::DifferentProcess);
           data->Write(cx, rval, rv);
           if (NS_WARN_IF(rv.Failed())) {
             aRetVal->RemoveElementAt(aRetVal->Length() - 1);

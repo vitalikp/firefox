@@ -65,10 +65,6 @@ struct StructuredCloneReadInfo
   bool mHasPreprocessInfo;
 
   // In IndexedDatabaseInlines.h
-  inline explicit
-  StructuredCloneReadInfo(JS::StructuredCloneScope aScope);
-
-  // In IndexedDatabaseInlines.h
   inline
   StructuredCloneReadInfo();
 
