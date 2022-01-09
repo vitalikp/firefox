@@ -253,6 +253,7 @@ nsSVGMaskFrame::GetMaskForMaskedFrame(gfxContext* aContext,
   tmpCtx->SetMatrix(maskSurfaceMatrix);
 
   mMatrixForChildren = GetMaskTransform(aMaskedFrame) * aMatrix;
+
   for (nsIFrame* kid = mFrames.FirstChild(); kid;
        kid = kid->GetNextSibling()) {
     // The CTM of each frame referencing us can be different
@@ -265,7 +266,10 @@ nsSVGMaskFrame::GetMaskForMaskedFrame(gfxContext* aContext,
       m = static_cast<nsSVGElement*>(kid->GetContent())->
             PrependLocalTransformsTo(m, eUserSpaceToParent);
     }
-    Unused << nsSVGUtils::PaintFrameWithEffects(kid, *tmpCtx, m);
+    DrawResult result = nsSVGUtils::PaintFrameWithEffects(kid, *tmpCtx, m);
+    if (result != DrawResult::SUCCESS) {
+      return nullptr;
+    }
   }
 
   RefPtr<SourceSurface> maskSnapshot = maskDT->Snapshot();
