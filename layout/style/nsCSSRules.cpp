@@ -2402,7 +2402,7 @@ nsCSSKeyframesRule::DeleteRule(const nsAString& aKey)
     nsIDocument* doc = GetDocument();
     MOZ_AUTO_DOC_UPDATE(doc, UPDATE_STYLE, true);
 
-    DeleteStyleRuleAt(index);
+    mRules.RemoveObjectAt(index);
 
     CSSStyleSheet* sheet = GetStyleSheet();
     if (sheet) {
