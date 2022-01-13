@@ -3029,16 +3029,16 @@ nsDOMWindowUtils::GetFileId(JS::Handle<JS::Value> aFile, JSContext* aCx,
     return NS_OK;
   }
 
-  JS::Rooted<JSObject*> obj(aCx, aFile.toObjectOrNull());
+  JSObject* obj = aFile.toObjectOrNull();
 
   IDBMutableFile* mutableFile = nullptr;
-  if (NS_SUCCEEDED(UNWRAP_OBJECT(IDBMutableFile, &obj, mutableFile))) {
+  if (NS_SUCCEEDED(UNWRAP_OBJECT(IDBMutableFile, obj, mutableFile))) {
     *_retval = mutableFile->GetFileId();
     return NS_OK;
   }
 
   Blob* blob = nullptr;
-  if (NS_SUCCEEDED(UNWRAP_OBJECT(Blob, &obj, blob))) {
+  if (NS_SUCCEEDED(UNWRAP_OBJECT(Blob, obj, blob))) {
     *_retval = blob->GetFileId();
     return NS_OK;
   }
@@ -3056,10 +3056,10 @@ nsDOMWindowUtils::GetFilePath(JS::HandleValue aFile, JSContext* aCx,
     return NS_OK;
   }
 
-  JS::Rooted<JSObject*> obj(aCx, aFile.toObjectOrNull());
+  JSObject* obj = aFile.toObjectOrNull();
 
   File* file = nullptr;
-  if (NS_SUCCEEDED(UNWRAP_OBJECT(File, &obj, file))) {
+  if (NS_SUCCEEDED(UNWRAP_OBJECT(File, obj, file))) {
     nsString filePath;
     ErrorResult rv;
     file->GetMozFullPathInternal(filePath, rv);

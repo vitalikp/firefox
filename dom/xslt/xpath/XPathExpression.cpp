@@ -75,7 +75,7 @@ XPathExpression::EvaluateWithContext(JSContext* aCx,
                                      JS::Handle<JSObject*> aInResult,
                                      ErrorResult& aRv)
 {
-    RefPtr<XPathResult> inResult;
+    XPathResult* inResult = nullptr;
     if (aInResult) {
         nsresult rv = UNWRAP_OBJECT(XPathResult, aInResult, inResult);
         if (NS_FAILED(rv) && rv != NS_ERROR_XPC_BAD_CONVERT_JS) {

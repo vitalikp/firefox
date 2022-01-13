@@ -213,11 +213,8 @@ StructuredCloneWriteCallback(JSContext* aCx,
     return JS_WriteBytes(aWriter, &value, sizeof(value));
   }
 
-  // UNWRAP_OBJECT calls might mutate this.
-  JS::Rooted<JSObject*> obj(aCx, aObj);
-
   IDBMutableFile* mutableFile;
-  if (NS_SUCCEEDED(UNWRAP_OBJECT(IDBMutableFile, &obj, mutableFile))) {
+  if (NS_SUCCEEDED(UNWRAP_OBJECT(IDBMutableFile, aObj, mutableFile))) {
     if (cloneWriteInfo->mDatabase->IsFileHandleDisabled()) {
       return false;
     }
@@ -286,7 +283,7 @@ StructuredCloneWriteCallback(JSContext* aCx,
 
   {
     Blob* blob = nullptr;
-    if (NS_SUCCEEDED(UNWRAP_OBJECT(Blob, &obj, blob))) {
+    if (NS_SUCCEEDED(UNWRAP_OBJECT(Blob, aObj, blob))) {
       ErrorResult rv;
       uint64_t size = blob->GetSize(rv);
       MOZ_ASSERT(!rv.Failed());

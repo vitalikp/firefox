@@ -537,7 +537,7 @@ WindowOrNull(JSObject* aObj)
     MOZ_ASSERT(!js::IsWrapper(aObj));
 
     nsGlobalWindow* win = nullptr;
-    UNWRAP_NON_WRAPPER_OBJECT(Window, aObj, win);
+    UNWRAP_OBJECT(Window, aObj, win);
     return win;
 }
 
@@ -2728,17 +2728,21 @@ class XPCJSContextStats : public JS::RuntimeStats
 
     virtual void initExtraZoneStats(JS::Zone* zone, JS::ZoneStats* zStats) override {
         // Get the compartment's global.
+        nsXPConnect* xpc = nsXPConnect::XPConnect();
         AutoSafeJSContext cx;
         JSCompartment* comp = js::GetAnyCompartmentInZone(zone);
         xpc::ZoneStatsExtras* extras = new xpc::ZoneStatsExtras;
         extras->pathPrefix.AssignLiteral("explicit/js-non-window/zones/");
         RootedObject global(cx, JS_GetGlobalForCompartmentOrNull(cx, comp));
         if (global) {
-            RefPtr<nsGlobalWindow> window;
-            if (NS_SUCCEEDED(UNWRAP_OBJECT(Window, global, window))) {
+            // Need to enter the compartment, otherwise GetNativeOfWrapper()
+            // might crash.
+            JSAutoCompartment ac(cx, global);
+            nsISupports* native = xpc->GetNativeOfWrapper(cx, global);
+            if (nsCOMPtr<nsPIDOMWindowInner> piwindow = do_QueryInterface(native)) {
                 // The global is a |window| object.  Use the path prefix that
                 // we should have already created for it.
-                if (mTopWindowPaths->Get(window->WindowID(),
+                if (mTopWindowPaths->Get(piwindow->WindowID(),
                                          &extras->pathPrefix))
                     extras->pathPrefix.AppendLiteral("/js-");
             }
@@ -2769,15 +2773,19 @@ class XPCJSContextStats : public JS::RuntimeStats
         }
 
         // Get the compartment's global.
+        nsXPConnect* xpc = nsXPConnect::XPConnect();
         AutoSafeJSContext cx;
         bool needZone = true;
         RootedObject global(cx, JS_GetGlobalForCompartmentOrNull(cx, c));
         if (global) {
-            RefPtr<nsGlobalWindow> window;
-            if (NS_SUCCEEDED(UNWRAP_OBJECT(Window, global, window))) {
+            // Need to enter the compartment, otherwise GetNativeOfWrapper()
+            // might crash.
+            JSAutoCompartment ac(cx, global);
+            nsISupports* native = xpc->GetNativeOfWrapper(cx, global);
+            if (nsCOMPtr<nsPIDOMWindowInner> piwindow = do_QueryInterface(native)) {
                 // The global is a |window| object.  Use the path prefix that
                 // we should have already created for it.
-                if (mWindowPaths->Get(window->WindowID(),
+                if (mWindowPaths->Get(piwindow->WindowID(),
                                       &extras->jsPathPrefix)) {
                     extras->domPathPrefix.Assign(extras->jsPathPrefix);
                     extras->domPathPrefix.AppendLiteral("/dom/");

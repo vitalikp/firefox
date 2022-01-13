@@ -252,9 +252,8 @@ nsXPCWrappedJSClass::CallQueryInterfaceOnJSObject(JSContext* cx,
                 if (jsexception.isObject()) {
                     // XPConnect may have constructed an object to represent a
                     // C++ QI failure. See if that is the case.
-                    JS::Rooted<JSObject*> exceptionObj(cx, &jsexception.toObject());
                     Exception* e = nullptr;
-                    UNWRAP_OBJECT(Exception, &exceptionObj, e);
+                    UNWRAP_OBJECT(Exception, &jsexception.toObject(), e);
 
                     if (e &&
                         NS_SUCCEEDED(e->GetResult(&rv)) &&

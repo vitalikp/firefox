@@ -396,13 +396,15 @@ public:
         return;
       }
 
-      RefPtr<Cache> cache;
+      Cache* cache = nullptr;
       nsresult rv = UNWRAP_OBJECT(Cache, obj, cache);
       if (NS_WARN_IF(NS_FAILED(rv))) {
         Fail(rv);
         return;
       }
 
+      // Just to be safe.
+      RefPtr<Cache> kungfuDeathGrip = cache;
       WriteToCache(cache);
       return;
     }
@@ -915,9 +917,13 @@ CompareCache::ManageCacheResult(JSContext* aCx, JS::Handle<JS::Value> aValue)
   }
 
   JS::Rooted<JSObject*> obj(aCx, &aValue.toObject());
+  if (NS_WARN_IF(!obj)) {
+    mManager->CacheFinished(NS_ERROR_FAILURE, false);
+    return;
+  }
 
   Cache* cache = nullptr;
-  nsresult rv = UNWRAP_OBJECT(Cache, &obj, cache);
+  nsresult rv = UNWRAP_OBJECT(Cache, obj, cache);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     mManager->CacheFinished(rv, false);
     return;
@@ -951,9 +957,13 @@ CompareCache::ManageValueResult(JSContext* aCx, JS::Handle<JS::Value> aValue)
   MOZ_ASSERT(aValue.isObject());
 
   JS::Rooted<JSObject*> obj(aCx, &aValue.toObject());
+  if (NS_WARN_IF(!obj)) {
+    mManager->CacheFinished(NS_ERROR_FAILURE, false);
+    return;
+  }
 
   Response* response = nullptr;
-  nsresult rv = UNWRAP_OBJECT(Response, &obj, response);
+  nsresult rv = UNWRAP_OBJECT(Response, obj, response);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     mManager->CacheFinished(rv, false);
     return;
