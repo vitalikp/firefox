@@ -2026,9 +2026,6 @@ public class BrowserApp extends GeckoApp
                     }
 
                     if (AppConstants.MOZ_ANDROID_DOWNLOAD_CONTENT_SERVICE) {
-                        // TODO: Better scheduling of sync action (Bug 1257492)
-                        DownloadContentService.startSync(this);
-
                         DownloadContentService.startVerification(this);
                     }
 

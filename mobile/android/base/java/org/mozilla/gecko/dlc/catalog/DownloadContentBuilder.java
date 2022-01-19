@@ -27,21 +27,6 @@ public class DownloadContentBuilder {
     private static final String LOCAL_KEY_PATTERN_ANDROID_API = "pattern_android_api";
     private static final String LOCAL_KEY_PATTERN_APP_VERSION = "pattern_app_version";
 
-    private static final String KINTO_KEY_ID = "id";
-    private static final String KINTO_KEY_ATTACHMENT = "attachment";
-    private static final String KINTO_KEY_ORIGINAL = "original";
-    private static final String KINTO_KEY_LOCATION = "location";
-    private static final String KINTO_KEY_FILENAME = "filename";
-    private static final String KINTO_KEY_HASH = "hash";
-    private static final String KINTO_KEY_LAST_MODIFIED = "last_modified";
-    private static final String KINTO_KEY_TYPE = "type";
-    private static final String KINTO_KEY_KIND = "kind";
-    private static final String KINTO_KEY_SIZE = "size";
-    private static final String KINTO_KEY_MATCH = "match";
-    private static final String KINTO_KEY_APP_ID = "appId";
-    private static final String KINTO_KEY_ANDROID_API = "androidApi";
-    private static final String KINTO_KEY_APP_VERSION = "appVersion";
-
     private String id;
     private String location;
     private String filename;
@@ -199,40 +184,6 @@ public class DownloadContentBuilder {
 
     public DownloadContentBuilder setAppIdPattern(String appIdPattern) {
         this.appIdPattern = appIdPattern;
-        return this;
-    }
-
-    public DownloadContentBuilder updateFromKinto(JSONObject object)  throws JSONException {
-        final String objectId = object.getString(KINTO_KEY_ID);
-
-        if (TextUtils.isEmpty(id)) {
-            // New object without an id yet
-            id = objectId;
-        } else if (!id.equals(objectId)) {
-            throw new JSONException(String.format("Record ids do not match: Expected=%s, Actual=%s", id, objectId));
-        }
-
-        setType(object.getString(KINTO_KEY_TYPE));
-        setKind(object.getString(KINTO_KEY_KIND));
-        setLastModified(object.getLong(KINTO_KEY_LAST_MODIFIED));
-
-        JSONObject attachment = object.getJSONObject(KINTO_KEY_ATTACHMENT);
-        JSONObject original = attachment.getJSONObject(KINTO_KEY_ORIGINAL);
-
-        setFilename(original.getString(KINTO_KEY_FILENAME));
-        setChecksum(original.getString(KINTO_KEY_HASH));
-        setSize(original.getLong(KINTO_KEY_SIZE));
-
-        setLocation(attachment.getString(KINTO_KEY_LOCATION));
-        setDownloadChecksum(attachment.getString(KINTO_KEY_HASH));
-
-        JSONObject match = object.optJSONObject(KINTO_KEY_MATCH);
-        if (match != null) {
-            setAndroidApiPattern(match.optString(KINTO_KEY_ANDROID_API));
-            setAppIdPattern(match.optString(KINTO_KEY_APP_ID));
-            setAppVersionPattern(match.optString(KINTO_KEY_APP_VERSION));
-        }
-
         return this;
     }
 }

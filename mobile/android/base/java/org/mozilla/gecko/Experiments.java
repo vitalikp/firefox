@@ -36,9 +36,6 @@ public class Experiments {
     public static final String ONBOARDING3_B = "onboarding3-b"; // 4 static Feature + 1 dynamic slides
     public static final String ONBOARDING3_C = "onboarding3-c"; // Differentiating features slides
 
-    // Synchronizing the catalog of downloadable content from Kinto
-    public static final String DOWNLOAD_CONTENT_CATALOG_SYNC = "download-content-catalog-sync";
-
     // Promotion for "Add to homescreen"
     public static final String PROMOTE_ADD_TO_HOMESCREEN = "promote-add-to-homescreen";
 

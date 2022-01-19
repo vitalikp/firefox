@@ -387,7 +387,6 @@ gbjar.sources += ['java/org/mozilla/gecko/' + x for x in [
     'dlc/DownloadAction.java',
     'dlc/DownloadContentService.java',
     'dlc/StudyAction.java',
-    'dlc/SyncAction.java',
     'dlc/VerifyAction.java',
     'DoorHangerPopup.java',
     'DownloadsIntegration.java',

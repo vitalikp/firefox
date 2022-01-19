@@ -39,11 +39,6 @@ public class DownloadContentService extends IntentService {
     private static final String ACTION_DOWNLOAD_CONTENT = AppConstants.ANDROID_PACKAGE_NAME + ".DLC.DOWNLOAD";
 
     /**
-     * Sync: Synchronize catalog from a Kinto instance.
-     */
-    private static final String ACTION_SYNCHRONIZE_CATALOG = AppConstants.ANDROID_PACKAGE_NAME + ".DLC.SYNC";
-
-    /**
      * CleanupAction: Remove content that is no longer needed (e.g. Removed from the catalog after a sync).
      */
     private static final String ACTION_CLEANUP_FILES = AppConstants.ANDROID_PACKAGE_NAME + ".DLC.CLEANUP";
@@ -62,12 +57,6 @@ public class DownloadContentService extends IntentService {
 
     public static void startDownloads(Context context) {
         Intent intent = new Intent(ACTION_DOWNLOAD_CONTENT);
-        intent.setComponent(new ComponentName(context, DownloadContentService.class));
-        context.startService(intent);
-    }
-
-    public static void startSync(Context context) {
-        Intent intent = new Intent(ACTION_SYNCHRONIZE_CATALOG);
         intent.setComponent(new ComponentName(context, DownloadContentService.class));
         context.startService(intent);
     }
@@ -127,10 +116,6 @@ public class DownloadContentService extends IntentService {
 
             case ACTION_VERIFY_CONTENT:
                 action = new VerifyAction();
-                break;
-
-            case ACTION_SYNCHRONIZE_CATALOG:
-                action = new SyncAction();
                 break;
 
             default:
