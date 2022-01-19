@@ -208,7 +208,6 @@ public class BrowserApp extends GeckoApp
     // Intent String extras used to specify custom Switchboard configurations.
     private static final String INTENT_KEY_SWITCHBOARD_SERVER = "switchboard-server";
 
-    // TODO: Replace with kinto endpoint.
     private static final String SWITCHBOARD_SERVER = "https://firefox.settings.services.mozilla.com/v1/buckets/fennec/collections/experiments/records";
 
     private static final String STATE_ABOUT_HOME_TOP_PADDING = "abouthome_top_padding";

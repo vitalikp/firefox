@@ -270,7 +270,7 @@ interface nsISiteSecurityService : nsISupports
      * the enumeration is a nsISiteSecurityState that can be QueryInterfaced to
      * the appropriate nsISiteHSTSState or nsISiteHPKPState, depending on the
      * provided type. Doesn't include preloaded entries (either the hard-coded
-     * ones or the preloaded-delivered-by-kinto ones).
+     * ones).
      *
      * @param aType the type of security state in question.
      */
