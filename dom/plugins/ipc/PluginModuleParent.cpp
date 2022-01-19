@@ -1257,8 +1257,10 @@ PluginModuleParent::NotifyPluginCrashed()
         return;
     }
 
+    nsString dumpID;
+    nsString browserDumpID;
     if (mPlugin)
-        mPlugin->PluginCrashed(mPluginDumpID, mBrowserDumpID);
+        mPlugin->PluginCrashed(dumpID, browserDumpID);
 }
 
 PPluginInstanceParent*

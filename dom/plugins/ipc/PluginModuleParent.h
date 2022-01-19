@@ -326,8 +326,6 @@ protected:
     NPPluginFuncs* mNPPIface;
     nsNPAPIPlugin* mPlugin;
     ipc::TaskFactory<PluginModuleParent> mTaskFactory;
-    nsString mPluginDumpID;
-    nsString mBrowserDumpID;
     nsString mHangID;
     RefPtr<nsIObserver> mProfilerObserver;
     TimeDuration mTimeBlocked;
