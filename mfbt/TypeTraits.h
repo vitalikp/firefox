@@ -184,7 +184,7 @@ struct IsFunPtr<Result(*)(ArgTypes...)>
   : public TrueType
 {};
 
-}; // namespace detail
+} // namespace detail
 
 /**
  * IsFunction determines whether a type is a function type. Function pointers
@@ -1289,7 +1289,7 @@ struct DecaySelector<U, false, true>
   typedef typename AddPointer<U>::Type Type;
 };
 
-}; // namespace detail
+} // namespace detail
 
 /**
  * Strips const/volatile off a type and decays it from an lvalue to an
