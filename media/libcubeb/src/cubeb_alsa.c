@@ -515,61 +515,6 @@ alsa_run_thread(void * context)
   return NULL;
 }
 
-static snd_config_t *
-get_slave_pcm_node(snd_config_t * lconf, snd_config_t * root_pcm)
-{
-  int r;
-  snd_config_t * slave_pcm;
-  snd_config_t * slave_def;
-  snd_config_t * pcm;
-  char const * string;
-  char node_name[64];
-
-  slave_def = NULL;
-
-  r = snd_config_search(root_pcm, "slave", &slave_pcm);
-  if (r < 0) {
-    return NULL;
-  }
-
-  r = snd_config_get_string(slave_pcm, &string);
-  if (r >= 0) {
-    r = snd_config_search_definition(lconf, "pcm_slave", string, &slave_def);
-    if (r < 0) {
-      return NULL;
-    }
-  }
-
-  do {
-    r = snd_config_search(slave_def ? slave_def : slave_pcm, "pcm", &pcm);
-    if (r < 0) {
-      break;
-    }
-
-    r = snd_config_get_string(slave_def ? slave_def : slave_pcm, &string);
-    if (r < 0) {
-      break;
-    }
-
-    r = snprintf(node_name, sizeof(node_name), "pcm.%s", string);
-    if (r < 0 || r > (int) sizeof(node_name)) {
-      break;
-    }
-    r = snd_config_search(lconf, node_name, &pcm);
-    if (r < 0) {
-      break;
-    }
-
-    return pcm;
-  } while (0);
-
-  if (slave_def) {
-    snd_config_delete(slave_def);
-  }
-
-  return NULL;
-}
-
 static int
 alsa_locked_pcm_open(snd_pcm_t ** pcm, char const * pcm_name, snd_pcm_stream_t stream)
 {
