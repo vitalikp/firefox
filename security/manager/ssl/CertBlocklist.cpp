@@ -33,12 +33,10 @@ NS_IMPL_ISUPPORTS(CertBlocklist, nsICertBlocklist)
 using namespace mozilla;
 using namespace mozilla::pkix;
 
-#define PREF_BLOCKLIST_ONECRL_CHECKED "services.blocklist.onecrl.checked"
 #define PREF_ONECRL_VIA_AMO "security.onecrl.via.amo"
 
 static LazyLogModule gCertBlockPRLog("CertBlock");
 
-uint32_t CertBlocklist::sLastKintoUpdate = 0U;
 bool CertBlocklist::sUseAMO = true;
 
 CertBlocklistItem::CertBlocklistItem(const uint8_t* DNData,
@@ -137,9 +135,6 @@ CertBlocklist::~CertBlocklist()
   Preferences::UnregisterCallback(CertBlocklist::PreferenceChanged,
                                   PREF_ONECRL_VIA_AMO,
                                   this);
-  Preferences::UnregisterCallback(CertBlocklist::PreferenceChanged,
-                                  PREF_BLOCKLIST_ONECRL_CHECKED,
-                                  this);
 }
 
 nsresult
@@ -158,12 +153,6 @@ CertBlocklist::Init()
   nsresult rv =
       Preferences::RegisterCallbackAndCall(CertBlocklist::PreferenceChanged,
                                             PREF_ONECRL_VIA_AMO,
-                                            this);
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-  rv = Preferences::RegisterCallbackAndCall(CertBlocklist::PreferenceChanged,
-                                            PREF_BLOCKLIST_ONECRL_CHECKED,
                                             this);
   if (NS_FAILED(rv)) {
     return rv;
@@ -611,10 +600,7 @@ CertBlocklist::PreferenceChanged(const char* aPref, void* aClosure)
 
   MOZ_LOG(gCertBlockPRLog, LogLevel::Warning,
          ("CertBlocklist::PreferenceChanged %s changed", aPref));
-  if (strcmp(aPref, PREF_BLOCKLIST_ONECRL_CHECKED) == 0) {
-    sLastKintoUpdate = Preferences::GetUint(PREF_BLOCKLIST_ONECRL_CHECKED,
-                                            uint32_t(0));
-  } else if (strcmp(aPref, PREF_ONECRL_VIA_AMO) == 0) {
+  if (strcmp(aPref, PREF_ONECRL_VIA_AMO) == 0) {
     sUseAMO = Preferences::GetBool(PREF_ONECRL_VIA_AMO, true);
   }
 }

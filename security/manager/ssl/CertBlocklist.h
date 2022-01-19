@@ -79,7 +79,6 @@ private:
 
 protected:
   static void PreferenceChanged(const char* aPref, void* aClosure);
-  static uint32_t sLastKintoUpdate;
   static bool sUseAMO;
   virtual ~CertBlocklist();
 };
