@@ -7,7 +7,7 @@
 #define mozilla_BindingStyleRule_h__
 
 #include "nscore.h"
-#include "nsStringGlue.h"
+#include "nsString.h"
 #include "mozilla/css/Rule.h"
 
 /**
