@@ -80,7 +80,7 @@ this.SiteDataManager = {
       promises.push(new Promise(resolve => {
         let callback = {
           onUsageResult(request) {
-            site.quotaUsage = request.usage;
+            site.quotaUsage = request.result.usage;
             resolve();
           }
         };
