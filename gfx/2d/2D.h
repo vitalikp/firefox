@@ -677,7 +677,6 @@ public:
   virtual ~ScaledFont() {}
 
   typedef void (*FontFileDataOutput)(const uint8_t *aData, uint32_t aLength, uint32_t aIndex, Float aGlyphSize, void *aBaton);
-  typedef void (*FontInstanceDataOutput)(const uint8_t* aData, uint32_t aLength, void* aBaton);
   typedef void (*FontDescriptorOutput)(const uint8_t *aData, uint32_t aLength, Float aFontSize, void *aBaton);
 
   virtual FontType GetType() const = 0;
@@ -709,8 +708,6 @@ public:
 
   virtual bool GetFontFileData(FontFileDataOutput, void *) { return false; }
 
-  virtual bool GetFontInstanceData(FontInstanceDataOutput, void *) { return false; }
-
   virtual bool GetFontDescriptor(FontDescriptorOutput, void *) { return false; }
 
   void AddUserData(UserDataKey *key, void *userData, void (*destroy)(void*)) {
@@ -741,13 +738,10 @@ public:
    *
    * @param aIndex index for the font within the resource.
    * @param aGlyphSize the size of ScaledFont required.
-   * @param aInstanceData pointer to read-only buffer of any available instance data.
-   * @param aInstanceDataLength the size of the instance data.
    * @return an already_addrefed ScaledFont, containing nullptr if failed.
    */
   virtual already_AddRefed<ScaledFont>
-    CreateScaledFont(uint32_t aIndex, Float aGlyphSize,
-                     const uint8_t* aInstanceData, uint32_t aInstanceDataLength) = 0;
+    CreateScaledFont(uint32_t aIndex, Float aGlyphSize) = 0;
 
   virtual ~NativeFontResource() {};
 };

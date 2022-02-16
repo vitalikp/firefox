@@ -259,8 +259,7 @@ NativeFontResourceDWrite::Create(uint8_t *aFontData, uint32_t aDataLength,
 }
 
 already_AddRefed<ScaledFont>
-NativeFontResourceDWrite::CreateScaledFont(uint32_t aIndex, Float aGlyphSize,
-                                           const uint8_t* aInstanceData, uint32_t aInstanceDataLength)
+NativeFontResourceDWrite::CreateScaledFont(uint32_t aIndex, Float aGlyphSize)
 {
   if (aIndex >= mNumberOfFaces) {
     gfxWarning() << "Font face index is too high for font resource.";
