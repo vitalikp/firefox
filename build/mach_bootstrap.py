@@ -85,7 +85,6 @@ SEARCH_PATHS = [
     'testing/mozbase/manifestparser',
     'testing/taskcluster',
     'testing/tools/autotry',
-    'testing/xpcshell',
     'xpcom/idl-parser',
 ]
 
@@ -106,7 +105,6 @@ MACH_MODULES = [
     'testing/firefox-ui/mach_commands.py',
     'testing/mach_commands.py',
     'testing/mochitest/mach_commands.py',
-    'testing/xpcshell/mach_commands.py',
     'tools/docs/mach_commands.py',
     'tools/lint/mach_commands.py',
     'tools/mach_commands.py',

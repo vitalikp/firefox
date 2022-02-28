@@ -156,7 +156,6 @@ DIRS += [
 if CONFIG['ENABLE_TESTS']:
     DIRS += [
         '/testing/mochitest',
-        '/testing/xpcshell',
         '/testing/tools/minidumpwriter',
         '/testing/tools/screenshot',
         '/testing/profiles',

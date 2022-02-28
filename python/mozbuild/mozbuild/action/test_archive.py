@@ -228,48 +228,6 @@ ARCHIVE_FILES = {
             'dest': 'mochitest'
         }
     ],
-    'xpcshell': [
-        {
-            'source': buildconfig.topobjdir,
-            'base': '_tests/xpcshell',
-            'pattern': '**',
-            'dest': 'xpcshell/tests',
-        },
-        {
-            'source': buildconfig.topsrcdir,
-            'base': 'testing/xpcshell',
-            'patterns': [
-                'head.js',
-                'mach_test_package_commands.py',
-                'moz-http2/**',
-                'moz-spdy/**',
-                'node-http2/**',
-                'node-spdy/**',
-                'remotexpcshelltests.py',
-                'runtestsb2g.py',
-                'runxpcshelltests.py',
-                'xpcshellcommandline.py',
-            ],
-            'dest': 'xpcshell',
-        },
-        {
-            'source': STAGE,
-            'base': '',
-            'pattern': 'xpcshell/**',
-        },
-        {
-            'source': buildconfig.topobjdir,
-            'base': '',
-            'pattern': 'mozinfo.json',
-            'dest': 'xpcshell',
-        },
-        {
-            'source': buildconfig.topobjdir,
-            'base': 'build',
-            'pattern': 'automation.py',
-            'dest': 'xpcshell',
-        },
-    ],
 }
 
 
