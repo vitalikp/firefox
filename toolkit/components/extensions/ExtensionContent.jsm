@@ -257,15 +257,15 @@ Script.prototype = {
     let result;
     let scheduled = this.run_at || "document_idle";
     if (shouldRun(scheduled)) {
-      for (let [i, url] of this.js.entries()) {
+      for (let url of this.js) {
+        url = this.extension.baseURI.resolve(url);
+
         let options = {
           target: sandbox,
           charset: "UTF-8",
-          // Inject the last script asynchronously unless we're expected to
-          // inject before any page scripts have run, and we haven't already
-          // missed that boat.
-          async: (i === this.js.length - 1) &&
-                 (this.run_at !== "document_start" || when !== "document_start"),
+          // Inject asynchronously unless we're expected to inject before any
+          // page scripts have run, and we haven't already missed that boat.
+          async: this.run_at !== "document_start" || when !== "document_start",
         };
         try {
           result = Services.scriptloader.loadSubScriptWithOptions(url, options);
