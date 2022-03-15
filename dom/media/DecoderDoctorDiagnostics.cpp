@@ -406,8 +406,6 @@ DecoderDoctorDocumentWatcher::SynthesizeAnalysis()
 #endif
   nsAutoString supportedKeySystems;
   nsAutoString unsupportedKeySystems;
-  DecoderDoctorDiagnostics::KeySystemIssue lastKeySystemIssue =
-    DecoderDoctorDiagnostics::eUnset;
 
   for (const auto& diag : mDiagnosticsSequence) {
     switch (diag.mDecoderDoctorDiagnostics.Type()) {
@@ -439,11 +437,6 @@ DecoderDoctorDocumentWatcher::SynthesizeAnalysis()
         } else {
           AppendToFormatsList(unsupportedKeySystems,
                               diag.mDecoderDoctorDiagnostics.KeySystem());
-          DecoderDoctorDiagnostics::KeySystemIssue issue =
-            diag.mDecoderDoctorDiagnostics.GetKeySystemIssue();
-          if (issue != DecoderDoctorDiagnostics::eUnset) {
-            lastKeySystemIssue = issue;
-          }
         }
         break;
       case DecoderDoctorDiagnostics::eEvent:
