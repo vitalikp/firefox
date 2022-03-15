@@ -42,6 +42,8 @@ int dl_iterate_phdr(
 static int
 dl_iterate_callback(struct dl_phdr_info *dl_info, size_t size, void *data)
 {
+  SharedLibraryInfo& info = *reinterpret_cast<SharedLibraryInfo*>(data);
+
   if (dl_info->dlpi_phnum <= 0)
     return 0;
 
@@ -59,6 +61,9 @@ dl_iterate_callback(struct dl_phdr_info *dl_info, size_t size, void *data)
     if (end > libEnd)
       libEnd = end;
   }
+  const char *name = dl_info->dlpi_name;
+  SharedLibrary shlib(libStart, libEnd, 0, name);
+  info.AddSharedLibrary(shlib);
 
   return 0;
 }
@@ -123,6 +128,8 @@ SharedLibraryInfo SharedLibraryInfo::GetInfoForSelf()
       continue;
     }
 #endif
+    SharedLibrary shlib(start, end, offset, name);
+    info.AddSharedLibrary(shlib);
     if (count > 10000) {
       LOG("Get maps failed");
       break;

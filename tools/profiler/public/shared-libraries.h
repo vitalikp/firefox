@@ -24,12 +24,10 @@ public:
   SharedLibrary(uintptr_t aStart,
                 uintptr_t aEnd,
                 uintptr_t aOffset,
-                const std::string& aBreakpadId,
                 const std::string& aName)
     : mStart(aStart)
     , mEnd(aEnd)
     , mOffset(aOffset)
-    , mBreakpadId(aBreakpadId)
     , mName(aName)
   {}
 
@@ -37,7 +35,6 @@ public:
     : mStart(aEntry.mStart)
     , mEnd(aEntry.mEnd)
     , mOffset(aEntry.mOffset)
-    , mBreakpadId(aEntry.mBreakpadId)
     , mName(aEntry.mName)
   {}
 
@@ -49,7 +46,6 @@ public:
     mStart = aEntry.mStart;
     mEnd = aEntry.mEnd;
     mOffset = aEntry.mOffset;
-    mBreakpadId = aEntry.mBreakpadId;
     mName = aEntry.mName;
     return *this;
   }
@@ -59,14 +55,12 @@ public:
     return (mStart == other.mStart) &&
            (mEnd == other.mEnd) &&
            (mOffset == other.mOffset) &&
-           (mName == other.mName) &&
-           (mBreakpadId == other.mBreakpadId);
+           (mName == other.mName);
   }
 
   uintptr_t GetStart() const { return mStart; }
   uintptr_t GetEnd() const { return mEnd; }
   uintptr_t GetOffset() const { return mOffset; }
-  const std::string &GetBreakpadId() const { return mBreakpadId; }
   const std::string &GetName() const { return mName; }
 
 private:
@@ -75,7 +69,6 @@ private:
   uintptr_t mStart;
   uintptr_t mEnd;
   uintptr_t mOffset;
-  std::string mBreakpadId;
   std::string mName;
 };
 

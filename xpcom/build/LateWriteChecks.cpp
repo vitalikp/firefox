@@ -170,8 +170,7 @@ LateWriteObserver::Observe(IOInterposeObserver::Observation& aOb)
   sha1Stream.Printf("%u\n", (unsigned)numModules);
   for (size_t i = 0; i < numModules; ++i) {
     Telemetry::ProcessedStack::Module module = stack.GetModule(i);
-    sha1Stream.Printf("%s %s\n", module.mBreakpadId.c_str(),
-                      module.mName.c_str());
+    sha1Stream.Printf("%s\n", module.mName.c_str());
   }
 
   size_t numFrames = stack.GetStackSize();

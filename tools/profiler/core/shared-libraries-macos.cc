@@ -70,8 +70,7 @@ void addSharedLibrary(const platform_mach_header* header, char *name, SharedLibr
     uuid << '0';
   }
 
-  info.AddSharedLibrary(SharedLibrary(start, start + size, 0, uuid.str(),
-                                      name));
+  info.AddSharedLibrary(SharedLibrary(start, start + size, 0, name));
 }
 
 // Use dyld to inspect the macho image information. We can build the SharedLibraryEntry structure

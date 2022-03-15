@@ -34,7 +34,6 @@ public:
   {
     // The file name, /foo/bar/libxul.so for example.
     std::string mName;
-    std::string mBreakpadId;
 
     bool operator==(const Module& other) const;
   };

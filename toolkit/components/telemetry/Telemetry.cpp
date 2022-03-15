@@ -1586,15 +1586,6 @@ CreateJSStackObject(JSContext *cx, const CombinedStacks &stacks) {
     if (!JS_DefineElement(cx, moduleInfoArray, index++, str, JSPROP_ENUMERATE)) {
       return nullptr;
     }
-
-    // Module breakpad identifier
-    JS::Rooted<JSString*> id(cx, JS_NewStringCopyZ(cx, module.mBreakpadId.c_str()));
-    if (!id) {
-      return nullptr;
-    }
-    if (!JS_DefineElement(cx, moduleInfoArray, index++, id, JSPROP_ENUMERATE)) {
-      return nullptr;
-    }
   }
 
   JS::Rooted<JSObject*> reportArray(cx, JS_NewArrayObject(cx, 0));
@@ -1644,19 +1635,6 @@ CreateJSStackObject(JSContext *cx, const CombinedStacks &stacks) {
   return ret;
 }
 
-static bool
-IsValidBreakpadId(const std::string &breakpadId) {
-  if (breakpadId.size() < 33) {
-    return false;
-  }
-  for (char c : breakpadId) {
-    if ((c < '0' || c > '9') && (c < 'A' || c > 'F')) {
-      return false;
-    }
-  }
-  return true;
-}
-
 // Read a stack from the given file name. In case of any error, aStack is
 // unchanged.
 static void
@@ -1677,12 +1655,6 @@ ReadStack(const char *aFileName, Telemetry::ProcessedStack &aStack)
 
   Telemetry::ProcessedStack stack;
   for (size_t i = 0; i < numModules; ++i) {
-    std::string breakpadId;
-    file >> breakpadId;
-    if (file.fail() || !IsValidBreakpadId(breakpadId)) {
-      return;
-    }
-
     char space = file.get();
     if (file.fail() || space != ' ') {
       return;
@@ -1695,8 +1667,7 @@ ReadStack(const char *aFileName, Telemetry::ProcessedStack &aStack)
     }
 
     Telemetry::ProcessedStack::Module module = {
-      moduleName,
-      breakpadId
+      moduleName
     };
     stack.AddModule(module);
   }
@@ -2817,8 +2788,7 @@ size_t ProcessedStack::GetNumModules() const
 }
 
 bool ProcessedStack::Module::operator==(const Module& aOther) const {
-  return  mName == aOther.mName &&
-    mBreakpadId == aOther.mBreakpadId;
+  return  mName == aOther.mName;
 }
 
 const ProcessedStack::Frame &ProcessedStack::GetFrame(unsigned aIndex) const
@@ -2936,8 +2906,7 @@ GetStackAndModules(const std::vector<uintptr_t>& aPCs)
     }
 #endif
     mozilla::Telemetry::ProcessedStack::Module module = {
-      basename,
-      info.GetBreakpadId()
+      basename
     };
     Ret.AddModule(module);
   }
