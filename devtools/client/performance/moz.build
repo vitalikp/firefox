@@ -7,13 +7,9 @@ DIRS += [
     'components',
     'legacy',
     'modules',
-    'test',
 ]
 
 DevToolsModules(
     'events.js',
     'panel.js'
 )
-
-BROWSER_CHROME_MANIFESTS += ['test/browser.ini']
-XPCSHELL_TESTS_MANIFESTS += ['test/unit/xpcshell.ini']
