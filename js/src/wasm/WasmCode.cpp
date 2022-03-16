@@ -245,7 +245,9 @@ CodeSegment::create(JSContext* cx,
             SpecializeToMemory(nullptr, *cs, metadata, memory->buffer());
     }
 
-    if (!ExecutableAllocator::makeExecutable(codeBase, cs->length())) {
+    // Reprotect the whole region to avoid having separate RW and RX mappings.
+    uint32_t size = JS_ROUNDUP(cs->length(), ExecutableCodePageSize);
+    if (!ExecutableAllocator::makeExecutable(codeBase, size)) {
         ReportOutOfMemory(cx);
         return nullptr;
     }
