@@ -467,8 +467,9 @@ private:
 public:
   static inline bool PropHasFlags(nsCSSPropertyID aProperty, uint32_t aFlags)
   {
-    MOZ_ASSERT(0 <= aProperty && aProperty < eCSSProperty_COUNT,
-               "out of range");
+    if (aProperty <= eCSSProperty_UNKNOWN || aProperty >= eCSSProperty_COUNT)
+      return false;
+
     MOZ_ASSERT(!(aFlags & CSS_PROPERTY_PARSE_PROPERTY_MASK),
                "The CSS_PROPERTY_PARSE_* values are not bitflags; don't pass "
                "them to PropHasFlags.  You probably want PropertyParseType "
