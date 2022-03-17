@@ -1317,11 +1317,11 @@ OpIter<Policy>::readSelect(StackType* type, Value* trueValue, Value* falseValue,
     if (!popWithType(ValType::I32, condition))
         return false;
 
-    StackType falseType;
+    StackType falseType = StackType::I32;
     if (!popAnyType(&falseType, falseValue))
         return false;
 
-    StackType trueType;
+    StackType trueType = StackType::I32;
     if (!popAnyType(&trueType, trueValue))
         return false;
 

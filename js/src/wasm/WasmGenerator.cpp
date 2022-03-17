@@ -968,7 +968,7 @@ ModuleGenerator::finishFuncDef(uint32_t funcIndex, FunctionGenerator* fg)
     if (!currentTask_->units().emplaceBack(Move(func)))
         return false;
 
-    uint32_t threshold;
+    uint32_t threshold = 0;
     switch (compileMode_) {
       case CompileMode::Baseline: threshold = JitOptions.wasmBatchBaselineThreshold; break;
       case CompileMode::Ion:      threshold = JitOptions.wasmBatchIonThreshold;      break;

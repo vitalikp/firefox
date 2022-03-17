@@ -328,7 +328,7 @@ AstDecodeCall(AstDecodeContext& c)
 static bool
 AstDecodeCallIndirect(AstDecodeContext& c)
 {
-    uint32_t sigIndex;
+    uint32_t sigIndex = 0;
     AstDecodeOpIter::ValueVector unusedArgs;
     if (!c.iter().readCallIndirect(&sigIndex, nullptr, &unusedArgs))
         return false;
@@ -385,7 +385,7 @@ AstDecodeBrTable(AstDecodeContext& c)
 {
     Uint32Vector depths;
     uint32_t defaultDepth;
-    ExprType type;
+    ExprType type = ExprType::Void;
     if (!c.iter().readBrTable(&depths, &defaultDepth, &type, nullptr, nullptr))
         return false;
 
@@ -553,7 +553,7 @@ static bool
 AstDecodeEnd(AstDecodeContext& c)
 {
     LabelKind kind;
-    ExprType type;
+    ExprType type = ExprType::Void;
     if (!c.iter().readEnd(&kind, &type, nullptr))
         return false;
 
@@ -568,7 +568,7 @@ AstDecodeEnd(AstDecodeContext& c)
 static bool
 AstDecodeElse(AstDecodeContext& c)
 {
-    ExprType type;
+    ExprType type = ExprType::Void;
 
     if (!c.iter().readElse(&type, nullptr))
         return false;
@@ -1685,7 +1685,7 @@ static bool
 AstCreateExports(AstDecodeContext& c)
 {
     for (const Export& exp : c.env().exports) {
-        size_t index;
+        size_t index = 0;
         switch (exp.kind()) {
           case DefinitionKind::Function: index = exp.funcIndex(); break;
           case DefinitionKind::Global: index = exp.globalIndex(); break;

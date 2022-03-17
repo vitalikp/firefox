@@ -1880,7 +1880,7 @@ EmitIf(FunctionCompiler& f)
 static bool
 EmitElse(FunctionCompiler& f)
 {
-    ExprType thenType;
+    ExprType thenType = ExprType::Void;
     MDefinition* thenValue;
     if (!f.iter().readElse(&thenType, &thenValue))
         return false;
@@ -1897,8 +1897,8 @@ EmitElse(FunctionCompiler& f)
 static bool
 EmitEnd(FunctionCompiler& f)
 {
-    LabelKind kind;
-    ExprType type;
+    LabelKind kind = LabelKind::Block;
+    ExprType type = ExprType::Void;
     MDefinition* value;
     if (!f.iter().readEnd(&kind, &type, &value))
         return false;
@@ -1947,7 +1947,7 @@ static bool
 EmitBr(FunctionCompiler& f)
 {
     uint32_t relativeDepth;
-    ExprType type;
+    ExprType type = ExprType::Void;
     MDefinition* value = nullptr;
     if (!f.iter().readBr(&relativeDepth, &type, &value))
         return false;
@@ -1966,7 +1966,7 @@ EmitBr(FunctionCompiler& f)
 static bool
 EmitBrIf(FunctionCompiler& f)
 {
-    uint32_t relativeDepth;
+    uint32_t relativeDepth = 0;
     ExprType type;
     MDefinition* value = nullptr;
     MDefinition* condition = nullptr;
@@ -2059,7 +2059,7 @@ EmitCall(FunctionCompiler& f)
 {
     uint32_t lineOrBytecode = f.readCallSiteLineOrBytecode();
 
-    uint32_t funcIndex;
+    uint32_t funcIndex = 0;
     DefVector args;
     if (!f.iter().readCall(&funcIndex, &args))
         return false;
@@ -2095,7 +2095,7 @@ EmitCallIndirect(FunctionCompiler& f, bool oldStyle)
 {
     uint32_t lineOrBytecode = f.readCallSiteLineOrBytecode();
 
-    uint32_t sigIndex;
+    uint32_t sigIndex = 0;
     MDefinition* callee = nullptr;
     DefVector args;
     if (oldStyle) {
@@ -2485,8 +2485,8 @@ static bool
 EmitSelect(FunctionCompiler& f)
 {
     StackType type;
-    MDefinition* trueValue;
-    MDefinition* falseValue;
+    MDefinition* trueValue = nullptr;
+    MDefinition* falseValue = nullptr;
     MDefinition* condition = nullptr;
     if (!f.iter().readSelect(&type, &trueValue, &falseValue, &condition))
         return false;
@@ -2641,7 +2641,7 @@ static bool
 EmitAtomicsLoad(FunctionCompiler& f)
 {
     LinearMemoryAddress<MDefinition*> addr = { nullptr, 0, 0 };
-    Scalar::Type viewType;
+    Scalar::Type viewType = Scalar::Type::Int8;
     if (!f.iter().readAtomicLoad(&addr, &viewType))
         return false;
 
@@ -2660,7 +2660,7 @@ static bool
 EmitAtomicsStore(FunctionCompiler& f)
 {
     LinearMemoryAddress<MDefinition*> addr = { nullptr, 0, 0 };
-    Scalar::Type viewType;
+    Scalar::Type viewType = Scalar::Type::Int8;
     MDefinition* value = nullptr;
     if (!f.iter().readAtomicStore(&addr, &viewType, &value))
         return false;
@@ -2679,8 +2679,8 @@ static bool
 EmitAtomicsBinOp(FunctionCompiler& f)
 {
     LinearMemoryAddress<MDefinition*> addr = { nullptr, 0, 0 };
-    Scalar::Type viewType;
-    jit::AtomicOp op;
+    Scalar::Type viewType = Scalar::Type::Int8;
+    jit::AtomicOp op = jit::AtomicOp::AtomicFetchAddOp;
     MDefinition* value = nullptr;
     if (!f.iter().readAtomicBinOp(&addr, &viewType, &op, &value))
         return false;
@@ -2699,7 +2699,7 @@ static bool
 EmitAtomicsCompareExchange(FunctionCompiler& f)
 {
     LinearMemoryAddress<MDefinition*> addr = { nullptr, 0, 0 };
-    Scalar::Type viewType;
+    Scalar::Type viewType = Scalar::Type::Int8;
     MDefinition* oldValue = nullptr;
     MDefinition* newValue = nullptr;
     if (!f.iter().readAtomicCompareExchange(&addr, &viewType, &oldValue, &newValue))
@@ -2719,7 +2719,7 @@ static bool
 EmitAtomicsExchange(FunctionCompiler& f)
 {
     LinearMemoryAddress<MDefinition*> addr = { nullptr, 0, 0 };
-    Scalar::Type viewType;
+    Scalar::Type viewType = Scalar::Type::Int8;
     MDefinition* value = nullptr;
     if (!f.iter().readAtomicExchange(&addr, &viewType, &value))
         return false;
@@ -2843,7 +2843,7 @@ SimdToLaneType(ValType type)
 static bool
 EmitExtractLane(FunctionCompiler& f, ValType operandType, SimdSign sign)
 {
-    uint8_t lane;
+    uint8_t lane = 0;
     MDefinition* vector = nullptr;
     if (!f.iter().readExtractLane(operandType, &lane, &vector))
         return false;
@@ -2868,7 +2868,7 @@ EmitSimdReplaceLane(FunctionCompiler& f, ValType simdType)
     if (IsSimdBoolType(simdType))
         f.iter().setResult(EmitSimdBooleanLaneExpr(f, f.iter().getResult()));
 
-    uint8_t lane;
+    uint8_t lane = 0;
     MDefinition* vector = nullptr;
     MDefinition* scalar = nullptr;
     if (!f.iter().readReplaceLane(simdType, &lane, &vector, &scalar))
@@ -3289,7 +3289,7 @@ EmitBodyExprs(FunctionCompiler& f)
         if (!f.mirGen().ensureBallast())
             return false;
 
-        uint16_t op;
+        uint16_t op = 0;
         if (!f.iter().readOp(&op))
             return false;
 

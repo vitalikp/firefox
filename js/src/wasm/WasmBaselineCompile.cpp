@@ -5433,7 +5433,7 @@ BaseCompiler::endIfThen()
 bool
 BaseCompiler::emitElse()
 {
-    ExprType thenType;
+    ExprType thenType = ExprType::Void;
     Nothing unused_thenValue;
 
     if (!iter_.readElse(&thenType, &unused_thenValue))
@@ -5517,8 +5517,8 @@ BaseCompiler::endIfThenElse(ExprType type)
 bool
 BaseCompiler::emitEnd()
 {
-    LabelKind kind;
-    ExprType type;
+    LabelKind kind = LabelKind::Block;
+    ExprType type = ExprType::Void;
     Nothing unused_value;
     if (!iter_.readEnd(&kind, &type, &unused_value))
         return false;
@@ -5538,8 +5538,8 @@ BaseCompiler::emitEnd()
 bool
 BaseCompiler::emitBr()
 {
-    uint32_t relativeDepth;
-    ExprType type;
+    uint32_t relativeDepth = 0;
+    ExprType type = ExprType::Void;
     Nothing unused_value;
     if (!iter_.readBr(&relativeDepth, &type, &unused_value))
         return false;
@@ -5571,8 +5571,8 @@ BaseCompiler::emitBr()
 bool
 BaseCompiler::emitBrIf()
 {
-    uint32_t relativeDepth;
-    ExprType type;
+    uint32_t relativeDepth = 0;
+    ExprType type = ExprType::Void;
     Nothing unused_value, unused_condition;
     if (!iter_.readBrIf(&relativeDepth, &type, &unused_value, &unused_condition))
         return false;
@@ -5597,7 +5597,7 @@ BaseCompiler::emitBrTable()
 {
     Uint32Vector depths;
     uint32_t defaultDepth;
-    ExprType branchValueType;
+    ExprType branchValueType = ExprType::Void;
     Nothing unused_value, unused_index;
     if (!iter_.readBrTable(&depths, &defaultDepth, &branchValueType, &unused_value, &unused_index))
         return false;
@@ -5796,7 +5796,7 @@ BaseCompiler::emitCall()
 {
     uint32_t lineOrBytecode = readCallSiteLineOrBytecode();
 
-    uint32_t funcIndex;
+    uint32_t funcIndex = 0;
     BaseOpIter::ValueVector args_;
     if (!iter_.readCall(&funcIndex, &args_))
         return false;
@@ -5838,7 +5838,7 @@ BaseCompiler::emitCallIndirect()
 {
     uint32_t lineOrBytecode = readCallSiteLineOrBytecode();
 
-    uint32_t sigIndex;
+    uint32_t sigIndex = 0;
     Nothing callee_;
     BaseOpIter::ValueVector args_;
     if (!iter_.readCallIndirect(&sigIndex, &callee_, &args_))
@@ -6555,7 +6555,7 @@ BaseCompiler::emitStore(ValType resultType, Scalar::Type viewType)
 bool
 BaseCompiler::emitSelect()
 {
-    StackType type;
+    StackType type = StackType::I32;
     Nothing unused_trueValue;
     Nothing unused_falseValue;
     Nothing unused_condition;
@@ -6829,7 +6829,7 @@ BaseCompiler::emitBody()
 
         overhead--;
 
-        uint16_t op;
+        uint16_t op = 0;
         CHECK(iter_.readOp(&op));
 
         // When debugEnabled_, every operator has breakpoint site but Op::End.
