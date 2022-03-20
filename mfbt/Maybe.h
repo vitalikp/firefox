@@ -82,9 +82,10 @@ template<class T>
 class Maybe {
   using NonConstT = typename RemoveConst<T>::Type;
   union Union {
-    Union() {}
+    Union(): sval() {}
     ~Union() {}
     NonConstT val;
+    unsigned char sval[sizeof(T)];
   } mStorage;
   char mIsSome; // not bool -- guarantees minimal space consumption
 
