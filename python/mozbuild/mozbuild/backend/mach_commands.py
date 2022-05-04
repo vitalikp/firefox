@@ -27,9 +27,7 @@ class MachCommands(MachCommandBase):
     @CommandArgument('ide', choices=['eclipse', 'visualstudio', 'androidstudio', 'intellij'])
     @CommandArgument('args', nargs=argparse.REMAINDER)
     def eclipse(self, ide, args):
-        if ide == 'eclipse':
-            backend = 'CppEclipse'
-        elif ide == 'visualstudio':
+        if ide == 'visualstudio':
             backend = 'VisualStudio'
         elif ide == 'androidstudio' or ide == 'intellij':
             # The build backend for Android Studio and IntelliJ is just the regular one.
@@ -81,10 +79,7 @@ class MachCommands(MachCommandBase):
                 return 1
 
 
-        if ide == 'eclipse':
-            eclipse_workspace_dir = self.get_eclipse_workspace_path()
-            process = subprocess.check_call(['eclipse', '-data', eclipse_workspace_dir])
-        elif ide == 'visualstudio':
+        if ide == 'visualstudio':
             visual_studio_workspace_dir = self.get_visualstudio_workspace_path()
             process = subprocess.check_call(['explorer.exe', visual_studio_workspace_dir])
         elif ide == 'androidstudio' or ide == 'intellij':
@@ -94,10 +89,6 @@ class MachCommands(MachCommandBase):
             else:
                 gradle_dir = self.get_gradle_import_path()
             process = subprocess.check_call(studio + [gradle_dir])
-
-    def get_eclipse_workspace_path(self):
-        from mozbuild.backend.cpp_eclipse import CppEclipseBackend
-        return CppEclipseBackend.get_workspace_path(self.topsrcdir, self.topobjdir)
 
     def get_visualstudio_workspace_path(self):
         return os.path.join(self.topobjdir, 'msvc', 'mozilla.sln')
