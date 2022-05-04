@@ -11,6 +11,3 @@ EXTRA_JS_MODULES += [
     'ManifestProcessor.jsm',
     'ValueExtractor.jsm',
 ]
-
-MOCHITEST_MANIFESTS += ['test/mochitest.ini']
-BROWSER_CHROME_MANIFESTS += ['test/browser.ini']
