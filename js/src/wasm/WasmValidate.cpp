@@ -1144,7 +1144,7 @@ static bool
 DecodeInitializerExpression(Decoder& d, const GlobalDescVector& globals, ValType expected,
                             InitExpr* init)
 {
-    OpBytes op;
+    OpBytes op = {};
     if (!d.readOp(&op))
         return d.fail("failed to read initializer type");
 
@@ -1196,7 +1196,7 @@ DecodeInitializerExpression(Decoder& d, const GlobalDescVector& globals, ValType
     if (expected != init->type())
         return d.fail("type mismatch: initializer type and expected type don't match");
 
-    OpBytes end;
+    OpBytes end = {};
     if (!d.readOp(&end) || end.b0 != uint16_t(Op::End))
         return d.fail("failed to read end of initializer expression");
 

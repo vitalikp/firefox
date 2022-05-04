@@ -288,7 +288,7 @@ AstDecodeDrop(AstDecodeContext& c)
 static bool
 AstDecodeCall(AstDecodeContext& c)
 {
-    uint32_t funcIndex;
+    uint32_t funcIndex = 0;
     AstDecodeOpIter::ValueVector unusedArgs;
     if (!c.iter().readCall(&funcIndex, &unusedArgs))
         return false;

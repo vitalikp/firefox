@@ -366,7 +366,7 @@ struct {								\
 } while (0)
 
 #define	rb_insert(a_type, a_field, a_cmp, a_tree, a_node) do {		\
-    a_type rbp_i_s;							\
+    a_type rbp_i_s = {0};							\
     a_type *rbp_i_g, *rbp_i_p, *rbp_i_c, *rbp_i_t, *rbp_i_u;		\
     int rbp_i_cmp = 0;							\
     rbp_i_g = &(a_tree)->rbt_nil;					\
@@ -451,7 +451,7 @@ struct {								\
 } while (0)
 
 #define	rb_remove(a_type, a_field, a_cmp, a_tree, a_node) do {		\
-    a_type rbp_r_s;							\
+    a_type rbp_r_s = {0};							\
     a_type *rbp_r_p, *rbp_r_c, *rbp_r_xp, *rbp_r_t, *rbp_r_u;		\
     int rbp_r_cmp;							\
     rbp_left_set(a_type, a_field, &rbp_r_s, (a_tree)->rbt_root);	\
