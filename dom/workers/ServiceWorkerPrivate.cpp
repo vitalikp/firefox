@@ -1690,6 +1690,16 @@ ServiceWorkerPrivate::SendFetchEvent(nsIInterceptedChannel* aChannel,
   RefPtr<ServiceWorkerRegistrationInfo> registration =
     swm->GetRegistration(mInfo->GetPrincipal(), mInfo->Scope());
 
+  // Its possible the registration is removed between starting the interception
+  // and actually dispatching the fetch event.  In these cases we simply
+  // want to restart the original network request.  Since this is a normal
+  // condition we handle the reset here instead of returning an error which
+  // would in turn trigger a console report.
+  if (!registration) {
+    aChannel->ResetInterception();
+    return NS_OK;
+  }
+
   // Handle Fetch algorithm - step 16. If the service worker didn't register
   // any fetch event handlers, then abort the interception and maybe trigger
   // the soft update algorithm.
@@ -1723,16 +1733,6 @@ ServiceWorkerPrivate::SendFetchEvent(nsIInterceptedChannel* aChannel,
 
   nsMainThreadPtrHandle<nsIInterceptedChannel> handle(
     new nsMainThreadPtrHolder<nsIInterceptedChannel>(aChannel, false));
-
-  // Its possible the registration is removed between starting the interception
-  // and actually dispatching the fetch event.  In these cases we simply
-  // want to restart the original network request.  Since this is a normal
-  // condition we handle the reset here instead of returning an error which
-  // would in turn trigger a console report.
-  if (!registration) {
-    aChannel->ResetInterception();
-    return NS_OK;
-  }
 
   nsMainThreadPtrHandle<ServiceWorkerRegistrationInfo> regInfo(
     new nsMainThreadPtrHolder<ServiceWorkerRegistrationInfo>(registration, false));
