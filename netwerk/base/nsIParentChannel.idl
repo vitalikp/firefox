@@ -29,12 +29,6 @@ interface nsIParentChannel : nsIStreamListener
   [noscript] void setParentListener(in HttpChannelParentListener listener);
 
   /**
-   * Called to notify the HttpChannelChild that tracking protection was
-   * disabled for this load.
-   */
-  [noscript] void notifyTrackingProtectionDisabled();
-
-  /**
    * Called to invoke deletion of the IPC protocol.
    */
   void delete();

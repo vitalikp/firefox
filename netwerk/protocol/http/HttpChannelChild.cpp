@@ -1674,12 +1674,6 @@ HttpChannelChild::RecvFlushedForDiversion()
   return IPC_OK();
 }
 
-mozilla::ipc::IPCResult
-HttpChannelChild::RecvNotifyTrackingProtectionDisabled()
-{
-  return IPC_OK();
-}
-
 void
 HttpChannelChild::FlushedForDiversion()
 {

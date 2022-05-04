@@ -110,7 +110,6 @@ public:
 
   MOZ_MUST_USE bool IsSuspended();
 
-  mozilla::ipc::IPCResult RecvNotifyTrackingProtectionDisabled() override;
   void FlushedForDiversion();
 
   void OnCopyComplete(nsresult aStatus) override;

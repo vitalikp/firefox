@@ -36,13 +36,6 @@ DataChannelParent::SetParentListener(HttpChannelParentListener* aListener)
 }
 
 NS_IMETHODIMP
-DataChannelParent::NotifyTrackingProtectionDisabled()
-{
-    // Nothing to do.
-    return NS_OK;
-}
-
-NS_IMETHODIMP
 DataChannelParent::Delete()
 {
     // Nothing to do.
