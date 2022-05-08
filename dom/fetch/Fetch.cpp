@@ -380,6 +380,7 @@ FetchRequest(nsIGlobalObject* aGlobal, const RequestOrUSVString& aInput,
 
     RefPtr<MainThreadFetchResolver> resolver =
       new MainThreadFetchResolver(p, observer);
+    RefPtr<FetchDriver> fetch =
       new FetchDriver(r, principal, loadGroup,
                       aGlobal->EventTargetFor(TaskCategory::Other));
     fetch->SetDocument(doc);
