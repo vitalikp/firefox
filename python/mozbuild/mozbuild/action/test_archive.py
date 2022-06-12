@@ -93,11 +93,6 @@ ARCHIVE_FILES = {
         },
         {
             'source': buildconfig.topsrcdir,
-            'base': 'testing',
-            'pattern': 'firefox-ui/**',
-        },
-        {
-            'source': buildconfig.topsrcdir,
             'base': 'dom/media/test/external',
             'pattern': '**',
             'dest': 'external-media-tests',

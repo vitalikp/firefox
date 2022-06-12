@@ -64,7 +64,6 @@ SEARCH_PATHS = [
     'other-licenses/ply',
     'taskcluster',
     'testing',
-    'testing/firefox-ui/harness',
     'testing/mozbase/mozcrash',
     'testing/mozbase/mozdebug',
     'testing/mozbase/mozdevice',

@@ -178,7 +178,6 @@ LINTER = {
     'include': [
         'python/mozlint',
         'taskcluster',
-        'testing/firefox-ui',
         'testing/mozbase',
         'testing/mochitest',
         'tools/lint',
