@@ -101,7 +101,6 @@ MACH_MODULES = [
     'python/mozbuild/mozbuild/backend/mach_commands.py',
     'python/mozbuild/mozbuild/compilation/codecomplete.py',
     'python/mozbuild/mozbuild/frontend/mach_commands.py',
-    'testing/firefox-ui/mach_commands.py',
     'testing/mochitest/mach_commands.py',
     'tools/docs/mach_commands.py',
     'tools/lint/mach_commands.py',
