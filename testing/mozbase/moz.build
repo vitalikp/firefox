@@ -24,7 +24,6 @@ python_modules = [
     'mozprofile',
     'mozrunner',
     'mozscreenshot',
-    'mozsystemmonitor',
     'moztest',
     'mozversion',
 ]

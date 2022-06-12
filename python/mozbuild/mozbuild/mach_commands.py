@@ -51,37 +51,6 @@ targets as needed. BUILDING ONLY PARTS OF THE TREE CAN RESULT IN BAD TREE
 STATE. USE AT YOUR OWN RISK.
 '''.strip()
 
-FINDER_SLOW_MESSAGE = '''
-===================
-PERFORMANCE WARNING
-
-The OS X Finder application (file indexing used by Spotlight) used a lot of CPU
-during the build - an average of %f%% (100%% is 1 core). This made your build
-slower.
-
-Consider adding ".noindex" to the end of your object directory name to have
-Finder ignore it. Or, add an indexing exclusion through the Spotlight System
-Preferences.
-===================
-'''.strip()
-
-EXCESSIVE_SWAP_MESSAGE = '''
-===================
-PERFORMANCE WARNING
-
-Your machine experienced a lot of swap activity during the build. This is
-possibly a sign that your machine doesn't have enough physical memory or
-not enough available memory to perform the build. It's also possible some
-other system activity during the build is to blame.
-
-If you feel this message is not appropriate for your machine configuration,
-please file a Core :: Build Config bug at
-https://bugzilla.mozilla.org/enter_bug.cgi?product=Core&component=Build%20Config
-and tell us about your machine and build configuration so we can adjust the
-warning heuristic.
-===================
-'''
-
 
 class TerminalLoggingHandler(logging.Handler):
     """Custom logging handler that works with terminal window dressing.
@@ -230,11 +199,6 @@ class BuildOutputManager(LoggingMixin):
             # Prevents the footer from being redrawn if logging occurs.
             self._handler.footer = None
 
-        # Ensure the resource monitor is stopped because leaving it running
-        # could result in the process hanging on exit because the resource
-        # collection child process hasn't been told to stop.
-        self.monitor.stop_resource_recording()
-
     def write_line(self, line):
         if self.footer:
             self.footer.clear()
@@ -320,7 +284,6 @@ class Build(MachCommandBase):
         warnings_path = self._get_state_filename('warnings.json')
         monitor = self._spawn(BuildMonitor)
         monitor.init(warnings_path)
-        ccache_start = monitor.ccache_stats()
 
         # Disable indexing in objdir because it is not necessary and can slow
         # down builds.
@@ -341,7 +304,6 @@ class Build(MachCommandBase):
                     directory = directory[1:]
 
             status = None
-            monitor.start_resource_recording()
             if what:
                 top_make = os.path.join(self.topobjdir, 'Makefile')
                 if not os.path.exists(top_make):
@@ -458,19 +420,6 @@ class Build(MachCommandBase):
 
             monitor.finish(record_usage=status==0)
 
-        high_finder, finder_percent = monitor.have_high_finder_usage()
-        if high_finder:
-            print(FINDER_SLOW_MESSAGE % finder_percent)
-
-        ccache_end = monitor.ccache_stats()
-
-        ccache_diff = None
-        if ccache_start and ccache_end:
-            ccache_diff = ccache_end - ccache_start
-            if ccache_diff:
-                self.log(logging.INFO, 'ccache',
-                         {'msg': ccache_diff.hit_rate_message()}, "{msg}")
-
         notify_minimum_time = 300
         try:
             notify_minimum_time = int(os.environ.get('MACH_NOTIFY_MINTIME', '300'))
@@ -486,39 +435,6 @@ class Build(MachCommandBase):
             return status
 
         output.on_line('Your build was successful!')
-
-        if monitor.have_resource_usage:
-            excessive, swap_in, swap_out = monitor.have_excessive_swapping()
-            # if excessive:
-            #    print(EXCESSIVE_SWAP_MESSAGE)
-
-            telemetry_handler = getattr(self._mach_context,
-                                        'telemetry_handler', None)
-            telemetry_data = monitor.get_resource_usage()
-
-            # Record build configuration data. For now, we cherry pick
-            # items we need rather than grabbing everything, in order
-            # to avoid accidentally disclosing PII.
-            telemetry_data['substs'] = {}
-            try:
-                for key in ['MOZ_ARTIFACT_BUILDS', 'MOZ_USING_CCACHE']:
-                    value = self.substs.get(key, False)
-                    telemetry_data['substs'][key] = value
-            except BuildEnvironmentNotFoundException:
-                pass
-
-            # Grab ccache stats if available. We need to be careful not
-            # to capture information that can potentially identify the
-            # user (such as the cache location)
-            if ccache_diff:
-                telemetry_data['ccache'] = {}
-                for key in [key[0] for key in ccache_diff.STATS_KEYS]:
-                    try:
-                        telemetry_data['ccache'][key] = ccache_diff._values[key]
-                    except KeyError:
-                        pass
-
-            telemetry_handler(self._mach_context, telemetry_data)
 
         return status
 
