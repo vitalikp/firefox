@@ -63,9 +63,6 @@
 #include "nsTArray.h"                   // for nsTArray
 #include "nsThreadUtils.h"              // for NS_IsMainThread
 #include "nsXULAppAPI.h"                // for XRE_GetIOMessageLoop
-#ifdef XP_WIN
-#include "mozilla/layers/CompositorD3D11.h"
-#endif
 #include "GeckoProfiler.h"
 #include "mozilla/ipc/ProtocolTypes.h"
 #include "mozilla/Unused.h"
@@ -1349,10 +1346,6 @@ CompositorBridgeParent::NewCompositor(const nsTArray<LayersBackend>& aBackendHin
       {
         compositor = new BasicCompositor(this, mWidget);
       }
-#ifdef XP_WIN
-    } else if (aBackendHints[i] == LayersBackend::LAYERS_D3D11) {
-      compositor = new CompositorD3D11(this, mWidget);
-#endif
     }
     nsCString failureReason;
 

@@ -31,20 +31,12 @@
 #include "gfxUtils.h"
 #include "IPDLActor.h"
 
-#ifdef MOZ_ENABLE_D3D10_LAYER
-#include "../d3d11/CompositorD3D11.h"
-#endif
-
 #ifdef MOZ_X11
 #include "mozilla/layers/X11TextureHost.h"
 #endif
 
 #ifdef XP_MACOSX
 #include "../opengl/MacIOSurfaceTextureHostOGL.h"
-#endif
-
-#ifdef XP_WIN
-#include "mozilla/layers/TextureDIB.h"
 #endif
 
 #if 0
@@ -167,11 +159,6 @@ already_AddRefed<TextureHost> CreateTextureHostBasic(const SurfaceDescriptor& aD
                                                  ISurfaceAllocator* aDeallocator,
                                                  TextureFlags aFlags);
 
-// implemented in TextureD3D11.cpp
-already_AddRefed<TextureHost> CreateTextureHostD3D11(const SurfaceDescriptor& aDesc,
-                                                 ISurfaceAllocator* aDeallocator,
-                                                 TextureFlags aFlags);
-
 already_AddRefed<TextureHost>
 TextureHost::Create(const SurfaceDescriptor& aDesc,
                     ISurfaceAllocator* aDeallocator,
@@ -209,11 +196,6 @@ TextureHost::Create(const SurfaceDescriptor& aDesc,
     }
 #endif
 
-#ifdef XP_WIN
-    case SurfaceDescriptor::TSurfaceDescriptorD3D10:
-    case SurfaceDescriptor::TSurfaceDescriptorDXGIYCbCr:
-      return CreateTextureHostD3D11(aDesc, aDeallocator, aFlags);
-#endif
     default:
       MOZ_CRASH("GFX: Unsupported Surface type host");
   }

@@ -34,8 +34,6 @@
 
 #ifdef XP_WIN
 #include "mozilla/gfx/DeviceManagerDx.h"
-#include "mozilla/layers/TextureD3D11.h"
-#include "mozilla/layers/TextureDIB.h"
 #include "gfxWindowsPlatform.h"
 #include "gfx2DGlue.h"
 #endif

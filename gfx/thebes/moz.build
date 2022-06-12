@@ -142,7 +142,6 @@ elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
         'gfxGDIFont.cpp',
         'gfxGDIFontList.cpp',
         'gfxWindowsNativeDrawing.cpp',
-        'gfxWindowsPlatform.cpp',
         'gfxWindowsSurface.cpp',
         'PrintTargetPDF.cpp',
         'PrintTargetWindows.cpp',
@@ -217,11 +216,6 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
     UNIFIED_SOURCES += [
         'gfxMacPlatformFontList.mm',
     ]
-elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
-    UNIFIED_SOURCES += [
-        'D3D11Checks.cpp',
-        'DeviceManagerDx.cpp',
-    ]
 
 # We prefer to use ICU for normalization functions, but currently it is only
 # available if we're building with the Intl API enabled:
@@ -246,11 +240,6 @@ LOCAL_INCLUDES += [
 
 if CONFIG['MOZ_WIDGET_TOOLKIT'] in ('android', 'gtk2', 'gtk3'):
     DEFINES['MOZ_ENABLE_FREETYPE'] = True
-
-if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
-    for var in ('MOZ_ENABLE_D3D10_LAYER',):
-        if CONFIG[var]:
-            DEFINES[var] = True
 
 CXXFLAGS += CONFIG['MOZ_CAIRO_CFLAGS']
 CXXFLAGS += CONFIG['TK_CFLAGS']

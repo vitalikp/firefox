@@ -44,9 +44,7 @@
 #include "mozilla/layers/TextureClientRecycleAllocator.h"
 #include "mozilla/layers/ImageBridgeChild.h"
 #if defined(XP_WIN)
-# include "mozilla/layers/D3D11ShareHandleImage.h"
 # include "mozilla/gfx/DeviceManagerDx.h"
-# include "mozilla/layers/TextureD3D11.h"
 #endif
 
 #ifdef XP_MACOSX
