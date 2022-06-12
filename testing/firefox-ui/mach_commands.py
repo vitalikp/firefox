@@ -18,14 +18,6 @@ from mach.decorators import (
 )
 
 
-def setup_argument_parser_functional():
-    from firefox_ui_harness.arguments.base import FirefoxUIArguments
-    from mozlog.structured import commandline
-    parser = FirefoxUIArguments()
-    commandline.add_logging_group(parser)
-    return parser
-
-
 def setup_argument_parser_update():
     from firefox_ui_harness.arguments.update import UpdateArguments
     from mozlog.structured import commandline
@@ -39,19 +31,9 @@ def run_firefox_ui_test(testtype=None, topsrcdir=None, **kwargs):
     from argparse import Namespace
     import firefox_ui_harness
 
-    if testtype == 'functional':
-        parser = setup_argument_parser_functional()
-    else:
-        parser = setup_argument_parser_update()
+    parser = setup_argument_parser_update()
 
     test_types = {
-        'functional': {
-            'default_tests': [
-                os.path.join('puppeteer', 'manifest.ini'),
-                os.path.join('functional', 'manifest.ini'),
-            ],
-            'cli_module': firefox_ui_harness.cli_functional,
-        },
         'update': {
             'default_tests': [
                 os.path.join('update', 'manifest.ini'),
@@ -98,16 +80,6 @@ def run_firefox_ui_test(testtype=None, topsrcdir=None, **kwargs):
 @CommandProvider
 class MachCommands(MachCommandBase):
     """Mach command provider for Firefox ui tests."""
-
-    @Command('firefox-ui-functional', category='testing',
-             conditions=[conditions.is_firefox],
-             description='Run the functional test suite of Firefox UI tests.',
-             parser=setup_argument_parser_functional,
-             )
-    def run_firefox_ui_functional(self, **kwargs):
-        kwargs['binary'] = kwargs['binary'] or self.get_binary_path('app')
-        return run_firefox_ui_test(testtype='functional',
-                                   topsrcdir=self.topsrcdir, **kwargs)
 
     @Command('firefox-ui-update', category='testing',
              conditions=[conditions.is_firefox],
