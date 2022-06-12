@@ -478,10 +478,6 @@ private:
   static bool IsAndroidMediaPluginEnabled();
 #endif
 
-#ifdef MOZ_WMF
-  static bool IsWMFEnabled();
-#endif
-
   // Return statistics. This is used for progress events and other things.
   // This can be called from any thread. It's only a snapshot of the
   // current state, since other threads might be changing the state

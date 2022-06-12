@@ -41,9 +41,6 @@ DIRS += [
     'omx'
 ]
 
-if CONFIG['MOZ_WMF']:
-    DIRS += [ 'wmf' ];
-
 if CONFIG['MOZ_FFMPEG']:
     DIRS += [
         'ffmpeg',

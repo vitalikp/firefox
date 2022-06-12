@@ -477,11 +477,6 @@ static const nsDefaultMimeTypeEntry defaultMimeEntries[] =
   { APPLICATION_PDF, "pdf" },
   { VIDEO_WEBM, "webm" },
   { AUDIO_WEBM, "webm" },
-#if defined(MOZ_WMF)
-  { VIDEO_MP4, "mp4" },
-  { AUDIO_MP4, "m4a" },
-  { AUDIO_MP3, "mp3" },
-#endif
 #ifdef MOZ_RAW
   { VIDEO_RAW, "yuv" }
 #endif
