@@ -320,7 +320,7 @@ FOR_EACH_ALLOCKIND(EXPAND_THINGS_PER_ARENA)
 
 struct js::gc::FinalizePhase
 {
-    gcstats::Phase statsPhase;
+    gcstats::PhaseKind statsPhase;
     AllocKinds kinds;
 };
 
@@ -4023,7 +4023,7 @@ GCRuntime::markCompartments()
 
 template <class ZoneIterT>
 void
-GCRuntime::markWeakReferences(gcstats::Phase phase)
+GCRuntime::markWeakReferences(gcstats::PhaseKind phase)
 {
     MOZ_ASSERT(marker.isDrained());
 
@@ -4060,14 +4060,14 @@ GCRuntime::markWeakReferences(gcstats::Phase phase)
 }
 
 void
-GCRuntime::markWeakReferencesInCurrentGroup(gcstats::Phase phase)
+GCRuntime::markWeakReferencesInCurrentGroup(gcstats::PhaseKind phase)
 {
     markWeakReferences<GCSweepGroupIter>(phase);
 }
 
 template <class ZoneIterT, class CompartmentIterT>
 void
-GCRuntime::markGrayReferences(gcstats::Phase phase)
+GCRuntime::markGrayReferences(gcstats::PhaseKind phase)
 {
     gcstats::AutoPhase ap(stats(), phase);
     if (hasBufferedGrayRoots()) {
@@ -4083,19 +4083,19 @@ GCRuntime::markGrayReferences(gcstats::Phase phase)
 }
 
 void
-GCRuntime::markGrayReferencesInCurrentGroup(gcstats::Phase phase)
+GCRuntime::markGrayReferencesInCurrentGroup(gcstats::PhaseKind phase)
 {
     markGrayReferences<GCSweepGroupIter, GCCompartmentGroupIter>(phase);
 }
 
 void
-GCRuntime::markAllWeakReferences(gcstats::Phase phase)
+GCRuntime::markAllWeakReferences(gcstats::PhaseKind phase)
 {
     markWeakReferences<GCZonesIter>(phase);
 }
 
 void
-GCRuntime::markAllGrayReferences(gcstats::Phase phase)
+GCRuntime::markAllGrayReferences(gcstats::PhaseKind phase)
 {
     markGrayReferences<GCZonesIter, GCCompartmentsIter>(phase);
 }
@@ -4707,7 +4707,7 @@ MarkIncomingCrossCompartmentPointers(JSRuntime* rt, const uint32_t color)
 {
     MOZ_ASSERT(color == BLACK || color == GRAY);
 
-    static const gcstats::Phase statsPhases[] = {
+    static const gcstats::PhaseKind statsPhases[] = {
         gcstats::PHASE_SWEEP_MARK_INCOMING_BLACK,
         gcstats::PHASE_SWEEP_MARK_INCOMING_GRAY
     };
@@ -4998,7 +4998,7 @@ SweepUniqueIds(JSRuntime* runtime)
 }
 
 void
-GCRuntime::startTask(GCParallelTask& task, gcstats::Phase phase, AutoLockHelperThreadState& locked)
+GCRuntime::startTask(GCParallelTask& task, gcstats::PhaseKind phase, AutoLockHelperThreadState& locked)
 {
     if (!task.startWithLockHeld(locked)) {
         AutoUnlockHelperThreadState unlock(locked);
@@ -5008,7 +5008,7 @@ GCRuntime::startTask(GCParallelTask& task, gcstats::Phase phase, AutoLockHelperT
 }
 
 void
-GCRuntime::joinTask(GCParallelTask& task, gcstats::Phase phase, AutoLockHelperThreadState& locked)
+GCRuntime::joinTask(GCParallelTask& task, gcstats::PhaseKind phase, AutoLockHelperThreadState& locked)
 {
     gcstats::AutoPhase ap(stats(), task, phase);
     task.joinWithLockHeld(locked);
@@ -5128,11 +5128,11 @@ class MOZ_RAII js::gc::AutoRunParallelTask : public GCParallelTask
     using Func = void (*)(JSRuntime*);
 
     Func func_;
-    gcstats::Phase phase_;
+    gcstats::PhaseKind phase_;
     AutoLockHelperThreadState& lock_;
 
   public:
-    AutoRunParallelTask(JSRuntime* rt, Func func, gcstats::Phase phase,
+    AutoRunParallelTask(JSRuntime* rt, Func func, gcstats::PhaseKind phase,
                        AutoLockHelperThreadState& lock)
       : GCParallelTask(rt),
         func_(func),
@@ -5357,7 +5357,7 @@ ArenaLists::foregroundFinalize(FreeOp* fop, AllocKind thingKind, SliceBudget& sl
 }
 
 IncrementalProgress
-GCRuntime::drainMarkStack(SliceBudget& sliceBudget, gcstats::Phase phase)
+GCRuntime::drainMarkStack(SliceBudget& sliceBudget, gcstats::PhaseKind phase)
 {
     /* Run a marking slice and return whether the stack is now empty. */
     gcstats::AutoPhase ap(stats(), phase);
@@ -6799,7 +6799,7 @@ GCRuntime::onOutOfMallocMemory(const AutoLockGC& lock)
 }
 
 void
-GCRuntime::minorGC(JS::gcreason::Reason reason, gcstats::Phase phase)
+GCRuntime::minorGC(JS::gcreason::Reason reason, gcstats::PhaseKind phase)
 {
     MOZ_ASSERT(!JS::CurrentThreadIsHeapBusy());
 

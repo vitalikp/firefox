@@ -98,9 +98,9 @@ t(TimeDuration duration)
 
 struct PhaseInfo
 {
-    Phase index;
+    PhaseKind index;
     const char* name;
-    Phase parent;
+    PhaseKind parent;
 };
 
 // The zeroth entry in the timing arrays is used for phases that have a
@@ -123,11 +123,11 @@ struct ExtraPhaseInfo
     ExtraPhaseInfo() : depth(0), dagSlot(0) {}
 };
 
-static const Phase PHASE_NO_PARENT = PHASE_LIMIT;
+static const PhaseKind PHASE_NO_PARENT = PHASE_LIMIT;
 
 struct DagChildEdge {
-    Phase parent;
-    Phase child;
+    PhaseKind parent;
+    PhaseKind child;
 } dagChildEdges[] = {
     { PHASE_MARK, PHASE_MARK_ROOTS },
     { PHASE_MINOR_GC, PHASE_MARK_ROOTS },
@@ -159,12 +159,12 @@ static const PhaseInfo phases[] = {
     { PHASE_LIMIT, nullptr, PHASE_NO_PARENT }
 };
 
-static mozilla::EnumeratedArray<Phase, PHASE_LIMIT, ExtraPhaseInfo> phaseExtra;
+static mozilla::EnumeratedArray<PhaseKind, PHASE_LIMIT, ExtraPhaseInfo> phaseExtra;
 
 // Mapping from all nodes with a multi-parented child to a Vector of all
 // multi-parented children and their descendants. (Single-parented children will
 // not show up in this list.)
-static mozilla::Vector<Phase, 0, SystemAllocPolicy> dagDescendants[Statistics::NumTimingArrays];
+static mozilla::Vector<PhaseKind, 0, SystemAllocPolicy> dagDescendants[Statistics::NumTimingArrays];
 
 // Preorder iterator over all phases in the expanded tree. Positions are
 // returned as <phase,dagSlot> pairs (dagSlot will be zero aka PHASE_DAG_NONE
@@ -184,7 +184,7 @@ struct AllPhaseIterator {
 
     // When iterating over a multiparented subtree, the list of (remaining)
     // subtree nodes.
-    mozilla::Vector<Phase, 0, SystemAllocPolicy>::Range descendants;
+    mozilla::Vector<PhaseKind, 0, SystemAllocPolicy>::Range descendants;
 
     explicit AllPhaseIterator()
       : current(0)
@@ -194,10 +194,10 @@ struct AllPhaseIterator {
     {
     }
 
-    void get(Phase* phase, size_t* dagSlot, int* level = nullptr) {
+    void get(PhaseKind* phase, size_t* dagSlot, int* level = nullptr) {
         MOZ_ASSERT(!done());
         *dagSlot = activeSlot;
-        *phase = descendants.empty() ? Phase(current) : descendants.front();
+        *phase = descendants.empty() ? PhaseKind(current) : descendants.front();
         if (level)
             *level = phaseExtra[*phase].depth + baseLevel;
     }
@@ -220,7 +220,7 @@ struct AllPhaseIterator {
             return;
         }
 
-        auto phase = Phase(current);
+        auto phase = PhaseKind(current);
         if (phaseExtra[phase].dagSlot != PHASE_DAG_NONE) {
             // The current phase has a shared subtree. Load them up into
             // 'descendants' and advance to the first child.
@@ -293,14 +293,14 @@ Join(const FragmentVector& fragments, const char* separator = "") {
 }
 
 static TimeDuration
-SumChildTimes(size_t phaseSlot, Phase phase, const Statistics::PhaseTimeTable& phaseTimes)
+SumChildTimes(size_t phaseSlot, PhaseKind phase, const Statistics::PhaseTimeTable& phaseTimes)
 {
     // Sum the contributions from single-parented children.
     TimeDuration total = 0;
     size_t depth = phaseExtra[phase].depth;
-    for (unsigned i = phase + 1; i < PHASE_LIMIT && phaseExtra[Phase(i)].depth > depth; i++) {
+    for (unsigned i = phase + 1; i < PHASE_LIMIT && phaseExtra[PhaseKind(i)].depth > depth; i++) {
         if (phases[i].parent == phase)
-            total += phaseTimes[phaseSlot][Phase(i)];
+            total += phaseTimes[phaseSlot][PhaseKind(i)];
     }
 
     // Sum the contributions from multi-parented children.
@@ -406,7 +406,7 @@ Statistics::formatCompactSlicePhaseTimes(const PhaseTimeTable& phaseTimes) const
     FragmentVector fragments;
     char buffer[128];
     for (AllPhaseIterator iter; !iter.done(); iter.advance()) {
-        Phase phase;
+        PhaseKind phase;
         size_t dagSlot;
         int level;
         iter.get(&phase, &dagSlot, &level);
@@ -533,7 +533,7 @@ Statistics::formatDetailedPhaseTimes(const PhaseTimeTable& phaseTimes) const
     FragmentVector fragments;
     char buffer[128];
     for (AllPhaseIterator iter; !iter.done(); iter.advance()) {
-        Phase phase;
+        PhaseKind phase;
         size_t dagSlot;
         int level;
         iter.get(&phase, &dagSlot, &level);
@@ -718,7 +718,7 @@ void
 Statistics::formatJsonPhaseTimes(const PhaseTimeTable& phaseTimes, JSONPrinter& json) const
 {
     for (AllPhaseIterator iter; !iter.done(); iter.advance()) {
-        Phase phase;
+        PhaseKind phase;
         size_t dagSlot;
         iter.get(&phase, &dagSlot);
 
@@ -794,15 +794,15 @@ Statistics::initialize()
     // multiple parents.
     size_t dagSlot = 0;
     for (size_t i = 0; i < mozilla::ArrayLength(dagChildEdges); i++) {
-        Phase parent = dagChildEdges[i].parent;
+        PhaseKind parent = dagChildEdges[i].parent;
         if (!phaseExtra[parent].dagSlot)
             phaseExtra[parent].dagSlot = ++dagSlot;
 
-        Phase child = dagChildEdges[i].child;
+        PhaseKind child = dagChildEdges[i].child;
         MOZ_ASSERT(phases[child].parent == PHASE_MULTI_PARENTS);
         int j = child;
         do {
-            if (!dagDescendants[phaseExtra[parent].dagSlot].append(Phase(j)))
+            if (!dagDescendants[phaseExtra[parent].dagSlot].append(PhaseKind(j)))
                 return false;
             j++;
         } while (j != PHASE_LIMIT && phases[j].parent != PHASE_MULTI_PARENTS);
@@ -811,7 +811,7 @@ Statistics::initialize()
 
     // Fill in the depth of each node in the tree. Multi-parented nodes
     // have depth 0.
-    mozilla::Vector<Phase, 0, SystemAllocPolicy> stack;
+    mozilla::Vector<PhaseKind, 0, SystemAllocPolicy> stack;
     if (!stack.append(PHASE_LIMIT)) // Dummy entry to avoid special-casing the first node
         return false;
     for (auto i : AllPhases()) {
@@ -864,11 +864,11 @@ Statistics::getMaxGCPauseSinceClear()
 // Sum up the time for a phase, including instances of the phase with different
 // parents.
 static TimeDuration
-SumPhase(Phase phase, const Statistics::PhaseTimeTable& times)
+SumPhase(PhaseKind phaseKind, const Statistics::PhaseTimeTable& times)
 {
     TimeDuration sum = 0;
     for (const auto& phaseTimes : times)
-        sum += phaseTimes[phase];
+        sum += phaseTimes[phaseKind];
     return sum;
 }
 
@@ -1089,12 +1089,12 @@ Statistics::stopTimingMutator(double& mutator_ms, double& gc_ms)
 }
 
 void
-Statistics::suspendPhases(Phase suspension)
+Statistics::suspendPhases(PhaseKind suspension)
 {
     MOZ_ASSERT(suspension == PHASE_EXPLICIT_SUSPENSION || suspension == PHASE_IMPLICIT_SUSPENSION);
     while (phaseNestingDepth) {
         MOZ_ASSERT(suspended < mozilla::ArrayLength(suspendedPhases));
-        Phase parent = phaseNesting[phaseNestingDepth - 1];
+        PhaseKind parent = phaseNesting[phaseNestingDepth - 1];
         suspendedPhases[suspended++] = parent;
         recordPhaseEnd(parent);
     }
@@ -1104,13 +1104,13 @@ Statistics::suspendPhases(Phase suspension)
 void
 Statistics::resumePhases()
 {
-    DebugOnly<Phase> popped = suspendedPhases[--suspended];
+    DebugOnly<PhaseKind> popped = suspendedPhases[--suspended];
     MOZ_ASSERT(popped == PHASE_EXPLICIT_SUSPENSION || popped == PHASE_IMPLICIT_SUSPENSION);
     while (suspended &&
            suspendedPhases[suspended - 1] != PHASE_EXPLICIT_SUSPENSION &&
            suspendedPhases[suspended - 1] != PHASE_IMPLICIT_SUSPENSION)
     {
-        Phase resumePhase = suspendedPhases[--suspended];
+        PhaseKind resumePhase = suspendedPhases[--suspended];
         if (resumePhase == PHASE_MUTATOR)
             timedGCTime += TimeStamp::Now() - timedGCStart;
         beginPhase(resumePhase);
@@ -1118,12 +1118,12 @@ Statistics::resumePhases()
 }
 
 void
-Statistics::beginPhase(Phase phase)
+Statistics::beginPhase(PhaseKind phaseKind)
 {
     // No longer timing these phases. We should never see these.
-    MOZ_ASSERT(phase != PHASE_GC_BEGIN && phase != PHASE_GC_END);
+    MOZ_ASSERT(phaseKind != PHASE_GC_BEGIN && phaseKind != PHASE_GC_END);
 
-    Phase parent = phaseNestingDepth ? phaseNesting[phaseNestingDepth - 1] : PHASE_NO_PARENT;
+    PhaseKind parent = phaseNestingDepth ? phaseNesting[phaseNestingDepth - 1] : PHASE_NO_PARENT;
 
     // PHASE_MUTATOR is suspended while performing GC.
     if (parent == PHASE_MUTATOR) {
@@ -1132,26 +1132,26 @@ Statistics::beginPhase(Phase phase)
     }
 
     // Guard against any other re-entry.
-    MOZ_ASSERT(!phaseStartTimes[phase]);
+    MOZ_ASSERT(!phaseStartTimes[phaseKind]);
 
-    MOZ_ASSERT(phases[phase].index == phase);
+    MOZ_ASSERT(phases[phaseKind].index == phaseKind);
     MOZ_ASSERT(phaseNestingDepth < MAX_NESTING);
-    MOZ_ASSERT(phases[phase].parent == parent || phases[phase].parent == PHASE_MULTI_PARENTS);
+    MOZ_ASSERT(phases[phaseKind].parent == parent || phases[phaseKind].parent == PHASE_MULTI_PARENTS);
 
-    phaseNesting[phaseNestingDepth] = phase;
+    phaseNesting[phaseNestingDepth] = phaseKind;
     phaseNestingDepth++;
 
-    if (phases[phase].parent == PHASE_MULTI_PARENTS) {
+    if (phases[phaseKind].parent == PHASE_MULTI_PARENTS) {
         MOZ_ASSERT(parent != PHASE_NO_PARENT);
         activeDagSlot = phaseExtra[parent].dagSlot;
     }
     MOZ_ASSERT(activeDagSlot <= MaxMultiparentPhases - 1);
 
-    phaseStartTimes[phase] = TimeStamp::Now();
+    phaseStartTimes[phaseKind] = TimeStamp::Now();
 }
 
 void
-Statistics::recordPhaseEnd(Phase phase)
+Statistics::recordPhaseEnd(PhaseKind phase)
 {
     TimeStamp now = TimeStamp::Now();
 
@@ -1168,11 +1168,11 @@ Statistics::recordPhaseEnd(Phase phase)
 }
 
 void
-Statistics::endPhase(Phase phase)
+Statistics::endPhase(PhaseKind phaseKind)
 {
-    recordPhaseEnd(phase);
+    recordPhaseEnd(phaseKind);
 
-    if (phases[phase].parent == PHASE_MULTI_PARENTS)
+    if (phases[phaseKind].parent == PHASE_MULTI_PARENTS)
         activeDagSlot = PHASE_DAG_NONE;
 
     // When emptying the stack, we may need to return to timing the mutator
@@ -1182,14 +1182,14 @@ Statistics::endPhase(Phase phase)
 }
 
 void
-Statistics::endParallelPhase(Phase phase, const GCParallelTask* task)
+Statistics::endParallelPhase(PhaseKind phaseKind, const GCParallelTask* task)
 {
     phaseNestingDepth--;
 
     if (!slices_.empty())
-        slices_.back().phaseTimes[PHASE_DAG_NONE][phase] += task->duration();
-    phaseTimes[PHASE_DAG_NONE][phase] += task->duration();
-    phaseStartTimes[phase] = TimeStamp();
+        slices_.back().phaseTimes[PHASE_DAG_NONE][phaseKind] += task->duration();
+    phaseTimes[PHASE_DAG_NONE][phaseKind] += task->duration();
+    phaseStartTimes[phaseKind] = TimeStamp();
 }
 
 TimeStamp

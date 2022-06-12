@@ -30,7 +30,7 @@ class GCParallelTask;
 
 namespace gcstats {
 
-enum Phase : uint8_t {
+enum PhaseKind : uint8_t {
     PHASE_FIRST,
 
 #define PHASE(name, desc, ...) \
@@ -150,7 +150,7 @@ struct Statistics
 
     /* Create a convenient type for referring to tables of phase times. */
     using PhaseTimeTable =
-        Array<EnumeratedArray<Phase, PHASE_LIMIT, TimeDuration>, NumTimingArrays>;
+        Array<EnumeratedArray<PhaseKind, PHASE_LIMIT, TimeDuration>, NumTimingArrays>;
 
     static MOZ_MUST_USE bool initialize();
 
@@ -160,9 +160,9 @@ struct Statistics
     Statistics(const Statistics&) = delete;
     Statistics& operator=(const Statistics&) = delete;
 
-    void beginPhase(Phase phase);
-    void endPhase(Phase phase);
-    void endParallelPhase(Phase phase, const GCParallelTask* task);
+    void beginPhase(PhaseKind phaseKind);
+    void endPhase(PhaseKind phaseKind);
+    void endParallelPhase(PhaseKind phaseKind, const GCParallelTask* task);
 
     // Occasionally, we may be in the middle of something that is tracked by
     // this class, and we need to do something unusual (eg evict the nursery)
@@ -174,7 +174,7 @@ struct Statistics
     // this phase, any beginPhase will automatically suspend the non-GC phase,
     // until that inner stack is complete, at which time it will automatically
     // resume the non-GC phase. Explicit suspensions do not get auto-resumed.
-    void suspendPhases(Phase suspension = PHASE_EXPLICIT_SUSPENSION);
+    void suspendPhases(PhaseKind suspension = PHASE_EXPLICIT_SUSPENSION);
 
     // Resume a suspended stack of phases.
     void resumePhases();
@@ -235,7 +235,7 @@ struct Statistics
     TimeDuration getMaxGCPauseSinceClear();
 
     // Return the current phase, suppressing the synthetic PHASE_MUTATOR phase.
-    Phase currentPhase() {
+    PhaseKind currentPhase() {
         if (phaseNestingDepth == 0)
             return PHASE_NONE;
         if (phaseNestingDepth == 1)
@@ -314,7 +314,7 @@ struct Statistics
     SliceDataVector slices_;
 
     /* Most recent time when the given phase started. */
-    EnumeratedArray<Phase, PHASE_LIMIT, TimeStamp> phaseStartTimes;
+    EnumeratedArray<PhaseKind, PHASE_LIMIT, TimeStamp> phaseStartTimes;
 
     /* Bookkeeping for GC timings when timingMutator is true */
     TimeStamp timedGCStart;
@@ -342,7 +342,7 @@ struct Statistics
     mutable TimeDuration maxPauseInInterval;
 
     /* Phases that are currently on stack. */
-    Array<Phase, MAX_NESTING> phaseNesting;
+    Array<PhaseKind, MAX_NESTING> phaseNesting;
     size_t phaseNestingDepth;
     size_t activeDagSlot;
 
@@ -353,7 +353,7 @@ struct Statistics
      * suspensions by suspending multiple stacks with a PHASE_SUSPENSION in
      * between).
      */
-    Array<Phase, MAX_NESTING * 3> suspendedPhases;
+    Array<PhaseKind, MAX_NESTING * 3> suspendedPhases;
     size_t suspended;
 
     /* Sweep times for SCCs of compartments. */
@@ -390,7 +390,7 @@ FOR_EACH_GC_PROFILE_TIME(DEFINE_TIME_KEY)
     void beginGC(JSGCInvocationKind kind);
     void endGC();
 
-    void recordPhaseEnd(Phase phase);
+    void recordPhaseEnd(PhaseKind phase);
 
     void gcDuration(TimeDuration* total, TimeDuration* maxPause) const;
     void sccDurations(TimeDuration* total, TimeDuration* maxPause) const;
@@ -429,24 +429,24 @@ struct MOZ_RAII AutoGCSlice
 
 struct MOZ_RAII AutoPhase
 {
-    AutoPhase(Statistics& stats, Phase phase)
-      : stats(stats), task(nullptr), phase(phase), enabled(true)
+    AutoPhase(Statistics& stats, PhaseKind phaseKind)
+      : stats(stats), task(nullptr), phaseKind(phaseKind), enabled(true)
     {
-        stats.beginPhase(phase);
+        stats.beginPhase(phaseKind);
     }
 
-    AutoPhase(Statistics& stats, bool condition, Phase phase)
-      : stats(stats), task(nullptr), phase(phase), enabled(condition)
+    AutoPhase(Statistics& stats, bool condition, PhaseKind phaseKind)
+      : stats(stats), task(nullptr), phaseKind(phaseKind), enabled(condition)
     {
         if (enabled)
-            stats.beginPhase(phase);
+            stats.beginPhase(phaseKind);
     }
 
-    AutoPhase(Statistics& stats, const GCParallelTask& task, Phase phase)
-      : stats(stats), task(&task), phase(phase), enabled(true)
+    AutoPhase(Statistics& stats, const GCParallelTask& task, PhaseKind phaseKind)
+      : stats(stats), task(&task), phaseKind(phaseKind), enabled(true)
     {
         if (enabled)
-            stats.beginPhase(phase);
+            stats.beginPhase(phaseKind);
     }
 
     ~AutoPhase() {
@@ -455,13 +455,13 @@ struct MOZ_RAII AutoPhase
             // spent waiting to join with helper threads), but should start
             // recording total work on helper threads sometime by calling
             // endParallelPhase here if task is nonnull.
-            stats.endPhase(phase);
+            stats.endPhase(phaseKind);
         }
     }
 
     Statistics& stats;
     const GCParallelTask* task;
-    Phase phase;
+    PhaseKind phaseKind;
     bool enabled;
 };
 
