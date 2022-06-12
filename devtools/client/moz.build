@@ -20,7 +20,6 @@ DIRS += [
     'netmonitor',
     'performance',
     'preferences',
-    'projecteditor',
     'responsive.html',
     'responsivedesign',
     'scratchpad',
