@@ -65,7 +65,6 @@ from .sandbox import (
 from .context import (
     Context,
     ContextDerivedValue,
-    Files,
     FUNCTIONS,
     VARIABLES,
     DEPRECATION_HINTS,
@@ -1295,78 +1294,3 @@ class BuildReader(object):
             result[path] = reduce(lambda x, y: x + y, (contexts[p] for p in paths), [])
 
         return result, all_contexts
-
-    def files_info(self, paths):
-        """Obtain aggregate data from Files for a set of files.
-
-        Given a set of input paths, determine which moz.build files may
-        define metadata for them, evaluate those moz.build files, and
-        apply file metadata rules defined within to determine metadata
-        values for each file requested.
-
-        Essentially, for each input path:
-
-        1. Determine the set of moz.build files relevant to that file by
-           looking for moz.build files in ancestor directories.
-        2. Evaluate moz.build files starting with the most distant.
-        3. Iterate over Files sub-contexts.
-        4. If the file pattern matches the file we're seeking info on,
-           apply attribute updates.
-        5. Return the most recent value of attributes.
-        """
-        paths, _ = self.read_relevant_mozbuilds(paths)
-
-        r = {}
-
-        for path, ctxs in paths.items():
-            flags = Files(Context())
-
-            for ctx in ctxs:
-                if not isinstance(ctx, Files):
-                    continue
-
-                relpath = mozpath.relpath(path, ctx.relsrcdir)
-                pattern = ctx.pattern
-
-                # Only do wildcard matching if the '*' character is present.
-                # Otherwise, mozpath.match will match directories, which we've
-                # arbitrarily chosen to not allow.
-                if pattern == relpath or \
-                        ('*' in pattern and mozpath.match(relpath, pattern)):
-                    flags += ctx
-
-            if not any([flags.test_tags, flags.test_files, flags.test_flavors]):
-                flags += self.test_defaults_for_path(ctxs)
-
-            r[path] = flags
-
-        return r
-
-    def test_defaults_for_path(self, ctxs):
-        # This names the context keys that will end up emitting a test
-        # manifest.
-        test_manifest_contexts = set(
-            ['%s_MANIFESTS' % key for key in TEST_MANIFESTS]
-        )
-
-        result_context = Files(Context())
-        for ctx in ctxs:
-            for key in ctx:
-                if key not in test_manifest_contexts:
-                    continue
-                for paths, obj in ctx[key]:
-                    if isinstance(paths, tuple):
-                        path, tests_root = paths
-                        tests_root = mozpath.join(ctx.relsrcdir, tests_root)
-                        for t in (mozpath.join(tests_root, path) for path, _ in obj):
-                            result_context.test_files.add(mozpath.dirname(t) + '/**')
-                    else:
-                        for t in obj.tests:
-                            if isinstance(t, tuple):
-                                path, _ = t
-                                relpath = mozpath.relpath(path,
-                                                          self.config.topsrcdir)
-                            else:
-                                relpath = t['relpath']
-                            result_context.test_files.add(mozpath.dirname(relpath) + '/**')
-        return result_context
