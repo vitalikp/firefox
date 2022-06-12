@@ -101,7 +101,6 @@ struct PhaseInfo
     Phase index;
     const char* name;
     Phase parent;
-    const uint8_t telemetryBucket;
 };
 
 // The zeroth entry in the timing arrays is used for phases that have a
@@ -145,83 +144,79 @@ struct DagChildEdge {
  */
 
 static const PhaseInfo phases[] = {
-    { PHASE_MUTATOR, "Mutator Running", PHASE_NO_PARENT, 0 },
-    { PHASE_GC_BEGIN, "Begin Callback", PHASE_NO_PARENT, 1 },
-    { PHASE_WAIT_BACKGROUND_THREAD, "Wait Background Thread", PHASE_NO_PARENT, 2 },
-    { PHASE_MARK_DISCARD_CODE, "Mark Discard Code", PHASE_NO_PARENT, 3 },
-    { PHASE_RELAZIFY_FUNCTIONS, "Relazify Functions", PHASE_NO_PARENT, 4 },
-    { PHASE_PURGE, "Purge", PHASE_NO_PARENT, 5 },
-    { PHASE_MARK, "Mark", PHASE_NO_PARENT, 6 },
-        { PHASE_UNMARK, "Unmark", PHASE_MARK, 7 },
+    { PHASE_MUTATOR, "Mutator Running", PHASE_NO_PARENT },
+    { PHASE_GC_BEGIN, "Begin Callback", PHASE_NO_PARENT },
+    { PHASE_WAIT_BACKGROUND_THREAD, "Wait Background Thread", PHASE_NO_PARENT },
+    { PHASE_MARK_DISCARD_CODE, "Mark Discard Code", PHASE_NO_PARENT },
+    { PHASE_RELAZIFY_FUNCTIONS, "Relazify Functions", PHASE_NO_PARENT },
+    { PHASE_PURGE, "Purge", PHASE_NO_PARENT },
+    { PHASE_MARK, "Mark", PHASE_NO_PARENT },
+        { PHASE_UNMARK, "Unmark", PHASE_MARK },
         /* PHASE_MARK_ROOTS */
-        { PHASE_MARK_DELAYED, "Mark Delayed", PHASE_MARK, 8 },
-    { PHASE_SWEEP, "Sweep", PHASE_NO_PARENT, 9 },
-        { PHASE_SWEEP_MARK, "Mark During Sweeping", PHASE_SWEEP, 10 },
-            { PHASE_SWEEP_MARK_TYPES, "Mark Types During Sweeping", PHASE_SWEEP_MARK, 11 },
-            { PHASE_SWEEP_MARK_INCOMING_BLACK, "Mark Incoming Black Pointers", PHASE_SWEEP_MARK, 12 },
-            { PHASE_SWEEP_MARK_WEAK, "Mark Weak", PHASE_SWEEP_MARK, 13 },
-            { PHASE_SWEEP_MARK_INCOMING_GRAY, "Mark Incoming Gray Pointers", PHASE_SWEEP_MARK, 14 },
-            { PHASE_SWEEP_MARK_GRAY, "Mark Gray", PHASE_SWEEP_MARK, 15 },
-            { PHASE_SWEEP_MARK_GRAY_WEAK, "Mark Gray and Weak", PHASE_SWEEP_MARK, 16 },
-        { PHASE_FINALIZE_START, "Finalize Start Callbacks", PHASE_SWEEP, 17 },
-            { PHASE_WEAK_ZONES_CALLBACK, "Per-Slice Weak Callback", PHASE_FINALIZE_START, 57 },
-            { PHASE_WEAK_COMPARTMENT_CALLBACK, "Per-Compartment Weak Callback", PHASE_FINALIZE_START, 58 },
-        { PHASE_SWEEP_ATOMS, "Sweep Atoms", PHASE_SWEEP, 18 },
-        { PHASE_SWEEP_COMPARTMENTS, "Sweep Compartments", PHASE_SWEEP, 20 },
-            { PHASE_SWEEP_DISCARD_CODE, "Sweep Discard Code", PHASE_SWEEP_COMPARTMENTS, 21 },
-            { PHASE_SWEEP_INNER_VIEWS, "Sweep Inner Views", PHASE_SWEEP_COMPARTMENTS, 22 },
-            { PHASE_SWEEP_CC_WRAPPER, "Sweep Cross Compartment Wrappers", PHASE_SWEEP_COMPARTMENTS, 23 },
-            { PHASE_SWEEP_BASE_SHAPE, "Sweep Base Shapes", PHASE_SWEEP_COMPARTMENTS, 24 },
-            { PHASE_SWEEP_INITIAL_SHAPE, "Sweep Initial Shapes", PHASE_SWEEP_COMPARTMENTS, 25 },
-            { PHASE_SWEEP_TYPE_OBJECT, "Sweep Type Objects", PHASE_SWEEP_COMPARTMENTS, 26 },
-            { PHASE_SWEEP_BREAKPOINT, "Sweep Breakpoints", PHASE_SWEEP_COMPARTMENTS, 27 },
-            { PHASE_SWEEP_REGEXP, "Sweep Regexps", PHASE_SWEEP_COMPARTMENTS, 28 },
-            { PHASE_SWEEP_COMPRESSION, "Sweep Compression Tasks", PHASE_SWEEP_COMPARTMENTS, 62 },
-            { PHASE_SWEEP_WEAKMAPS, "Sweep WeakMaps", PHASE_SWEEP_COMPARTMENTS, 63 },
-            { PHASE_SWEEP_UNIQUEIDS, "Sweep Unique IDs", PHASE_SWEEP_COMPARTMENTS, 64 },
-            { PHASE_SWEEP_JIT_DATA, "Sweep JIT Data", PHASE_SWEEP_COMPARTMENTS, 65 },
-            { PHASE_SWEEP_WEAK_CACHES, "Sweep Weak Caches", PHASE_SWEEP_COMPARTMENTS, 66 },
-            { PHASE_SWEEP_MISC, "Sweep Miscellaneous", PHASE_SWEEP_COMPARTMENTS, 29 },
-            { PHASE_SWEEP_TYPES, "Sweep type information", PHASE_SWEEP_COMPARTMENTS, 30 },
-                { PHASE_SWEEP_TYPES_BEGIN, "Sweep type tables and compilations", PHASE_SWEEP_TYPES, 31 },
-                { PHASE_SWEEP_TYPES_END, "Free type arena", PHASE_SWEEP_TYPES, 32 },
-        { PHASE_SWEEP_OBJECT, "Sweep Object", PHASE_SWEEP, 33 },
-        { PHASE_SWEEP_STRING, "Sweep String", PHASE_SWEEP, 34 },
-        { PHASE_SWEEP_SCRIPT, "Sweep Script", PHASE_SWEEP, 35 },
-        { PHASE_SWEEP_SCOPE, "Sweep Scope", PHASE_SWEEP, 59 },
-        { PHASE_SWEEP_REGEXP_SHARED, "Sweep RegExpShared", PHASE_SWEEP, 61 },
-        { PHASE_SWEEP_SHAPE, "Sweep Shape", PHASE_SWEEP, 36 },
-        { PHASE_SWEEP_JITCODE, "Sweep JIT code", PHASE_SWEEP, 37 },
-        { PHASE_FINALIZE_END, "Finalize End Callback", PHASE_SWEEP, 38 },
-        { PHASE_DESTROY, "Deallocate", PHASE_SWEEP, 39 },
-    { PHASE_COMPACT, "Compact", PHASE_NO_PARENT, 40 },
-        { PHASE_COMPACT_MOVE, "Compact Move", PHASE_COMPACT, 41 },
-        { PHASE_COMPACT_UPDATE, "Compact Update", PHASE_COMPACT, 42 },
+        { PHASE_MARK_DELAYED, "Mark Delayed", PHASE_MARK },
+    { PHASE_SWEEP, "Sweep", PHASE_NO_PARENT },
+        { PHASE_SWEEP_MARK, "Mark During Sweeping", PHASE_SWEEP },
+            { PHASE_SWEEP_MARK_TYPES, "Mark Types During Sweeping", PHASE_SWEEP_MARK },
+            { PHASE_SWEEP_MARK_INCOMING_BLACK, "Mark Incoming Black Pointers", PHASE_SWEEP_MARK },
+            { PHASE_SWEEP_MARK_WEAK, "Mark Weak", PHASE_SWEEP_MARK },
+            { PHASE_SWEEP_MARK_INCOMING_GRAY, "Mark Incoming Gray Pointers", PHASE_SWEEP_MARK },
+            { PHASE_SWEEP_MARK_GRAY, "Mark Gray", PHASE_SWEEP_MARK },
+            { PHASE_SWEEP_MARK_GRAY_WEAK, "Mark Gray and Weak", PHASE_SWEEP_MARK },
+        { PHASE_FINALIZE_START, "Finalize Start Callbacks", PHASE_SWEEP },
+            { PHASE_WEAK_ZONES_CALLBACK, "Per-Slice Weak Callback", PHASE_FINALIZE_START },
+            { PHASE_WEAK_COMPARTMENT_CALLBACK, "Per-Compartment Weak Callback", PHASE_FINALIZE_START },
+        { PHASE_SWEEP_ATOMS, "Sweep Atoms", PHASE_SWEEP },
+        { PHASE_SWEEP_COMPARTMENTS, "Sweep Compartments", PHASE_SWEEP },
+            { PHASE_SWEEP_DISCARD_CODE, "Sweep Discard Code", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_INNER_VIEWS, "Sweep Inner Views", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_CC_WRAPPER, "Sweep Cross Compartment Wrappers", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_BASE_SHAPE, "Sweep Base Shapes", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_INITIAL_SHAPE, "Sweep Initial Shapes", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_TYPE_OBJECT, "Sweep Type Objects", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_BREAKPOINT, "Sweep Breakpoints", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_REGEXP, "Sweep Regexps", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_COMPRESSION, "Sweep Compression Tasks", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_WEAKMAPS, "Sweep WeakMaps", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_UNIQUEIDS, "Sweep Unique IDs", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_JIT_DATA, "Sweep JIT Data", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_WEAK_CACHES, "Sweep Weak Caches", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_MISC, "Sweep Miscellaneous", PHASE_SWEEP_COMPARTMENTS },
+            { PHASE_SWEEP_TYPES, "Sweep type information", PHASE_SWEEP_COMPARTMENTS },
+                { PHASE_SWEEP_TYPES_BEGIN, "Sweep type tables and compilations", PHASE_SWEEP_TYPES },
+                { PHASE_SWEEP_TYPES_END, "Free type arena", PHASE_SWEEP_TYPES },
+        { PHASE_SWEEP_OBJECT, "Sweep Object", PHASE_SWEEP },
+        { PHASE_SWEEP_STRING, "Sweep String", PHASE_SWEEP },
+        { PHASE_SWEEP_SCRIPT, "Sweep Script", PHASE_SWEEP },
+        { PHASE_SWEEP_SCOPE, "Sweep Scope", PHASE_SWEEP },
+        { PHASE_SWEEP_REGEXP_SHARED, "Sweep RegExpShared", PHASE_SWEEP },
+        { PHASE_SWEEP_SHAPE, "Sweep Shape", PHASE_SWEEP },
+        { PHASE_SWEEP_JITCODE, "Sweep JIT code", PHASE_SWEEP },
+        { PHASE_FINALIZE_END, "Finalize End Callback", PHASE_SWEEP },
+        { PHASE_DESTROY, "Deallocate", PHASE_SWEEP },
+    { PHASE_COMPACT, "Compact", PHASE_NO_PARENT },
+        { PHASE_COMPACT_MOVE, "Compact Move", PHASE_COMPACT },
+        { PHASE_COMPACT_UPDATE, "Compact Update", PHASE_COMPACT },
             /* PHASE_MARK_ROOTS */
-            { PHASE_COMPACT_UPDATE_CELLS, "Compact Update Cells", PHASE_COMPACT_UPDATE, 43 },
-    { PHASE_GC_END, "End Callback", PHASE_NO_PARENT, 44 },
-    { PHASE_MINOR_GC, "All Minor GCs", PHASE_NO_PARENT, 45 },
+            { PHASE_COMPACT_UPDATE_CELLS, "Compact Update Cells", PHASE_COMPACT_UPDATE },
+    { PHASE_GC_END, "End Callback", PHASE_NO_PARENT },
+    { PHASE_MINOR_GC, "All Minor GCs", PHASE_NO_PARENT },
         /* PHASE_MARK_ROOTS */
-    { PHASE_EVICT_NURSERY, "Minor GCs to Evict Nursery", PHASE_NO_PARENT, 46 },
+    { PHASE_EVICT_NURSERY, "Minor GCs to Evict Nursery", PHASE_NO_PARENT },
         /* PHASE_MARK_ROOTS */
-    { PHASE_TRACE_HEAP, "Trace Heap", PHASE_NO_PARENT, 47 },
+    { PHASE_TRACE_HEAP, "Trace Heap", PHASE_NO_PARENT },
         /* PHASE_MARK_ROOTS */
-    { PHASE_BARRIER, "Barriers", PHASE_NO_PARENT, 55 },
-        { PHASE_UNMARK_GRAY, "Unmark gray", PHASE_BARRIER, 56 },
-    { PHASE_MARK_ROOTS, "Mark Roots", PHASE_MULTI_PARENTS, 48 },
-        { PHASE_BUFFER_GRAY_ROOTS, "Buffer Gray Roots", PHASE_MARK_ROOTS, 49 },
-        { PHASE_MARK_CCWS, "Mark Cross Compartment Wrappers", PHASE_MARK_ROOTS, 50 },
-        { PHASE_MARK_STACK, "Mark C and JS stacks", PHASE_MARK_ROOTS, 51 },
-        { PHASE_MARK_RUNTIME_DATA, "Mark Runtime-wide Data", PHASE_MARK_ROOTS, 52 },
-        { PHASE_MARK_EMBEDDING, "Mark Embedding", PHASE_MARK_ROOTS, 53 },
-        { PHASE_MARK_COMPARTMENTS, "Mark Compartments", PHASE_MARK_ROOTS, 54 },
-    { PHASE_PURGE_SHAPE_TABLES, "Purge ShapeTables", PHASE_NO_PARENT, 60 },
+    { PHASE_BARRIER, "Barriers", PHASE_NO_PARENT },
+        { PHASE_UNMARK_GRAY, "Unmark gray", PHASE_BARRIER },
+    { PHASE_MARK_ROOTS, "Mark Roots", PHASE_MULTI_PARENTS },
+        { PHASE_BUFFER_GRAY_ROOTS, "Buffer Gray Roots", PHASE_MARK_ROOTS },
+        { PHASE_MARK_CCWS, "Mark Cross Compartment Wrappers", PHASE_MARK_ROOTS },
+        { PHASE_MARK_STACK, "Mark C and JS stacks", PHASE_MARK_ROOTS },
+        { PHASE_MARK_RUNTIME_DATA, "Mark Runtime-wide Data", PHASE_MARK_ROOTS },
+        { PHASE_MARK_EMBEDDING, "Mark Embedding", PHASE_MARK_ROOTS },
+        { PHASE_MARK_COMPARTMENTS, "Mark Compartments", PHASE_MARK_ROOTS },
+    { PHASE_PURGE_SHAPE_TABLES, "Purge ShapeTables", PHASE_NO_PARENT },
 
-    { PHASE_LIMIT, nullptr, PHASE_NO_PARENT, 66 }
-
-    // The current number of telemetryBuckets is equal to the value for
-    // PHASE_LIMIT. If you insert new phases somewhere, start at that number and
-    // count up. Do not change any existing numbers.
+    { PHASE_LIMIT, nullptr, PHASE_NO_PARENT }
 };
 
 static mozilla::EnumeratedArray<Phase, PHASE_LIMIT, ExtraPhaseInfo> phaseExtra;
@@ -852,14 +847,6 @@ Statistics::~Statistics()
 /* static */ bool
 Statistics::initialize()
 {
-#ifdef DEBUG
-    for (auto i : AllPhases()) {
-        MOZ_ASSERT(phases[i].index == i);
-        for (auto j : AllPhases())
-            MOZ_ASSERT_IF(i != j, phases[i].telemetryBucket != phases[j].telemetryBucket);
-    }
-#endif
-
     // Create a static table of descendants for every phase with multiple
     // children. This assumes that all descendants come linearly in the
     // list, which is reasonable since full dags are not supported; any
@@ -943,67 +930,6 @@ SumPhase(Phase phase, const Statistics::PhaseTimeTable& times)
     for (const auto& phaseTimes : times)
         sum += phaseTimes[phase];
     return sum;
-}
-
-static void
-CheckSelfTime(Phase parent, Phase child, const Statistics::PhaseTimeTable& times, TimeDuration selfTimes[PHASE_LIMIT], TimeDuration childTime)
-{
-    if (selfTimes[parent] < childTime) {
-        fprintf(stderr,
-                "Parent %s time = %.3fms"
-                " with %.3fms remaining, "
-                "child %s time %.3fms\n",
-                phases[parent].name, SumPhase(parent, times).ToMilliseconds(),
-                selfTimes[parent].ToMilliseconds(),
-                phases[child].name, childTime.ToMilliseconds());
-    }
-}
-
-static Phase
-LongestPhaseSelfTime(const Statistics::PhaseTimeTable& times)
-{
-    TimeDuration selfTimes[PHASE_LIMIT];
-
-    // Start with total times, including children's times.
-    for (auto i : AllPhases())
-        selfTimes[i] = SumPhase(i, times);
-
-    // We have the total time spent in each phase, including descendant times.
-    // Loop over the children and subtract their times from their parent's self
-    // time.
-    for (auto i : AllPhases()) {
-        Phase parent = phases[i].parent;
-        if (parent == PHASE_MULTI_PARENTS) {
-            // Current phase i has multiple parents. Each "instance" of this
-            // phase is in a parallel array of times indexed by 'dagSlot', so
-            // subtract only the dagSlot-specific child's time from the parent.
-            for (auto edge : dagChildEdges) {
-                if (edge.parent == i) {
-                    size_t dagSlot = phaseExtra[edge.parent].dagSlot;
-                    MOZ_ASSERT(dagSlot <= Statistics::MaxMultiparentPhases - 1);
-                    CheckSelfTime(edge.parent, edge.child, times,
-                                  selfTimes, times[dagSlot][edge.child]);
-                    MOZ_ASSERT(selfTimes[edge.parent] >= times[dagSlot][edge.child]);
-                    selfTimes[edge.parent] -= times[dagSlot][edge.child];
-                }
-            }
-        } else if (parent != PHASE_NO_PARENT) {
-            CheckSelfTime(parent, i, times, selfTimes, selfTimes[i]);
-            MOZ_ASSERT(selfTimes[parent] >= selfTimes[i]);
-            selfTimes[parent] -= selfTimes[i];
-        }
-    }
-
-    TimeDuration longestTime = 0;
-    Phase longestPhase = PHASE_NONE;
-    for (auto i : AllPhases()) {
-        if (selfTimes[i] > longestTime) {
-            longestTime = selfTimes[i];
-            longestPhase = i;
-        }
-    }
-
-    return longestPhase;
 }
 
 void
@@ -1153,12 +1079,6 @@ Statistics::endSlice()
             runtime->addTelemetry(JS_TELEMETRY_GC_BUDGET_MS, budget_ms);
             if (budget_ms == runtime->gc.defaultSliceBudget())
                 runtime->addTelemetry(JS_TELEMETRY_GC_ANIMATION_MS, t(sliceTime));
-
-            // Record any phase that goes more than 2x over its budget.
-            if (sliceTime.ToMilliseconds() > 2 * budget_ms) {
-                Phase longest = LongestPhaseSelfTime(slices_.back().phaseTimes);
-                runtime->addTelemetry(JS_TELEMETRY_GC_SLOW_PHASE, phases[longest].telemetryBucket);
-            }
         }
 
         sliceCount_++;
