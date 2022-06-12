@@ -123,8 +123,6 @@ struct ExtraPhaseInfo
     ExtraPhaseInfo() : depth(0), dagSlot(0) {}
 };
 
-static const PhaseKind PHASE_NO_PARENT = PHASE_LIMIT;
-
 struct DagChildEdge {
     PhaseKind parent;
     PhaseKind child;
@@ -145,7 +143,7 @@ struct DagChildEdge {
 
 static const PhaseInfo phases[] = {
 #define _PARENTA(name,...) PHASE_ ## name
-#define _PARENT(...) _PARENTA(__VA_ARGS__ __VA_OPT__(,) NO_PARENT)
+#define _PARENT(...) _PARENTA(__VA_ARGS__ __VA_OPT__(,) NONE)
 #define PHASE(name, desc, parent...) \
     { PHASE_ ## name, desc, _PARENT(parent) },
 #define PHASEV(name, val, desc, parent...) \
@@ -156,7 +154,7 @@ static const PhaseInfo phases[] = {
 #undef _PARENT
 #undef _PARENTA
 
-    { PHASE_LIMIT, nullptr, PHASE_NO_PARENT }
+    { PHASE_LIMIT, nullptr, PHASE_NONE }
 };
 
 static mozilla::EnumeratedArray<PhaseKind, PHASE_LIMIT, ExtraPhaseInfo> phaseExtra;
@@ -815,7 +813,7 @@ Statistics::initialize()
     if (!stack.append(PHASE_LIMIT)) // Dummy entry to avoid special-casing the first node
         return false;
     for (auto i : AllPhases()) {
-        if (phases[i].parent == PHASE_NO_PARENT ||
+        if (phases[i].parent == PHASE_NONE ||
             phases[i].parent == PHASE_MULTI_PARENTS)
         {
             stack.clear();
@@ -1123,12 +1121,12 @@ Statistics::beginPhase(PhaseKind phaseKind)
     // No longer timing these phases. We should never see these.
     MOZ_ASSERT(phaseKind != PHASE_GC_BEGIN && phaseKind != PHASE_GC_END);
 
-    PhaseKind parent = phaseNestingDepth ? phaseNesting[phaseNestingDepth - 1] : PHASE_NO_PARENT;
+    PhaseKind parent = phaseNestingDepth ? phaseNesting[phaseNestingDepth - 1] : PHASE_NONE;
 
     // PHASE_MUTATOR is suspended while performing GC.
     if (parent == PHASE_MUTATOR) {
         suspendPhases(PHASE_IMPLICIT_SUSPENSION);
-        parent = phaseNestingDepth ? phaseNesting[phaseNestingDepth - 1] : PHASE_NO_PARENT;
+        parent = phaseNestingDepth ? phaseNesting[phaseNestingDepth - 1] : PHASE_NONE;
     }
 
     // Guard against any other re-entry.
@@ -1142,7 +1140,7 @@ Statistics::beginPhase(PhaseKind phaseKind)
     phaseNestingDepth++;
 
     if (phases[phaseKind].parent == PHASE_MULTI_PARENTS) {
-        MOZ_ASSERT(parent != PHASE_NO_PARENT);
+        MOZ_ASSERT(parent != PHASE_NONE);
         activeDagSlot = phaseExtra[parent].dagSlot;
     }
     MOZ_ASSERT(activeDagSlot <= MaxMultiparentPhases - 1);
