@@ -15,7 +15,7 @@
  *
  * So, because these cookie commands, as of today, only run in the developer
  * toolbar (the gcli command bar), and because this toolbar is only available on
- * a local Firefox desktop tab (not in webide or the browser toolbox), we can
+ * a local Firefox desktop tab (not in browser toolbox), we can
  * make the commands run on the client.
  * This way, they'll always run in the parent process.
  */

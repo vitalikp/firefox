@@ -29,7 +29,7 @@ function shouldDevEditionPromoShow() {
 
 var TYPES = {
   // The Developer Edition promo doorhanger, called by
-  // opening the toolbox, browser console, WebIDE, or responsive design mode
+  // opening the toolbox, browser console, or responsive design mode
   // in Beta releases. Only displayed once per profile.
   deveditionpromo: {
     predicate: shouldDevEditionPromoShow,

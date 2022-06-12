@@ -767,8 +767,8 @@ just addresses the organization to follow, e.g. "This site is run by " -->
 <!-- DevTools Authentication -->
 <!-- LOCALIZATION NOTE (devtools_auth_scan_header): This header text appears
      above a QR reader that is actively scanning for QR codes.  The expected QR
-     code has already been displayed by the client trying to connect (such as
-     desktop Firefox via WebIDE), so you just need to aim this device at the QR
+     code has already been displayed by the client trying to connect, so you
+     just need to aim this device at the QR
      code. -->
 <!ENTITY devtools_auth_scan_header "Scanning for the QR code displayed on your other device">
 

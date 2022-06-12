@@ -82,7 +82,6 @@ function processPrefFile(url) {
 function setPrefs() {
   processPrefFile(resourceURI.spec + "./client/preferences/devtools.js");
   processPrefFile(resourceURI.spec + "./client/preferences/debugger.js");
-  processPrefFile(resourceURI.spec + "./client/webide/webide-prefs.js");
 }
 
 // Helper to listen to a key on all windows
@@ -237,8 +236,6 @@ function reload(event) {
           }
         }, false);
       }
-    } else if (windowtype === "devtools:webide") {
-      window.location.reload();
     }
   }
 

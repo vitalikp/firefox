@@ -46,7 +46,6 @@ function ChromeActor(connection) {
   let window = Services.wm.getMostRecentWindow(DebuggerServer.chromeWindowType);
 
   // Default to any available top level window if there is no expected window
-  // (for example when we open firefox with -webide argument)
   if (!window) {
     window = Services.wm.getMostRecentWindow(null);
   }

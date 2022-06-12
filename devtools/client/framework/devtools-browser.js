@@ -108,17 +108,6 @@ var gDevToolsBrowser = exports.gDevToolsBrowser = {
       win.DeveloperToolbar.show(false).catch(console.error);
     }
 
-    // Enable WebIDE?
-    let webIDEEnabled = Services.prefs.getBoolPref("devtools.webide.enabled");
-    toggleMenuItem("menu_webide", webIDEEnabled);
-
-    let showWebIDEWidget = Services.prefs.getBoolPref("devtools.webide.widget.enabled");
-    if (webIDEEnabled && showWebIDEWidget) {
-      gDevToolsBrowser.installWebIDEWidget();
-    } else {
-      gDevToolsBrowser.uninstallWebIDEWidget();
-    }
-
     // Enable Browser Toolbox?
     let chromeEnabled = Services.prefs.getBoolPref("devtools.chrome.enabled");
     let devtoolsRemoteEnabled = Services.prefs.getBoolPref("devtools.debugger.remote-enabled");
@@ -213,20 +202,6 @@ var gDevToolsBrowser = exports.gDevToolsBrowser = {
    // Used by browser-sets.inc, command
   openConnectScreen: function (gBrowser) {
     gBrowser.selectedTab = gBrowser.addTab("chrome://devtools/content/framework/connect/connect.xhtml");
-  },
-
-  /**
-   * Open WebIDE
-   */
-   // Used by browser-sets.inc, command
-   //         itself, webide widget
-  openWebIDE: function () {
-    let win = Services.wm.getMostRecentWindow("devtools:webide");
-    if (win) {
-      win.focus();
-    } else {
-      Services.ww.openWindow(null, "chrome://webide/content/", "webide", "chrome,centerscreen,resizable", null);
-    }
   },
 
   inspectNode: function (tab, node) {
@@ -369,62 +344,6 @@ var gDevToolsBrowser = exports.gDevToolsBrowser = {
         doc.getElementById("PanelUI-multiView").appendChild(view);
       }
     });
-  },
-
-  /**
-   * Install WebIDE widget
-   */
-  // Used by itself
-  installWebIDEWidget: function () {
-    if (this.isWebIDEWidgetInstalled()) {
-      return;
-    }
-
-    let defaultArea;
-    if (Services.prefs.getBoolPref("devtools.webide.widget.inNavbarByDefault")) {
-      defaultArea = CustomizableUI.AREA_NAVBAR;
-    } else {
-      defaultArea = CustomizableUI.AREA_PANEL;
-    }
-
-    CustomizableUI.createWidget({
-      id: "webide-button",
-      shortcutId: "key_webide",
-      label: "devtools-webide-button2.label",
-      tooltiptext: "devtools-webide-button2.tooltiptext",
-      defaultArea: defaultArea,
-      onCommand: function (aEvent) {
-        gDevToolsBrowser.openWebIDE();
-      }
-    });
-  },
-
-  isWebIDEWidgetInstalled: function () {
-    let widgetWrapper = CustomizableUI.getWidget("webide-button");
-    return !!(widgetWrapper && widgetWrapper.provider == CustomizableUI.PROVIDER_API);
-  },
-
-  /**
-   * The deferred promise will be resolved by WebIDE's UI.init()
-   */
-  isWebIDEInitialized: defer(),
-
-  /**
-   * Uninstall WebIDE widget
-   */
-  uninstallWebIDEWidget: function () {
-    if (this.isWebIDEWidgetInstalled()) {
-      CustomizableUI.removeWidgetFromArea("webide-button");
-    }
-    CustomizableUI.destroyWidget("webide-button");
-  },
-
-  /**
-   * Move WebIDE widget to the navbar
-   */
-   // Used by webide.js
-  moveWebIDEWidgetInNavbar: function () {
-    CustomizableUI.addWidgetToArea("webide-button", CustomizableUI.AREA_NAVBAR);
   },
 
   /**

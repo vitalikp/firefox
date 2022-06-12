@@ -191,11 +191,9 @@ function renderSeparator() {
  *                   @property {Function} switchHost - Function to switch the host.
  * @property {Function} focusButton - Keep a record of the currently focused button.
  * @property {Object} L10N - Localization interface.
- * @property {Boolean} areDockButtonsEnabled - They are not enabled in certain situations
- *                                             like when they are in the WebIDE.
+ * @property {Boolean} areDockButtonsEnabled - They are not enabled in certain situations.
  * @property {Boolean} canCloseToolbox - Are the tools in a context where they can be
- *                                       closed? This is not always the case, e.g. in the
- *                                       WebIDE.
+ *                                       closed? This is not always the case.
  */
 function renderDockButtons(props) {
   const {
