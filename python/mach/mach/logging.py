@@ -20,11 +20,17 @@ import time
 
 
 def format_seconds(total):
-    """Format number of seconds to MM:SS.DD form."""
+    """Format number of seconds to HH:MM:SS form."""
 
-    minutes, seconds = divmod(total, 60)
+    sec = total % 60
+    total -= sec
+    total /= 60
 
-    return '%2d:%05.2f' % (minutes, seconds)
+    min = total % 60
+    total -= min
+    total /= 60
+
+    return '%2d:%02d:%02d' % (total, min, sec)
 
 
 class ConvertToStructuredFilter(logging.Filter):
