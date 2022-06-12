@@ -31,21 +31,21 @@ class GCParallelTask;
 namespace gcstats {
 
 enum PhaseKind : uint8_t {
-    PHASE_FIRST,
+    FIRST,
 
 #define PHASE(name, desc, ...) \
-    PHASE_ ## name,
+    name,
 #define PHASEV(name, val, desc, ...) \
-    PHASE_ ## name = PHASE_ ## val,
+    name = val,
 #   include "gc/StatsPhaseList.h"
 #undef PHASE
 #undef PHASEV
 
-    PHASE_LIMIT,
-    PHASE_NONE = PHASE_LIMIT,
-    PHASE_EXPLICIT_SUSPENSION = PHASE_LIMIT,
-    PHASE_IMPLICIT_SUSPENSION,
-    PHASE_MULTI_PARENTS
+    LIMIT,
+    NONE = LIMIT,
+    EXPLICIT_SUSPENSION = LIMIT,
+    IMPLICIT_SUSPENSION,
+    MULTI_PARENTS
 };
 
 enum Stat {
@@ -92,17 +92,17 @@ struct ZoneGCStats
 };
 
 #define FOR_EACH_GC_PROFILE_TIME(_)                                           \
-    _(BeginCallback, "bgnCB",  PHASE_GC_BEGIN)                                \
-    _(WaitBgThread,  "waitBG", PHASE_WAIT_BACKGROUND_THREAD)                  \
-    _(DiscardCode,   "discrd", PHASE_MARK_DISCARD_CODE)                       \
-    _(RelazifyFunc,  "relzfy", PHASE_RELAZIFY_FUNCTIONS)                      \
-    _(PurgeTables,   "prgTbl", PHASE_PURGE_SHAPE_TABLES)                      \
-    _(Purge,         "purge",  PHASE_PURGE)                                   \
-    _(Mark,          "mark",   PHASE_MARK)                                    \
-    _(Sweep,         "sweep",  PHASE_SWEEP)                                   \
-    _(Compact,       "cmpct",  PHASE_COMPACT)                                 \
-    _(EndCallback,   "endCB",  PHASE_GC_END)                                  \
-    _(Barriers,      "brrier", PHASE_BARRIER)
+    _(BeginCallback, "bgnCB",  PhaseKind::GC_BEGIN)                                \
+    _(WaitBgThread,  "waitBG", PhaseKind::WAIT_BACKGROUND_THREAD)                  \
+    _(DiscardCode,   "discrd", PhaseKind::MARK_DISCARD_CODE)                       \
+    _(RelazifyFunc,  "relzfy", PhaseKind::RELAZIFY_FUNCTIONS)                      \
+    _(PurgeTables,   "prgTbl", PhaseKind::PURGE_SHAPE_TABLES)                      \
+    _(Purge,         "purge",  PhaseKind::PURGE)                                   \
+    _(Mark,          "mark",   PhaseKind::MARK)                                    \
+    _(Sweep,         "sweep",  PhaseKind::SWEEP)                                   \
+    _(Compact,       "cmpct",  PhaseKind::COMPACT)                                 \
+    _(EndCallback,   "endCB",  PhaseKind::GC_END)                                  \
+    _(Barriers,      "brrier", PhaseKind::BARRIER)
 
 const char* ExplainAbortReason(gc::AbortReason reason);
 const char* ExplainInvocationKind(JSGCInvocationKind gckind);
@@ -115,7 +115,7 @@ const char* ExplainInvocationKind(JSGCInvocationKind gckind);
  *
  * During execution, a child phase can be activated multiple times, and the
  * total time will be accumulated. (So for example, you can start and end
- * PHASE_MARK_ROOTS multiple times before completing the parent phase.)
+ * PhaseKind::MARK_ROOTS multiple times before completing the parent phase.)
  *
  * Incremental GC is represented by recording separate timing results for each
  * slice within the overall GC.
@@ -150,7 +150,7 @@ struct Statistics
 
     /* Create a convenient type for referring to tables of phase times. */
     using PhaseTimeTable =
-        Array<EnumeratedArray<PhaseKind, PHASE_LIMIT, TimeDuration>, NumTimingArrays>;
+        Array<EnumeratedArray<PhaseKind, PhaseKind::LIMIT, TimeDuration>, NumTimingArrays>;
 
     static MOZ_MUST_USE bool initialize();
 
@@ -170,11 +170,11 @@ struct Statistics
     // currently tracked phase stack, at which time the caller is free to do
     // other tracked operations.
     //
-    // This also happens internally with the PHASE_MUTATOR "phase". While in
+    // This also happens internally with the PhaseKind::MUTATOR "phase". While in
     // this phase, any beginPhase will automatically suspend the non-GC phase,
     // until that inner stack is complete, at which time it will automatically
     // resume the non-GC phase. Explicit suspensions do not get auto-resumed.
-    void suspendPhases(PhaseKind suspension = PHASE_EXPLICIT_SUSPENSION);
+    void suspendPhases(PhaseKind suspension = PhaseKind::EXPLICIT_SUSPENSION);
 
     // Resume a suspended stack of phases.
     void resumePhases();
@@ -234,12 +234,12 @@ struct Statistics
     TimeDuration clearMaxGCPauseAccumulator();
     TimeDuration getMaxGCPauseSinceClear();
 
-    // Return the current phase, suppressing the synthetic PHASE_MUTATOR phase.
+    // Return the current phase, suppressing the synthetic PhaseKind::MUTATOR phase.
     PhaseKind currentPhase() {
         if (phaseNestingDepth == 0)
-            return PHASE_NONE;
+            return PhaseKind::NONE;
         if (phaseNestingDepth == 1)
-            return phaseNesting[0] == PHASE_MUTATOR ? PHASE_NONE : phaseNesting[0];
+            return phaseNesting[0] == PhaseKind::MUTATOR ? PhaseKind::NONE : phaseNesting[0];
         return phaseNesting[phaseNestingDepth - 1];
     }
 
@@ -314,7 +314,7 @@ struct Statistics
     SliceDataVector slices_;
 
     /* Most recent time when the given phase started. */
-    EnumeratedArray<PhaseKind, PHASE_LIMIT, TimeStamp> phaseStartTimes;
+    EnumeratedArray<PhaseKind, PhaseKind::LIMIT, TimeStamp> phaseStartTimes;
 
     /* Bookkeeping for GC timings when timingMutator is true */
     TimeStamp timedGCStart;
@@ -349,8 +349,8 @@ struct Statistics
     /*
      * Certain phases can interrupt the phase stack, eg callback phases. When
      * this happens, we move the suspended phases over to a sepearate list,
-     * terminated by a dummy PHASE_SUSPENSION phase (so that we can nest
-     * suspensions by suspending multiple stacks with a PHASE_SUSPENSION in
+     * terminated by a dummy PhaseKind::SUSPENSION phase (so that we can nest
+     * suspensions by suspending multiple stacks with a PhaseKind::SUSPENSION in
      * between).
      */
     Array<PhaseKind, MAX_NESTING * 3> suspendedPhases;
