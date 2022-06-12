@@ -1,0 +1,87 @@
+
+/**
+ * This file *must* be included with PHASE() and PHASEV() defined.
+ */
+
+
+PHASEV(MUTATOR, FIRST, "Mutator Running")
+PHASE(GC_BEGIN, "Begin Callback")
+PHASE(WAIT_BACKGROUND_THREAD, "Wait Background Thread")
+PHASE(MARK_DISCARD_CODE, "Mark Discard Code")
+PHASE(RELAZIFY_FUNCTIONS, "Relazify Functions")
+PHASE(PURGE, "Purge")
+PHASE(MARK, "Mark")
+PHASE(UNMARK, "Unmark", MARK)
+PHASE(MARK_DELAYED, "Mark Delayed", MARK)
+
+#define SWEEP(name, desc) PHASE(SWEEP_ ## name, desc, SWEEP)
+
+PHASE(SWEEP, "Sweep")
+SWEEP(MARK, "Mark During Sweeping")
+#define SWEEP_MARK(name, desc) PHASE(SWEEP_MARK_ ## name, desc, SWEEP_MARK)
+SWEEP_MARK(TYPES, "Mark Types During Sweeping")
+SWEEP_MARK(INCOMING_BLACK, "Mark Incoming Black Pointers")
+SWEEP_MARK(WEAK, "Mark Weak")
+SWEEP_MARK(INCOMING_GRAY, "Mark Incoming Gray Pointers")
+SWEEP_MARK(GRAY, "Mark Gray")
+SWEEP_MARK(GRAY_WEAK, "Mark Gray and Weak")
+#undef SWEEP_MARK
+
+PHASE(FINALIZE_START, "Finalize Start Callbacks", SWEEP)
+PHASE(WEAK_ZONES_CALLBACK, "Per-Slice Weak Callback", FINALIZE_START)
+PHASE(WEAK_COMPARTMENT_CALLBACK, "Per-Compartment Weak Callback", FINALIZE_START)
+
+SWEEP(ATOMS, "Sweep Atoms")
+SWEEP(COMPARTMENTS, "Sweep Compartments")
+#define SWEEP_COMP(name, desc) PHASE(SWEEP_ ## name, desc, SWEEP_COMPARTMENTS)
+SWEEP_COMP(DISCARD_CODE, "Sweep Discard Code")
+SWEEP_COMP(INNER_VIEWS, "Sweep Inner Views")
+SWEEP_COMP(CC_WRAPPER, "Sweep Cross Compartment Wrappers")
+SWEEP_COMP(BASE_SHAPE, "Sweep Base Shapes")
+SWEEP_COMP(INITIAL_SHAPE, "Sweep Initial Shapes")
+SWEEP_COMP(TYPE_OBJECT, "Sweep Type Objects")
+SWEEP_COMP(BREAKPOINT, "Sweep Breakpoints")
+SWEEP_COMP(REGEXP, "Sweep Regexps")
+SWEEP_COMP(COMPRESSION, "Sweep Compression Tasks")
+SWEEP_COMP(WEAKMAPS, "Sweep WeakMaps")
+SWEEP_COMP(UNIQUEIDS, "Sweep Unique IDs")
+SWEEP_COMP(JIT_DATA, "Sweep JIT Data")
+SWEEP_COMP(WEAK_CACHES, "Sweep Weak Caches")
+SWEEP_COMP(MISC, "Sweep Miscellaneous")
+SWEEP_COMP(TYPES, "Sweep type information")
+#undef SWEEP_COMP
+#define SWEEP_TYPES(name, desc) PHASE(SWEEP_TYPES_ ## name, desc, SWEEP_TYPES)
+SWEEP_TYPES(BEGIN, "Sweep type tables and compilations")
+SWEEP_TYPES(END, "Free type arena")
+#undef SWEEP_TYPES
+SWEEP(OBJECT, "Sweep Object")
+SWEEP(STRING, "Sweep String")
+SWEEP(SCRIPT, "Sweep Script")
+SWEEP(SCOPE, "Sweep Scope")
+SWEEP(REGEXP_SHARED, "Sweep RegExpShared")
+SWEEP(SHAPE, "Sweep Shape")
+SWEEP(JITCODE, "Sweep JIT code")
+#undef SWEEP
+
+PHASE(FINALIZE_END, "Finalize End Callback", SWEEP)
+PHASE(DESTROY, "Deallocate", SWEEP)
+PHASE(COMPACT, "Compact")
+PHASE(COMPACT_MOVE, "Compact Move", COMPACT)
+PHASE(COMPACT_UPDATE, "Compact Update", COMPACT)
+PHASE(COMPACT_UPDATE_CELLS, "Compact Update Cells", COMPACT_UPDATE)
+PHASE(GC_END, "End Callback")
+PHASE(MINOR_GC, "All Minor GCs")
+PHASE(EVICT_NURSERY, "Minor GCs to Evict Nursery")
+PHASE(TRACE_HEAP, "Trace Heap")
+PHASE(BARRIER, "Barriers")
+PHASE(UNMARK_GRAY, "Unmark gray", BARRIER)
+PHASE(MARK_ROOTS, "Mark Roots", MULTI_PARENTS)
+PHASE(BUFFER_GRAY_ROOTS, "Buffer Gray Roots", MARK_ROOTS)
+#define MARK(name, desc) PHASE(MARK_ ## name, desc, MARK_ROOTS)
+MARK(CCWS, "Mark Cross Compartment Wrappers")
+MARK(STACK, "Mark C and JS stacks")
+MARK(RUNTIME_DATA, "Mark Runtime-wide Data")
+MARK(EMBEDDING, "Mark Embedding")
+MARK(COMPARTMENTS, "Mark Compartments")
+#undef MARK
+PHASE(PURGE_SHAPE_TABLES, "Purge ShapeTables")

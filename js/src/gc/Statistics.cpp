@@ -144,77 +144,17 @@ struct DagChildEdge {
  */
 
 static const PhaseInfo phases[] = {
-    { PHASE_MUTATOR, "Mutator Running", PHASE_NO_PARENT },
-    { PHASE_GC_BEGIN, "Begin Callback", PHASE_NO_PARENT },
-    { PHASE_WAIT_BACKGROUND_THREAD, "Wait Background Thread", PHASE_NO_PARENT },
-    { PHASE_MARK_DISCARD_CODE, "Mark Discard Code", PHASE_NO_PARENT },
-    { PHASE_RELAZIFY_FUNCTIONS, "Relazify Functions", PHASE_NO_PARENT },
-    { PHASE_PURGE, "Purge", PHASE_NO_PARENT },
-    { PHASE_MARK, "Mark", PHASE_NO_PARENT },
-        { PHASE_UNMARK, "Unmark", PHASE_MARK },
-        /* PHASE_MARK_ROOTS */
-        { PHASE_MARK_DELAYED, "Mark Delayed", PHASE_MARK },
-    { PHASE_SWEEP, "Sweep", PHASE_NO_PARENT },
-        { PHASE_SWEEP_MARK, "Mark During Sweeping", PHASE_SWEEP },
-            { PHASE_SWEEP_MARK_TYPES, "Mark Types During Sweeping", PHASE_SWEEP_MARK },
-            { PHASE_SWEEP_MARK_INCOMING_BLACK, "Mark Incoming Black Pointers", PHASE_SWEEP_MARK },
-            { PHASE_SWEEP_MARK_WEAK, "Mark Weak", PHASE_SWEEP_MARK },
-            { PHASE_SWEEP_MARK_INCOMING_GRAY, "Mark Incoming Gray Pointers", PHASE_SWEEP_MARK },
-            { PHASE_SWEEP_MARK_GRAY, "Mark Gray", PHASE_SWEEP_MARK },
-            { PHASE_SWEEP_MARK_GRAY_WEAK, "Mark Gray and Weak", PHASE_SWEEP_MARK },
-        { PHASE_FINALIZE_START, "Finalize Start Callbacks", PHASE_SWEEP },
-            { PHASE_WEAK_ZONES_CALLBACK, "Per-Slice Weak Callback", PHASE_FINALIZE_START },
-            { PHASE_WEAK_COMPARTMENT_CALLBACK, "Per-Compartment Weak Callback", PHASE_FINALIZE_START },
-        { PHASE_SWEEP_ATOMS, "Sweep Atoms", PHASE_SWEEP },
-        { PHASE_SWEEP_COMPARTMENTS, "Sweep Compartments", PHASE_SWEEP },
-            { PHASE_SWEEP_DISCARD_CODE, "Sweep Discard Code", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_INNER_VIEWS, "Sweep Inner Views", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_CC_WRAPPER, "Sweep Cross Compartment Wrappers", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_BASE_SHAPE, "Sweep Base Shapes", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_INITIAL_SHAPE, "Sweep Initial Shapes", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_TYPE_OBJECT, "Sweep Type Objects", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_BREAKPOINT, "Sweep Breakpoints", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_REGEXP, "Sweep Regexps", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_COMPRESSION, "Sweep Compression Tasks", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_WEAKMAPS, "Sweep WeakMaps", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_UNIQUEIDS, "Sweep Unique IDs", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_JIT_DATA, "Sweep JIT Data", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_WEAK_CACHES, "Sweep Weak Caches", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_MISC, "Sweep Miscellaneous", PHASE_SWEEP_COMPARTMENTS },
-            { PHASE_SWEEP_TYPES, "Sweep type information", PHASE_SWEEP_COMPARTMENTS },
-                { PHASE_SWEEP_TYPES_BEGIN, "Sweep type tables and compilations", PHASE_SWEEP_TYPES },
-                { PHASE_SWEEP_TYPES_END, "Free type arena", PHASE_SWEEP_TYPES },
-        { PHASE_SWEEP_OBJECT, "Sweep Object", PHASE_SWEEP },
-        { PHASE_SWEEP_STRING, "Sweep String", PHASE_SWEEP },
-        { PHASE_SWEEP_SCRIPT, "Sweep Script", PHASE_SWEEP },
-        { PHASE_SWEEP_SCOPE, "Sweep Scope", PHASE_SWEEP },
-        { PHASE_SWEEP_REGEXP_SHARED, "Sweep RegExpShared", PHASE_SWEEP },
-        { PHASE_SWEEP_SHAPE, "Sweep Shape", PHASE_SWEEP },
-        { PHASE_SWEEP_JITCODE, "Sweep JIT code", PHASE_SWEEP },
-        { PHASE_FINALIZE_END, "Finalize End Callback", PHASE_SWEEP },
-        { PHASE_DESTROY, "Deallocate", PHASE_SWEEP },
-    { PHASE_COMPACT, "Compact", PHASE_NO_PARENT },
-        { PHASE_COMPACT_MOVE, "Compact Move", PHASE_COMPACT },
-        { PHASE_COMPACT_UPDATE, "Compact Update", PHASE_COMPACT },
-            /* PHASE_MARK_ROOTS */
-            { PHASE_COMPACT_UPDATE_CELLS, "Compact Update Cells", PHASE_COMPACT_UPDATE },
-    { PHASE_GC_END, "End Callback", PHASE_NO_PARENT },
-    { PHASE_MINOR_GC, "All Minor GCs", PHASE_NO_PARENT },
-        /* PHASE_MARK_ROOTS */
-    { PHASE_EVICT_NURSERY, "Minor GCs to Evict Nursery", PHASE_NO_PARENT },
-        /* PHASE_MARK_ROOTS */
-    { PHASE_TRACE_HEAP, "Trace Heap", PHASE_NO_PARENT },
-        /* PHASE_MARK_ROOTS */
-    { PHASE_BARRIER, "Barriers", PHASE_NO_PARENT },
-        { PHASE_UNMARK_GRAY, "Unmark gray", PHASE_BARRIER },
-    { PHASE_MARK_ROOTS, "Mark Roots", PHASE_MULTI_PARENTS },
-        { PHASE_BUFFER_GRAY_ROOTS, "Buffer Gray Roots", PHASE_MARK_ROOTS },
-        { PHASE_MARK_CCWS, "Mark Cross Compartment Wrappers", PHASE_MARK_ROOTS },
-        { PHASE_MARK_STACK, "Mark C and JS stacks", PHASE_MARK_ROOTS },
-        { PHASE_MARK_RUNTIME_DATA, "Mark Runtime-wide Data", PHASE_MARK_ROOTS },
-        { PHASE_MARK_EMBEDDING, "Mark Embedding", PHASE_MARK_ROOTS },
-        { PHASE_MARK_COMPARTMENTS, "Mark Compartments", PHASE_MARK_ROOTS },
-    { PHASE_PURGE_SHAPE_TABLES, "Purge ShapeTables", PHASE_NO_PARENT },
+#define _PARENTA(name,...) PHASE_ ## name
+#define _PARENT(...) _PARENTA(__VA_ARGS__ __VA_OPT__(,) NO_PARENT)
+#define PHASE(name, desc, parent...) \
+    { PHASE_ ## name, desc, _PARENT(parent) },
+#define PHASEV(name, val, desc, parent...) \
+    { PHASE_ ## name, desc, _PARENT(parent) },
+#   include "gc/StatsPhaseList.h"
+#undef PHASE
+#undef PHASEV
+#undef _PARENT
+#undef _PARENTA
 
     { PHASE_LIMIT, nullptr, PHASE_NO_PARENT }
 };
