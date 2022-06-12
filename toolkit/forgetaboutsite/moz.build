@@ -7,6 +7,3 @@
 EXTRA_JS_MODULES += [
     'ForgetAboutSite.jsm',
 ]
-
-with Files('**'):
-    BUG_COMPONENT = ('Toolkit', 'Forget About Site')

@@ -14,7 +14,6 @@ DIRS += [
     'feeds',
     'migration',
     'newtab',
-    'originattributes',
     'places',
     'preferences',
     'privatebrowsing',
@@ -48,6 +47,3 @@ EXTRA_COMPONENTS += [
 EXTRA_JS_MODULES += [
     'distribution.js',
 ]
-
-with Files('controlcenter/**'):
-    BUG_COMPONENT = ('Firefox', 'General')

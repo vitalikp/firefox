@@ -49,6 +49,3 @@ OS_LIBS += [
     'ws2_32',
     'shell32',
 ]
-
-with Files('**'):
-    BUG_COMPONENT = ('Toolkit', 'Application Update')

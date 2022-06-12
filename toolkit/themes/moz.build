@@ -30,6 +30,3 @@ else:
 
     if CONFIG['MOZ_THEME_FASTSTRIPE']:
         DIRS += ['faststripe/global']
-
-with Files('**'):
-    BUG_COMPONENT = ('Toolkit', 'Themes')

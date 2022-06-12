@@ -58,6 +58,3 @@ LOCAL_INCLUDES += [
 ]
 
 FINAL_LIBRARY = 'xul'
-
-with Files('**'):
-    BUG_COMPONENT = ('Toolkit', 'Add-ons Manager')

@@ -15,6 +15,3 @@ EXTRA_JS_MODULES.syncedtabs += [
     'util.js',
 ]
 
-with Files('**'):
-    BUG_COMPONENT = ('Firefox', 'Synced tabs')
-

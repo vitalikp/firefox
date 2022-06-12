@@ -4,21 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-with Files('Restyle*'):
-    BUG_COMPONENT = ('Core', 'CSS Parsing and Computation')
-
-with Files('nsStyle*'):
-    BUG_COMPONENT = ('Core', 'CSS Parsing and Computation')
-
-with Files('nsChangeHint.h'):
-    BUG_COMPONENT = ('Core', 'CSS Parsing and Computation')
-
-with Files('nsBidi*'):
-    BUG_COMPONENT = ('Core', 'Layout: Text')
-
-with Files('AccessibleCaret*'):
-    BUG_COMPONENT = ('Core', 'Selection')
-
 XPIDL_SOURCES += [
     'nsIPreloadedStyleSheet.idl',
     'nsIStyleSheetService.idl',

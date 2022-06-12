@@ -7,6 +7,3 @@
 EXTRA_JS_MODULES += [
     'microformat-shiv.js'
 ]
-
-with Files('**'):
-    BUG_COMPONENT = ('Toolkit', 'Microformats')

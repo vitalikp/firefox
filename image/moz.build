@@ -6,9 +6,6 @@
 
 DIRS += ['build', 'decoders', 'encoders']
 
-with Files('**'):
-    BUG_COMPONENT = ('Core', 'ImageLib')
-
 XPIDL_SOURCES += [
     'imgICache.idl',
     'imgIContainer.idl',

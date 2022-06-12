@@ -7,6 +7,3 @@
 EXTRA_JS_MODULES.workers += [
     'require.js'
 ]
-
-with Files('**'):
-    BUG_COMPONENT = ('Toolkit', 'Async Tooling')

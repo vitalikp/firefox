@@ -17,6 +17,3 @@ SOURCES += [
 FINAL_LIBRARY = 'xul'
 
 JAR_MANIFESTS += ['jar.mn']
-
-with Files('**'):
-    BUG_COMPONENT = ('Toolkit', 'Find Toolbar')

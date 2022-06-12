@@ -33,6 +33,3 @@ LOCAL_INCLUDES += [
 FINAL_LIBRARY = 'xul'
 
 JAR_MANIFESTS += ['jar.mn']
-
-with Files('**'):
-    BUG_COMPONENT = ('Toolkit', 'Startup and Profile System')

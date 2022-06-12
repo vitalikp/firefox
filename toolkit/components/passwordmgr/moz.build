@@ -62,6 +62,3 @@ if CONFIG['MOZ_BUILD_APP'] == 'browser':
     ]
 
 JAR_MANIFESTS += ['jar.mn']
-
-with Files('**'):
-    BUG_COMPONENT = ('Toolkit', 'Password Manager')

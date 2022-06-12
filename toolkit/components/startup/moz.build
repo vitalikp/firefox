@@ -30,6 +30,3 @@ else:
     ]
 
 FINAL_LIBRARY = 'xul'
-
-with Files('**'):
-    BUG_COMPONENT = ('Toolkit', 'Startup and Profile System')
