@@ -15,7 +15,6 @@ if not CONFIG['JS_DISABLE_SHELL']:
     DIRS += ['shell']
 
 CONFIGURE_SUBST_FILES += [
-    'devtools/rootAnalysis/Makefile',
     'js-config',
     'js.pc',
 ]
