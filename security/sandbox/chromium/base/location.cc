@@ -4,10 +4,6 @@
 
 #include "build/build_config.h"
 
-#if defined(COMPILER_MSVC)
-#include <intrin.h>
-#endif
-
 #include "base/location.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/stringprintf.h"
@@ -90,13 +86,8 @@ LocationSnapshot::~LocationSnapshot() {
 }
 
 //------------------------------------------------------------------------------
-#if defined(COMPILER_MSVC)
-__declspec(noinline)
-#endif
 BASE_EXPORT const void* GetProgramCounter() {
-#if defined(COMPILER_MSVC)
-  return _ReturnAddress();
-#elif defined(COMPILER_GCC) && !defined(OS_NACL)
+#if defined(COMPILER_GCC) && !defined(OS_NACL)
   return __builtin_extract_return_addr(__builtin_return_address(0));
 #else
   return NULL;

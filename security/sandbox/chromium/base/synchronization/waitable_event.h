@@ -11,10 +11,6 @@
 #include "base/macros.h"
 #include "build/build_config.h"
 
-#if defined(OS_WIN)
-#include "base/win/scoped_handle.h"
-#endif
-
 #if defined(OS_POSIX)
 #include <list>
 #include <utility>
@@ -49,13 +45,6 @@ class BASE_EXPORT WaitableEvent {
   // waiting thread has been released.
   WaitableEvent(bool manual_reset, bool initially_signaled);
 
-#if defined(OS_WIN)
-  // Create a WaitableEvent from an Event HANDLE which has already been
-  // created. This objects takes ownership of the HANDLE and will close it when
-  // deleted.
-  explicit WaitableEvent(win::ScopedHandle event_handle);
-#endif
-
   ~WaitableEvent();
 
   // Put the event in the un-signaled state.
@@ -85,10 +74,6 @@ class BASE_EXPORT WaitableEvent {
   //
   // TimedWait can synchronise its own destruction like |Wait|.
   bool TimedWait(const TimeDelta& max_time);
-
-#if defined(OS_WIN)
-  HANDLE handle() const { return handle_.Get(); }
-#endif
 
   // Wait, synchronously, on multiple events.
   //   waitables: an array of WaitableEvent pointers
@@ -136,9 +121,6 @@ class BASE_EXPORT WaitableEvent {
  private:
   friend class WaitableEventWatcher;
 
-#if defined(OS_WIN)
-  win::ScopedHandle handle_;
-#else
   // On Windows, one can close a HANDLE which is currently being waited on. The
   // MSDN documentation says that the resulting behaviour is 'undefined', but
   // it doesn't crash. However, if we were to include the following members
@@ -179,7 +161,6 @@ class BASE_EXPORT WaitableEvent {
   void Enqueue(Waiter* waiter);
 
   scoped_refptr<WaitableEventKernel> kernel_;
-#endif
 
   DISALLOW_COPY_AND_ASSIGN(WaitableEvent);
 };

@@ -10,9 +10,7 @@
 
 #include "build/build_config.h"
 
-#if defined(OS_WIN)
-#include "base/base_paths_win.h"
-#elif defined(OS_MACOSX)
+#if defined(OS_MACOSX)
 #include "base/base_paths_mac.h"
 #elif defined(OS_ANDROID)
 #include "base/base_paths_android.h"

@@ -75,9 +75,4 @@ const char kProfilerTiming[]                = "profiler-timing";
 // chrome://profiler.
 const char kProfilerTimingDisabledValue[]   = "0";
 
-#if defined(OS_WIN)
-// Disables the USB keyboard detection for blocking the OSK on Win8+.
-const char kDisableUsbKeyboardDetect[]      = "disable-usb-keyboard-detect";
-#endif
-
 }  // namespace switches
