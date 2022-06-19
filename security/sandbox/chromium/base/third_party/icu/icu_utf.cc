@@ -157,11 +157,12 @@ UChar32 utf8_nextCharSafeBody(const uint8_t* s,
                 /* code point>0x10ffff, outside Unicode */
                 illegal=1;
                 break;
-            }
+            } // fallthrough
         case 2:
             trail=s[(i)++];
             (c)=((c)<<6)|(trail&0x3f);
             illegal|=(trail&0xc0)^0x80;
+            // fallthrough
         case 1:
             trail=s[(i)++];
             (c)=((c)<<6)|(trail&0x3f);
