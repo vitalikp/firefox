@@ -1055,23 +1055,16 @@ SessionStore.prototype = {
    * @param aAsync boolelan used to determine the method of saving the state
    */
   _writeFile: function ss_writeFile(aFile, aFileTemp, aData, aAsync) {
-    TelemetryStopwatch.start("FX_SESSION_RESTORE_SERIALIZE_DATA_MS");
     let state = JSON.stringify(aData);
-    TelemetryStopwatch.finish("FX_SESSION_RESTORE_SERIALIZE_DATA_MS");
 
     // Convert data string to a utf-8 encoded array buffer
     let buffer = new TextEncoder().encode(state);
-    Services.telemetry.getHistogramById("FX_SESSION_RESTORE_FILE_SIZE_BYTES").add(buffer.byteLength);
-
     Services.obs.notifyObservers(null, "sessionstore-state-write", "");
-    let startWriteMs = Cu.now();
 
     log("_writeFile(aAsync = " + aAsync + "), _pendingWrite = " + this._pendingWrite);
     this._writeInProgress = true;
     let pendingWrite = this._pendingWrite;
     this._write(aFile, aFileTemp, buffer, aAsync).then(() => {
-      let stopWriteMs = Cu.now();
-
       // Make sure this._pendingWrite is the same value it was before we
       // fired off the async write. If the count is different, another write
       // is pending, so we shouldn't reset this._pendingWrite yet.
@@ -1082,9 +1075,6 @@ SessionStore.prototype = {
 
       log("_writeFile() _write() returned, _pendingWrite = " + this._pendingWrite);
 
-      // We don't use a stopwatch here since the calls are async and stopwatches can only manage
-      // a single timer per histogram.
-      Services.telemetry.getHistogramById("FX_SESSION_RESTORE_WRITE_FILE_MS").add(Math.round(stopWriteMs - startWriteMs));
       Services.obs.notifyObservers(null, "sessionstore-state-write-complete", "");
       this._sessionDataIsGood = true;
     });

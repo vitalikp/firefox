@@ -5266,14 +5266,6 @@
     "n_buckets": 10,
     "description": "Session restore: Duration of the longest uninterruptible operation while collecting data in the content process (ms)"
   },
-  "FX_SESSION_RESTORE_SERIALIZE_DATA_MS": {
-    "alert_emails": ["session-restore-telemetry-alerts@mozilla.com"],
-    "expires_in_version": "never",
-    "kind": "exponential",
-    "high": 1000,
-    "n_buckets": 10,
-    "description": "Session restore: Time to JSON serialize session data (ms)"
-  },
   "FX_SESSION_RESTORE_READ_FILE_MS": {
     "alert_emails": ["session-restore-telemetry-alerts@mozilla.com"],
     "expires_in_version": "default",
@@ -5281,22 +5273,6 @@
     "high": 3000,
     "n_buckets": 10,
     "description": "Session restore: Time to read the session data from the file on disk (ms)"
-  },
-  "FX_SESSION_RESTORE_WRITE_FILE_MS": {
-    "alert_emails": ["session-restore-telemetry-alerts@mozilla.com"],
-    "expires_in_version": "default",
-    "kind": "exponential",
-    "high": 3000,
-    "n_buckets": 10,
-    "description": "Session restore: Time to write the session data to the file on disk (ms)"
-  },
-  "FX_SESSION_RESTORE_FILE_SIZE_BYTES": {
-    "alert_emails": ["session-restore-telemetry-alerts@mozilla.com"],
-    "expires_in_version": "default",
-    "kind": "exponential",
-    "high": 50000000,
-    "n_buckets": 30,
-    "description": "Session restore: The size of file sessionstore.js (bytes)"
   },
   "FX_SESSION_RESTORE_CORRUPT_FILE": {
     "alert_emails": ["session-restore-telemetry-alerts@mozilla.com"],

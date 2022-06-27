@@ -398,8 +398,6 @@ var SessionFileInternal = {
 
     // Wait until the write is done.
     promise = promise.then(msg => {
-      // Record how long the write took.
-      this._recordTelemetry(msg.telemetry);
       this._successes++;
       if (msg.result.upgradeBackup) {
         // We have just completed a backup-on-upgrade, store the information
@@ -452,21 +450,5 @@ var SessionFileInternal = {
       // because the state variables as sent to the worker have changed.
       this._initializationStarted = false;
     });
-  },
-
-  _recordTelemetry(telemetry) {
-    for (let id of Object.keys(telemetry)) {
-      let value = telemetry[id];
-      let samples = [];
-      if (Array.isArray(value)) {
-        samples.push(...value);
-      } else {
-        samples.push(value);
-      }
-      let histogram = Telemetry.getHistogramById(id);
-      for (let sample of samples) {
-        histogram.add(sample);
-      }
-    }
   }
 };
