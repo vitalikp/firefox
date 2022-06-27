@@ -2878,12 +2878,6 @@ this.XPIProvider = {
 
       this.extensionsActive = true;
       this.runPhase = XPI_BEFORE_UI_STARTUP;
-
-      let timerManager = Cc["@mozilla.org/updates/timer-manager;1"].
-                         getService(Ci.nsIUpdateTimerManager);
-      timerManager.registerTimer("xpi-signature-verification", () => {
-        this.verifySignatures();
-      }, XPI_SIGNATURE_CHECK_PERIOD);
     } catch (e) {
       logger.error("startup failed", e);
       AddonManagerPrivate.recordException("XPI", "startup failed", e);
@@ -3165,45 +3159,6 @@ this.XPIProvider = {
     logger.info("Installing new system add-on set");
     await systemAddonLocation.installAddonSet(Array.from(addonList.values())
       .map(a => a.addon));
-  },
-
-  /**
-   * Verifies that all installed add-ons are still correctly signed.
-   */
-  verifySignatures() {
-    XPIDatabase.getAddonList(a => true, (addons) => {
-      Task.spawn(function*() {
-        let changes = {
-          enabled: [],
-          disabled: []
-        };
-
-        for (let addon of addons) {
-          // The add-on might have vanished, we'll catch that on the next startup
-          if (!addon._sourceBundle.exists())
-            continue;
-
-          let signedState = yield verifyBundleSignedState(addon._sourceBundle, addon);
-
-          if (signedState != addon.signedState) {
-            addon.signedState = signedState;
-            AddonManagerPrivate.callAddonListeners("onPropertyChanged",
-                                                   addon.wrapper,
-                                                   ["signedState"]);
-          }
-
-          let disabled = XPIProvider.updateAddonDisabledState(addon);
-          if (disabled !== undefined)
-            changes[disabled ? "disabled" : "enabled"].push(addon.id);
-        }
-
-        XPIDatabase.saveChanges();
-
-        Services.obs.notifyObservers(null, "xpi-signature-changed", JSON.stringify(changes));
-      }).then(null, err => {
-        logger.error("XPI_verifySignature: " + err);
-      })
-    });
   },
 
   /**
