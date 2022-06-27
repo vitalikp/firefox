@@ -61,9 +61,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "isAddonPartOfE10SRollout",
 XPCOMUtils.defineLazyModuleGetter(this, "LegacyExtensionsUtils",
                                   "resource://gre/modules/LegacyExtensionsUtils.jsm");
 
-XPCOMUtils.defineLazyServiceGetter(this, "Blocklist",
-                                   "@mozilla.org/extensions/blocklist;1",
-                                   Ci.nsIBlocklistService);
 XPCOMUtils.defineLazyServiceGetter(this,
                                    "ChromeRegistry",
                                    "@mozilla.org/chrome/chrome-registry;1",
@@ -194,18 +191,6 @@ const PENDING_INSTALL_METADATA =
      "existingAddonID", "sourceURI", "releaseNotesURI", "installDate",
      "updateDate", "applyBackgroundUpdates", "compatibilityOverrides"];
 
-// Note: When adding/changing/removing items here, remember to change the
-// DB schema version to ensure changes are picked up ASAP.
-const STATIC_BLOCKLIST_PATTERNS = [
-  { creator: "Mozilla Corp.",
-    level: Blocklist.STATE_BLOCKED,
-    blockID: "i162" },
-  { creator: "Mozilla.org",
-    level: Blocklist.STATE_BLOCKED,
-    blockID: "i162" }
-];
-
-
 const BOOTSTRAP_REASONS = {
   APP_STARTUP     : 1,
   APP_SHUTDOWN    : 2,
@@ -320,7 +305,6 @@ function loadLazyObjects() {
     syncLoadManifestFromFile,
     isUsableAddon,
     recordAddonTelemetry,
-    applyBlocklistChanges,
     flushChromeCaches,
     canRunInSafeMode,
   }
@@ -365,18 +349,6 @@ function waitForAllPromises(promises) {
     Promise.all(newPromises)
            .then((results) => shouldReject ? reject(rejectValue) : resolve(results));
   });
-}
-
-function findMatchingStaticBlocklistItem(aAddon) {
-  for (let item of STATIC_BLOCKLIST_PATTERNS) {
-    if ("creator" in item && typeof item.creator == "string") {
-      if ((aAddon.defaultLocale && aAddon.defaultLocale.creator == item.creator) ||
-          (aAddon.selectedLocale && aAddon.selectedLocale.creator == item.creator)) {
-        return item;
-      }
-    }
-  }
-  return null;
 }
 
 /**
@@ -637,57 +609,6 @@ SafeInstallOperation.prototype = {
 };
 
 /**
- * Sets the userDisabled and softDisabled properties of an add-on based on what
- * values those properties had for a previous instance of the add-on. The
- * previous instance may be a previous install or in the case of an application
- * version change the same add-on.
- *
- * NOTE: this may modify aNewAddon in place; callers should save the database if
- * necessary
- *
- * @param  aOldAddon
- *         The previous instance of the add-on
- * @param  aNewAddon
- *         The new instance of the add-on
- * @param  aAppVersion
- *         The optional application version to use when checking the blocklist
- *         or undefined to use the current application
- * @param  aPlatformVersion
- *         The optional platform version to use when checking the blocklist or
- *         undefined to use the current platform
- */
-function applyBlocklistChanges(aOldAddon, aNewAddon, aOldAppVersion,
-                               aOldPlatformVersion) {
-  // Copy the properties by default
-  aNewAddon.userDisabled = aOldAddon.userDisabled;
-  aNewAddon.softDisabled = aOldAddon.softDisabled;
-
-  let oldBlocklistState = Blocklist.getAddonBlocklistState(aOldAddon.wrapper,
-                                                           aOldAppVersion,
-                                                           aOldPlatformVersion);
-  let newBlocklistState = Blocklist.getAddonBlocklistState(aNewAddon.wrapper);
-
-  // If the blocklist state hasn't changed then the properties don't need to
-  // change
-  if (newBlocklistState == oldBlocklistState)
-    return;
-
-  if (newBlocklistState == Blocklist.STATE_SOFTBLOCKED) {
-    if (aNewAddon.type != "theme") {
-      // The add-on has become softblocked, set softDisabled if it isn't already
-      // userDisabled
-      aNewAddon.softDisabled = !aNewAddon.userDisabled;
-    } else {
-      // Themes just get userDisabled to switch back to the default theme
-      aNewAddon.userDisabled = true;
-    }
-  } else {
-    // If the new add-on is not softblocked then it cannot be softDisabled
-    aNewAddon.softDisabled = false;
-  }
-}
-
-/**
  * Evaluates whether an add-on is allowed to run in safe mode.
  *
  * @param  aAddon
@@ -719,11 +640,6 @@ function isUsableAddon(aAddon) {
   // Hack to ensure the default theme is always usable
   if (aAddon.type == "theme" && aAddon.internalName == XPIProvider.defaultSkin)
     return true;
-
-  if (aAddon.blocklistState == Blocklist.STATE_BLOCKED) {
-    logger.warn(`Add-on ${aAddon.id} is blocklisted.`);
-    return false;
-  }
 
   // Experiments are installed through an external mechanism that
   // limits target audience to compatible clients. We trust it knows what
@@ -1022,7 +938,7 @@ var loadManifestFromWebManifest = Task.async(function*(aUri) {
 
   addon.targetPlatforms = [];
   addon.userDisabled = false;
-  addon.softDisabled = addon.blocklistState == Blocklist.STATE_SOFTBLOCKED;
+  addon.softDisabled = false;
 
   return addon;
 });
@@ -1295,7 +1211,7 @@ let loadManifestFromRDF = Task.async(function*(aUri, aStream) {
     addon.userDisabled = false;
   }
 
-  addon.softDisabled = addon.blocklistState == Blocklist.STATE_SOFTBLOCKED;
+  addon.softDisabled = false;
   addon.applyBackgroundUpdates = AddonManager.AUTOUPDATE_DEFAULT;
 
   // Experiments are managed and updated through an external "experiments
@@ -5883,8 +5799,6 @@ class LocalAddonInstall extends AddonInstall {
       });
 
       this.existingAddon = addon;
-      if (addon)
-        applyBlocklistChanges(addon, this.addon);
       this.addon.updateDate = Date.now();
       this.addon.installDate = addon ? addon.installDate : this.addon.updateDate;
 
@@ -6288,7 +6202,6 @@ class DownloadAddonInstall extends AddonInstall {
       if (this.existingAddon) {
         this.addon.existingAddonID = this.existingAddon.id;
         this.addon.installDate = this.existingAddon.installDate;
-        applyBlocklistChanges(this.existingAddon, this.addon);
       } else {
         this.addon.installDate = this.addon.updateDate;
       }
@@ -6939,14 +6852,6 @@ AddonInternal.prototype = {
         app = targetApp;
     }
     return app;
-  },
-
-  get blocklistState() {
-    let staticItem = findMatchingStaticBlocklistItem(this);
-    if (staticItem)
-      return staticItem.level;
-
-    return Blocklist.getAddonBlocklistState(this.wrapper);
   },
 
   applyCompatibilityUpdate(aUpdate, aSyncCompatibility) {
@@ -7650,7 +7555,7 @@ function defineAddonWrapperProperty(name, getter) {
 }
 
 ["id", "syncGUID", "version", "isCompatible", "isPlatformCompatible",
- "providesUpdatesSecurely", "blocklistState", "appDisabled",
+ "providesUpdatesSecurely", "appDisabled",
  "softDisabled", "skinnable", "size", "foreignInstall", "hasBinaryComponents",
  "strictCompatibility", "compatibilityOverrides", "updateURL", "dependencies",
  "getDataDirectory", "multiprocessCompatible", "signedState", "mpcOptedOut",

@@ -174,7 +174,6 @@
 #include "mozilla/psm/PSMContentListener.h"
 #include "nsPluginHost.h"
 #include "nsPluginTags.h"
-#include "nsIBlocklistService.h"
 #include "mozilla/StyleSheet.h"
 #include "mozilla/StyleSheetInlines.h"
 #include "nsHostObjectProtocolHandler.h"
@@ -1056,31 +1055,6 @@ ContentParent::RecvConnectPluginBridge(const uint32_t& aPluginId,
   uint32_t dummy = 0;
   if (!mozilla::plugins::SetupBridge(aPluginId, this, true, aRv, &dummy, aEndpoint)) {
     return IPC_FAIL(this, "SetupBridge failed");
-  }
-  return IPC_OK();
-}
-
-mozilla::ipc::IPCResult
-ContentParent::RecvGetBlocklistState(const uint32_t& aPluginId,
-                                     uint32_t* aState)
-{
-  *aState = nsIBlocklistService::STATE_BLOCKED;
-
-  RefPtr<nsPluginHost> pluginHost = nsPluginHost::GetInst();
-  if (!pluginHost) {
-    NS_WARNING("Plugin host not found");
-    return IPC_FAIL_NO_REASON(this);
-  }
-  nsPluginTag* tag =  pluginHost->PluginWithId(aPluginId);
-
-  if (!tag) {
-    // Default state is blocked anyway
-    NS_WARNING("Plugin tag not found. This should never happen, but to avoid a crash we're forcibly blocking it");
-    return IPC_OK();
-  }
-
-  if (NS_FAILED(tag->GetBlocklistState(aState))) {
-    return IPC_FAIL_NO_REASON(this);
   }
   return IPC_OK();
 }

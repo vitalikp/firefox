@@ -609,11 +609,6 @@ AddonWrapper.prototype = {
   // Lightweight themes are always securely updated
   get providesUpdatesSecurely() {
     return true;
-  },
-
-  // Lightweight themes are never blocklisted
-  get blocklistState() {
-    return Ci.nsIBlocklistService.STATE_NOT_BLOCKED;
   }
 };
 

@@ -574,10 +574,6 @@ this.SocialService = {
     if (!manifest)
       throw new Error("SocialService.installProvider: service configuration is invalid from " + data.url);
 
-    let addon = new AddonWrapper(manifest);
-    if (addon && addon.blocklistState == Ci.nsIBlocklistService.STATE_BLOCKED)
-      throw new Error("installProvider: provider with origin [" +
-                      data.origin + "] is blocklisted");
     // manifestFromData call above will enforce correct origin. To support
     // activation from about: uris, we need to be sure to use the updated
     // origin on the manifest.
@@ -678,11 +674,6 @@ function SocialProvider(input) {
     throw new Error("SocialProvider must be passed a name");
   if (!input.origin)
     throw new Error("SocialProvider must be passed an origin");
-
-  let addon = new AddonWrapper(input);
-  if (addon.blocklistState == Ci.nsIBlocklistService.STATE_BLOCKED)
-    throw new Error("SocialProvider: provider with origin [" +
-                    input.origin + "] is blocklisted");
 
   this.name = input.name;
   this.iconURL = input.iconURL;
@@ -845,21 +836,7 @@ var SocialAddonProvider = {
 
   shutdown() {},
 
-  updateAddonAppDisabledStates() {
-    // we wont bother with "enabling" services that are released from blocklist
-    for (let manifest of SocialServiceInternal.manifests) {
-      try {
-        if (ActiveProviders.has(manifest.origin)) {
-          let addon = new AddonWrapper(manifest);
-          if (addon.blocklistState != Ci.nsIBlocklistService.STATE_NOT_BLOCKED) {
-            SocialService.disableProvider(manifest.origin);
-          }
-        }
-      } catch (e) {
-        Cu.reportError(e);
-      }
-    }
-  },
+  updateAddonAppDisabledStates() {},
 
   getAddonByID(aId, aCallback) {
     for (let manifest of SocialServiceInternal.manifests) {
@@ -903,7 +880,7 @@ AddonWrapper.prototype = {
   },
 
   get appDisabled() {
-    return this.blocklistState == Ci.nsIBlocklistService.STATE_BLOCKED;
+    return false;
   },
 
   set softDisabled(val) {
@@ -936,10 +913,6 @@ AddonWrapper.prototype = {
 
   get providesUpdatesSecurely() {
     return true;
-  },
-
-  get blocklistState() {
-    return Services.blocklist.getAddonBlocklistState(this);
   },
 
   get screenshots() {

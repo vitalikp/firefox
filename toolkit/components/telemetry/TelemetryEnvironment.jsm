@@ -155,7 +155,6 @@ const DEFAULT_ENVIRONMENT_PREFS = new Map([
   ["experiments.manifest.uri", {what: RECORD_PREF_VALUE}],
   ["extensions.autoDisableScopes", {what: RECORD_PREF_VALUE}],
   ["extensions.enabledScopes", {what: RECORD_PREF_VALUE}],
-  ["extensions.blocklist.enabled", {what: RECORD_PREF_VALUE}],
   ["extensions.strictCompatibility", {what: RECORD_PREF_VALUE}],
   ["extensions.update.enabled", {what: RECORD_PREF_VALUE}],
   ["extensions.update.url", {what: RECORD_PREF_VALUE}],
@@ -192,7 +191,6 @@ const DEFAULT_ENVIRONMENT_PREFS = new Map([
 
 const LOGGER_NAME = "Toolkit.Telemetry";
 
-const PREF_BLOCKLIST_ENABLED = "extensions.blocklist.enabled";
 const PREF_DISTRIBUTION_ID = "distribution.id";
 const PREF_DISTRIBUTION_VERSION = "distribution.version";
 const PREF_DISTRIBUTOR = "app.distributor";
@@ -574,7 +572,6 @@ EnvironmentAddonBuilder.prototype = {
         let updateDate = new Date(Math.max(0, addon.updateDate));
 
         activeAddons[addon.id] = {
-          blocklisted: (addon.blocklistState !== Ci.nsIBlocklistService.STATE_NOT_BLOCKED),
           description: limitStringToLength(addon.description, MAX_ADDON_STRING_LENGTH),
           name: limitStringToLength(addon.name, MAX_ADDON_STRING_LENGTH),
           userDisabled: enforceBoolean(addon.userDisabled),
@@ -620,7 +617,6 @@ EnvironmentAddonBuilder.prototype = {
 
       activeTheme = {
         id: theme.id,
-        blocklisted: (theme.blocklistState !== Ci.nsIBlocklistService.STATE_NOT_BLOCKED),
         description: limitStringToLength(theme.description, MAX_ADDON_STRING_LENGTH),
         name: limitStringToLength(theme.name, MAX_ADDON_STRING_LENGTH),
         userDisabled: enforceBoolean(theme.userDisabled),
@@ -660,7 +656,6 @@ EnvironmentAddonBuilder.prototype = {
           name: limitStringToLength(tag.name, MAX_ADDON_STRING_LENGTH),
           version: limitStringToLength(tag.version, MAX_ADDON_STRING_LENGTH),
           description: limitStringToLength(tag.description, MAX_ADDON_STRING_LENGTH),
-          blocklisted: tag.blocklisted,
           disabled: tag.disabled,
           clicktoplay: tag.clicktoplay,
           mimeTypes: tag.getMimeTypes({}),
@@ -1163,7 +1158,6 @@ EnvironmentCache.prototype = {
     } catch (e) {}
 
     this._currentEnvironment.settings = {
-      blocklistEnabled: Preferences.get(PREF_BLOCKLIST_ENABLED, true),
       e10sEnabled: Services.appinfo.browserTabsRemoteAutostart,
       e10sCohort: Preferences.get(PREF_E10S_COHORT, "unknown"),
       telemetryEnabled: Utils.isTelemetryEnabled,

@@ -163,16 +163,7 @@ var gPluginHandler = {
         expireType = Ci.nsIPermissionManager.EXPIRE_NEVER;
         expireTime = 0;
         histogram.add(2);
-        switch (aPluginInfo.blocklistState) {
-          case Ci.nsIBlocklistService.STATE_VULNERABLE_UPDATE_AVAILABLE:
-            aPluginInfo.fallbackType = Ci.nsIObjectLoadingContent.PLUGIN_VULNERABLE_UPDATABLE;
-            break;
-          case Ci.nsIBlocklistService.STATE_VULNERABLE_NO_UPDATE:
-            aPluginInfo.fallbackType = Ci.nsIObjectLoadingContent.PLUGIN_VULNERABLE_NO_UPDATE;
-            break;
-          default:
-            aPluginInfo.fallbackType = Ci.nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY;
-        }
+        aPluginInfo.fallbackType = Ci.nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY;
         break;
 
       // In case a plugin has already been allowed in another tab, the "continue allowing" button
@@ -233,19 +224,7 @@ var gPluginHandler = {
       if (pluginData.has(pluginInfo.permissionString)) {
         continue;
       }
-
-      // If a block contains an infoURL, we should always prefer that to the default
-      // URL that we construct in-product, even for other blocklist types.
-      let url = Services.blocklist.getPluginInfoURL(pluginInfo.pluginTag);
-
-      if (pluginInfo.blocklistState != Ci.nsIBlocklistService.STATE_NOT_BLOCKED) {
-        if (!url) {
-          url = Services.blocklist.getPluginBlocklistURL(pluginInfo.pluginTag);
-        }
-      } else {
-        url = Services.urlFormatter.formatURLPref("app.support.baseURL") + "clicktoplay";
-      }
-      pluginInfo.detailsLink = url;
+      pluginInfo.detailsLink = Services.urlFormatter.formatURLPref("app.support.baseURL") + "clicktoplay";
 
       pluginData.set(pluginInfo.permissionString, pluginInfo);
     }

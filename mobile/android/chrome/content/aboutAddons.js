@@ -235,26 +235,11 @@ var Addons = {
         optionsURL = "";
     }
 
-    let blocked = "";
-    switch(aAddon.blocklistState) {
-      case Ci.nsIBlocklistService.STATE_BLOCKED:
-        blocked = "blocked";
-        break;
-      case Ci.nsIBlocklistService.STATE_SOFTBLOCKED:
-        blocked = "softBlocked";
-        break;
-      case Ci.nsIBlocklistService.STATE_OUTDATED:
-        blocked = "outdated";
-        break;
-    }
-
     let item = this._createItem(aAddon);
     item.setAttribute("isDisabled", !aAddon.isActive);
     item.setAttribute("isUnsigned", aAddon.signedState <= AddonManager.SIGNEDSTATE_MISSING);
     item.setAttribute("opType", opType);
     item.setAttribute("updateable", updateable);
-    if (blocked)
-      item.setAttribute("blockedStatus", blocked);
     item.setAttribute("optionsURL", optionsURL);
     item.addon = aAddon;
 

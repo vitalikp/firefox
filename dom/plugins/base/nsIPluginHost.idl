@@ -139,15 +139,6 @@ interface nsIPluginHost : nsISupports
                                 [optional] in uint32_t excludeFlags);
 
   /**
-   * Get the blocklist state for a MIME type.  See nsIPluginTag.blocklistState.
-   *
-   * @mimeType The MIME type we're interested in.
-   * @excludeFlags Set of the EXCLUDE_* flags above, defaulting to EXCLUDE_NONE.
-   */
-  uint32_t getBlocklistStateForType(in AUTF8String aMimeType,
-                                    [optional] in uint32_t excludeFlags);
-
-  /**
    * Create a fake plugin tag, register it, and return it.  The argument is a
    * FakePluginTagInit dictionary.  See documentation in
    * FakePluginTagInit.webidl for what it should look like.  Will throw

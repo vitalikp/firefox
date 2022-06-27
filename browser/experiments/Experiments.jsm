@@ -2228,10 +2228,6 @@ PreviousExperimentAddon.prototype = Object.freeze({
     return true;
   },
 
-  get blocklistState() {
-    Ci.nsIBlocklistService.STATE_NOT_BLOCKED
-  },
-
   get creator() {
     return new AddonManagerPrivate.AddonAuthor("");
   },

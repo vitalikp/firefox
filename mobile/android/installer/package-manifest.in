@@ -81,7 +81,6 @@
 ; [Base Browser Files]
 @BINPATH@/application.ini
 @BINPATH@/platform.ini
-@BINPATH@/blocklist.xml
 
 ; [Components]
 #ifdef MOZ_ARTIFACT_BUILDS
@@ -303,7 +302,6 @@
 @BINPATH@/components/amContentHandler.js
 @BINPATH@/components/amInstallTrigger.js
 @BINPATH@/components/amWebAPI.js
-@BINPATH@/components/nsBlocklistService.js
 #ifndef RELEASE_OR_BETA
 @BINPATH@/components/TabSource.js
 #endif
@@ -495,7 +493,6 @@
 @BINPATH@/chrome/chrome.manifest
 @BINPATH@/components/AboutRedirector.js
 @BINPATH@/components/AddonUpdateService.js
-@BINPATH@/components/BlocklistPrompt.js
 @BINPATH@/components/BrowserCLH.js
 @BINPATH@/components/ColorPicker.js
 @BINPATH@/components/ContentDispatchChooser.js

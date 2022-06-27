@@ -77,8 +77,6 @@ class nsObjectLoadingContent : public nsImageLoadingContent
       eFallbackAlternate = nsIObjectLoadingContent::PLUGIN_ALTERNATE,
       // The plugin exists, but is disabled
       eFallbackDisabled = nsIObjectLoadingContent::PLUGIN_DISABLED,
-      // The plugin is blocklisted and disabled
-      eFallbackBlocklisted = nsIObjectLoadingContent::PLUGIN_BLOCKLISTED,
       // The plugin is considered outdated, but not disabled
       eFallbackOutdated = nsIObjectLoadingContent::PLUGIN_OUTDATED,
       // The plugin has crashed

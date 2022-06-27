@@ -26,23 +26,12 @@ interface nsIPluginTag : nsISupports
   readonly attribute AUTF8String niceName;
 
   /**
-   * true only if this plugin is "hardblocked" and cannot be enabled.
-   */
-  // FIXME-jsplugins QI to fakePluginTag possible
-  // FIXME-jsplugins implement missing + tests (whatever that means)
-  readonly attribute boolean blocklisted;
-
-  /**
    * true if the state is non-default and locked, false otherwise.
    */
   readonly attribute boolean isEnabledStateLocked;
 
   // If this plugin is capable of being used (not disabled, blocklisted, etc)
   readonly attribute boolean active;
-
-  // Get a specific nsIBlocklistService::STATE_*
-  readonly attribute unsigned long blocklistState;
-
   readonly attribute boolean disabled;
   readonly attribute boolean clicktoplay;
   readonly attribute boolean loaded;

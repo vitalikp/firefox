@@ -263,17 +263,6 @@ var AddonTestUtils = {
     Services.prefs.setBoolPref("xpinstall.signatures.required", true);
 
 
-    // Write out an empty blocklist.xml file to the profile to ensure nothing
-    // is blocklisted by default
-    var blockFile = OS.Path.join(this.profileDir.path, "blocklist.xml");
-
-    var data = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-               "<blocklist xmlns=\"http://www.mozilla.org/2006/addons-blocklist\">\n" +
-               "</blocklist>\n";
-
-    this.awaitPromise(OS.File.writeAtomic(blockFile, new TextEncoder().encode(data)));
-
-
     // Make sure that a given path does not exist
     function pathShouldntExist(file) {
       if (file.exists()) {

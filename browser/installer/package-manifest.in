@@ -115,7 +115,6 @@
 @RESPATH@/update-settings.ini
 #endif
 @RESPATH@/platform.ini
-@RESPATH@/browser/blocklist.xml
 #ifdef XP_UNIX
 #ifndef XP_MACOSX
 @RESPATH@/run-mozilla.sh
@@ -387,8 +386,6 @@
 @RESPATH@/components/amContentHandler.js
 @RESPATH@/components/amInstallTrigger.js
 @RESPATH@/components/amWebAPI.js
-@RESPATH@/components/nsBlocklistService.js
-@RESPATH@/components/nsBlocklistServiceContent.js
 #ifdef MOZ_UPDATER
 @RESPATH@/components/nsUpdateService.manifest
 @RESPATH@/components/nsUpdateService.js

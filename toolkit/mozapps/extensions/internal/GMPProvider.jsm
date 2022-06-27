@@ -153,7 +153,6 @@ GMPWrapper.prototype = {
                                         this._plugin.id);
 },
 
-  get blocklistState() { return Ci.nsIBlocklistService.STATE_NOT_BLOCKED; },
   get size() { return 0; },
   get scope() { return AddonManager.SCOPE_APPLICATION; },
   get pendingOperations() { return AddonManager.PENDING_NONE; },

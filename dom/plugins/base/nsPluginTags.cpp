@@ -10,7 +10,6 @@
 #include "nsIPluginInstanceOwner.h"
 #include "nsPluginsDir.h"
 #include "nsPluginHost.h"
-#include "nsIBlocklistService.h"
 #include "nsIUnicodeDecoder.h"
 #include "nsIPlatformCharset.h"
 #include "nsPluginLogging.h"
@@ -240,8 +239,6 @@ nsPluginTag::nsPluginTag(nsPluginInfo* aPluginInfo,
     mFullPath(aPluginInfo->fFullPath),
     mLastModifiedTime(aLastModifiedTime),
     mSandboxLevel(0),
-    mCachedBlocklistState(nsIBlocklistService::STATE_NOT_BLOCKED),
-    mCachedBlocklistStateValid(false),
     mIsFromExtension(fromExtension)
 {
   InitMime(aPluginInfo->fMimeTypeArray,
@@ -277,8 +274,6 @@ nsPluginTag::nsPluginTag(const char* aName,
     mFullPath(aFullPath),
     mLastModifiedTime(aLastModifiedTime),
     mSandboxLevel(0),
-    mCachedBlocklistState(nsIBlocklistService::STATE_NOT_BLOCKED),
-    mCachedBlocklistStateValid(false),
     mIsFromExtension(fromExtension)
 {
   InitMime(aMimeTypes, aMimeDescriptions, aExtensions,
@@ -317,8 +312,6 @@ nsPluginTag::nsPluginTag(uint32_t aId,
     mLastModifiedTime(aLastModifiedTime),
     mSandboxLevel(aSandboxLevel),
     mNiceFileName(),
-    mCachedBlocklistState(nsIBlocklistService::STATE_NOT_BLOCKED),
-    mCachedBlocklistStateValid(false),
     mIsFromExtension(aFromExtension)
 {
 }
@@ -554,7 +547,7 @@ nsPluginTag::GetName(nsACString& aName)
 bool
 nsPluginTag::IsActive()
 {
-  return IsEnabled() && !IsBlocklisted();
+  return IsEnabled();
 }
 
 NS_IMETHODIMP
@@ -575,21 +568,6 @@ NS_IMETHODIMP
 nsPluginTag::GetDisabled(bool* aDisabled)
 {
   *aDisabled = !IsEnabled();
-  return NS_OK;
-}
-
-bool
-nsPluginTag::IsBlocklisted()
-{
-  uint32_t blocklistState;
-  nsresult rv = GetBlocklistState(&blocklistState);
-  return NS_FAILED(rv) || blocklistState == nsIBlocklistService::STATE_BLOCKED;
-}
-
-NS_IMETHODIMP
-nsPluginTag::GetBlocklisted(bool* aBlocklisted)
-{
-  *aBlocklisted = IsBlocklisted();
   return NS_OK;
 }
 
@@ -758,55 +736,6 @@ nsPluginTag::GetNiceName(nsACString & aResult)
 }
 
 NS_IMETHODIMP
-nsPluginTag::GetBlocklistState(uint32_t *aResult)
-{
-#if defined(MOZ_WIDGET_ANDROID)
-  *aResult = nsIBlocklistService::STATE_NOT_BLOCKED;
-  return NS_OK;
-#else
-  if (mCachedBlocklistStateValid) {
-    *aResult = mCachedBlocklistState;
-    return NS_OK;
-  }
-
-  if (!XRE_IsParentProcess()) {
-    *aResult = nsIBlocklistService::STATE_BLOCKED;
-    dom::ContentChild* cp = dom::ContentChild::GetSingleton();
-    if (!cp->SendGetBlocklistState(mId, aResult)) {
-      return NS_OK;
-    }
-  } else {
-    nsCOMPtr<nsIBlocklistService> blocklist =
-      do_GetService("@mozilla.org/extensions/blocklist;1");
-
-    if (!blocklist) {
-      *aResult = nsIBlocklistService::STATE_NOT_BLOCKED;
-      return NS_OK;
-    }
-
-    // The EmptyString()s are so we use the currently running application
-    // and toolkit versions
-    if (NS_FAILED(blocklist->GetPluginBlocklistState(this, EmptyString(),
-                                                     EmptyString(), aResult))) {
-      *aResult = nsIBlocklistService::STATE_NOT_BLOCKED;
-      return NS_OK;
-    }
-  }
-
-  MOZ_ASSERT(*aResult <= UINT16_MAX);
-  mCachedBlocklistState = (uint16_t) *aResult;
-  mCachedBlocklistStateValid = true;
-  return NS_OK;
-#endif // defined(MOZ_WIDGET_ANDROID)
-}
-
-void
-nsPluginTag::InvalidateBlocklistState()
-{
-  mCachedBlocklistStateValid = false;
-}
-
-NS_IMETHODIMP
 nsPluginTag::GetLastModifiedTime(PRTime* aLastModifiedTime)
 {
   MOZ_ASSERT(aLastModifiedTime);
@@ -939,22 +868,6 @@ NS_IMETHODIMP
 nsFakePluginTag::GetNiceName(/* utf-8 */ nsACString& aResult)
 {
   aResult = GetNiceFileName();
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsFakePluginTag::GetBlocklistState(uint32_t* aResult)
-{
-  // Fake tags don't currently support blocklisting
-  *aResult = nsIBlocklistService::STATE_NOT_BLOCKED;
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsFakePluginTag::GetBlocklisted(bool* aBlocklisted)
-{
-  // Fake tags can't be blocklisted
-  *aBlocklisted = false;
   return NS_OK;
 }
 

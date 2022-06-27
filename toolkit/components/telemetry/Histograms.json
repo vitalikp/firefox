@@ -122,12 +122,6 @@
     "n_values": 21,
     "description": "Maximum number of concurrent threads reached during a given download session"
   },
-  "BLOCKLIST_SYNC_FILE_LOAD": {
-    "alert_emails": ["rvitillo@mozilla.com"],
-    "expires_in_version": "35",
-    "kind": "boolean",
-    "description": "blocklist.xml has been loaded synchronously *** No longer needed (bug 1156565). Delete histogram and accumulation code! ***"
-  },
   "CHECKERBOARD_DURATION": {
     "alert_emails": ["kgupta@mozilla.com"],
     "bug_numbers": [1238040],

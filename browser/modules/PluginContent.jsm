@@ -191,7 +191,6 @@ PluginContent.prototype = {
     let pluginTag = null;
     let permissionString = null;
     let fallbackType = null;
-    let blocklistState = null;
 
     tagMimetype = pluginElement.actualType;
     if (tagMimetype == "") {
@@ -212,14 +211,6 @@ PluginContent.prototype = {
 
       permissionString = pluginHost.getPermissionStringForType(pluginElement.actualType);
       fallbackType = pluginElement.defaultFallbackType;
-      blocklistState = pluginHost.getBlocklistStateForType(pluginElement.actualType);
-      // Make state-softblocked == state-notblocked for our purposes,
-      // they have the same UI. STATE_OUTDATED should not exist for plugin
-      // items, but let's alias it anyway, just in case.
-      if (blocklistState == Ci.nsIBlocklistService.STATE_SOFTBLOCKED ||
-          blocklistState == Ci.nsIBlocklistService.STATE_OUTDATED) {
-        blocklistState = Ci.nsIBlocklistService.STATE_NOT_BLOCKED;
-      }
     }
 
     return { mimetype: tagMimetype,
@@ -227,7 +218,6 @@ PluginContent.prototype = {
              pluginTag,
              permissionString,
              fallbackType,
-             blocklistState,
            };
   },
 
@@ -242,13 +232,11 @@ PluginContent.prototype = {
 
     let pluginName = gNavigatorBundle.GetStringFromName("pluginInfo.unknownPlugin");
     let permissionString = null;
-    let blocklistState = null;
 
     if (pluginTag) {
       pluginName = BrowserUtils.makeNicePluginName(pluginTag.name);
 
       permissionString = pluginHost.getPermissionStringForTag(pluginTag);
-      blocklistState = pluginTag.blocklistState;
 
       // Convert this from nsIPluginTag so it can be serialized.
       let properties = ["name", "description", "filename", "version", "enabledState", "niceName"];
@@ -257,14 +245,6 @@ PluginContent.prototype = {
         pluginTagCopy[prop] = pluginTag[prop];
       }
       pluginTag = pluginTagCopy;
-
-      // Make state-softblocked == state-notblocked for our purposes,
-      // they have the same UI. STATE_OUTDATED should not exist for plugin
-      // items, but let's alias it anyway, just in case.
-      if (blocklistState == Ci.nsIBlocklistService.STATE_SOFTBLOCKED ||
-          blocklistState == Ci.nsIBlocklistService.STATE_OUTDATED) {
-        blocklistState = Ci.nsIBlocklistService.STATE_NOT_BLOCKED;
-      }
     }
 
     return { mimetype: tagMimetype,
@@ -276,7 +256,6 @@ PluginContent.prototype = {
              // this fallback type, since we don't actually have an
              // nsIObjectLoadingContent to check.
              fallbackType: Ci.nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY,
-             blocklistState,
            };
   },
 
@@ -387,8 +366,6 @@ PluginContent.prototype = {
         return "PluginNotFound";
       case Ci.nsIObjectLoadingContent.PLUGIN_DISABLED:
         return "PluginDisabled";
-      case Ci.nsIObjectLoadingContent.PLUGIN_BLOCKLISTED:
-        return "PluginBlocklisted";
       case Ci.nsIObjectLoadingContent.PLUGIN_OUTDATED:
         return "PluginOutdated";
       case Ci.nsIObjectLoadingContent.PLUGIN_CLICK_TO_PLAY:

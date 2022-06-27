@@ -292,9 +292,6 @@ public:
                                                           nsresult* aRv,
                                                           Endpoint<PPluginModuleParent>* aEndpoint) override;
 
-  virtual mozilla::ipc::IPCResult RecvGetBlocklistState(const uint32_t& aPluginId,
-                                                        uint32_t* aIsBlocklisted) override;
-
   virtual mozilla::ipc::IPCResult RecvFindPlugins(const uint32_t& aPluginEpoch,
                                                   nsresult* aRv,
                                                   nsTArray<PluginTag>* aPlugins,

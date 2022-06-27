@@ -340,12 +340,11 @@ PluginWrapper.prototype = {
 
   get isActive() {
     let { tags: [tag] } = pluginFor(this);
-    return !tag.blocklisted && !tag.disabled;
+    return !tag.disabled;
   },
 
   get appDisabled() {
-    let { tags: [tag] } = pluginFor(this);
-    return tag.blocklisted;
+    return false;
   },
 
   get userDisabled() {
@@ -353,9 +352,7 @@ PluginWrapper.prototype = {
     if (tag.disabled)
       return true;
 
-    if ((Services.prefs.getBoolPref("plugins.click_to_play") && tag.clicktoplay) ||
-        this.blocklistState == Ci.nsIBlocklistService.STATE_VULNERABLE_UPDATE_AVAILABLE ||
-        this.blocklistState == Ci.nsIBlocklistService.STATE_VULNERABLE_NO_UPDATE)
+    if ((Services.prefs.getBoolPref("plugins.click_to_play") && tag.clicktoplay))
       return AddonManager.STATE_ASK_TO_ACTIVATE;
 
     return false;
@@ -399,13 +396,6 @@ PluginWrapper.prototype = {
     }
 
     return val;
-  },
-
-  get blocklistState() {
-    let { tags: [tag] } = pluginFor(this);
-    let bs = Cc["@mozilla.org/extensions/blocklist;1"].
-             getService(Ci.nsIBlocklistService);
-    return bs.getPluginBlocklistState(tag);
   },
 
   get size() {
@@ -523,18 +513,12 @@ PluginWrapper.prototype = {
       if (this.userDisabled !== true)
         permissions |= AddonManager.PERM_CAN_DISABLE;
 
-      let blocklistState = this.blocklistState;
-      let isCTPBlocklisted =
-        (blocklistState == Ci.nsIBlocklistService.STATE_VULNERABLE_NO_UPDATE ||
-         blocklistState == Ci.nsIBlocklistService.STATE_VULNERABLE_UPDATE_AVAILABLE);
-
       if (this.userDisabled !== AddonManager.STATE_ASK_TO_ACTIVATE &&
-          (Services.prefs.getBoolPref("plugins.click_to_play") ||
-           isCTPBlocklisted)) {
+          (Services.prefs.getBoolPref("plugins.click_to_play"))) {
         permissions |= AddonManager.PERM_CAN_ASK_TO_ACTIVATE;
       }
 
-      if (this.userDisabled !== false && !isCTPBlocklisted) {
+      if (this.userDisabled !== false) {
         permissions |= AddonManager.PERM_CAN_ENABLE;
       }
     }

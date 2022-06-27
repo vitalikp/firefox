@@ -5211,8 +5211,6 @@ var XPInstallObserver = {
     let error = (host || aInstall.error == 0) ? "addonError" : "addonLocalError";
     if (aInstall.error < 0) {
       error += aInstall.error;
-    } else if (aInstall.addon && aInstall.addon.blocklistState == Ci.nsIBlocklistService.STATE_BLOCKED) {
-      error += "Blocklisted";
     } else {
       error += "Incompatible";
     }

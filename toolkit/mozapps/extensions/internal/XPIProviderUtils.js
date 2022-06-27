@@ -7,7 +7,7 @@
 // These are injected from XPIProvider.jsm
 /* globals ADDON_SIGNING, SIGNED_TYPES, BOOTSTRAP_REASONS, DB_SCHEMA,
           AddonInternal, XPIProvider, XPIStates, syncLoadManifestFromFile,
-          isUsableAddon, recordAddonTelemetry, applyBlocklistChanges,
+          isUsableAddon, recordAddonTelemetry,
           flushChromeCaches, canRunInSafeMode*/
 
 var Cc = Components.classes;
@@ -31,9 +31,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "Promise",
                                   "resource://gre/modules/Promise.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "OS",
                                   "resource://gre/modules/osfile.jsm");
-XPCOMUtils.defineLazyServiceGetter(this, "Blocklist",
-                                   "@mozilla.org/extensions/blocklist;1",
-                                   Ci.nsIBlocklistService);
 
 Cu.import("resource://gre/modules/Log.jsm");
 const LOGGER_ID = "addons.xpi-utils";
@@ -1652,10 +1649,6 @@ this.XPIDatabaseReconcile = {
         if ("targetApplications" in aMigrateData)
           aNewAddon.applyCompatibilityUpdate(aMigrateData, true);
       }
-
-      // Since the DB schema has changed make sure softDisabled is correct
-      applyBlocklistChanges(aNewAddon, aNewAddon, aOldAppVersion,
-                            aOldPlatformVersion);
     }
 
     // The default theme is never a foreign install
@@ -1721,7 +1714,6 @@ this.XPIDatabaseReconcile = {
         let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
         file.persistentDescriptor = aAddonState.descriptor;
         aNewAddon = syncLoadManifestFromFile(file, aInstallLocation);
-        applyBlocklistChanges(aOldAddon, aNewAddon);
 
         // Carry over any pendingUninstall state to add-ons modified directly
         // in the profile. This is important when the attempt to remove the
@@ -1830,8 +1822,6 @@ this.XPIDatabaseReconcile = {
     }
 
     // This updates the addon's JSON cached data in place
-    applyBlocklistChanges(aOldAddon, aOldAddon, aOldAppVersion,
-                          aOldPlatformVersion);
     aOldAddon.appDisabled = !isUsableAddon(aOldAddon);
 
     return aOldAddon;
@@ -2044,11 +2034,7 @@ this.XPIDatabaseReconcile = {
           // If the add-on wasn't active and it isn't already disabled in some way
           // then it was probably either softDisabled or userDisabled
           if (!isActive && !currentAddon.disabled) {
-            // If the add-on is softblocked then assume it is softDisabled
-            if (currentAddon.blocklistState == Blocklist.STATE_SOFTBLOCKED)
-              currentAddon.softDisabled = true;
-            else
-              currentAddon.userDisabled = true;
+            currentAddon.userDisabled = true;
           }
         } else {
           // This is a new install

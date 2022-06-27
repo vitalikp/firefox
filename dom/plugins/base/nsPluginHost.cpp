@@ -44,7 +44,6 @@
 #include "nsIDocument.h"
 #include "nsPluginLogging.h"
 #include "nsIScriptChannel.h"
-#include "nsIBlocklistService.h"
 #include "nsVersionComparator.h"
 #include "nsIObjectLoadingContent.h"
 #include "nsIWritablePropertyBag2.h"
@@ -1052,19 +1051,6 @@ nsPluginHost::GetStateForType(const nsACString &aMimeType,
 }
 
 NS_IMETHODIMP
-nsPluginHost::GetBlocklistStateForType(const nsACString &aMimeType,
-                                       uint32_t aExcludeFlags,
-                                       uint32_t *aState)
-{
-  nsCOMPtr<nsIPluginTag> tag;
-  nsresult rv = GetPluginTagForType(aMimeType,
-                                    aExcludeFlags,
-                                    getter_AddRefs(tag));
-  NS_ENSURE_SUCCESS(rv, rv);
-  return tag->GetBlocklistState(aState);
-}
-
-NS_IMETHODIMP
 nsPluginHost::GetPermissionStringForType(const nsACString &aMimeType,
                                          uint32_t aExcludeFlags,
                                          nsACString &aPermissionString)
@@ -1084,20 +1070,10 @@ nsPluginHost::GetPermissionStringForTag(nsIPluginTag* aTag,
   NS_ENSURE_TRUE(aTag, NS_ERROR_FAILURE);
 
   aPermissionString.Truncate();
-  uint32_t blocklistState;
-  nsresult rv = aTag->GetBlocklistState(&blocklistState);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (blocklistState == nsIBlocklistService::STATE_VULNERABLE_UPDATE_AVAILABLE ||
-      blocklistState == nsIBlocklistService::STATE_VULNERABLE_NO_UPDATE) {
-    aPermissionString.AssignLiteral("plugin-vulnerable:");
-  }
-  else {
-    aPermissionString.AssignLiteral("plugin:");
-  }
+  aPermissionString.AssignLiteral("plugin:");
 
   nsCString niceName;
-  rv = aTag->GetNiceName(niceName);
+  nsresult rv = aTag->GetNiceName(niceName);
   NS_ENSURE_SUCCESS(rv, rv);
   NS_ENSURE_TRUE(!niceName.IsEmpty(), NS_ERROR_FAILURE);
 
@@ -1350,13 +1326,6 @@ nsPluginHost::GetPluginForContentProcess(uint32_t aPluginId, nsNPAPIPlugin** aPl
 
   nsPluginTag* pluginTag = PluginWithId(aPluginId);
   if (pluginTag) {
-    // When setting up a bridge, double check with chrome to see if this plugin
-    // is blocked hard. Note this does not protect against vulnerable plugins
-    // that the user has explicitly allowed. :(
-    if (pluginTag->IsBlocklisted()) {
-      return NS_ERROR_PLUGIN_BLOCKLISTED;
-    }
-
     nsresult rv = EnsurePluginLoaded(pluginTag);
     if (NS_FAILED(rv)) {
       return rv;
@@ -2226,15 +2195,6 @@ nsresult nsPluginHost::ScanPluginsDirectory(nsIFile *pluginsDir,
       pluginTag = new nsPluginTag(&info, fileModTime, fromExtension);
       pluginFile.FreePluginInfo(info);
       pluginTag->mLibrary = library;
-      uint32_t state;
-      rv = pluginTag->GetBlocklistState(&state);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      // If the blocklist says it is risky and we have never seen this
-      // plugin before, then disable it.
-      if (state == nsIBlocklistService::STATE_SOFTBLOCKED && !seenBefore) {
-        pluginTag->SetEnabledState(nsIPluginTag::STATE_DISABLED);
-      }
 
       // Plugin unloading is tag-based. If we created a new tag and loaded
       // the library in the process then we want to attempt to unload it here.
@@ -3546,13 +3506,6 @@ NS_IMETHODIMP nsPluginHost::Observe(nsISupports *aSubject,
       UnloadPlugins();
     } else {
       LoadPlugins();
-    }
-  }
-  if (!strcmp("blocklist-updated", aTopic)) {
-    nsPluginTag* plugin = mPlugins;
-    while (plugin) {
-      plugin->InvalidateBlocklistState();
-      plugin = plugin->mNext;
     }
   }
 #ifdef MOZ_WIDGET_ANDROID

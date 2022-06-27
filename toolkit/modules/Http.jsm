@@ -41,7 +41,6 @@ function httpRequest(aUrl, aOptions) {
                           Ci.nsIChannel.INHIBIT_CACHING;
   xhr.onerror = function(aProgressEvent) {
     if (aOptions.onError) {
-      // adapted from toolkit/mozapps/extensions/nsBlocklistService.js
       let request = aProgressEvent.target;
       let status;
       try {

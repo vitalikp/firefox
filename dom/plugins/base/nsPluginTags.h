@@ -146,7 +146,6 @@ public:
   bool IsEnabled() override;
   void SetEnabled(bool enabled);
   bool IsClicktoplay();
-  bool IsBlocklisted();
 
   PluginState GetPluginState();
   void SetPluginState(PluginState state);
@@ -176,14 +175,10 @@ public:
   nsCOMPtr<nsITimer> mUnloadTimer;
   int32_t       mSandboxLevel;
 
-  void          InvalidateBlocklistState();
-
 private:
   virtual ~nsPluginTag();
 
   nsCString     mNiceFileName; // UTF-8
-  uint16_t      mCachedBlocklistState;
-  bool          mCachedBlocklistStateValid;
   bool          mIsFromExtension;
 
   void InitMime(const char* const* aMimeTypes,

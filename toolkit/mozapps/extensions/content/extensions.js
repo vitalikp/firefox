@@ -1606,11 +1606,6 @@ function sortElements(aElements, aSortBy, aAscending) {
   //
   //  pendingUninstall
   //    * Waiting to be removed
-  //
-  //  disabledIncompatibleBlocked
-  //    * Disabled
-  //    * Incompatible
-  //    * Blocklisted
 
   const UISTATE_ORDER = ["enabled", "askToActivate", "pendingDisable",
                          "pendingUninstall", "disabled"];
@@ -2940,8 +2935,7 @@ var gDetailView = {
     } else {
       this.node.removeAttribute("pending");
 
-      if (!this._addon.isCompatible && (AddonManager.checkCompatibility ||
-        (this._addon.blocklistState != Ci.nsIBlocklistService.STATE_SOFTBLOCKED))) {
+      if (!this._addon.isCompatible && (AddonManager.checkCompatibility)) {
         this.node.setAttribute("notification", "warning");
         document.getElementById("detail-warning").textContent = gStrings.ext.formatStringFromName(
           "details.notification.incompatible",

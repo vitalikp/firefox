@@ -100,7 +100,6 @@
 #ifndef MOZ_FOLD_LIBS
 @BINPATH@/@DLL_PREFIX@mozsqlite3@DLL_SUFFIX@
 #endif
-@RESPATH@/blocklist.xml
 @RESPATH@/ua-update.json
 @RESPATH@/defaults/settings.json
 #ifdef XP_UNIX
@@ -449,7 +448,6 @@
 @RESPATH@/components/CommandLine.js
 #endif
 @RESPATH@/components/extensions.manifest
-@RESPATH@/components/nsBlocklistService.js
 @RESPATH@/components/BootstrapCommandLine.js
 
 #ifdef MOZ_UPDATER

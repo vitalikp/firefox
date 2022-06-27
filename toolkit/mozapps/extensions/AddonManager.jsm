@@ -54,7 +54,6 @@ const XMLURI_BLOCKLIST                = "http://www.mozilla.org/2006/addons-bloc
 
 const KEY_PROFILEDIR                  = "ProfD";
 const KEY_APPDIR                      = "XCurProcD";
-const FILE_BLOCKLIST                  = "blocklist.xml";
 
 const BRANCH_REGEXP                   = /^([^\.]+\.[0-9]+[a-z]*).*/gi;
 const PREF_EM_CHECK_COMPATIBILITY_BASE = "extensions.checkCompatibility";
@@ -883,83 +882,6 @@ var AddonManagerInternal = {
     this.TelemetryTimestamps.add(name, value);
   },
 
-  validateBlocklist() {
-    let appBlocklist = FileUtils.getFile(KEY_APPDIR, [FILE_BLOCKLIST]);
-
-    // If there is no application shipped blocklist then there is nothing to do
-    if (!appBlocklist.exists())
-      return;
-
-    let profileBlocklist = FileUtils.getFile(KEY_PROFILEDIR, [FILE_BLOCKLIST]);
-
-    // If there is no blocklist in the profile then copy the application shipped
-    // one there
-    if (!profileBlocklist.exists()) {
-      try {
-        appBlocklist.copyTo(profileBlocklist.parent, FILE_BLOCKLIST);
-      } catch (e) {
-        logger.warn("Failed to copy the application shipped blocklist to the profile", e);
-      }
-      return;
-    }
-
-    let fileStream = Cc["@mozilla.org/network/file-input-stream;1"].
-                     createInstance(Ci.nsIFileInputStream);
-    try {
-      let cstream = Cc["@mozilla.org/intl/converter-input-stream;1"].
-                    createInstance(Ci.nsIConverterInputStream);
-      fileStream.init(appBlocklist, FileUtils.MODE_RDONLY, FileUtils.PERMS_FILE, 0);
-      cstream.init(fileStream, "UTF-8", 0, 0);
-
-      let data = "";
-      let str = {};
-      let read = 0;
-      do {
-        read = cstream.readString(0xffffffff, str);
-        data += str.value;
-      } while (read != 0);
-
-      let parser = Cc["@mozilla.org/xmlextras/domparser;1"].
-                   createInstance(Ci.nsIDOMParser);
-      var doc = parser.parseFromString(data, "text/xml");
-    } catch (e) {
-      logger.warn("Application shipped blocklist could not be loaded", e);
-      return;
-    } finally {
-      try {
-        fileStream.close();
-      } catch (e) {
-        logger.warn("Unable to close blocklist file stream", e);
-      }
-    }
-
-    // If the namespace is incorrect then ignore the application shipped
-    // blocklist
-    if (doc.documentElement.namespaceURI != XMLURI_BLOCKLIST) {
-      logger.warn("Application shipped blocklist has an unexpected namespace (" +
-                  doc.documentElement.namespaceURI + ")");
-      return;
-    }
-
-    // If there is no lastupdate information then ignore the application shipped
-    // blocklist
-    if (!doc.documentElement.hasAttribute("lastupdate"))
-      return;
-
-    // If the application shipped blocklist is older than the profile blocklist
-    // then do nothing
-    if (doc.documentElement.getAttribute("lastupdate") <=
-        profileBlocklist.lastModifiedTime)
-      return;
-
-    // Otherwise copy the application shipped blocklist to the profile
-    try {
-      appBlocklist.copyTo(profileBlocklist.parent, FILE_BLOCKLIST);
-    } catch (e) {
-      logger.warn("Failed to copy the application shipped blocklist to the profile", e);
-    }
-  },
-
   /**
    * Start up a provider, and register its shutdown hook if it has one
    */
@@ -1045,7 +967,6 @@ var AddonManagerInternal = {
                                    Services.appinfo.version);
         Services.prefs.setCharPref(PREF_EM_LAST_PLATFORM_VERSION,
                                    Services.appinfo.platformVersion);
-        this.validateBlocklist();
       }
 
       if (!MOZ_COMPATIBILITY_NIGHTLY) {
@@ -1413,7 +1334,7 @@ var AddonManagerInternal = {
   requestPlugins({ target: port }) {
     // Lists all the properties that plugins.html needs
     const NEEDED_PROPS = ["name", "pluginLibraries", "pluginFullpath", "version",
-                          "isActive", "blocklistState", "description",
+                          "isActive", "description",
                           "pluginMimeTypes"];
     function filterProperties(plugin) {
       let filtered = {};
@@ -1545,10 +1466,6 @@ var AddonManagerInternal = {
 
     if (!aAddon.isCompatible)
       addonStatus += ",incompatible";
-    if (aAddon.blocklistState == Ci.nsIBlocklistService.STATE_BLOCKED)
-      addonStatus += ",blocklisted";
-    if (aAddon.blocklistState == Ci.nsIBlocklistService.STATE_SOFTBLOCKED)
-      addonStatus += ",softblocked";
 
     try {
       var xpcomABI = Services.appinfo.XPCOMABI;

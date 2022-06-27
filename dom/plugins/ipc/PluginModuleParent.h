@@ -603,7 +603,6 @@ private:
     // processes in existence!
     dom::ContentParent* mContentParent;
     nsCOMPtr<nsIObserver> mPluginOfflineObserver;
-    bool mIsBlocklisted;
     static bool sInstantiated;
 #if defined(XP_WIN) && defined(MOZ_SANDBOX)
     mozilla::SandboxPermissions mSandboxPermissions;

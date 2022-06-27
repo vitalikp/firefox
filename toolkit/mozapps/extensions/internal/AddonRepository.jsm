@@ -341,11 +341,6 @@ AddonSearchResult.prototype = {
   providesUpdatesSecurely: true,
 
   /**
-   * The current blocklist state of the add-on
-   */
-  blocklistState: Ci.nsIBlocklistService.STATE_NOT_BLOCKED,
-
-  /**
    * True if this add-on cannot be used in the application based on version
    * compatibility, dependencies and blocklisting
    */

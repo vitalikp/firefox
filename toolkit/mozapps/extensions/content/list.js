@@ -50,42 +50,9 @@ var gButtons = { };
 function init() {
   var de = document.documentElement;
   var items = [];
-  if (window.arguments[0] instanceof Components.interfaces.nsIDialogParamBlock) {
-    // This is a warning about a blocklisted item the user is trying to install
-    var args = window.arguments[0];
-    var softblocked = args.GetInt(0) == 1 ? true : false;
 
-    var extensionsBundle = document.getElementById("extensionsBundle");
-    try {
-      var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                                .getService(Components.interfaces.nsIURLFormatter);
-      var url = formatter.formatURLPref("extensions.blocklist.detailsURL");
-    } catch (e) { }
-
-    var params = {
-      moreInfoURL: url,
-    };
-
-    if (softblocked) {
-      params.title = extensionsBundle.getString("softBlockedInstallTitle");
-      params.message1 = extensionsBundle.getFormattedString("softBlockedInstallMsg",
-                                                           [args.GetString(0)]);
-      var accept = de.getButton("accept");
-      accept.label = extensionsBundle.getString("softBlockedInstallAcceptLabel");
-      accept.accessKey = extensionsBundle.getString("softBlockedInstallAcceptKey");
-      de.getButton("cancel").focus();
-      document.addEventListener("dialogaccept", allowInstall, false);
-    } else {
-      params.title = extensionsBundle.getString("blocklistedInstallTitle2");
-      params.message1 = extensionsBundle.getFormattedString("blocklistedInstallMsg2",
-                                                           [args.GetString(0)]);
-      de.buttons = "accept";
-      de.getButton("accept").focus();
-    }
-  } else {
-    items = window.arguments[0];
-    params = window.arguments[1];
-  }
+  items = window.arguments[0];
+  params = window.arguments[1];
 
   var addons = document.getElementById("addonsChildren");
   if (items.length > 0)

@@ -38,7 +38,6 @@
 #include "nsIWebNavigation.h"
 #include "nsIWebNavigationInfo.h"
 #include "nsIScriptChannel.h"
-#include "nsIBlocklistService.h"
 #include "nsIAsyncVerifyRedirectCallback.h"
 #include "nsIAppShell.h"
 #include "nsIXULRuntime.h"
@@ -822,29 +821,6 @@ nsObjectLoadingContent::InstantiatePluginInstance(bool aIsLoading)
   RefPtr<nsNPAPIPluginInstance> pluginInstance;
   GetPluginInstance(getter_AddRefs(pluginInstance));
   if (pluginInstance) {
-    nsCOMPtr<nsIPluginTag> pluginTag;
-    pluginHost->GetPluginTagForInstance(pluginInstance,
-                                        getter_AddRefs(pluginTag));
-
-    nsCOMPtr<nsIBlocklistService> blocklist =
-      do_GetService("@mozilla.org/extensions/blocklist;1");
-    if (blocklist) {
-      uint32_t blockState = nsIBlocklistService::STATE_NOT_BLOCKED;
-      blocklist->GetPluginBlocklistState(pluginTag, EmptyString(),
-                                         EmptyString(), &blockState);
-      if (blockState == nsIBlocklistService::STATE_OUTDATED) {
-        // Fire plugin outdated event if necessary
-        LOG(("OBJLC [%p]: Dispatching plugin outdated event for content\n",
-             this));
-        nsCOMPtr<nsIRunnable> ev = new nsSimplePluginEvent(thisContent,
-                                                     NS_LITERAL_STRING("PluginOutdated"));
-        nsresult rv = NS_DispatchToCurrentThread(ev);
-        if (NS_FAILED(rv)) {
-          NS_WARNING("failed to dispatch nsSimplePluginEvent");
-        }
-      }
-    }
-
     // If we have a URI but didn't open a channel yet (eAllowPluginSkipChannel)
     // or we did load with a channel but are re-instantiating, re-open the
     // channel. OpenChannel() performs security checks, and this plugin has
@@ -1382,8 +1358,6 @@ nsObjectLoadingContent::ObjectState() const
           return NS_EVENT_STATE_TYPE_CLICK_TO_PLAY;
         case eFallbackDisabled:
           return NS_EVENT_STATE_BROKEN | NS_EVENT_STATE_HANDLER_DISABLED;
-        case eFallbackBlocklisted:
-          return NS_EVENT_STATE_BROKEN | NS_EVENT_STATE_HANDLER_BLOCKED;
         case eFallbackCrashed:
           return NS_EVENT_STATE_BROKEN | NS_EVENT_STATE_HANDLER_CRASHED;
         case eFallbackUnsupported:
@@ -3062,7 +3036,6 @@ nsObjectLoadingContent::LoadFallback(FallbackType aType, bool aNotify) {
        thisContent->IsHTMLElement(nsGkAtoms::applet)) &&
       (aType == eFallbackUnsupported ||
        aType == eFallbackDisabled ||
-       aType == eFallbackBlocklisted ||
        aType == eFallbackAlternate))
   {
     for (nsIContent* child = thisContent->GetFirstChild(); child;
@@ -3328,10 +3301,8 @@ nsObjectLoadingContent::ShouldPlay(FallbackType &aReason, bool aIgnoreCurrentTyp
   // Order of checks:
   // * Assume a default of click-to-play
   // * If globally disabled, per-site permissions cannot override.
-  // * If blocklisted, override the reason with the blocklist reason
   // * Check per-site permissions and follow those if specified.
   // * Honor per-plugin disabled permission
-  // * Blocklisted plugins are forced to CtP
   // * Check per-plugin permission and follow that.
 
   aReason = eFallbackClickToPlay;
@@ -3342,26 +3313,6 @@ nsObjectLoadingContent::ShouldPlay(FallbackType &aReason, bool aIgnoreCurrentTyp
   if (nsIPluginTag::STATE_DISABLED == enabledState) {
     aReason = eFallbackDisabled;
     return false;
-  }
-
-  // Before we check permissions, get the blocklist state of this plugin to set
-  // the fallback reason correctly. In the content process this will involve
-  // an ipc call to chrome.
-  uint32_t blocklistState = nsIBlocklistService::STATE_BLOCKED;
-  pluginHost->GetBlocklistStateForType(mContentType,
-                                       nsPluginHost::eExcludeNone,
-                                       &blocklistState);
-  if (blocklistState == nsIBlocklistService::STATE_BLOCKED) {
-    // no override possible
-    aReason = eFallbackBlocklisted;
-    return false;
-  }
-
-  if (blocklistState == nsIBlocklistService::STATE_VULNERABLE_UPDATE_AVAILABLE) {
-    aReason = eFallbackVulnerableUpdatable;
-  }
-  else if (blocklistState == nsIBlocklistService::STATE_VULNERABLE_NO_UPDATE) {
-    aReason = eFallbackVulnerableNoUpdate;
   }
 
   // Check the permission manager for permission based on the principal of
@@ -3431,12 +3382,6 @@ nsObjectLoadingContent::ShouldPlay(FallbackType &aReason, bool aIgnoreCurrentTyp
       MOZ_ASSERT(false);
       return false;
     }
-  }
-
-  // No site-specific permissions. Vulnerable plugins are automatically CtP
-  if (blocklistState == nsIBlocklistService::STATE_VULNERABLE_UPDATE_AVAILABLE ||
-      blocklistState == nsIBlocklistService::STATE_VULNERABLE_NO_UPDATE) {
-    return false;
   }
 
   if (PreferFallback(enabledState == nsIPluginTag::STATE_CLICKTOPLAY)) {
