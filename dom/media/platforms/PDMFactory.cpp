@@ -18,9 +18,6 @@
 #ifdef MOZ_GONK_MEDIACODEC
 #include "GonkDecoderModule.h"
 #endif
-#ifdef MOZ_WIDGET_ANDROID
-#include "AndroidDecoderModule.h"
-#endif
 #include "GMPDecoderModule.h"
 
 #include "mozilla/CDMProxy.h"
