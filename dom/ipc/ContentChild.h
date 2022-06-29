@@ -147,13 +147,7 @@ public:
   RecvInitContentBridgeChild(Endpoint<PContentBridgeChild>&& aEndpoint) override;
 
   mozilla::ipc::IPCResult
-  RecvInitGMPService(Endpoint<PGMPServiceChild>&& aGMPService) override;
-
-  mozilla::ipc::IPCResult
   RecvInitProfiler(Endpoint<PProfilerChild>&& aEndpoint) override;
-
-  mozilla::ipc::IPCResult
-  RecvGMPsChanged(nsTArray<GMPCapabilityData>&& capabilities) override;
 
   mozilla::ipc::IPCResult
   RecvInitProcessHangMonitor(Endpoint<PProcessHangMonitorChild>&& aHangMonitor) override;

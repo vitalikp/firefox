@@ -78,11 +78,6 @@ this.ForgetAboutSite = {
       cm.remove(cookie.host, cookie.name, cookie.path, false, cookie.originAttributes);
     }
 
-    // EME
-    let mps = Cc["@mozilla.org/gecko-media-plugin-service;1"].
-               getService(Ci.mozIGeckoMediaPluginChromeService);
-    mps.forgetThisSite(aDomain, JSON.stringify({}));
-
     // Plugin data
     const phInterface = Ci.nsIPluginHost;
     const FLAG_CLEAR_ALL = phInterface.FLAG_CLEAR_ALL;

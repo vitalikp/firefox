@@ -534,8 +534,6 @@ private:
 
   RefPtr<CDMProxy> mCDMProxy;
 
-  RefPtr<GMPCrashHelper> mCrashHelper;
-
   void SetNullDecode(TrackType aTrack, bool aIsNullDecode);
 
   class DecoderFactory;

@@ -11,7 +11,6 @@
 namespace mozilla {
 
 class AbstractThread;
-class GMPCrashHelper;
 class VideoFrameContainer;
 class MediaInfo;
 class MediaResult;
@@ -165,9 +164,6 @@ public:
   // Called by the media decoder to removes all audio/video tracks from its
   // owner's track list.
   virtual void RemoveMediaTracks() = 0;
-
-  // Called by the media decoder to create a GMPCrashHelper.
-  virtual already_AddRefed<GMPCrashHelper> CreateGMPCrashHelper() = 0;
 
   // Called by the media decoder to notify the owner to resolve a seek promise.
   virtual void AsyncResolveSeekDOMPromiseIfExists() = 0;

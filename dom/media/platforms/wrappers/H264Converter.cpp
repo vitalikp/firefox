@@ -27,7 +27,6 @@ H264Converter::H264Converter(PlatformDecoderModule* aPDM,
   , mImageContainer(aParams.mImageContainer)
   , mTaskQueue(aParams.mTaskQueue)
   , mDecoder(nullptr)
-  , mGMPCrashHelper(aParams.mCrashHelper)
   , mLastError(NS_OK)
   , mType(aParams.mType)
   , mOnWaitingForKeyEvent(aParams.mOnWaitingForKeyEvent)
@@ -211,7 +210,6 @@ H264Converter::CreateDecoder(DecoderDoctorDiagnostics* aDiagnostics)
     aDiagnostics,
     mImageContainer,
     mKnowsCompositor,
-    mGMPCrashHelper,
     mType,
     mOnWaitingForKeyEvent,
     mDecoderOptions

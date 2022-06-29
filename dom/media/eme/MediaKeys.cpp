@@ -5,7 +5,6 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "mozilla/dom/MediaKeys.h"
-#include "GMPCrashHelper.h"
 #include "mozilla/dom/HTMLMediaElement.h"
 #include "mozilla/dom/MediaKeysBinding.h"
 #include "mozilla/dom/MediaKeyMessageEvent.h"
@@ -14,7 +13,6 @@
 #include "mozilla/dom/DOMException.h"
 #include "mozilla/dom/UnionTypes.h"
 #include "mozilla/Telemetry.h"
-#include "GMPCDMProxy.h"
 #include "mozilla/EMEUtils.h"
 #include "nsContentUtils.h"
 #include "nsIScriptObjectPrincipal.h"
@@ -306,37 +304,10 @@ MediaKeys::ResolvePromise(PromiseId aId)
   promise->MaybeResolve(session);
 }
 
-class MediaKeysGMPCrashHelper : public GMPCrashHelper
-{
-public:
-  explicit MediaKeysGMPCrashHelper(MediaKeys* aMediaKeys)
-    : mMediaKeys(aMediaKeys)
-  {
-    MOZ_ASSERT(NS_IsMainThread()); // WeakPtr isn't thread safe.
-  }
-  already_AddRefed<nsPIDOMWindowInner>
-  GetPluginCrashedEventTarget() override
-  {
-    MOZ_ASSERT(NS_IsMainThread()); // WeakPtr isn't thread safe.
-    EME_LOG("MediaKeysGMPCrashHelper::GetPluginCrashedEventTarget()");
-    return (mMediaKeys && mMediaKeys->GetParentObject()) ?
-      do_AddRef(mMediaKeys->GetParentObject()) : nullptr;
-  }
-private:
-  WeakPtr<MediaKeys> mMediaKeys;
-};
-
 already_AddRefed<CDMProxy>
 MediaKeys::CreateCDMProxy()
 {
   RefPtr<CDMProxy> proxy;
-  {
-    proxy = new GMPCDMProxy(this,
-                            mKeySystem,
-                            new MediaKeysGMPCrashHelper(this),
-                            mConfig.mDistinctiveIdentifier == MediaKeysRequirement::Required,
-                            mConfig.mPersistentState == MediaKeysRequirement::Required);
-  }
   return proxy.forget();
 }
 

@@ -36,7 +36,6 @@ UNIFIED_SOURCES += [
 ]
 
 DIRS += [
-    'agnostic/gmp',
     'omx'
 ]
 

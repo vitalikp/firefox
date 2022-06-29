@@ -17,12 +17,10 @@
 #endif
 #include "nsContentCID.h"
 #include "nsServiceManagerUtils.h"
-#include "mozIGeckoMediaPluginService.h"
 #include "VideoUtils.h"
 #include "mozilla/Services.h"
 #include "nsIObserverService.h"
 #include "mozilla/EMEUtils.h"
-#include "GMPUtils.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
 #include "nsDirectoryServiceDefs.h"
@@ -238,19 +236,13 @@ CanDecryptAndDecode(const nsString& aKeySystem,
     MOZ_ASSERT(!codec.IsEmpty());
 
     if (aContainerSupport.DecryptsAndDecodes(codec)) {
-      // GMP can decrypt-and-decode this codec.
       continue;
     }
 
     if (aContainerSupport.Decrypts(codec) &&
         NS_SUCCEEDED(MediaSource::IsTypeSupported(aContentType, aDiagnostics))) {
-      // GMP can decrypt and is allowed to return compressed samples to
-      // Gecko to decode, and Gecko has a decoder.
       continue;
     }
-
-    // Neither the GMP nor Gecko can both decrypt and decode. We don't
-    // support this codec.
 
     return false;
   }

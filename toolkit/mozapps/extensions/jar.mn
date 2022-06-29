@@ -21,7 +21,6 @@ toolkit.jar:
   content/mozapps/extensions/newaddon.xul                       (content/newaddon.xul)
   content/mozapps/extensions/newaddon.js                        (content/newaddon.js)
   content/mozapps/extensions/pluginPrefs.xul                    (content/pluginPrefs.xul)
-  content/mozapps/extensions/gmpPrefs.xul                       (content/gmpPrefs.xul)
 #endif
   content/mozapps/extensions/setting.xml                        (content/setting.xml)
   content/mozapps/xpinstall/xpinstallConfirm.xul                (content/xpinstallConfirm.xul)

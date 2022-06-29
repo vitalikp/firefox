@@ -381,8 +381,6 @@ enum GeckoProcessType
 
   GeckoProcessType_IPDLUnitTest,
 
-  GeckoProcessType_GMPlugin, // Gecko Media Plugin
-
   GeckoProcessType_GPU,      // GPU and compositor process
 
   GeckoProcessType_End,
@@ -394,7 +392,6 @@ static const char* const kGeckoProcessTypeString[] = {
   "plugin",
   "tab",
   "ipdlunittest",
-  "geckomediaplugin",
   "gpu"
 };
 

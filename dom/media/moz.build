@@ -8,7 +8,6 @@ DIRS += [
     'eme',
     'encoder',
     'flac',
-    'gmp',
     'imagecapture',
     'ipc',
     'mediasink',

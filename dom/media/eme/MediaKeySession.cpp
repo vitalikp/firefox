@@ -18,7 +18,6 @@
 #include "mozilla/Move.h"
 #include "nsContentUtils.h"
 #include "mozilla/EMEUtils.h"
-#include "GMPUtils.h"
 #include "nsPrintfCString.h"
 #include "psshparser/PsshParser.h"
 #include <ctime>

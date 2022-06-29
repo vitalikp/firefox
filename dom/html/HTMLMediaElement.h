@@ -760,8 +760,6 @@ public:
 
   void RemoveMediaTracks() override;
 
-  already_AddRefed<GMPCrashHelper> CreateGMPCrashHelper() override;
-
   // The promise resolving/rejection is queued as a "micro-task" which will be
   // handled immediately after the current JS task and before any pending JS
   // tasks.

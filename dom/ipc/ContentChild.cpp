@@ -67,7 +67,6 @@
 #include "mozilla/BasePrincipal.h"
 #include "mozilla/WebBrowserPersistDocumentChild.h"
 #include "imgLoader.h"
-#include "GMPServiceChild.h"
 
 #ifdef MOZ_GECKO_PROFILER
 #include "ChildProfilerController.h"
@@ -197,7 +196,6 @@
 #include "mozilla/net/NeckoMessageUtils.h"
 #include "mozilla/widget/PuppetBidiKeyboard.h"
 #include "mozilla/RemoteSpellCheckEngineChild.h"
-#include "GMPServiceChild.h"
 #include "GfxInfoBase.h"
 #include "gfxPlatform.h"
 #include "nscore.h" // for NS_FREE_PERMANENT_DATA
@@ -1077,27 +1075,11 @@ ContentChild::RecvInitContentBridgeChild(Endpoint<PContentBridgeChild>&& aEndpoi
 }
 
 mozilla::ipc::IPCResult
-ContentChild::RecvInitGMPService(Endpoint<PGMPServiceChild>&& aGMPService)
-{
-  if (!GMPServiceChild::Create(Move(aGMPService))) {
-    return IPC_FAIL_NO_REASON(this);
-  }
-  return IPC_OK();
-}
-
-mozilla::ipc::IPCResult
 ContentChild::RecvInitProfiler(Endpoint<PProfilerChild>&& aEndpoint)
 {
 #ifdef MOZ_GECKO_PROFILER
   mProfilerController = ChildProfilerController::Create(Move(aEndpoint));
 #endif
-  return IPC_OK();
-}
-
-mozilla::ipc::IPCResult
-ContentChild::RecvGMPsChanged(nsTArray<GMPCapabilityData>&& capabilities)
-{
-  GeckoMediaPluginServiceChild::UpdateGMPCapabilities(Move(capabilities));
   return IPC_OK();
 }
 

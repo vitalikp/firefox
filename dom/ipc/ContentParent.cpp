@@ -25,7 +25,6 @@
 
 #include "mozilla/a11y/PDocAccessible.h"
 #include "GeckoProfiler.h"
-#include "GMPServiceParent.h"
 #include "HandlerServiceParent.h"
 #include "IHistory.h"
 #include "imgIContainer.h"
@@ -985,34 +984,6 @@ static nsIDocShell* GetOpenerDocShellHelper(Element* aFrameElement)
 }
 
 mozilla::ipc::IPCResult
-ContentParent::RecvCreateGMPService()
-{
-  Endpoint<PGMPServiceParent> parent;
-  Endpoint<PGMPServiceChild> child;
-
-  nsresult rv;
-  rv = PGMPService::CreateEndpoints(base::GetCurrentProcId(),
-                                    OtherPid(),
-                                    &parent, &child);
-  if (NS_FAILED(rv)) {
-    MOZ_ASSERT(false, "CreateEndpoints failed");
-    return IPC_FAIL_NO_REASON(this);
-  }
-
-  if (!GMPServiceParent::Create(Move(parent))) {
-    MOZ_ASSERT(false, "GMPServiceParent::Create failed");
-    return IPC_FAIL_NO_REASON(this);
-  }
-
-  if (!SendInitGMPService(Move(child))) {
-    MOZ_ASSERT(false, "SendInitGMPService failed");
-    return IPC_FAIL_NO_REASON(this);
-  }
-
-  return IPC_OK();
-}
-
-mozilla::ipc::IPCResult
 ContentParent::RecvLoadPlugin(const uint32_t& aPluginId,
                               nsresult* aRv,
                               uint32_t* aRunID,
@@ -1284,9 +1255,6 @@ ContentParent::Init()
   // Ensure that the default set of permissions are avaliable in the content
   // process before we try to load any URIs in it.
   EnsurePermissionsByKey(EmptyCString());
-
-  RefPtr<GeckoMediaPluginServiceParent> gmps(GeckoMediaPluginServiceParent::GetSingleton());
-  gmps->UpdateContentProcessGMPCapabilities();
 
   mScriptableHelper = new ScriptableCPInfo(this);
 }

@@ -525,9 +525,6 @@ class MochitestArguments(ArgumentContainer):
     ]
 
     defaults = {
-        # Bug 1065098 - The geckomediaplugin process fails to produce a leak
-        # log for some reason.
-        'ignoreMissingLeaks': ["geckomediaplugin"],
         'extensionsToExclude': ['specialpowers'],
         # Set server information on the args object
         'webServer': '127.0.0.1',
@@ -745,8 +742,6 @@ class MochitestArguments(ArgumentContainer):
         options.leakThresholds = {
             "default": options.defaultLeakThreshold,
             "tab": 10000,  # See dependencies of bug 1051230.
-            # GMP rarely gets a log, but when it does, it leaks a little.
-            "geckomediaplugin": 20000,
         }
 
         # XXX We can't normalize test_paths in the non build_obj case here,

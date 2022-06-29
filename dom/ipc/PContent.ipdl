@@ -21,10 +21,7 @@ include protocol PImageBridge;
 include protocol PIPCBlobInputStream;
 include protocol PMedia;
 include protocol PNecko;
-include protocol PGMPContent;
-include protocol PGMPService;
 include protocol PPluginModule;
-include protocol PGMP;
 include protocol PPrinting;
 include protocol PChildToParentStream;
 include protocol PParentToChildStream;
@@ -227,19 +224,6 @@ struct BlobURLRegistrationData
     Principal principal;
 };
 
-struct GMPAPITags
-{
-    nsCString api;
-    nsCString[] tags;
-};
-
-struct GMPCapabilityData
-{
-    nsCString name;
-    nsCString version;
-    GMPAPITags[] capabilities;
-};
-
 struct GfxInfoFeatureStatus
 {
     int32_t feature;
@@ -336,7 +320,6 @@ both:
                                      uint64_t aOuterWindowID);
 
 child:
-    async InitGMPService(Endpoint<PGMPServiceChild> service);
     async InitProcessHangMonitor(Endpoint<PProcessHangMonitorChild> hangMonitor);
     async InitContentBridgeChild(Endpoint<PContentBridgeChild> endpoint);
     async InitProfiler(Endpoint<PProfilerChild> aEndpoint);
@@ -562,9 +545,6 @@ child:
     async BlobURLUnregistration(nsCString aURI);
 
 
-    async GMPsChanged(GMPCapabilityData[] capabilities);
-
-
     async FileCreationResponse(nsID aID, FileCreationResult aResult);
 
     /**
@@ -596,8 +576,6 @@ parent:
         returns (ContentParentId cpId, bool isForBrowser);
     sync BridgeToChildProcess(ContentParentId cpId)
         returns (Endpoint<PContentBridgeParent> endpoint);
-
-    async CreateGMPService();
 
     /**
      * This call connects the content process to a plugin process. This call

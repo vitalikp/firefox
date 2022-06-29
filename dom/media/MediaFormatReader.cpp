@@ -661,7 +661,6 @@ MediaFormatReader::DecoderFactory::DoCreateDecoder(Data& aData)
         ? *ownerData.mInfo->GetAsAudioInfo()
         : *ownerData.mOriginalInfo->GetAsAudioInfo(),
         ownerData.mTaskQueue,
-        mOwner->mCrashHelper,
         ownerData.mIsNullDecode,
         &result,
         TrackInfo::kAudioTrack,
@@ -680,7 +679,6 @@ MediaFormatReader::DecoderFactory::DoCreateDecoder(Data& aData)
         ownerData.mTaskQueue,
         mOwner->mKnowsCompositor,
         mOwner->GetImageContainer(),
-        mOwner->mCrashHelper,
         ownerData.mIsNullDecode,
         &result,
         TrackType::kVideoTrack,
@@ -1272,11 +1270,6 @@ MediaFormatReader::InitInternal()
     GetMediaThreadPool(MediaThreadType::PLATFORM_DECODER),
     "MFR::mVideo::mTaskQueue");
 
-  if (mDecoder) {
-    // Note: GMPCrashHelper must be created on main thread, as it may use
-    // weak references, which aren't threadsafe.
-    mCrashHelper = mDecoder->GetCrashHelper();
-  }
   return NS_OK;
 }
 

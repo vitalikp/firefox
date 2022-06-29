@@ -7,7 +7,6 @@
 #if !defined(PlatformDecoderModule_h_)
 #define PlatformDecoderModule_h_
 
-#include "GMPCrashHelper.h"
 #include "MediaDecoderReader.h"
 #include "MediaInfo.h"
 #include "MediaResult.h"
@@ -84,7 +83,6 @@ struct MOZ_STACK_CLASS CreateDecoderParams final
   layers::ImageContainer* mImageContainer = nullptr;
   MediaResult* mError = nullptr;
   RefPtr<layers::KnowsCompositor> mKnowsCompositor;
-  RefPtr<GMPCrashHelper> mCrashHelper;
   bool mUseNullDecoder = false;
   TrackInfo::TrackType mType = TrackInfo::kUndefinedTrack;
   MediaEventProducer<TrackInfo::TrackType>* mOnWaitingForKeyEvent = nullptr;
@@ -101,7 +99,6 @@ private:
     mImageContainer = aImageContainer;
   }
   void Set(MediaResult* aError) { mError = aError; }
-  void Set(GMPCrashHelper* aCrashHelper) { mCrashHelper = aCrashHelper; }
   void Set(bool aUseNullDecoder) { mUseNullDecoder = aUseNullDecoder; }
   void Set(OptionSet aOptions) { mOptions = aOptions; }
   void Set(layers::KnowsCompositor* aKnowsCompositor)
