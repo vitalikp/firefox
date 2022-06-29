@@ -15,9 +15,6 @@
 #include "mozilla/dom/UnionTypes.h"
 #include "mozilla/Telemetry.h"
 #include "GMPCDMProxy.h"
-#ifdef MOZ_WIDGET_ANDROID
-#include "mozilla/MediaDrmCDMProxy.h"
-#endif
 #include "mozilla/EMEUtils.h"
 #include "nsContentUtils.h"
 #include "nsIScriptObjectPrincipal.h"
