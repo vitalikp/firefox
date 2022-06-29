@@ -32,8 +32,6 @@
 #include "H264Converter.h"
 
 #include "AgnosticDecoderModule.h"
-#include "EMEDecoderModule.h"
-
 #include "DecoderDoctorDiagnostics.h"
 
 #include "MP4Decoder.h"
@@ -205,11 +203,6 @@ PDMFactory::CreateDecoder(const CreateDecoderParams& aParams)
   }
 
   const TrackInfo& config = aParams.mConfig;
-  bool isEncrypted = mEMEPDM && config.mCrypto.mValid;
-
-  if (isEncrypted) {
-    return CreateDecoderWithPDM(mEMEPDM, aParams);
-  }
 
   DecoderDoctorDiagnostics* diagnostics = aParams.mDiagnostics;
   if (diagnostics) {
@@ -317,9 +310,6 @@ bool
 PDMFactory::Supports(const TrackInfo& aTrackInfo,
                      DecoderDoctorDiagnostics* aDiagnostics) const
 {
-  if (mEMEPDM) {
-    return mEMEPDM->Supports(aTrackInfo, aDiagnostics);
-  }
   RefPtr<PlatformDecoderModule> current = GetDecoder(aTrackInfo, aDiagnostics);
   return !!current;
 }
@@ -447,9 +437,6 @@ void
 PDMFactory::SetCDMProxy(CDMProxy* aProxy)
 {
   MOZ_ASSERT(aProxy);
-
-  RefPtr<PDMFactory> m = new PDMFactory();
-  mEMEPDM = new EMEDecoderModule(aProxy, m);
 }
 
 }  // namespace mozilla

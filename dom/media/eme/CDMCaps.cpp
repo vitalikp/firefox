@@ -7,7 +7,6 @@
 #include "mozilla/CDMCaps.h"
 #include "mozilla/EMEUtils.h"
 #include "nsThreadUtils.h"
-#include "SamplesWaitingForKey.h"
 
 namespace mozilla {
 
@@ -107,28 +106,7 @@ CDMCaps::AutoLock::SetKeyStatus(const CencKeyId& aKeyId,
     return true;
   }
 
-  auto& waiters = mData.mWaitForKeys;
-  size_t i = 0;
-  while (i < waiters.Length()) {
-    auto& w = waiters[i];
-    if (w.mKeyId == aKeyId) {
-      w.mListener->NotifyUsable(aKeyId);
-      waiters.RemoveElementAt(i);
-    } else {
-      i++;
-    }
-  }
   return true;
-}
-
-void
-CDMCaps::AutoLock::NotifyWhenKeyIdUsable(const CencKeyId& aKey,
-                                         SamplesWaitingForKey* aListener)
-{
-  mData.mMonitor.AssertCurrentThreadOwns();
-  MOZ_ASSERT(!IsKeyUsable(aKey));
-  MOZ_ASSERT(aListener);
-  mData.mWaitForKeys.AppendElement(WaitForKeys(aKey, aListener));
 }
 
 void

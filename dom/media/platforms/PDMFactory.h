@@ -66,7 +66,6 @@ private:
                        const CreateDecoderParams& aParams);
 
   nsTArray<RefPtr<PlatformDecoderModule>> mCurrentPDMs;
-  RefPtr<PlatformDecoderModule> mEMEPDM;
   RefPtr<PlatformDecoderModule> mNullPDM;
 
   bool mWMFFailedToLoad = false;

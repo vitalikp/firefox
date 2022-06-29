@@ -11,7 +11,6 @@
 #include "nsIThread.h"
 #include "nsTArray.h"
 #include "nsString.h"
-#include "SamplesWaitingForKey.h"
 
 #include "mozilla/Monitor.h"
 #include "mozilla/Attributes.h"
@@ -74,10 +73,6 @@ public:
     // Ensures all keys for a session are marked as 'unknown', i.e. removed.
     // Returns true if a key status was changed.
     bool RemoveKeysForSession(const nsString& aSessionId);
-
-    // Notifies the SamplesWaitingForKey when key become usable.
-    void NotifyWhenKeyIdUsable(const CencKeyId& aKey,
-                               SamplesWaitingForKey* aSamplesWaiting);
   private:
     // Not taking a strong ref, since this should be allocated on the stack.
     CDMCaps& mData;
@@ -87,21 +82,9 @@ private:
   void Lock();
   void Unlock();
 
-  struct WaitForKeys {
-    WaitForKeys(const CencKeyId& aKeyId,
-                SamplesWaitingForKey* aListener)
-      : mKeyId(aKeyId)
-      , mListener(aListener)
-    {}
-    CencKeyId mKeyId;
-    RefPtr<SamplesWaitingForKey> mListener;
-  };
-
   Monitor mMonitor;
 
   nsTArray<KeyStatus> mKeyStatuses;
-
-  nsTArray<WaitForKeys> mWaitForKeys;
 
   // It is not safe to copy this object.
   CDMCaps(const CDMCaps&) = delete;
