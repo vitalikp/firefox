@@ -26,15 +26,6 @@ UniquePtr<sandbox::bpf_dsl::Policy> GetContentSandboxPolicy(SandboxBrokerClient*
                                                             const std::vector<int>& aSyscallWhitelist);
 #endif
 
-#ifdef MOZ_GMP_SANDBOX
-struct SandboxOpenedFile {
-  const char *mPath;
-  Atomic<int> mFd;
-};
-
-UniquePtr<sandbox::bpf_dsl::Policy> GetMediaSandboxPolicy(SandboxOpenedFile* aPlugin);
-#endif
-
 } // namespace mozilla
 
 #endif

@@ -1250,12 +1250,6 @@
               this._warningLink.value = gStrings.ext.GetStringFromName("notification.unsigned.link");
               this._warningLink.href = Services.urlFormatter.formatURLPref("app.support.baseURL") + "unsigned-addons";
               this._warningLink.hidden = false;
-            } else if (this.mAddon.isGMPlugin && !this.mAddon.isInstalled &&
-                       this.mAddon.isActive) {
-              this.setAttribute("notification", "warning");
-              this._warning.textContent =
-                gStrings.ext.formatStringFromName("notification.gmpPending",
-                                                  [this.mAddon.name], 1);
             } else {
               this.removeAttribute("notification");
             }

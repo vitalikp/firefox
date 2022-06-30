@@ -530,7 +530,6 @@ EnvironmentAddonBuilder.prototype = {
       activeAddons: yield this._getActiveAddons(),
       theme: yield this._getActiveTheme(),
       activePlugins: this._getActivePlugins(),
-      activeGMPlugins: yield this._getActiveGMPlugins(),
       activeExperiment: this._getActiveExperiment(),
       persona: personaId,
     };
@@ -669,39 +668,6 @@ EnvironmentAddonBuilder.prototype = {
 
     return activePlugins;
   },
-
-  /**
-   * Get the GMPlugins data in object form.
-   * @return Object containing the GMPlugins data.
-   *
-   * This should only be called from _pendingTask; otherwise we risk
-   * running this during addon manager shutdown.
-   */
-  _getActiveGMPlugins: Task.async(function* () {
-    // Request plugins, asynchronously.
-    let allPlugins = yield AddonManager.getAddonsByTypes(["plugin"]);
-
-    let activeGMPlugins = {};
-    for (let plugin of allPlugins) {
-      // Only get info for active GMplugins.
-      if (!plugin.isGMPlugin || !plugin.isActive) {
-        continue;
-      }
-
-      try {
-        activeGMPlugins[plugin.id] = {
-          version: plugin.version,
-          userDisabled: enforceBoolean(plugin.userDisabled),
-          applyBackgroundUpdates: plugin.applyBackgroundUpdates,
-        };
-      } catch (ex) {
-        this._environment._log.error("_getActiveGMPlugins - A GMPlugin was discarded due to an error", ex);
-        continue;
-      }
-    }
-
-    return activeGMPlugins;
-  }),
 
   /**
    * Get the active experiment data in object form.

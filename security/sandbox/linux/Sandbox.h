@@ -28,13 +28,6 @@ MOZ_EXPORT bool SetContentProcessSandbox(int aBrokerFd,
                                          std::vector<int>& aSyscallWhitelist);
 #endif
 
-#ifdef MOZ_GMP_SANDBOX
-// Call only if SandboxInfo::CanSandboxMedia() returns true.
-// (No-op if MOZ_DISABLE_GMP_SANDBOX is set.)
-// aFilePath is the path to the plugin file.
-MOZ_EXPORT void SetMediaPluginSandbox(const char *aFilePath);
-#endif
-
 } // namespace mozilla
 
 #endif // mozilla_Sandbox_h

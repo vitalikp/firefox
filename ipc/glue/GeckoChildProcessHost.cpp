@@ -996,16 +996,6 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
     case GeckoProcessType_IPDLUnitTest:
       // XXX: We don't sandbox this process type yet
       break;
-    case GeckoProcessType_GMPlugin:
-      if (!PR_GetEnv("MOZ_DISABLE_GMP_SANDBOX")) {
-        auto level = SandboxBroker::LockDown;
-        bool ok = mSandboxBroker.SetSecurityLevelForGMPlugin(level);
-        if (!ok) {
-          return false;
-        }
-        shouldSandboxCurrentProcess = true;
-      }
-      break;
     case GeckoProcessType_GPU:
       break;
     case GeckoProcessType_Default:
@@ -1059,8 +1049,7 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
     // We need to be able to duplicate handles to some types of non-sandboxed
     // child processes.
     if (mProcessType == GeckoProcessType_Content ||
-        mProcessType == GeckoProcessType_GPU ||
-        mProcessType == GeckoProcessType_GMPlugin) {
+        mProcessType == GeckoProcessType_GPU) {
       if (!mSandboxBroker.AddTargetPeer(process)) {
         NS_WARNING("Failed to add content process as target peer.");
       }

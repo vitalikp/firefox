@@ -17,8 +17,6 @@ enum MacSandboxType {
 
 enum MacSandboxPluginType {
   MacSandboxPluginType_Default = 0,
-  MacSandboxPluginType_GMPlugin_Default,      // Any Gecko Media Plugin
-  MacSandboxPluginType_GMPlugin_EME,          // Gecko Media Plugin, EME
   MacSandboxPluginType_Invalid
 };
 
