@@ -6,9 +6,9 @@
 
 #include "mozilla/dom/U2FSoftTokenManager.h"
 #include "CryptoBuffer.h"
+#include "mozilla/AbstractThread.h"
 #include "mozilla/Base64.h"
 #include "mozilla/Casting.h"
-#include "mozilla/AbstractThread.h"
 #include "nsNSSComponent.h"
 #include "pk11pub.h"
 #include "prerror.h"
