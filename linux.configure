@@ -96,10 +96,13 @@ def testconf(cc, name, flags, includes, source, onerror=None):
         cmd = [cc.compiler]
         cmd += list(flags)
         cmd += [path, '-o', test]
-        res = run_cmd(*cmd, onerror=onerror)
-        res = run_cmd(test, onerror=onerror)
-        os.remove(test)
-        return res
+        if not run_cmd(*cmd, onerror=(lambda: '1')):
+            res = run_cmd(test, onerror=onerror)
+            os.remove(test)
+            return res
+        
+        if onerror
+            return onerror()
     finally:
         os.remove(path)
 
