@@ -170,6 +170,7 @@ struct LinearMemoryAddress
     uint32_t align;
 
     LinearMemoryAddress()
+      : base(), offset(0), align(0)
     {}
     LinearMemoryAddress(Value base, uint32_t offset, uint32_t align)
       : base(base), offset(offset), align(align)
