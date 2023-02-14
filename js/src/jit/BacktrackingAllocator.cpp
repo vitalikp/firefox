@@ -1880,6 +1880,9 @@ BacktrackingAllocator::resolveControlFlow()
                     if (!alloc().ensureBallast())
                         return false;
                     LiveRange* from = reg.rangeFor(exitOf(predecessor), true);
+                    if (!from)
+                        continue;
+
                     if (successor->mir()->numPredecessors() > 1) {
                         MOZ_ASSERT(predecessor->mir()->numSuccessors() == 1);
                         if (!moveAtExit(predecessor, from, targetRange, reg.type()))
