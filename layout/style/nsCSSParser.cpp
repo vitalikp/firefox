@@ -10857,7 +10857,7 @@ CSSParserImpl::ParseWebkitGradient(nsCSSValue& aValue)
   }
 
   // If radial, parse comma + first radius:
-  float firstRadius;
+  float firstRadius = 0;
   if (isRadial) {
     if (!ExpectSymbol(',', true) ||
         !ParseWebkitGradientRadius(firstRadius)) {
@@ -10875,7 +10875,7 @@ CSSParserImpl::ParseWebkitGradient(nsCSSValue& aValue)
   }
 
   // If radial, parse comma + second radius:
-  float secondRadius;
+  float secondRadius = 0;
   if (isRadial) {
     if (!ExpectSymbol(',', true) ||
         !ParseWebkitGradientRadius(secondRadius)) {

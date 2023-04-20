@@ -4674,7 +4674,7 @@ EncodeDataSegment(Encoder& e, const AstDataSegment& segment)
         const char16_t* cur = fragment.begin();
         const char16_t* end = fragment.end();
         while (cur != end) {
-            uint8_t byte;
+            uint8_t byte = 0;
             MOZ_ALWAYS_TRUE(ConsumeTextByte(&cur, end, &byte));
             bytes.infallibleAppend(byte);
         }
@@ -4808,7 +4808,7 @@ EncodeBinaryModule(const AstModule& module, Bytes* bytes)
         const char16_t* cur = fragment.begin();
         const char16_t* end = fragment.end();
         while (cur != end) {
-            uint8_t byte;
+            uint8_t byte = 0;
             MOZ_ALWAYS_TRUE(ConsumeTextByte(&cur, end, &byte));
             if (!e.writeFixedU8(byte))
                 return false;

@@ -4600,7 +4600,7 @@ BytecodeEmitter::emitSwitch(ParseNode* pn)
 
     JumpList condSwitchDefaultOff;
     if (switchOp == JSOP_CONDSWITCH) {
-        unsigned caseNoteIndex;
+        unsigned caseNoteIndex = 0;
         bool beforeCases = true;
         ptrdiff_t lastCaseOffset = -1;
 

@@ -1669,7 +1669,7 @@ XrayResolveOwnProperty(JSContext* cx, JS::Handle<JSObject*> wrapper,
     // we end up with should _always_ be living in our own scope (the XBL scope).
     // Make sure to assert that.
     JS::Rooted<JSObject*> maybeElement(cx, obj);
-    Element* element;
+    Element* element = nullptr;
     if (xpc::IsInContentXBLScope(wrapper) &&
         NS_SUCCEEDED(UNWRAP_OBJECT(Element, &maybeElement, element))) {
       if (!nsContentUtils::LookupBindingMember(cx, element, id, desc)) {
@@ -2240,7 +2240,7 @@ ReparentWrapper(JSContext* aCx, JS::Handle<JSObject*> aObjArg)
   }
 
   JS::Rooted<JSObject*> maybeObjLC(aCx, aObj);
-  nsObjectLoadingContent* htmlobject;
+  nsObjectLoadingContent* htmlobject = nullptr;
   nsresult rv = UNWRAP_OBJECT(HTMLObjectElement, &maybeObjLC, htmlobject);
   if (NS_FAILED(rv)) {
     rv = UnwrapObject<prototypes::id::HTMLEmbedElement,
@@ -2842,7 +2842,7 @@ GenericBindingGetter(JSContext* cx, unsigned argc, JS::Value* vp)
   // NOTE: we want to leave obj in its initial compartment, so don't want to
   // pass it to UnwrapObject.
   JS::Rooted<JSObject*> rootSelf(cx, obj);
-  void* self;
+  void* self = nullptr;
   {
     binding_detail::MutableObjectHandleWrapper wrapper(&rootSelf);
     nsresult rv = binding_detail::UnwrapObjectInternal<void, true>(wrapper,
@@ -2932,7 +2932,7 @@ GenericBindingSetter(JSContext* cx, unsigned argc, JS::Value* vp)
   // NOTE: we want to leave obj in its initial compartment, so don't want to
   // pass it to UnwrapObject.
   JS::Rooted<JSObject*> rootSelf(cx, obj);
-  void* self;
+  void* self = nullptr;
   {
     binding_detail::MutableObjectHandleWrapper wrapper(&rootSelf);
     nsresult rv = binding_detail::UnwrapObjectInternal<void, true>(wrapper,
@@ -2974,7 +2974,7 @@ GenericBindingMethod(JSContext* cx, unsigned argc, JS::Value* vp)
   // NOTE: we want to leave obj in its initial compartment, so don't want to
   // pass it to UnwrapObject.
   JS::Rooted<JSObject*> rootSelf(cx, obj);
-  void* self;
+  void* self = nullptr;
   {
     binding_detail::MutableObjectHandleWrapper wrapper(&rootSelf);
     nsresult rv = binding_detail::UnwrapObjectInternal<void, true>(wrapper,
@@ -3019,7 +3019,7 @@ GenericPromiseReturningBindingMethod(JSContext* cx, unsigned argc, JS::Value* vp
   // NOTE: we want to leave obj in its initial compartment, so don't want to
   // pass it to UnwrapObject.
   JS::Rooted<JSObject*> rootSelf(cx, obj);
-  void* self;
+  void* self = nullptr;
   {
     binding_detail::MutableObjectHandleWrapper wrapper(&rootSelf);
     nsresult rv = binding_detail::UnwrapObjectInternal<void, true>(wrapper,

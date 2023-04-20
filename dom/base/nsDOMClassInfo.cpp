@@ -865,7 +865,7 @@ nsDOMClassInfo::PostCreatePrototype(JSContext * cx, JSObject * aProto)
   JS::Rooted<JSObject*> global(cx, ::JS_GetGlobalForObject(cx, proto));
 
   // Only do this if the global object is a window.
-  nsGlobalWindow* win;
+  nsGlobalWindow* win = nullptr;
   if (NS_FAILED(UNWRAP_OBJECT(Window, &global, win))) {
     // Not a window.
     return NS_OK;

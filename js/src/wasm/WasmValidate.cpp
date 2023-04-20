@@ -790,7 +790,7 @@ DecodeTypeSection(Decoder& d, ModuleEnvironment* env)
         ExprType result = ExprType::Void;
 
         if (numRets == 1) {
-            ValType type;
+            ValType type = ValType::InvalidCode;
             if (!DecodeValType(d, ModuleKind::Wasm, &type))
                 return false;
 

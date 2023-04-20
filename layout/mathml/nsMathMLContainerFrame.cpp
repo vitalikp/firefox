@@ -1447,7 +1447,7 @@ nsMathMLContainerFrame::TransmitAutomaticDataForMrowLikeElement()
   //   * an mrow whose arguments consist (in any order) of one embellished
   //     operator and zero or more space-like elements.
   //
-  nsIFrame *childFrame, *baseFrame;
+  nsIFrame *childFrame, *baseFrame = nullptr;
   bool embellishedOpFound = false;
   nsEmbellishData embellishData;
   

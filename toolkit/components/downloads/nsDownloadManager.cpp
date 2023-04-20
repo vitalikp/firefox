@@ -1965,7 +1965,7 @@ nsDownloadManager::NotifyDownloadRemoval(nsDownload* aRemoved)
   if (sendDeprecatedNotification && aRemoved) {
     id = do_CreateInstance(NS_SUPPORTS_PRUINT32_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    uint32_t dlID;
+    uint32_t dlID = 0;
     rv = aRemoved->GetId(&dlID);
     NS_ENSURE_SUCCESS(rv, rv);
     rv = id->SetData(dlID);
