@@ -73,6 +73,8 @@ enum class TypeCode
 
 enum class ValType
 {
+    InvalidCode                          = uint32_t(TypeCode::Limit),
+
     I32                                  = uint8_t(TypeCode::I32),
     I64                                  = uint8_t(TypeCode::I64),
     F32                                  = uint8_t(TypeCode::F32),
