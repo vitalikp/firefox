@@ -48,6 +48,7 @@ inline const char* XMMRegName(XMMRegisterID reg)
 #ifdef JS_CODEGEN_X64
        ,"%xmm8", "%xmm9", "%xmm10", "%xmm11", "%xmm12", "%xmm13", "%xmm14", "%xmm15"
 #endif
+       ,"(null)"
     };
     MOZ_ASSERT(size_t(reg) < mozilla::ArrayLength(names));
     return names[reg];
@@ -61,6 +62,7 @@ inline const char* GPReg64Name(RegisterID reg)
 #ifdef JS_CODEGEN_X64
        ,"%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"
 #endif
+       ,"(null)"
     };
     MOZ_ASSERT(size_t(reg) < mozilla::ArrayLength(names));
     return names[reg];
@@ -74,6 +76,7 @@ inline const char* GPReg32Name(RegisterID reg)
 #ifdef JS_CODEGEN_X64
        ,"%r8d", "%r9d", "%r10d", "%r11d", "%r12d", "%r13d", "%r14d", "%r15d"
 #endif
+       ,"(null)"
     };
     MOZ_ASSERT(size_t(reg) < mozilla::ArrayLength(names));
     return names[reg];
@@ -86,6 +89,7 @@ inline const char* GPReg16Name(RegisterID reg)
 #ifdef JS_CODEGEN_X64
        ,"%r8w", "%r9w", "%r10w", "%r11w", "%r12w", "%r13w", "%r14w", "%r15w"
 #endif
+       ,"(null)"
     };
     MOZ_ASSERT(size_t(reg) < mozilla::ArrayLength(names));
     return names[reg];
@@ -99,6 +103,7 @@ inline const char* GPReg8Name(RegisterID reg)
        ,"%spl", "%bpl", "%sil", "%dil",
         "%r8b", "%r9b", "%r10b", "%r11b", "%r12b", "%r13b", "%r14b", "%r15b"
 #endif
+       ,"(null)"
     };
     MOZ_ASSERT(size_t(reg) < mozilla::ArrayLength(names));
     return names[reg];
