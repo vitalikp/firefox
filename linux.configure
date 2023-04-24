@@ -108,7 +108,7 @@ def testconf(cc, name, flags, includes, source, onerror=None):
 
 # ICU
 # ==============================================================
-check_pkg('MOZ_ICU', 'icu-i18n', '58.1')
+check_pkg('MOZ_ICU', 'icu-i18n', '59.1')
 
 # libpng
 # ==============================================================
