@@ -1245,6 +1245,10 @@ soundtouch/SoundTouch.h
 libavcodec/avfft.h
 #endif
 png.h
+webp/decode.h
+webp/demux.h
+webp/mux_types.h
+webp/types.h
 #if MOZ_SYSTEM_ZLIB==1
 zlib.h
 #endif
