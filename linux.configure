@@ -114,6 +114,11 @@ check_pkg('MOZ_ICU', 'icu-i18n', '59.1')
 # ==============================================================
 check_pkg('LIBPNG', 'libpng', '1.6.25', when=notjs_project)
 
+# libwebp
+# ==============================================================
+check_pkg('LIBWEBP', 'libwebp', '1.0.0', when=notjs_project)
+check_pkg('LIBWEBP_DEMUX', 'libwebpdemux', '1.0.0', when=notjs_project)
+
 # pixman
 # ==============================================================
 check_pkg('MOZ_PIXMAN1', 'pixman-1', '0.19.2', when=notjs_project)
