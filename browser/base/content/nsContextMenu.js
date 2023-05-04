@@ -1653,7 +1653,7 @@ nsContextMenu.prototype = {
   },
 
   bookmarkThisPage: function CM_bookmarkThisPage() {
-    window.top.PlacesCommandHook.bookmarkPage(this.browser, PlacesUtils.bookmarksMenuFolderId, true);
+    window.top.PlacesCommandHook.bookmarkPage(this.browser, PlacesUtils.toolbarFolderId, true);
   },
 
   bookmarkLink: function CM_bookmarkLink() {

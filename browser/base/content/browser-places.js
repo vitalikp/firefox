@@ -424,7 +424,7 @@ var PlacesCommandHook = {
       }
 
       var parent = aParent !== undefined ?
-                   aParent : PlacesUtils.unfiledBookmarksFolderId;
+                   aParent : PlacesUtils.toolbarFolderId;
       var descAnno = { name: PlacesUIUtils.DESCRIPTION_ANNO, value: description };
       var txn = new PlacesCreateBookmarkTransaction(uri, parent,
                                                     PlacesUtils.bookmarks.DEFAULT_INDEX,
@@ -471,7 +471,7 @@ var PlacesCommandHook = {
     if (!info) {
       let parentGuid = aParentId !== undefined ?
                          yield PlacesUtils.promiseItemGuid(aParentId) :
-                         PlacesUtils.bookmarks.unfiledGuid;
+                         PlacesUtils.bookmarks.toolbarGuid;
       info = { url, parentGuid };
       // Bug 1148838 - Make this code work for full page plugins.
       let description = null;
