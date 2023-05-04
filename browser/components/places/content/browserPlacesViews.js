@@ -798,46 +798,6 @@ PlacesViewBase.prototype = {
     } else {
       aPopup.removeAttribute("singleitempopup");
     }
-
-    if (!hasMultipleURIs) {
-      // We don't have to show any option.
-      if (aPopup._endOptOpenAllInTabs) {
-        aPopup.removeChild(aPopup._endOptOpenAllInTabs);
-        aPopup._endOptOpenAllInTabs = null;
-
-        aPopup.removeChild(aPopup._endOptSeparator);
-        aPopup._endOptSeparator = null;
-      }
-    } else if (!aPopup._endOptOpenAllInTabs) {
-      // Create a separator before options.
-      aPopup._endOptSeparator = document.createElement("menuseparator");
-      aPopup._endOptSeparator.className = "bookmarks-actions-menuseparator";
-      aPopup.appendChild(aPopup._endOptSeparator);
-
-      // Add the "Open All in Tabs" menuitem.
-      aPopup._endOptOpenAllInTabs = document.createElement("menuitem");
-      aPopup._endOptOpenAllInTabs.className = "openintabs-menuitem";
-
-      if (typeof this.options.extraClasses.entry == "string")
-        aPopup._endOptOpenAllInTabs.classList.add(this.options.extraClasses.entry);
-      if (typeof this.options.extraClasses.footer == "string")
-        aPopup._endOptOpenAllInTabs.classList.add(this.options.extraClasses.footer);
-
-      if (isLiveMark) {
-        aPopup._endOptOpenAllInTabs.setAttribute("oncommand",
-          "PlacesUIUtils.openLiveMarkNodesInTabs(this.parentNode._placesNode, event, " +
-                                                 "PlacesUIUtils.getViewForNode(this));");
-      } else {
-        aPopup._endOptOpenAllInTabs.setAttribute("oncommand",
-          "PlacesUIUtils.openContainerNodeInTabs(this.parentNode._placesNode, event, " +
-                                                 "PlacesUIUtils.getViewForNode(this));");
-      }
-      aPopup._endOptOpenAllInTabs.setAttribute("onclick",
-        "checkForMiddleClick(this, event); event.stopPropagation();");
-      aPopup._endOptOpenAllInTabs.setAttribute("label",
-        gNavigatorBundle.getString("menuOpenAllInTabs.label"));
-      aPopup.appendChild(aPopup._endOptOpenAllInTabs);
-    }
   },
 
   _ensureMarkers: function PVB__ensureMarkers(aPopup) {
