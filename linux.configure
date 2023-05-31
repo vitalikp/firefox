@@ -101,7 +101,7 @@ def testconf(cc, name, flags, includes, source, onerror=None):
             os.remove(test)
             return res
         
-        if onerror
+        if onerror:
             return onerror()
     finally:
         os.remove(path)
