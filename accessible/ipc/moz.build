@@ -5,9 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 if CONFIG['OS_ARCH'] == 'WINNT':
-    DIRS += ['win']
     LOCAL_INCLUDES += [
-        '/accessible/ipc/win',
         '/accessible/windows/ia2',
         '/accessible/windows/msaa',
     ]
