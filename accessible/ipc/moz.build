@@ -4,28 +4,22 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-if CONFIG['OS_ARCH'] == 'WINNT':
+DIRS += ['other']
+LOCAL_INCLUDES += [
+    '/accessible/ipc/other',
+]
+if 'gtk' in CONFIG['MOZ_WIDGET_TOOLKIT']:
     LOCAL_INCLUDES += [
-        '/accessible/windows/ia2',
-        '/accessible/windows/msaa',
+        '/accessible/atk',
+    ]
+elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
+    LOCAL_INCLUDES += [
+        '/accessible/mac',
     ]
 else:
-    DIRS += ['other']
     LOCAL_INCLUDES += [
-        '/accessible/ipc/other',
+        '/accessible/other',
     ]
-    if 'gtk' in CONFIG['MOZ_WIDGET_TOOLKIT']:
-        LOCAL_INCLUDES += [
-            '/accessible/atk',
-        ]
-    elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
-        LOCAL_INCLUDES += [
-            '/accessible/mac',
-        ]
-    else:
-        LOCAL_INCLUDES += [
-            '/accessible/other',
-        ]
 
 EXPORTS.mozilla.a11y += [
     'IPCTypes.h',

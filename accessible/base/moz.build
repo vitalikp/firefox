@@ -94,11 +94,6 @@ if 'gtk' in CONFIG['MOZ_WIDGET_TOOLKIT']:
         '/accessible/atk',
     ]
     CXXFLAGS += CONFIG['MOZ_CAIRO_CFLAGS']
-elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
-    LOCAL_INCLUDES += [
-        '/accessible/windows/ia2',
-        '/accessible/windows/msaa',
-    ]
 elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
     LOCAL_INCLUDES += [
         '/accessible/mac',
