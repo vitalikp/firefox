@@ -17,7 +17,4 @@ if CONFIG['MOZ_ENABLE_DBUS']:
 if CONFIG['MOZ_WIDGET_TOOLKIT'] != 'android':
     DIRS += ['contentproc']
 
-if CONFIG['OS_ARCH'] == 'WINNT':
-    DIRS += ['mscom']
-
 DIRS += ['app']

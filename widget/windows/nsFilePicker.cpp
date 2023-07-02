@@ -10,7 +10,6 @@
 #include <shlwapi.h>
 #include <cderr.h>
 
-#include "mozilla/mscom/EnsureMTA.h"
 #include "mozilla/UniquePtr.h"
 #include "mozilla/WindowsVersion.h"
 #include "nsReadableUtils.h"
@@ -30,7 +29,6 @@
 
 using mozilla::IsWin8OrLater;
 using mozilla::MakeUnique;
-using mozilla::mscom::EnsureMTA;
 using mozilla::UniquePtr;
 using namespace mozilla::widget;
 

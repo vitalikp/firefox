@@ -100,7 +100,6 @@
 #include <math.h>
 #include "cairo/cairo-features.h"
 #include "mozilla/WindowsDllBlocklist.h"
-#include "mozilla/mscom/MainThreadRuntime.h"
 #include "mozilla/widget/AudioSession.h"
 
 #ifndef PROCESS_DEP_ENABLE
@@ -4057,14 +4056,6 @@ XREMain::XRE_main(int argc, char* argv[], const BootstrapConfig& aConfig)
 #endif
 
   mozilla::IOInterposerInit ioInterposerGuard;
-
-#if defined(XP_WIN)
-  // Some COM settings are global to the process and must be set before any non-
-  // trivial COM is run in the application. Since these settings may affect
-  // stability, we should instantiate COM ASAP so that we can ensure that these
-  // global settings are configured before anything can interfere.
-  mozilla::mscom::MainThreadRuntime msCOMRuntime;
-#endif
 
 #if MOZ_WIDGET_GTK == 2
   XRE_GlibInit();
