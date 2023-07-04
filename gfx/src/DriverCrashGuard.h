@@ -49,7 +49,7 @@ enum class CrashGuardType : uint32_t
 };
 
 // DriverCrashGuard is used to detect crashes at graphics driver callsites.
-// 
+//
 // If the graphics environment is unrecognized or has changed since the last
 // session, the crash guard will activate and will detect any crashes within
 // the scope of the guard object.
