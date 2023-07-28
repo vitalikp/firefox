@@ -203,17 +203,6 @@ var gMainPane = {
   },
 
   onGetStarted(aEvent) {
-    if (AppConstants.MOZ_DEV_EDITION) {
-      const Cc = Components.classes, Ci = Components.interfaces;
-      let wm = Cc["@mozilla.org/appshell/window-mediator;1"]
-                  .getService(Ci.nsIWindowMediator);
-      let win = wm.getMostRecentWindow("navigator:browser");
-
-      if (win) {
-        let accountsTab = win.gBrowser.addTab("about:accounts?action=signin&entrypoint=dev-edition-setup");
-        win.gBrowser.selectedTab = accountsTab;
-      }
-    }
   },
 
   // HOME PAGE

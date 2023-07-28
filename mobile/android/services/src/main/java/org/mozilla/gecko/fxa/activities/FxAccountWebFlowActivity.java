@@ -17,8 +17,6 @@ import org.mozilla.gecko.sync.setup.activities.ActivityUtils;
 public abstract class FxAccountWebFlowActivity extends FxAccountAbstractActivity {
     protected static final String LOG_TAG = FxAccountWebFlowActivity.class.getSimpleName();
 
-    protected static final String ABOUT_ACCOUNTS = "about:accounts";
-
     public static final String EXTRA_ENDPOINT = "entrypoint";
 
     protected static final String[] EXTRAS_TO_PASSTHROUGH = new String[] {
@@ -57,27 +55,6 @@ public abstract class FxAccountWebFlowActivity extends FxAccountAbstractActivity
             return true;
         }
 
-        final StringBuilder sb = new StringBuilder();
-        sb.append(ABOUT_ACCOUNTS);
-        sb.append("?action=");
-        sb.append(action);
-        sb.append(extras);
-
-        // Pass through a set of known string values from intent extras to about:accounts.
-        final Intent intent = getIntent();
-        if (intent != null) {
-            for (String key : EXTRAS_TO_PASSTHROUGH) {
-                final String value = intent.getStringExtra(key);
-                if (value != null) {
-                    sb.append("&");
-                    sb.append(key);
-                    sb.append("=");
-                    sb.append(value);
-                }
-            }
-        }
-
-        ActivityUtils.openURLInFennec(getApplicationContext(), sb.toString());
         return true;
     }
 

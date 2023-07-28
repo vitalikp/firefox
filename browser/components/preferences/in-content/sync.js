@@ -466,17 +466,6 @@ var gSyncPane = {
     return params.get("entrypoint") || "preferences";
   },
 
-  _openAboutAccounts(action) {
-    let entryPoint = this._getEntryPoint();
-    let params = new URLSearchParams();
-    if (action) {
-      params.set("action", action);
-    }
-    params.set("entrypoint", entryPoint);
-
-    this.replaceTabWithUrl("about:accounts?" + params);
-  },
-
   /**
    * Invoke the Sync setup wizard.
    *
@@ -487,21 +476,13 @@ var gSyncPane = {
    *          "reset" -- reset sync
    */
   openSetup(wizardType) {
-    let service = Components.classes["@mozilla.org/weave/service;1"]
-                  .getService(Components.interfaces.nsISupports)
-                  .wrappedJSObject;
-
-    if (service.fxAccountsEnabled) {
-      this._openAboutAccounts();
-    } else {
-      let win = Services.wm.getMostRecentWindow("Weave:AccountSetup");
-      if (win)
-        win.focus();
-      else {
-        window.openDialog("chrome://browser/content/sync/setup.xul",
-                          "weaveSetup", "centerscreen,chrome,resizable=no",
-                          wizardType);
-      }
+    let win = Services.wm.getMostRecentWindow("Weave:AccountSetup");
+    if (win)
+      win.focus();
+    else {
+      window.openDialog("chrome://browser/content/sync/setup.xul",
+                        "weaveSetup", "centerscreen,chrome,resizable=no",
+                        wizardType);
     }
   },
 
@@ -529,15 +510,12 @@ var gSyncPane = {
   },
 
   signUp() {
-    this._openAboutAccounts("signup");
   },
 
   signIn() {
-    this._openAboutAccounts("signin");
   },
 
   reSignIn() {
-    this._openAboutAccounts("reauth");
   },
 
 

@@ -8,8 +8,6 @@
 # For android multilocale; see bug 1313702
 chrome/en-US/locale/branding/brand.dtd
 chrome/en-US/locale/branding/brand.properties
-chrome/en-US/locale/en-US/browser/aboutAccounts.dtd
-chrome/en-US/locale/en-US/browser/aboutAccounts.properties
 chrome/en-US/locale/en-US/browser/aboutAddons.dtd
 chrome/en-US/locale/en-US/browser/aboutAddons.properties
 chrome/en-US/locale/en-US/browser/aboutDownloads.dtd

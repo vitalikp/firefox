@@ -32,9 +32,6 @@ const COMMAND_SYNC_PREFERENCES     = "fxaccounts:sync_preferences";
 
 const PREF_LAST_FXA_USER           = "identity.fxaccounts.lastSignedInUserHash";
 
-XPCOMUtils.defineLazyGetter(this, "strings",
-                            () => Services.strings.createBundle("chrome://browser/locale/aboutAccounts.properties")); /*global strings */
-
 XPCOMUtils.defineLazyModuleGetter(this, "Snackbars", "resource://gre/modules/Snackbars.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "Prompt", "resource://gre/modules/Prompt.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "UITelemetry", "resource://gre/modules/UITelemetry.jsm");
@@ -201,61 +198,6 @@ this.FxAccountsWebChannel.prototype = {
               .QueryInterface(Ci.nsIInterfaceRequestor)
               .getInterface(Ci.nsIContentFrameMessageManager);
             mm.sendAsyncMessage(COMMAND_LOADED);
-            break;
-
-          case COMMAND_CAN_LINK_ACCOUNT:
-            Accounts.getFirefoxAccount().then(account => {
-              if (account) {
-                // If we /have/ an Android Account, we never allow the user to
-                // login to a different account.  They need to manually delete
-                // the first Android Account and then create a new one.
-                if (account.email == data.email) {
-                  // In future, we should use a UID for this comparison.
-                  log.d("Relinking existing Android Account: email addresses agree.");
-                  respond({ok: true});
-                } else {
-                  log.w("Not relinking existing Android Account: email addresses disagree!");
-                  let message = strings.GetStringFromName("relinkDenied.message");
-                  let buttonLabel = strings.GetStringFromName("relinkDenied.openPrefs");
-                  Snackbars.show(message, Snackbars.LENGTH_LONG, {
-                    action: {
-                      label: buttonLabel,
-                      callback: () => {
-                        // We have an account, so this opens Sync native preferences.
-                        Accounts.launchSetup();
-                      },
-                    }
-                  });
-                  respond({ok: false});
-                }
-              } else {
-                // If we /don't have/ an Android Account, we warn if we're
-                // connecting to a new Account.  This is to minimize surprise;
-                // we never did this when changing accounts via the native UI.
-                let prevAcctHash = this._helpers.getPreviousAccountNameHashPref();
-                let shouldShowWarning = prevAcctHash && (prevAcctHash != this._helpers.sha256(data.email));
-
-                if (shouldShowWarning) {
-                  log.w("Warning about creating a new Android Account: previously linked to different email address!");
-                  let message = strings.formatStringFromName("relinkVerify.message", [data.email], 1);
-                  new Prompt({
-                    title: strings.GetStringFromName("relinkVerify.title"),
-                    message: message,
-                    buttons: [
-                      // This puts Cancel on the right.
-                      strings.GetStringFromName("relinkVerify.cancel"),
-                      strings.GetStringFromName("relinkVerify.continue"),
-                    ],
-                  }).show(result => respond({ok: result && result.button == 1}));
-                } else {
-                  log.d("Not warning about creating a new Android Account: no previously linked email address.");
-                  respond({ok: true});
-                }
-              }
-            }).catch(e => {
-              log.e(e.toString());
-              respond({ok: false});
-            });
             break;
 
           case COMMAND_LOGIN:

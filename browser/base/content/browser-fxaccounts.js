@@ -351,19 +351,6 @@ var gFxAccounts = {
   },
 
   openAccountsPage(action, urlParams = {}) {
-    let params = new URLSearchParams();
-    if (action) {
-      params.set("action", action);
-    }
-    for (let name in urlParams) {
-      if (urlParams[name] !== undefined) {
-        params.set(name, urlParams[name]);
-      }
-    }
-    let url = "about:accounts?" + params;
-    switchToTabHavingURI(url, true, {
-      replaceQueryString: true
-    });
   },
 
   openSignInAgainPage(entryPoint) {

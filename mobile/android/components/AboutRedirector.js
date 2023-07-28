@@ -67,10 +67,6 @@ var modules = {
     uri: "chrome://browser/content/aboutLogins.xhtml",
     privileged: true
   },
-  accounts: {
-    uri: "chrome://browser/content/aboutAccounts.xhtml",
-    privileged: true
-  },
 };
 
 if (AppConstants.MOZ_SERVICES_HEALTHREPORT) {

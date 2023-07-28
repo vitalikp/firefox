@@ -556,21 +556,6 @@ this.UITour = {
         break;
       }
 
-      case "showFirefoxAccounts": {
-        // 'signup' is the only action that makes sense currently, so we don't
-        // accept arbitrary actions just to be safe...
-        let p = new URLSearchParams("action=signup&entrypoint=uitour");
-        // Call our helper to validate extraURLCampaignParams and populate URLSearchParams
-        if (!this._populateCampaignParams(p, data.extraURLCampaignParams)) {
-          log.warn("showFirefoxAccounts: invalid campaign args specified");
-          return false;
-        }
-
-        // We want to replace the current tab.
-        browser.loadURI("about:accounts?" + p.toString());
-        break;
-      }
-
       case "resetFirefox": {
         // Open a reset profile dialog window.
         if (ResetProfile.resetSupported()) {

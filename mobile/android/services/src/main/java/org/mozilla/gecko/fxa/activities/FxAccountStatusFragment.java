@@ -231,16 +231,6 @@ public class FxAccountStatusFragment
 
   @Override
   public boolean onPreferenceClick(Preference preference) {
-    if (preference == profilePreference) {
-      ActivityUtils.openURLInFennec(getActivity().getApplicationContext(), "about:accounts?action=avatar");
-      return true;
-    }
-
-    if (preference == manageAccountPreference) {
-      ActivityUtils.openURLInFennec(getActivity().getApplicationContext(), "about:accounts?action=manage");
-      return true;
-    }
-
     if (preference == removeAccountPreference) {
       FxAccountStatusActivity.maybeDeleteAndroidAccount(getActivity(), fxAccount.getAndroidAccount(), null);
       return true;
