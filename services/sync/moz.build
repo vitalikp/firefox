@@ -60,13 +60,6 @@ EXTRA_JS_MODULES['services-sync'].stages += [
     'modules/stages/enginesync.js',
 ]
 
-TESTING_JS_MODULES.services.sync += [
-    'modules-testing/fakeservices.js',
-    'modules-testing/fxa_utils.js',
-    'modules-testing/rotaryengine.js',
-    'modules-testing/utils.js',
-]
-
 JS_PREFERENCE_FILES += [
     'services-sync.js',
 ]
