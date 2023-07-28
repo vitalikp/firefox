@@ -72,8 +72,6 @@ static RedirEntry kRedirMap[] = {
     nsIAboutModule::ALLOW_SCRIPT },
   { "welcomeback", "chrome://browser/content/aboutWelcomeBack.xhtml",
     nsIAboutModule::ALLOW_SCRIPT },
-  { "sync-tabs", "chrome://browser/content/sync/aboutSyncTabs.xul",
-    nsIAboutModule::ALLOW_SCRIPT },
   { "home", "about:blank",
     nsIAboutModule::ALLOW_SCRIPT },
   // the newtab's actual URL will be determined when the channel is created
