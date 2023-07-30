@@ -86,7 +86,6 @@
         <item>@string/pref_private_data_cache</item>
         <item>@string/pref_private_data_offlineApps</item>
         <item>@string/pref_private_data_siteSettings</item>
-        <item>@string/pref_private_data_syncedTabs</item>
         <item>@string/pref_private_data_passwords</item>
     </string-array>
     <string-array name="pref_private_data_defaults">
@@ -110,7 +109,6 @@
         <item>private.data.cache</item>
         <item>private.data.offlineApps</item>
         <item>private.data.siteSettings</item>
-        <item>private.data.syncedTabs</item>
         <item>private.data.passwords</item>
     </string-array>
     <string-array name="pref_private_data_keys">
@@ -122,7 +120,6 @@
         <item>private.data.cache</item>
         <item>private.data.offlineApps</item>
         <item>private.data.siteSettings</item>
-        <item>private.data.syncedTabs</item>
         <item>private.data.passwords</item>
     </string-array>
     <string-array name="pref_clear_on_exit_defaults">

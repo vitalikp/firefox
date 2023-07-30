@@ -10,7 +10,6 @@ const Cu = Components.utils;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-Cu.import("resource:///modules/syncedtabs/EventEmitter.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
@@ -29,7 +28,6 @@ XPCOMUtils.defineLazyGetter(this, "gBrandBundle", function() {
 
 this.webrtcUI = {
   peerConnectionBlockers: new Set(),
-  emitter: new EventEmitter(),
 
   init() {
     Services.obs.addObserver(maybeAddMenuIndicator, "browser-delayed-startup-finished", false);
@@ -216,11 +214,9 @@ this.webrtcUI = {
   },
 
   on(...args) {
-    return this.emitter.on(...args);
   },
 
   off(...args) {
-    return this.emitter.off(...args);
   },
 
   receiveMessage(aMessage) {
@@ -248,10 +244,8 @@ this.webrtcUI = {
         }).then(decision => {
           let message;
           if (decision) {
-            this.emitter.emit("peer-request-allowed", params);
             message = "rtcpeer:Allow";
           } else {
-            this.emitter.emit("peer-request-blocked", params);
             message = "rtcpeer:Deny";
           }
 
@@ -267,7 +261,6 @@ this.webrtcUI = {
           origin: aMessage.target.contentPrincipal.origin,
           callID: aMessage.data
         });
-        this.emitter.emit("peer-request-cancel", params);
         break;
       }
       case "webrtc:Request":

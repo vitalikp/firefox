@@ -25,8 +25,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "CharsetMenu",
   "resource://gre/modules/CharsetMenu.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "PrivateBrowsingUtils",
   "resource://gre/modules/PrivateBrowsingUtils.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "SyncedTabs",
-  "resource://services-sync/SyncedTabs.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "ContextualIdentityService",
   "resource://gre/modules/ContextualIdentityService.jsm");
 
@@ -353,40 +351,14 @@ const CustomizableWidgets = [
     onViewShowing(aEvent) {
       let doc = aEvent.target.ownerDocument;
       this._tabsList = doc.getElementById("PanelUI-remotetabs-tabslist");
-      Services.obs.addObserver(this, SyncedTabs.TOPIC_TABS_CHANGED, false);
 
-      if (SyncedTabs.isConfiguredToSyncTabs) {
-        if (SyncedTabs.hasSyncedThisSession) {
-          this.setDeckIndex(this.deckIndices.DECKINDEX_TABS);
-        } else {
-          // Sync hasn't synced tabs yet, so show the "fetching" panel.
-          this.setDeckIndex(this.deckIndices.DECKINDEX_FETCHING);
-        }
-        // force a background sync.
-        SyncedTabs.syncTabs().catch(ex => {
-          Cu.reportError(ex);
-        });
-        // show the current list - it will be updated by our observer.
-        this._showTabs();
-      } else {
-        // not configured to sync tabs, so no point updating the list.
-        this.setDeckIndex(this.deckIndices.DECKINDEX_TABSDISABLED);
-      }
+      // not configured to sync tabs, so no point updating the list.
+      this.setDeckIndex(this.deckIndices.DECKINDEX_TABSDISABLED);
     },
     onViewHiding() {
-      Services.obs.removeObserver(this, SyncedTabs.TOPIC_TABS_CHANGED);
       this._tabsList = null;
     },
     _tabsList: null,
-    observe(subject, topic, data) {
-      switch (topic) {
-        case SyncedTabs.TOPIC_TABS_CHANGED:
-          this._showTabs();
-          break;
-        default:
-          break;
-      }
-    },
     setDeckIndex(index) {
       let deck = this._tabsList.ownerDocument.getElementById("PanelUI-remotetabs-deck");
       // We call setAttribute instead of relying on the XBL property setter due
@@ -395,53 +367,6 @@ const CustomizableWidgets = [
       deck.setAttribute("selectedIndex", index);
     },
 
-    _showTabsPromise: Promise.resolve(),
-    // Update the tab list after any existing in-flight updates are complete.
-    _showTabs() {
-      this._showTabsPromise = this._showTabsPromise.then(() => {
-        return this.__showTabs();
-      });
-    },
-    // Return a new promise to update the tab list.
-    __showTabs() {
-      let doc = this._tabsList.ownerDocument;
-      return SyncedTabs.getTabClients().then(clients => {
-        // The view may have been hidden while the promise was resolving.
-        if (!this._tabsList) {
-          return;
-        }
-        if (clients.length === 0 && !SyncedTabs.hasSyncedThisSession) {
-          // the "fetching tabs" deck is being shown - let's leave it there.
-          // When that first sync completes we'll be notified and update.
-          return;
-        }
-
-        if (clients.length === 0) {
-          this.setDeckIndex(this.deckIndices.DECKINDEX_NOCLIENTS);
-          return;
-        }
-
-        this.setDeckIndex(this.deckIndices.DECKINDEX_TABS);
-        this._clearTabList();
-        SyncedTabs.sortTabClientsByLastUsed(clients, 50 /* maxTabs */);
-        let fragment = doc.createDocumentFragment();
-
-        for (let client of clients) {
-          // add a menu separator for all clients other than the first.
-          if (fragment.lastChild) {
-            let separator = doc.createElementNS(kNSXUL, "menuseparator");
-            fragment.appendChild(separator);
-          }
-          this._appendClient(client, fragment);
-        }
-        this._tabsList.appendChild(fragment);
-      }).catch(err => {
-        Cu.reportError(err);
-      }).then(() => {
-        // an observer for tests.
-        Services.obs.notifyObservers(null, "synced-tabs-menu:test:tabs-updated", null);
-      });
-    },
     _clearTabList() {
       let list = this._tabsList;
       while (list.lastChild) {
@@ -461,28 +386,6 @@ const CustomizableWidgets = [
       messageLabel.textContent = message;
       appendTo.appendChild(messageLabel);
       return messageLabel;
-    },
-    _appendClient(client, attachFragment) {
-      let doc = attachFragment.ownerDocument;
-      // Create the element for the remote client.
-      let clientItem = doc.createElementNS(kNSXUL, "label");
-      clientItem.setAttribute("itemtype", "client");
-      let window = doc.defaultView;
-      clientItem.setAttribute("tooltiptext",
-        window.gSyncUI.formatLastSyncDate(new Date(client.lastModified)));
-      clientItem.textContent = client.name;
-
-      attachFragment.appendChild(clientItem);
-
-      if (client.tabs.length == 0) {
-        let label = this._appendMessageLabel("notabsforclientlabel", attachFragment);
-        label.setAttribute("class", "PanelUI-remotetabs-notabsforclient-label");
-      } else {
-        for (let tab of client.tabs) {
-          let tabEnt = this._createTabElement(doc, tab);
-          attachFragment.appendChild(tabEnt);
-        }
-      }
     },
     _createTabElement(doc, tabInfo) {
       let item = doc.createElementNS(kNSXUL, "toolbarbutton");

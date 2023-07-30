@@ -73,7 +73,6 @@ function ensureItems() {
 }
 
 // A preference used to disable the showing of icons in remote tab records.
-const PREF_SHOW_REMOTE_ICONS = "services.sync.syncedTabs.showRemoteIcons";
 let showRemoteIcons;
 
 // An observer to invalidate _items and watch for changed prefs.
@@ -93,16 +92,6 @@ function observe(subject, topic, data) {
       _items = null;
       break;
 
-    case "nsPref:changed":
-      if (data == PREF_SHOW_REMOTE_ICONS) {
-        try {
-          showRemoteIcons = Services.prefs.getBoolPref(PREF_SHOW_REMOTE_ICONS);
-        } catch (_) {
-          showRemoteIcons = true; // no such pref - default is to show the icons.
-        }
-      }
-      break;
-
     default:
       break;
   }
@@ -110,10 +99,6 @@ function observe(subject, topic, data) {
 
 Services.obs.addObserver(observe, "weave:engine:sync:finish", false);
 Services.obs.addObserver(observe, "weave:service:start-over", false);
-
-// Observe the pref for showing remote icons and prime our bool that reflects its value.
-Services.prefs.addObserver(PREF_SHOW_REMOTE_ICONS, observe, false);
-observe(null, "nsPref:changed", PREF_SHOW_REMOTE_ICONS);
 
 // This public object is a static singleton.
 this.PlacesRemoteTabsAutocompleteProvider = {

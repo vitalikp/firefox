@@ -278,25 +278,7 @@ Sanitizer.prototype = {
       {
         return true;
       }
-    },
-
-    syncedTabs: {
-      clear: function ()
-      {
-        return Messaging.sendRequestForResult({ type: "Sanitize:ClearSyncedTabs" })
-          .catch(e => Cu.reportError("Java-side synced tabs clearing failed: " + e));
-      },
-
-      canClear: function(aCallback)
-      {
-        Accounts.anySyncAccountsExist().then(aCallback)
-          .catch(function(err) {
-            Cu.reportError("Java-side synced tabs clearing failed: " + err)
-            aCallback(false);
-          });
-      }
     }
-
   }
 };
 

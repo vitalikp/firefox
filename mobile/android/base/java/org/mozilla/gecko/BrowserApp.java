@@ -714,7 +714,6 @@ public class BrowserApp extends GeckoApp
             "Menu:Add",
             "Menu:Remove",
             "Sanitize:ClearHistory",
-            "Sanitize:ClearSyncedTabs",
             "Settings:Show",
             "Telemetry:Gather",
             "Updater:Launch",
@@ -1424,7 +1423,6 @@ public class BrowserApp extends GeckoApp
             "Menu:Add",
             "Menu:Remove",
             "Sanitize:ClearHistory",
-            "Sanitize:ClearSyncedTabs",
             "Settings:Show",
             "Telemetry:Gather",
             "Updater:Launch",
@@ -1524,15 +1522,6 @@ public class BrowserApp extends GeckoApp
             @Override
             public void run() {
                 db.clearHistory(getContentResolver(), clearSearchHistory);
-            }
-        });
-    }
-
-    private void handleClearSyncedTabs() {
-        ThreadUtils.postToBackgroundThread(new Runnable() {
-            @Override
-            public void run() {
-                FennecTabsRepository.deleteNonLocalClientsAndTabs(getContext());
             }
         });
     }
@@ -1781,11 +1770,6 @@ public class BrowserApp extends GeckoApp
 
             case "Sanitize:ClearHistory":
                 handleClearHistory(message.optBoolean("clearSearchHistory", false));
-                callback.sendSuccess(true);
-                break;
-
-            case "Sanitize:ClearSyncedTabs":
-                handleClearSyncedTabs();
                 callback.sendSuccess(true);
                 break;
 
