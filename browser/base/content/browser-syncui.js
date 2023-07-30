@@ -4,11 +4,6 @@
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-if (AppConstants.MOZ_SERVICES_CLOUDSYNC) {
-  XPCOMUtils.defineLazyModuleGetter(this, "CloudSync",
-                                    "resource://gre/modules/CloudSync.jsm");
-}
-
 XPCOMUtils.defineLazyModuleGetter(this, "fxAccounts",
                                   "resource://gre/modules/FxAccounts.jsm");
 
@@ -170,9 +165,7 @@ var gSyncUI = {
       document.getElementById("sync-setup-state").hidden = true;
       document.getElementById("sync-syncnow-state").hidden = true;
 
-      if (CloudSync && CloudSync.ready && CloudSync().adapters.count) {
-        document.getElementById("sync-syncnow-state").hidden = false;
-      } else if (loginFailed) {
+      if (loginFailed) {
         // unhiding this element makes the menubar show the login failure state.
         document.getElementById("sync-reauth-state").hidden = false;
       } else if (needsSetup) {
@@ -255,7 +248,6 @@ var gSyncUI = {
       if (!needsSetup) {
         setTimeout(() => Weave.Service.errorHandler.syncAndReportErrors(), 0);
       }
-      Services.obs.notifyObservers(null, "cloudsync:user-sync", null);
     }).catch(err => {
       this.log.error("Failed to force a sync", err);
     });
