@@ -181,7 +181,6 @@ const DEFAULT_ENVIRONMENT_PREFS = new Map([
   ["pdfjs.disabled", {what: RECORD_PREF_VALUE}],
   ["places.history.enabled", {what: RECORD_PREF_VALUE}],
   ["privacy.trackingprotection.enabled", {what: RECORD_PREF_VALUE}],
-  ["privacy.donottrackheader.enabled", {what: RECORD_PREF_VALUE}],
   ["services.sync.serverURL", {what: RECORD_PREF_STATE}],
   ["security.mixed_content.block_active_content", {what: RECORD_PREF_VALUE}],
   ["security.mixed_content.block_display_content", {what: RECORD_PREF_VALUE}],

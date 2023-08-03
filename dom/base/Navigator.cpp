@@ -659,24 +659,6 @@ Navigator::GetBuildID(nsAString& aBuildID, CallerType aCallerType,
   AppendASCIItoUTF16(buildID, aBuildID);
 }
 
-NS_IMETHODIMP
-Navigator::GetDoNotTrack(nsAString &aResult)
-{
-  bool doNotTrack = nsContentUtils::DoNotTrackEnabled();
-  if (!doNotTrack) {
-    nsCOMPtr<nsILoadContext> loadContext = do_GetInterface(mWindow);
-    doNotTrack = loadContext && loadContext->UseTrackingProtection();
-  }
-
-  if (doNotTrack) {
-    aResult.AssignLiteral("1");
-  } else {
-    aResult.AssignLiteral("unspecified");
-  }
-
-  return NS_OK;
-}
-
 bool
 Navigator::JavaEnabled(CallerType aCallerType, ErrorResult& aRv)
 {

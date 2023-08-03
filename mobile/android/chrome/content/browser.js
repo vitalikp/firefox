@@ -962,20 +962,6 @@ var BrowserApp = {
         Services.prefs.clearUserPref("plugins.click_to_play");
       }
 
-      // Migrate the "privacy.donottrackheader.value" pref. See bug 1042135.
-      if (Services.prefs.prefHasUserValue("privacy.donottrackheader.value")) {
-        // Make sure the doNotTrack value conforms to the conversion from
-        // three-state to two-state. (This reverts a setting of "please track me"
-        // to the default "don't say anything").
-        if (Services.prefs.getBoolPref("privacy.donottrackheader.enabled") &&
-            (Services.prefs.getIntPref("privacy.donottrackheader.value") != 1)) {
-          Services.prefs.clearUserPref("privacy.donottrackheader.enabled");
-        }
-
-        // This pref has been removed, so always clear it.
-        Services.prefs.clearUserPref("privacy.donottrackheader.value");
-      }
-
       // Set the search activity default pref on app upgrade if it has not been set already.
       if (!Services.prefs.prefHasUserValue("searchActivity.default.migrated")) {
         Services.prefs.setBoolPref("searchActivity.default.migrated", true);

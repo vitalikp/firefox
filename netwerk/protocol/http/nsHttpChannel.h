@@ -487,8 +487,6 @@ private:
 
     void SetLoadGroupUserAgentOverride();
 
-    void SetDoNotTrack();
-
 private:
     // this section is for main-thread-only object
     // all the references need to be proxy released on main thread.

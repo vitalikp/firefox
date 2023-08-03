@@ -328,8 +328,6 @@ nsISerialEventTarget* nsContentUtils::sStableStateEventTarget = nullptr;
 bool nsContentUtils::sDOMWindowDumpEnabled;
 #endif
 
-bool nsContentUtils::sDoNotTrackEnabled = false;
-
 mozilla::LazyLogModule nsContentUtils::sDOMDumpLog("Dump");
 
 // Subset of http://www.whatwg.org/specs/web-apps/current-work/#autofill-field-name
@@ -724,9 +722,6 @@ nsContentUtils::Init()
   Preferences::AddBoolVarCache(&sDOMWindowDumpEnabled,
                                "browser.dom.window.dump.enabled");
 #endif
-
-  Preferences::AddBoolVarCache(&sDoNotTrackEnabled,
-                               "privacy.donottrackheader.enabled", false);
 
   Preferences::AddBoolVarCache(&sUseActivityCursor,
                                "ui.use_activity_cursor", false);
@@ -7415,7 +7410,7 @@ nsContentUtils::IsForbiddenSystemRequestHeader(const nsACString& aHeader)
   static const char *kInvalidHeaders[] = {
     "accept-charset", "accept-encoding", "access-control-request-headers",
     "access-control-request-method", "connection", "content-length",
-    "cookie", "cookie2", "date", "dnt", "expect", "host", "keep-alive",
+    "cookie", "cookie2", "date", "expect", "host", "keep-alive",
     "origin", "referer", "te", "trailer", "transfer-encoding", "upgrade", "via"
   };
   for (auto& kInvalidHeader : kInvalidHeaders) {
@@ -7462,12 +7457,6 @@ nsContentUtils::DOMWindowDumpEnabled()
 #else
   return true;
 #endif
-}
-
-bool
-nsContentUtils::DoNotTrackEnabled()
-{
-  return nsContentUtils::sDoNotTrackEnabled;
 }
 
 mozilla::LogModule*

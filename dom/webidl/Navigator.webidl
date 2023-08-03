@@ -5,7 +5,6 @@
  *
  * The origin of this IDL file is
  * http://www.whatwg.org/specs/web-apps/current-work/#the-navigator-object
- * http://www.w3.org/TR/tracking-dnt/
  * http://www.w3.org/TR/geolocation-API/#geolocation_interface
  * http://www.w3.org/TR/battery-status/#navigatorbattery-interface
  * http://www.w3.org/TR/vibration/#vibration-interface
@@ -110,11 +109,6 @@ partial interface Navigator {
   readonly attribute MimeTypeArray mimeTypes;
   [Throws]
   readonly attribute PluginArray plugins;
-};
-
-// http://www.w3.org/TR/tracking-dnt/ sort of
-partial interface Navigator {
-  readonly attribute DOMString doNotTrack;
 };
 
 // http://www.w3.org/TR/geolocation-API/#geolocation_interface

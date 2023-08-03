@@ -41,7 +41,7 @@ const DOWNLOAD_ITEM_CHANGE_FIELDS = ["endTime", "state", "paused", "canResume",
 // From https://fetch.spec.whatwg.org/#forbidden-header-name
 const FORBIDDEN_HEADERS = ["ACCEPT-CHARSET", "ACCEPT-ENCODING",
                            "ACCESS-CONTROL-REQUEST-HEADERS", "ACCESS-CONTROL-REQUEST-METHOD",
-                           "CONNECTION", "CONTENT-LENGTH", "COOKIE", "COOKIE2", "DATE", "DNT",
+                           "CONNECTION", "CONTENT-LENGTH", "COOKIE", "COOKIE2", "DATE",
                            "EXPECT", "HOST", "KEEP-ALIVE", "ORIGIN", "REFERER", "TE", "TRAILER",
                            "TRANSFER-ENCODING", "UPGRADE", "VIA"];
 

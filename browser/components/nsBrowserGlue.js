@@ -1814,19 +1814,6 @@ BrowserGlue.prototype = {
       }
     }
 
-    if (currentUIVersion < 25) {
-      // Make sure the doNotTrack value conforms to the conversion from
-      // three-state to two-state. (This reverts a setting of "please track me"
-      // to the default "don't say anything").
-      try {
-        if (Services.prefs.getBoolPref("privacy.donottrackheader.enabled") &&
-            Services.prefs.getIntPref("privacy.donottrackheader.value") != 1) {
-          Services.prefs.clearUserPref("privacy.donottrackheader.enabled");
-          Services.prefs.clearUserPref("privacy.donottrackheader.value");
-        }
-      } catch (ex) {}
-    }
-
     if (currentUIVersion < 26) {
       // Refactor urlbar suggestion preferences to make it extendable and
       // allow new suggestion types (e.g: search suggestions).

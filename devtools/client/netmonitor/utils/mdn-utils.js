@@ -35,7 +35,6 @@ const SUPPORTED_HEADERS = [
   "Content-Type",
   "Cookie",
   "Cookie2",
-  "DNT",
   "Date",
   "ETag",
   "Expires",
