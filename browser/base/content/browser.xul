@@ -895,7 +895,6 @@
              class="chromeclass-directories"
              context="toolbar-context-menu"
              toolbarname="&personalbarCmd.label;" accesskey="&personalbarCmd.accesskey;"
-             collapsed="true"
              customizable="true">
       <toolbaritem id="personal-bookmarks"
                    title="&bookmarksToolbarItem.label;"
