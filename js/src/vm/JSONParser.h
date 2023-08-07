@@ -108,7 +108,8 @@ class MOZ_STACK_CLASS JSONParserBase
 #endif
 
     JSONParserBase(JSContext* cx, ErrorHandling errorHandling)
-      : cx(cx),
+      : v(),
+        cx(cx),
         errorHandling(errorHandling),
         stack(cx),
         freeElements(cx),
