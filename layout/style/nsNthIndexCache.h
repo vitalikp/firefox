@@ -68,8 +68,18 @@ private:
     }
 
     template <typename T>
+    T *maybe_pod_malloc(size_t numElems) {
+      return static_cast<T *>(::malloc(numElems * sizeof(T)));
+    }
+
+    template <typename T>
     T *pod_calloc(size_t numElems) {
       return maybe_pod_calloc<T>(numElems);
+    }
+
+    template <typename T>
+    T *pod_malloc(size_t numElems) {
+      return maybe_pod_malloc<T>(numElems);
     }
 
     void *realloc_(void *p, size_t bytes) { return ::realloc(p, bytes); }
