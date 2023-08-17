@@ -3107,10 +3107,9 @@ WebSocketChannel::GetInterface(const nsIID & iid, void **result)
   if (iid.Equals(NS_GET_IID(nsIChannelEventSink)))
     return QueryInterface(iid, result);
 
-  if (mCallbacks)
-    return mCallbacks->GetInterface(iid, result);
+  if (mCallbacks) return mCallbacks->GetInterface(iid, result);
 
-  return NS_ERROR_FAILURE;
+  return NS_ERROR_NO_INTERFACE;
 }
 
 // nsIChannelEventSink
