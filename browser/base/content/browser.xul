@@ -525,6 +525,16 @@
              context="toolbar-context-menu"
              collapsed="true">
 
+      <toolbaritem id="PanelUI-button"
+                   class="chromeclass-toolbar-additional"
+                   removable="false">
+        <toolbarbutton id="PanelUI-menu-button"
+                       class="toolbarbutton-1 badged-button"
+                       consumeanchor="PanelUI-button"
+                       label="&brandShortName;"
+                       tooltiptext="&appmenu.tooltip;"/>
+      </toolbaritem>
+
 #if defined(MOZ_WIDGET_GTK)
       <hbox id="private-browsing-indicator"
             skipintoolbarset="true"/>
@@ -856,16 +866,6 @@
                      class="toolbarbutton-1 chromeclass-toolbar-additional overflow-button"
                      skipintoolbarset="true"
                      tooltiptext="&navbarOverflow.label;"/>
-
-      <toolbaritem id="PanelUI-button"
-                   class="chromeclass-toolbar-additional"
-                   removable="false">
-        <toolbarbutton id="PanelUI-menu-button"
-                       class="toolbarbutton-1 badged-button"
-                       consumeanchor="PanelUI-button"
-                       label="&brandShortName;"
-                       tooltiptext="&appmenu.tooltip;"/>
-      </toolbaritem>
 
       <hbox id="window-controls" hidden="true" pack="end" skipintoolbarset="true"
             ordinal="1000">

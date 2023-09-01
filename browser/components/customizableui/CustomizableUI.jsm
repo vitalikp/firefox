@@ -265,6 +265,7 @@ var CustomizableUIInternal = {
       legacy: true,
       type: CustomizableUI.TYPE_TOOLBAR,
       defaultPlacements: [
+        "PanelUI-button",
         "tabbrowser-tabs",
         "new-tab-button",
         "alltabs-button",
