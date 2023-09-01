@@ -535,11 +535,6 @@
                        tooltiptext="&appmenu.tooltip;"/>
       </toolbaritem>
 
-#if defined(MOZ_WIDGET_GTK)
-      <hbox id="private-browsing-indicator"
-            skipintoolbarset="true"/>
-#endif
-
       <tabs id="tabbrowser-tabs"
             class="tabbrowser-tabs"
             tabbrowser="content"
@@ -585,9 +580,7 @@
         </menupopup>
       </toolbarbutton>
 
-#if !defined(MOZ_WIDGET_GTK)
       <hbox class="private-browsing-indicator" skipintoolbarset="true"/>
-#endif
 #ifdef CAN_DRAW_IN_TITLEBAR
       <hbox class="titlebar-placeholder" type="caption-buttons"
             id="titlebar-placeholder-on-TabsToolbar-for-captions-buttons" persist="width"
