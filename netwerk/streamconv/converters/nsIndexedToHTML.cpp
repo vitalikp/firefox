@@ -493,7 +493,7 @@ nsIndexedToHTML::DoOnStartRequest(nsIRequest* request, nsISupports *aContext,
         if (NS_FAILED(rv)) return rv;
     }
 
-    nsXPIDLCString encoding;
+    nsAutoCString encoding;
     rv = uri->GetOriginCharset(encoding);
     if (NS_FAILED(rv)) return rv;
     if (encoding.IsEmpty()) {
@@ -501,7 +501,7 @@ nsIndexedToHTML::DoOnStartRequest(nsIRequest* request, nsISupports *aContext,
     }
 
     nsString unEscapeSpec;
-    rv = mTextToSubURI->UnEscapeAndConvert(encoding, titleUri.get(),
+    rv = mTextToSubURI->UnEscapeAndConvert(encoding.get(), titleUri.get(),
                                            getter_Copies(unEscapeSpec));
     // unescape may fail because
     // 1. file URL may be encoded in platform charset for backward compatibility
@@ -723,7 +723,7 @@ nsIndexedToHTML::OnIndexAvailable(nsIRequest *aRequest,
             break;
     }
     nsCString escaped;
-    escaped.Adopt(nsEscapeHTML(loc));
+    escaped.Adopt(nsEscapeHTML(loc.get()));
     pushBuffer.Append(escaped);
 
     pushBuffer.AppendLiteral("\"><table class=\"ellipsis\"><tbody><tr><td><a class=\"");

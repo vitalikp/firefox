@@ -1485,7 +1485,7 @@ _getproperty(NPP npp, NPObject* npobj, NPIdentifier property,
     return true;
 
   NPString urlnp = NPVARIANT_TO_STRING(*result);
-  nsXPIDLCString url;
+  nsCString url;
   url.Assign(urlnp.UTF8Characters, urlnp.UTF8Length);
 
   bool javaCompatible = false;
