@@ -190,15 +190,6 @@ MediaKeys::StorePromise(DetailedPromise* aPromise)
   return id;
 }
 
-void
-MediaKeys::ConnectPendingPromiseIdWithToken(PromiseId aId, uint32_t aToken)
-{
-  // Should only be called from MediaKeySession::GenerateRequest.
-  mPromiseIdToken.Put(aId, aToken);
-  EME_LOG("MediaKeys[%p]::ConnectPendingPromiseIdWithToken() id=%u => token(%u)",
-          this, aId, aToken);
-}
-
 already_AddRefed<DetailedPromise>
 MediaKeys::RetrievePromise(PromiseId aId)
 {
@@ -543,34 +534,6 @@ MediaKeys::Unbind()
 {
   MOZ_ASSERT(NS_IsMainThread());
   mElement = nullptr;
-}
-
-void
-MediaKeys::GetSessionsInfo(nsString& sessionsInfo)
-{
-  for (KeySessionHashMap::Iterator it = mKeySessions.Iter();
-       !it.Done();
-       it.Next()) {
-    MediaKeySession* keySession = it.Data();
-    nsString sessionID;
-    keySession->GetSessionId(sessionID);
-    sessionsInfo.AppendLiteral("(sid=");
-    sessionsInfo.Append(sessionID);
-    MediaKeyStatusMap* keyStatusMap = keySession->KeyStatuses();
-    for (uint32_t i = 0; i < keyStatusMap->GetIterableLength(); i++) {
-      nsString keyID = keyStatusMap->GetKeyIDAsHexString(i);
-      sessionsInfo.AppendLiteral("(kid=");
-      sessionsInfo.Append(keyID);
-      using IntegerType = typename std::underlying_type<MediaKeyStatus>::type;
-      auto idx = static_cast<IntegerType>(keyStatusMap->GetValueAtIndex(i));
-      const char* keyStatus = MediaKeyStatusValues::strings[idx].value;
-      sessionsInfo.AppendLiteral(" status=");
-      sessionsInfo.Append(
-        NS_ConvertUTF8toUTF16((nsDependentCString(keyStatus))));
-      sessionsInfo.AppendLiteral(")");
-    }
-    sessionsInfo.AppendLiteral(")");
-  }
 }
 
 } // namespace dom

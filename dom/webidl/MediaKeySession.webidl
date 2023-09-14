@@ -30,14 +30,7 @@ interface MediaKeySession : EventTarget {
   attribute EventHandler onmessage;
 
   [NewObject]
-  Promise<void> generateRequest(DOMString initDataType, BufferSource initData);
-
-  [NewObject]
   Promise<boolean> load(DOMString sessionId);
-
-  // session operations
-  [NewObject]
-  Promise<void> update(BufferSource response);
 
   [NewObject]
   Promise<void> close();

@@ -92,7 +92,6 @@ private:
   MozPromiseRequestHolder<ShutdownPromise> mShutdownRequest;
   RefPtr<ShutdownPromise> mShutdownPromise;
 
-  RefPtr<GMPCrashHelper> mGMPCrashHelper;
   Maybe<bool> mNeedAVCC;
   nsresult mLastError;
   bool mNeedKeyframe = true;

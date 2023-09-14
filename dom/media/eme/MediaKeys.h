@@ -86,8 +86,7 @@ public:
                     const nsACString& aNodeId, const uint32_t aPluginId);
 
   // Called once the CDM generates a sessionId while servicing a
-  // MediaKeySession.generateRequest() or MediaKeySession.load() call,
-  // once the sessionId of a MediaKeySession is known.
+  // MediaKeySession.load() call, once the sessionId of a MediaKeySession is known.
   void OnSessionIdReady(MediaKeySession* aSession);
 
   // Called once a LoadSession succeeds.
@@ -106,13 +105,6 @@ public:
   // promises to be resolved.
   PromiseId StorePromise(DetailedPromise* aPromise);
 
-  // Stores a map from promise id to pending session token. Using this
-  // mapping, when a promise is rejected via its ID, we can check if the
-  // promise corresponds to a pending session and retrieve that session
-  // via the mapped-to token, and remove the pending session from the
-  // list of sessions awaiting a session id.
-  void ConnectPendingPromiseIdWithToken(PromiseId aId, uint32_t aToken);
-
   // Reject promise with DOMException corresponding to aExceptionCode.
   void RejectPromise(PromiseId aId, nsresult aExceptionCode,
                      const nsCString& aReason);
@@ -129,8 +121,6 @@ public:
 
   // Returns true if this MediaKeys has been bound to a media element.
   bool IsBoundToMediaElement() const;
-
-  void GetSessionsInfo(nsString& sessionsInfo);
 
 private:
 

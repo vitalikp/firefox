@@ -7349,13 +7349,8 @@ HTMLMediaElement::GetEMEInfo(nsString& aEMEInfo)
   nsString keySystem;
   mMediaKeys->GetKeySystem(keySystem);
 
-  nsString sessionsInfo;
-  mMediaKeys->GetSessionsInfo(sessionsInfo);
-
   aEMEInfo.AppendLiteral("Key System=");
   aEMEInfo.Append(keySystem);
-  aEMEInfo.AppendLiteral(" SessionsInfo=");
-  aEMEInfo.Append(sessionsInfo);
 }
 
 void
