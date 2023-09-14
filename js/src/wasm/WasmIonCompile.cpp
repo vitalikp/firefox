@@ -1972,7 +1972,7 @@ static bool
 EmitBrTable(FunctionCompiler& f)
 {
     Uint32Vector depths;
-    uint32_t defaultDepth;
+    uint32_t defaultDepth = 0;
     ExprType branchValueType;
     MDefinition* branchValue;
     MDefinition* index = nullptr;
