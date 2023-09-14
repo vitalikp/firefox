@@ -134,37 +134,6 @@ MediaKeySession::Closed() const
   return mClosed;
 }
 
-void
-MediaKeySession::UpdateKeyStatusMap()
-{
-  MOZ_ASSERT(!IsClosed());
-  if (!mKeys->GetCDMProxy()) {
-    return;
-  }
-
-  nsTArray<CDMCaps::KeyStatus> keyStatuses;
-  {
-    CDMCaps::AutoLock caps(mKeys->GetCDMProxy()->Capabilites());
-    caps.GetKeyStatusesForSession(mSessionId, keyStatuses);
-  }
-
-  mKeyStatusMap->Update(keyStatuses);
-
-  if (EME_LOG_ENABLED()) {
-    nsAutoCString message(
-      nsPrintfCString("MediaKeySession[%p,'%s'] key statuses change {",
-                      this, NS_ConvertUTF16toUTF8(mSessionId).get()));
-    using IntegerType = typename std::underlying_type<MediaKeyStatus>::type;
-    for (const CDMCaps::KeyStatus& status : keyStatuses) {
-      message.Append(nsPrintfCString(" (%s,%s)", ToHexString(status.mId).get(),
-        MediaKeyStatusValues::strings[static_cast<IntegerType>(status.mStatus)].value));
-    }
-    message.Append(" }");
-    // Use %s so we aren't exposing random strings to printf interpolation.
-    EME_LOG("%s", message.get());
-  }
-}
-
 MediaKeyStatusMap*
 MediaKeySession::KeyStatuses() const
 {
@@ -602,20 +571,6 @@ MediaKeySession::DispatchKeyError(uint32_t aSystemCode)
   RefPtr<MediaKeyError> event(new MediaKeyError(this, aSystemCode));
   RefPtr<AsyncEventDispatcher> asyncDispatcher =
     new AsyncEventDispatcher(this, event);
-  asyncDispatcher->PostDOMEvent();
-}
-
-void
-MediaKeySession::DispatchKeyStatusesChange()
-{
-  if (IsClosed()) {
-    return;
-  }
-
-  UpdateKeyStatusMap();
-
-  RefPtr<AsyncEventDispatcher> asyncDispatcher =
-    new AsyncEventDispatcher(this, NS_LITERAL_STRING("keystatuseschange"), false);
   asyncDispatcher->PostDOMEvent();
 }
 

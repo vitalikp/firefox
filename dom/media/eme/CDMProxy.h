@@ -207,13 +207,8 @@ public:
   // Threadsafe.
   virtual const nsString& KeySystem() const = 0;
 
-  virtual  CDMCaps& Capabilites() = 0;
-
   // Main thread only.
   virtual void OnKeyStatusesChange(const nsAString& aSessionId) = 0;
-
-  virtual void GetSessionIdsForKeyId(const nsTArray<uint8_t>& aKeyId,
-                                     nsTArray<nsCString>& aSessionIds) = 0;
 
 #ifdef DEBUG
   virtual bool IsOnOwnerThread() = 0;
@@ -264,8 +259,6 @@ protected:
   RefPtr<nsIThread> mOwnerThread;
 
   nsCString mNodeId;
-
-  CDMCaps mCapabilites;
 
   const bool mDistinctiveIdentifierRequired;
   const bool mPersistentStateRequired;

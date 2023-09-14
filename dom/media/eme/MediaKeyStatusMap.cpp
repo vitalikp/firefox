@@ -115,14 +115,5 @@ MediaKeyStatusMap::Size() const
   return mStatuses.Length();
 }
 
-void
-MediaKeyStatusMap::Update(const nsTArray<CDMCaps::KeyStatus>& aKeys)
-{
-  mStatuses.Clear();
-  for (const auto& key : aKeys) {
-    mStatuses.InsertElementSorted(KeyStatus(key.mId, key.mStatus));
-  }
-}
-
 } // namespace dom
 } // namespace mozilla

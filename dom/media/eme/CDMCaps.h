@@ -25,29 +25,6 @@ public:
   CDMCaps();
   ~CDMCaps();
 
-  struct KeyStatus {
-    KeyStatus(const CencKeyId& aId,
-              const nsString& aSessionId,
-              dom::MediaKeyStatus aStatus)
-      : mId(aId)
-      , mSessionId(aSessionId)
-      , mStatus(aStatus)
-    {}
-    KeyStatus(const KeyStatus& aOther)
-      : mId(aOther.mId)
-      , mSessionId(aOther.mSessionId)
-      , mStatus(aOther.mStatus)
-    {}
-    bool operator==(const KeyStatus& aOther) const {
-      return mId == aOther.mId &&
-             mSessionId == aOther.mSessionId;
-    };
-
-    CencKeyId mId;
-    nsString mSessionId;
-    dom::MediaKeyStatus mStatus;
-  };
-
   // Locks the CDMCaps. It must be locked to access its shared state.
   // Threadsafe when locked.
   class MOZ_STACK_CLASS AutoLock {
@@ -55,23 +32,6 @@ public:
     explicit AutoLock(CDMCaps& aKeyCaps);
     ~AutoLock();
 
-    bool IsKeyUsable(const CencKeyId& aKeyId);
-
-    // Returns true if key status changed,
-    // i.e. the key status changed from usable to expired.
-    bool SetKeyStatus(const CencKeyId& aKeyId,
-                      const nsString& aSessionId,
-                      const dom::Optional<dom::MediaKeyStatus>& aStatus);
-
-    void GetKeyStatusesForSession(const nsAString& aSessionId,
-                                  nsTArray<KeyStatus>& aOutKeyStatuses);
-
-    void GetSessionIdsForKeyId(const CencKeyId& aKeyId,
-                               nsTArray<nsCString>& aOutSessionIds);
-
-    // Ensures all keys for a session are marked as 'unknown', i.e. removed.
-    // Returns true if a key status was changed.
-    bool RemoveKeysForSession(const nsString& aSessionId);
   private:
     // Not taking a strong ref, since this should be allocated on the stack.
     CDMCaps& mData;
@@ -82,8 +42,6 @@ private:
   void Unlock();
 
   Monitor mMonitor;
-
-  nsTArray<KeyStatus> mKeyStatuses;
 
   // It is not safe to copy this object.
   CDMCaps(const CDMCaps&) = delete;

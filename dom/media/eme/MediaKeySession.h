@@ -85,8 +85,6 @@ public:
 
   void DispatchKeyError(uint32_t system_code);
 
-  void DispatchKeyStatusesChange();
-
   void OnClosed();
 
   bool IsClosed() const;
@@ -104,8 +102,6 @@ public:
 
 private:
   ~MediaKeySession();
-
-  void UpdateKeyStatusMap();
 
   bool IsCallable() const {
     // The EME spec sets the "callable value" to true whenever the CDM sets

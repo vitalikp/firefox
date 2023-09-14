@@ -14,7 +14,6 @@
 
 #include "mozilla/dom/TypedArray.h"
 #include "mozilla/dom/MediaKeyStatusMapBinding.h"
-#include "mozilla/CDMCaps.h"
 
 class nsPIDOMWindowInner;
 
@@ -55,8 +54,6 @@ public:
   TypedArrayCreator<ArrayBuffer> GetKeyAtIndex(uint32_t aIndex) const;
   nsString GetKeyIDAsHexString(uint32_t aIndex) const;
   MediaKeyStatus GetValueAtIndex(uint32_t aIndex) const;
-
-  void Update(const nsTArray<CDMCaps::KeyStatus>& keys);
 
 private:
 
