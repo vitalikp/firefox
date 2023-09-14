@@ -18,6 +18,7 @@
 #include "nsIUnicodeNormalizer.h"
 #include "nsIDNKitInterface.h"
 #endif
+#include "mozilla/Mutex.h"
 
 #include "nsString.h"
 
