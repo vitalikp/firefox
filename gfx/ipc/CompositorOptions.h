@@ -41,7 +41,7 @@ public:
 
   bool UseAPZ() const { return mUseAPZ; }
 
-  bool operator==(const CompositorOptions& aOther) {
+  bool operator==(const CompositorOptions& aOther) const {
     return mUseAPZ == aOther.mUseAPZ;
   }
 
