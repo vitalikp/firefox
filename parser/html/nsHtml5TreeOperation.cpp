@@ -471,7 +471,7 @@ nsHtml5TreeOperation::SetFormElement(nsIContent* aNode, nsIContent* aParent)
 nsresult
 nsHtml5TreeOperation::AppendIsindexPrompt(nsIContent* parent, nsHtml5DocumentBuilder* aBuilder)
 {
-  nsXPIDLString prompt;
+  nsString prompt;
   nsresult rv =
       nsContentUtils::GetLocalizedString(nsContentUtils::eFORMS_PROPERTIES,
                                          "IsIndexPromptWithSpace", prompt);
