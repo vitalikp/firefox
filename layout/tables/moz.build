@@ -10,6 +10,7 @@ EXPORTS += [
     'nsITableCellLayout.h',
     'nsTableCellFrame.h',     # included by dom/base/Selection.cpp
     'nsTableFrame.h',         # included by nsTableWrapperFrame.h
+    'nsTablePainter.h',       # included by nsTableRowFrame.h
     'nsTableRowFrame.h',      # included by nsTableCellFrame.h
     'nsTableRowGroupFrame.h', # included by nsTableRowFrame.h
     'nsTableWrapperFrame.h',  # included by dom/base/Selection.cpp
