@@ -167,6 +167,7 @@ Instance::callImport(JSContext* cx, uint32_t funcImportIndex, unsigned argc, con
           case ValType::B8x16:
           case ValType::B16x8:
           case ValType::B32x4:
+          case ValType::InvalidCode:
             MOZ_CRASH("unhandled type in callImport");
         }
     }
@@ -239,6 +240,8 @@ Instance::callImport(JSContext* cx, uint32_t funcImportIndex, unsigned argc, con
           case ValType::B8x16: MOZ_CRASH("NYI");
           case ValType::B16x8: MOZ_CRASH("NYI");
           case ValType::B32x4: MOZ_CRASH("NYI");
+          case ValType::InvalidCode:
+            MOZ_CRASH("NYI");
         }
         if (!TypeScript::ArgTypes(script, i)->hasType(type))
             return true;
@@ -664,6 +667,8 @@ Instance::callExport(JSContext* cx, uint32_t funcIndex, CallArgs args)
             memcpy(&exportArgs[i], simd.asInt32x4(), Simd128DataSize);
             break;
           }
+          case ValType::InvalidCode:
+            return false;
         }
     }
 

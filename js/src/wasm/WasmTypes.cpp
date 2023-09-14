@@ -51,6 +51,8 @@ Val::writePayload(uint8_t* dst) const
       case ValType::B32x4:
         memcpy(dst, &u, jit::Simd128DataSize);
         return;
+      default:
+        break;
     }
 }
 
@@ -169,6 +171,8 @@ IsImmediateType(ValType vt)
       case ValType::B16x8:
       case ValType::B32x4:
         return false;
+      default:
+        break;
     }
     MOZ_CRASH("bad ValType");
 }
@@ -193,6 +197,7 @@ EncodeImmediateType(ValType vt)
       case ValType::B8x16:
       case ValType::B16x8:
       case ValType::B32x4:
+      case ValType::InvalidCode:
         break;
     }
     MOZ_CRASH("bad ValType");

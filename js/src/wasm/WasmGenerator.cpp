@@ -764,6 +764,8 @@ ModuleGenerator::allocateGlobal(GlobalDesc* global)
       case ValType::B32x4:
         width = 16;
         break;
+      default:
+        return false;
     }
 
     uint32_t offset;
