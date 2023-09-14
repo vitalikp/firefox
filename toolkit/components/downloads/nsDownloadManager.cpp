@@ -2555,25 +2555,23 @@ nsDownloadManager::ConfirmCancelDownloads(int32_t aCount,
   if (quitRequestCancelled)
     return;
 
-  nsXPIDLString title, message, quitButton, dontQuitButton;
+  nsAutoString title, message, quitButton, dontQuitButton;
 
-  mBundle->GetStringFromName(aTitle, getter_Copies(title));
+  mBundle->GetStringFromName(aTitle, title);
 
   nsAutoString countString;
   countString.AppendInt(aCount);
   const char16_t *strings[1] = { countString.get() };
   if (aCount > 1) {
-    mBundle->FormatStringFromName(aCancelMessageMultiple, strings, 1,
-                                  getter_Copies(message));
+    mBundle->FormatStringFromName(aCancelMessageMultiple, strings, 1, message);
     mBundle->FormatStringFromName("cancelDownloadsOKTextMultiple",
-                                  strings, 1, getter_Copies(quitButton));
+                                  strings, 1, quitButton);
   } else {
-    mBundle->GetStringFromName(aCancelMessageSingle, getter_Copies(message));
-    mBundle->GetStringFromName("cancelDownloadsOKText",
-                               getter_Copies(quitButton));
+    mBundle->GetStringFromName(aCancelMessageSingle, message);
+    mBundle->GetStringFromName("cancelDownloadsOKText", quitButton);
   }
 
-  mBundle->GetStringFromName(aDontCancelButton, getter_Copies(dontQuitButton));
+  mBundle->GetStringFromName(aDontCancelButton, dontQuitButton);
 
   // Get Download Manager window, to be parent of alert.
   nsCOMPtr<nsIWindowMediator> wm = do_GetService(NS_WINDOWMEDIATOR_CONTRACTID);
@@ -2589,7 +2587,7 @@ nsDownloadManager::ConfirmCancelDownloads(int32_t aCount,
     int32_t flags = (nsIPromptService::BUTTON_TITLE_IS_STRING * nsIPromptService::BUTTON_POS_0) + (nsIPromptService::BUTTON_TITLE_IS_STRING * nsIPromptService::BUTTON_POS_1);
     bool nothing = false;
     int32_t button;
-    prompter->ConfirmEx(dmWindow, title, message, flags, quitButton.get(), dontQuitButton.get(), nullptr, nullptr, &nothing, &button);
+    prompter->ConfirmEx(dmWindow, title.get(), message.get(), flags, quitButton.get(), dontQuitButton.get(), nullptr, nullptr, &nothing, &button);
 
     aCancelDownloads->SetData(button == 1);
   }
@@ -2743,14 +2741,12 @@ nsDownload::SetState(DownloadState aState)
           nsCOMPtr<nsIAlertsService> alerts =
             do_GetService("@mozilla.org/alerts-service;1");
           if (alerts) {
-              nsXPIDLString title, message;
+              nsAutoString title, message;
 
               mDownloadManager->mBundle->GetStringFromName(
-                  "downloadsCompleteTitle",
-                  getter_Copies(title));
+                  "downloadsCompleteTitle", title);
               mDownloadManager->mBundle->GetStringFromName(
-                  "downloadsCompleteMsg",
-                  getter_Copies(message));
+                  "downloadsCompleteMsg", message);
 
               bool removeWhenDone =
                 mDownloadManager->GetRetentionBehavior() == 0;
@@ -3752,17 +3748,17 @@ nsDownload::FailDownload(nsresult aStatus, const char16_t *aMessage)
   (void)SetState(nsIDownloadManager::DOWNLOAD_FAILED);
 
   // Get title for alert.
-  nsXPIDLString title;
+  nsAutoString title;
   nsresult rv = bundle->GetStringFromName(
-    "downloadErrorAlertTitle", getter_Copies(title));
+    "downloadErrorAlertTitle", title);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Get a generic message if we weren't supplied one
-  nsXPIDLString message;
+  nsAutoString message;
   message = aMessage;
   if (message.IsEmpty()) {
     rv = bundle->GetStringFromName(
-      "downloadErrorGeneric", getter_Copies(message));
+      "downloadErrorGeneric", message);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
@@ -3779,5 +3775,5 @@ nsDownload::FailDownload(nsresult aStatus, const char16_t *aMessage)
   nsCOMPtr<nsIPromptService> prompter =
     do_GetService("@mozilla.org/embedcomp/prompt-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return prompter->Alert(dmWindow, title, message);
+  return prompter->Alert(dmWindow, title.get(), message.get());
 }

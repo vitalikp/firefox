@@ -109,8 +109,8 @@ nsEntityConverter::ConvertUTF32ToEntity(uint32_t character, uint32_t entityVersi
     nsAutoCString key("entity.");
     key.AppendInt(character,10);
 
-    nsXPIDLString value;
-    nsresult rv = entities->GetStringFromName(key.get(), getter_Copies(value));
+    nsAutoString value;
+    nsresult rv = entities->GetStringFromName(key.get(), value);
     if (NS_SUCCEEDED(rv)) {
       *_retval = ToNewCString(value);
       return NS_OK;
@@ -140,7 +140,7 @@ nsEntityConverter::ConvertToEntities(const char16_t *inString, uint32_t entityVe
       key.AppendInt(inString[i],10);
     }
 
-    nsXPIDLString value;
+    nsAutoString value;
     const char16_t *entity = nullptr;
 
     for (uint32_t mask = 1, mask2 = 0xFFFFFFFFL; (0!=(entityVersion & mask2)); mask<<=1, mask2<<=1) {
@@ -155,7 +155,7 @@ nsEntityConverter::ConvertToEntities(const char16_t *inString, uint32_t entityVe
       }
 
       nsresult rv =
-        entities->GetStringFromName(key.get(), getter_Copies(value));
+        entities->GetStringFromName(key.get(), value);
       if (NS_SUCCEEDED(rv)) {
         entity = value.get();
         break;
