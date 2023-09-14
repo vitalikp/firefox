@@ -156,7 +156,7 @@ public: // for mLangRuleTable structures only
   private:
     ~LangRule() {}
   public:
-    explicit LangRule(const nsSubstring& aLang) : mLang(aLang) {}
+    explicit LangRule(const nsAString& aLang) : mLang(aLang) {}
 
     NS_DECL_ISUPPORTS
 
