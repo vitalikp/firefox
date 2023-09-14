@@ -412,7 +412,7 @@ nsXBLProtoImplField::InstallField(JS::Handle<JSObject*> aBoundNode,
   MOZ_ASSERT(!::JS_IsExceptionPending(jsapi.cx()),
              "Shouldn't get here when an exception is pending!");
 
-  JSAddonId* addonId = MapURIToAddonID(aBindingDocURI);
+  JSAddonId* addonId = MapURIToAddonID(aProtoBinding.DocURI());
 
   // Note: the UNWRAP_OBJECT may mutate boundNode; don't use it after that call.
   JS::Rooted<JSObject*> boundNode(jsapi.cx(), aBoundNode);
