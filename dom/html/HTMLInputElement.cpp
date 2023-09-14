@@ -547,8 +547,7 @@ LastUsedDirectory(const OwningFileOrDirectory& aData)
     }
 
     nsCOMPtr<nsIFile> localFile;
-    nsresult rv = NS_NewNativeLocalFile(NS_ConvertUTF16toUTF8(path), true,
-                                        getter_AddRefs(localFile));
+    nsresult rv = NS_NewLocalFile(path, true, getter_AddRefs(localFile));
     if (NS_WARN_IF(NS_FAILED(rv))) {
       return nullptr;
     }
