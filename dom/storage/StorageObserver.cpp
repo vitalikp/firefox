@@ -254,7 +254,7 @@ StorageObserver::Observe(nsISupports* aSubject,
   }
 
   if (!strcmp(aTopic, "extension:purge-localStorage")) {
-    StorageDBBridge* db = StorageCache::StartDatabase();
+    StorageDBBridge* db = LocalStorageCache::StartDatabase();
     NS_ENSURE_TRUE(db, NS_ERROR_FAILURE);
 
     db->AsyncClearAll();
