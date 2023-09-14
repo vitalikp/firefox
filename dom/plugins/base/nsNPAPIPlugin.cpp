@@ -1509,7 +1509,7 @@ _getproperty(NPP npp, NPObject* npobj, NPIdentifier property,
 
   _releasevariantvalue(result);
   char* fakeurl = (char *) _memalloc(inst->mFakeURL.Length() + 1);
-  strcpy(fakeurl, inst->mFakeURL);
+  strcpy(fakeurl, inst->mFakeURL.get());
   STRINGZ_TO_NPVARIANT(fakeurl, *result);
 
   return true;

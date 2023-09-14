@@ -385,6 +385,8 @@ public:
   // True while creating the plugin, or calling NPP_SetWindow() on it.
   bool mInPluginInitCall;
 
+  nsCString mFakeURL;
+
 private:
   RefPtr<nsNPAPIPlugin> mPlugin;
 
