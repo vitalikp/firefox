@@ -22,7 +22,6 @@ enum class ScalarID : uint32_t;
 enum class ScalarActionType : uint32_t;
 
 } // Telemetry
-} // mozilla
 
 namespace TelemetryIPCAccumulator {
 
@@ -45,5 +44,6 @@ void DeInitializeGlobalState();
 void DispatchToMainThread(already_AddRefed<nsIRunnable>&& aEvent);
 
 }
+} // mozilla
 
 #endif // TelemetryIPCAccumulator_h__

@@ -30,6 +30,8 @@ using mozilla::Telemetry::ScalarActionType;
 using mozilla::Telemetry::ScalarAction;
 using mozilla::Telemetry::KeyedScalarAction;
 
+namespace TelemetryIPCAccumulator = mozilla::TelemetryIPCAccumulator;
+
 // Sending each remote accumulation immediately places undue strain on the
 // IPC subsystem. Batch the remote accumulations for a period of time before
 // sending them all at once. This value was chosen as a balance between data

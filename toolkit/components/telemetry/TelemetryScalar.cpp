@@ -32,6 +32,8 @@ using mozilla::Telemetry::Common::IsInDataset;
 using mozilla::Telemetry::Common::LogToBrowserConsole;
 using mozilla::Telemetry::ScalarActionType;
 
+namespace TelemetryIPCAccumulator = mozilla::TelemetryIPCAccumulator;
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //
