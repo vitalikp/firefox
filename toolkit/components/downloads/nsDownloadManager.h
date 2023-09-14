@@ -191,10 +191,10 @@ protected:
 
   void ConfirmCancelDownloads(int32_t aCount,
                               nsISupportsPRBool *aCancelDownloads,
-                              const char16_t *aTitle,
-                              const char16_t *aCancelMessageMultiple,
-                              const char16_t *aCancelMessageSingle,
-                              const char16_t *aDontCancelButton);
+                              const char* aTitle,
+                              const char* aCancelMessageMultiple,
+                              const char* aCancelMessageSingle,
+                              const char* aDontCancelButton);
 
   int32_t GetRetentionBehavior();
 

@@ -1788,7 +1788,7 @@ NS_IMETHODIMP nsExternalAppHandler::OnStartRequest(nsIRequest *request, nsISuppo
 // notification to the dialog progress listener or nsITransfer implementation.
 void nsExternalAppHandler::SendStatusChange(ErrorType type, nsresult rv, nsIRequest *aRequest, const nsString& path)
 {
-    const char* msgId;
+    const char* msgId = "";
     switch (rv) {
     case NS_ERROR_OUT_OF_MEMORY:
         // No memory

@@ -2462,26 +2462,26 @@ nsDownloadManager::Observe(nsISupports *aSubject,
     NS_ENSURE_SUCCESS(rv, rv);
 #ifndef XP_MACOSX
     ConfirmCancelDownloads(currDownloadCount, cancelDownloads,
-                           u"quitCancelDownloadsAlertTitle",
-                           u"quitCancelDownloadsAlertMsgMultiple",
-                           u"quitCancelDownloadsAlertMsg",
-                           u"dontQuitButtonWin");
+                           "quitCancelDownloadsAlertTitle",
+                           "quitCancelDownloadsAlertMsgMultiple",
+                           "quitCancelDownloadsAlertMsg",
+                           "dontQuitButtonWin");
 #else
     ConfirmCancelDownloads(currDownloadCount, cancelDownloads,
-                           u"quitCancelDownloadsAlertTitle",
-                           u"quitCancelDownloadsAlertMsgMacMultiple",
-                           u"quitCancelDownloadsAlertMsgMac",
-                           u"dontQuitButtonMac");
+                           "quitCancelDownloadsAlertTitle",
+                           "quitCancelDownloadsAlertMsgMacMultiple",
+                           "quitCancelDownloadsAlertMsgMac",
+                           "dontQuitButtonMac");
 #endif
   } else if (strcmp(aTopic, "offline-requested") == 0 && currDownloadCount) {
     nsCOMPtr<nsISupportsPRBool> cancelDownloads =
       do_QueryInterface(aSubject, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     ConfirmCancelDownloads(currDownloadCount, cancelDownloads,
-                           u"offlineCancelDownloadsAlertTitle",
-                           u"offlineCancelDownloadsAlertMsgMultiple",
-                           u"offlineCancelDownloadsAlertMsg",
-                           u"dontGoOfflineButton");
+                           "offlineCancelDownloadsAlertTitle",
+                           "offlineCancelDownloadsAlertMsgMultiple",
+                           "offlineCancelDownloadsAlertMsg",
+                           "dontGoOfflineButton");
   }
   else if (strcmp(aTopic, NS_IOSERVICE_GOING_OFFLINE_TOPIC) == 0) {
     // Pause all downloads, and mark them to auto-resume.
@@ -2532,10 +2532,10 @@ nsDownloadManager::Observe(nsISupports *aSubject,
     NS_ENSURE_SUCCESS(rv, rv);
 
     ConfirmCancelDownloads(mCurrentPrivateDownloads.Count(), cancelDownloads,
-                           u"leavePrivateBrowsingCancelDownloadsAlertTitle",
-                           u"leavePrivateBrowsingWindowsCancelDownloadsAlertMsgMultiple2",
-                           u"leavePrivateBrowsingWindowsCancelDownloadsAlertMsg2",
-                           u"dontLeavePrivateBrowsingButton2");
+                           "leavePrivateBrowsingCancelDownloadsAlertTitle",
+                           "leavePrivateBrowsingWindowsCancelDownloadsAlertMsgMultiple2",
+                           "leavePrivateBrowsingWindowsCancelDownloadsAlertMsg2",
+                           "dontLeavePrivateBrowsingButton2");
   }
 
   return NS_OK;
@@ -2544,10 +2544,10 @@ nsDownloadManager::Observe(nsISupports *aSubject,
 void
 nsDownloadManager::ConfirmCancelDownloads(int32_t aCount,
                                           nsISupportsPRBool *aCancelDownloads,
-                                          const char16_t *aTitle,
-                                          const char16_t *aCancelMessageMultiple,
-                                          const char16_t *aCancelMessageSingle,
-                                          const char16_t *aDontCancelButton)
+                                          const char* aTitle,
+                                          const char* aCancelMessageMultiple,
+                                          const char* aCancelMessageSingle,
+                                          const char* aDontCancelButton)
 {
   // If user has already dismissed quit request, then do nothing
   bool quitRequestCancelled = false;
@@ -2565,11 +2565,11 @@ nsDownloadManager::ConfirmCancelDownloads(int32_t aCount,
   if (aCount > 1) {
     mBundle->FormatStringFromName(aCancelMessageMultiple, strings, 1,
                                   getter_Copies(message));
-    mBundle->FormatStringFromName(u"cancelDownloadsOKTextMultiple",
+    mBundle->FormatStringFromName("cancelDownloadsOKTextMultiple",
                                   strings, 1, getter_Copies(quitButton));
   } else {
     mBundle->GetStringFromName(aCancelMessageSingle, getter_Copies(message));
-    mBundle->GetStringFromName(u"cancelDownloadsOKText",
+    mBundle->GetStringFromName("cancelDownloadsOKText",
                                getter_Copies(quitButton));
   }
 
@@ -2746,10 +2746,10 @@ nsDownload::SetState(DownloadState aState)
               nsXPIDLString title, message;
 
               mDownloadManager->mBundle->GetStringFromName(
-                  u"downloadsCompleteTitle",
+                  "downloadsCompleteTitle",
                   getter_Copies(title));
               mDownloadManager->mBundle->GetStringFromName(
-                  u"downloadsCompleteMsg",
+                  "downloadsCompleteMsg",
                   getter_Copies(message));
 
               bool removeWhenDone =
@@ -3754,7 +3754,7 @@ nsDownload::FailDownload(nsresult aStatus, const char16_t *aMessage)
   // Get title for alert.
   nsXPIDLString title;
   nsresult rv = bundle->GetStringFromName(
-    u"downloadErrorAlertTitle", getter_Copies(title));
+    "downloadErrorAlertTitle", getter_Copies(title));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Get a generic message if we weren't supplied one
@@ -3762,7 +3762,7 @@ nsDownload::FailDownload(nsresult aStatus, const char16_t *aMessage)
   message = aMessage;
   if (message.IsEmpty()) {
     rv = bundle->GetStringFromName(
-      u"downloadErrorGeneric", getter_Copies(message));
+      "downloadErrorGeneric", getter_Copies(message));
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
