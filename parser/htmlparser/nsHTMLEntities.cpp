@@ -151,7 +151,8 @@ nsHTMLEntities::EntityToUnicode(const nsCString& aEntity)
 
 int32_t 
 nsHTMLEntities::EntityToUnicode(const nsAString& aEntity) {
-  nsAutoCString theEntity; theEntity.AssignWithConversion(aEntity);
+  nsAutoCString theEntity;
+  LossyCopyUTF16toASCII(aEntity, theEntity);
   if(';'==theEntity.Last()) {
     theEntity.Truncate(theEntity.Length()-1);
   }
