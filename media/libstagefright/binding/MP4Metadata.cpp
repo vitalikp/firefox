@@ -31,6 +31,8 @@ using mozilla::media::TimeUnit;
 namespace mp4_demuxer
 {
 
+static LazyLogModule sLog("MP4Metadata");
+
 class DataSourceAdapter : public DataSource
 {
 public:
@@ -163,8 +165,6 @@ TrackTypeToString(mozilla::TrackInfo::TrackType aType)
 uint32_t
 MP4Metadata::GetNumberTracks(mozilla::TrackInfo::TrackType aType) const
 {
-  static LazyLogModule sLog("MP4Metadata");
-
   uint32_t numTracks = mStagefright->GetNumberTracks(aType);
 
   return numTracks;
