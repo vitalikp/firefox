@@ -13,7 +13,6 @@
 #include "mozilla/ArrayUtils.h"
 #include "mozilla/MathAlgorithms.h"
 #include "mozilla/MemoryReporting.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "mozilla/TemplateLib.h"
 
 #include <string.h>
@@ -3737,11 +3736,11 @@ js::DumpBacktrace(JSContext* cx, js::GenericPrinter& out)
             i.isWasm() ? 'W' :
             '?';
 
-        sprinter.printf("#%" PRIuSIZE " %14p %c   %s:%d",
+        sprinter.printf("#%zu %14p %c   %s:%d",
                         depth, i.rawFramePtr(), frameType, filename, line);
 
         if (i.hasScript()) {
-            sprinter.printf(" (%p @ %" PRIuSIZE ")\n",
+            sprinter.printf(" (%p @ %zu)\n",
                             i.script(), i.script()->pcToOffset(i.pc()));
         } else {
             sprinter.printf(" (%p)\n", i.pc());

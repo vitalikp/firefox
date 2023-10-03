@@ -12,7 +12,6 @@
 #include "VideoUtils.h"
 #include "TimeUnits.h"
 #include "prenv.h"
-#include "mozilla/SizePrintfMacros.h"
 
 extern mozilla::LazyLogModule gMediaDemuxerLog;
 #define ADTSLOG(msg, ...) \
@@ -535,7 +534,7 @@ ADTSTrackDemuxer::GetSamples(int32_t aNumSamples)
     frames->mSamples.AppendElement(frame);
   }
 
-  ADTSLOGV("GetSamples() End mSamples.Size()=%" PRIuSIZE " aNumSamples=%d mOffset=%" PRIu64
+  ADTSLOGV("GetSamples() End mSamples.Size()=%zu aNumSamples=%d mOffset=%" PRIu64
            " mNumParsedFrames=%" PRIu64 " mFrameIndex=%" PRId64
            " mTotalFrameLen=%" PRIu64
            " mSamplesPerFrame=%d mSamplesPerSecond=%d "
@@ -690,7 +689,7 @@ ADTSTrackDemuxer::FindNextFrame(bool findFirstFrame /*= false*/)
   }
 
   if (!foundFrame || !mParser->CurrentFrame().Length()) {
-    ADTSLOG("FindNext() Exit foundFrame=%d mParser->CurrentFrame().Length()=%" PRIuSIZE " ",
+    ADTSLOG("FindNext() Exit foundFrame=%d mParser->CurrentFrame().Length()=%zu ",
            foundFrame, mParser->CurrentFrame().Length());
     mParser->Reset();
     return mParser->CurrentFrame();
@@ -728,8 +727,8 @@ ADTSTrackDemuxer::SkipNextFrame(const adts::Frame& aFrame)
 already_AddRefed<MediaRawData>
 ADTSTrackDemuxer::GetNextFrame(const adts::Frame& aFrame)
 {
-  ADTSLOG("GetNext() Begin({mOffset=%" PRId64 " HeaderSize()=%" PRIuSIZE
-          " Length()=%" PRIuSIZE "})",
+  ADTSLOG("GetNext() Begin({mOffset=%" PRId64 " HeaderSize()=%zu"
+          " Length()=%zu})",
          aFrame.Offset(), aFrame.Header().HeaderSize(), aFrame.PayloadLength());
   if (!aFrame.IsValid())
     return nullptr;
@@ -748,7 +747,7 @@ ADTSTrackDemuxer::GetNextFrame(const adts::Frame& aFrame)
 
   const uint32_t read = Read(frameWriter->Data(), offset, length);
   if (read != length) {
-    ADTSLOG("GetNext() Exit read=%u frame->Size()=%" PRIuSIZE, read, frame->Size());
+    ADTSLOG("GetNext() Exit read=%u frame->Size()=%zu", read, frame->Size());
     return nullptr;
   }
 

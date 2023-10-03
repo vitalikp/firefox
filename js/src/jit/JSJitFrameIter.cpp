@@ -6,8 +6,6 @@
 
 #include "jit/JSJitFrameIter-inl.h"
 
-#include "mozilla/SizePrintfMacros.h"
-
 #include "jit/BaselineIC.h"
 #include "jit/JitcodeMap.h"
 #include "jit/JitFrames.h"
@@ -307,7 +305,7 @@ JSJitFrameIter::dumpBaseline() const
         fprintf(stderr, "  global frame, no callee\n");
     }
 
-    fprintf(stderr, "  file %s line %" PRIuSIZE "\n",
+    fprintf(stderr, "  file %s line %zu\n",
             script()->filename(), script()->lineno());
 
     JSContext* cx = TlsContext.get();
@@ -417,7 +415,7 @@ JSJitFrameIter::verifyReturnAddressUsingNativeToBytecodeMap()
 
     JitSpew(JitSpew_Profiling, "Found bytecode location of depth %d:", depth);
     for (size_t i = 0; i < location.length(); i++) {
-        JitSpew(JitSpew_Profiling, "   %s:%" PRIuSIZE " - %" PRIuSIZE,
+        JitSpew(JitSpew_Profiling, "   %s:%zu - %zu",
                 location[i].script->filename(), location[i].script->lineno(),
                 size_t(location[i].pc - location[i].script->code()));
     }
@@ -430,7 +428,7 @@ JSJitFrameIter::verifyReturnAddressUsingNativeToBytecodeMap()
             MOZ_ASSERT_IF(idx < location.length() - 1, inlineFrames.more());
 
             JitSpew(JitSpew_Profiling,
-                    "Match %d: ION %s:%" PRIuSIZE "(%" PRIuSIZE ") vs N2B %s:%" PRIuSIZE "(%" PRIuSIZE ")",
+                    "Match %d: ION %s:%zu(%zu) vs N2B %s:%zu(%zu)",
                     (int)idx,
                     inlineFrames.script()->filename(),
                     inlineFrames.script()->lineno(),

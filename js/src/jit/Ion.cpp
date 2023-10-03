@@ -8,7 +8,6 @@
 
 #include "mozilla/IntegerPrintfMacros.h"
 #include "mozilla/MemoryReporting.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "mozilla/ThreadLocal.h"
 
 #include "jscompartment.h"
@@ -2226,7 +2225,7 @@ IonCompile(JSContext* cx, JSScript* script,
 
     // If possible, compile the script off thread.
     if (options.offThreadCompilationAvailable()) {
-        JitSpew(JitSpew_IonSyncLogs, "Can't log script %s:%" PRIuSIZE
+        JitSpew(JitSpew_IonSyncLogs, "Can't log script %s:%zu"
                 ". (Compiled on background thread.)",
                 builderScript->filename(), builderScript->lineno());
 
@@ -2356,7 +2355,7 @@ CheckScriptSize(JSContext* cx, JSScript* script)
         numLocalsAndArgs > MAX_ACTIVE_THREAD_LOCALS_AND_ARGS)
     {
         if (!OffThreadCompilationAvailable(cx)) {
-            JitSpew(JitSpew_IonAbort, "Script too large (%" PRIuSIZE " bytes) (%u locals/args)",
+            JitSpew(JitSpew_IonAbort, "Script too large (%zu bytes) (%u locals/args)",
                     script->length(), numLocalsAndArgs);
             TrackIonAbort(cx, script, script->code(), "too large");
             return Method_CantCompile;
@@ -2398,13 +2397,13 @@ Compile(JSContext* cx, HandleScript script, BaselineFrame* osrFrame, jsbytecode*
     }
 
     if (!CheckScript(cx, script, bool(osrPc))) {
-        JitSpew(JitSpew_IonAbort, "Aborted compilation of %s:%" PRIuSIZE, script->filename(), script->lineno());
+        JitSpew(JitSpew_IonAbort, "Aborted compilation of %s:%zu", script->filename(), script->lineno());
         return Method_CantCompile;
     }
 
     MethodStatus status = CheckScriptSize(cx, script);
     if (status != Method_Compiled) {
-        JitSpew(JitSpew_IonAbort, "Aborted compilation of %s:%" PRIuSIZE, script->filename(), script->lineno());
+        JitSpew(JitSpew_IonAbort, "Aborted compilation of %s:%zu", script->filename(), script->lineno());
         return status;
     }
 
@@ -2688,7 +2687,7 @@ jit::IonCompileScriptForBaseline(JSContext* cx, BaselineFrame* frame, jsbytecode
 
     // Ensure that Ion-compiled code is available.
     JitSpew(JitSpew_BaselineOSR,
-            "WarmUpCounter for %s:%" PRIuSIZE " reached %d at pc %p, trying to switch to Ion!",
+            "WarmUpCounter for %s:%zu reached %d at pc %p, trying to switch to Ion!",
             script->filename(), script->lineno(), (int) script->getWarmUpCount(), (void*) pc);
 
     MethodStatus stat;
@@ -3108,7 +3107,7 @@ InvalidateActivation(FreeOp* fop, const JitActivationIterator& activations, bool
         CodeLocationLabel osiPatchPoint = SafepointReader::InvalidationPatchPoint(ionScript, si);
         CodeLocationLabel invalidateEpilogue(ionCode, CodeOffset(ionScript->invalidateEpilogueOffset()));
 
-        JitSpew(JitSpew_IonInvalidate, "   ! Invalidate ionScript %p (inv count %" PRIuSIZE ") -> patching osipoint %p",
+        JitSpew(JitSpew_IonInvalidate, "   ! Invalidate ionScript %p (inv count %zu) -> patching osipoint %p",
                 ionScript, ionScript->invalidationCount(), (void*) osiPatchPoint.raw());
         Assembler::PatchWrite_NearCall(osiPatchPoint, invalidateEpilogue);
     }
@@ -3160,7 +3159,7 @@ jit::Invalidate(TypeZone& types, FreeOp* fop,
         if (!co->ion())
             continue;
 
-        JitSpew(JitSpew_IonInvalidate, " Invalidate %s:%" PRIuSIZE ", IonScript %p",
+        JitSpew(JitSpew_IonInvalidate, " Invalidate %s:%zu, IonScript %p",
                 co->script()->filename(), co->script()->lineno(), co->ion());
 
         // Keep the ion script alive during the invalidation and flag this
@@ -3256,7 +3255,7 @@ jit::Invalidate(JSContext* cx, JSScript* script, bool resetUses, bool cancelOffT
             filename = "<unknown>";
 
         // Construct the descriptive string.
-        UniqueChars buf = JS_smprintf("Invalidate %s:%" PRIuSIZE, filename, script->lineno());
+        UniqueChars buf = JS_smprintf("Invalidate %s:%zu", filename, script->lineno());
 
         // Ignore the event on allocation failure.
         if (buf) {
@@ -3303,7 +3302,7 @@ jit::FinishInvalidation(FreeOp* fop, JSScript* script)
 void
 jit::ForbidCompilation(JSContext* cx, JSScript* script)
 {
-    JitSpew(JitSpew_IonAbort, "Disabling Ion compilation of script %s:%" PRIuSIZE,
+    JitSpew(JitSpew_IonAbort, "Disabling Ion compilation of script %s:%zu",
             script->filename(), script->lineno());
 
     CancelOffThreadIonCompile(script);
@@ -3338,7 +3337,7 @@ AutoFlushICache::setRange(uintptr_t start, size_t len)
     AutoFlushICache* afc = TlsContext.get()->autoFlushICache();
     MOZ_ASSERT(afc);
     MOZ_ASSERT(!afc->start_);
-    JitSpewCont(JitSpew_CacheFlush, "(%" PRIxPTR " %" PRIxSIZE "):", start, len);
+    JitSpewCont(JitSpew_CacheFlush, "(%" PRIxPTR " %zx):", start, len);
 
     uintptr_t stop = start + len;
     afc->start_ = start;

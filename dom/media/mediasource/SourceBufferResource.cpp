@@ -11,7 +11,6 @@
 #include "nsISeekableStream.h"
 #include "nsISupports.h"
 #include "mozilla/Logging.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "MediaData.h"
 
 mozilla::LogModule* GetSourceBufferResourceLog()
@@ -147,7 +146,7 @@ SourceBufferResource::EvictAll()
 void
 SourceBufferResource::AppendData(MediaByteBuffer* aData)
 {
-  SBR_DEBUG("AppendData(aData=%p, aLength=%" PRIuSIZE ")",
+  SBR_DEBUG("AppendData(aData=%p, aLength=%zu)",
             aData->Elements(), aData->Length());
   ReentrantMonitorAutoEnter mon(mMonitor);
   mInputBuffer.AppendItem(aData);

@@ -3582,7 +3582,7 @@ ArenaLists::checkEmptyArenaList(AllocKind kind)
                 }
             }
         }
-        fprintf(stderr, "ERROR: GC found %" PRIuSIZE " live Cells at shutdown\n", num_live);
+        fprintf(stderr, "ERROR: GC found %zu live Cells at shutdown\n", num_live);
     }
 #endif // DEBUG
     return num_live == 0;

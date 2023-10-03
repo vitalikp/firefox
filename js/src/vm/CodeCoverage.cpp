@@ -111,16 +111,16 @@ LCovSource::exportInto(GenericPrinter& out) const
 
     outFN_.exportInto(out);
     outFNDA_.exportInto(out);
-    out.printf("FNF:%" PRIuSIZE "\n", numFunctionsFound_);
-    out.printf("FNH:%" PRIuSIZE "\n", numFunctionsHit_);
+    out.printf("FNF:%zu\n", numFunctionsFound_);
+    out.printf("FNH:%zu\n", numFunctionsHit_);
 
     outBRDA_.exportInto(out);
-    out.printf("BRF:%" PRIuSIZE "\n", numBranchesFound_);
-    out.printf("BRH:%" PRIuSIZE "\n", numBranchesHit_);
+    out.printf("BRF:%zu\n", numBranchesFound_);
+    out.printf("BRH:%zu\n", numBranchesHit_);
 
     outDA_.exportInto(out);
-    out.printf("LF:%" PRIuSIZE "\n", numLinesInstrumented_);
-    out.printf("LH:%" PRIuSIZE "\n", numLinesHit_);
+    out.printf("LF:%zu\n", numLinesInstrumented_);
+    out.printf("LH:%zu\n", numLinesHit_);
 
     out.put("end_of_record\n");
 }
@@ -139,7 +139,7 @@ bool
 LCovSource::writeScript(JSScript* script)
 {
     numFunctionsFound_++;
-    outFN_.printf("FN:%" PRIuSIZE ",", script->lineno());
+    outFN_.printf("FN:%zu,", script->lineno());
     if (!writeScriptName(outFN_, script))
         return false;
     outFN_.put("\n", 1);
@@ -200,7 +200,7 @@ LCovSource::writeScript(JSScript* script)
             }
 
             if (oldLine != lineno && fallsthrough) {
-                outDA_.printf("DA:%" PRIuSIZE ",%" PRIu64 "\n", lineno, hits);
+                outDA_.printf("DA:%zu,%" PRIu64 "\n", lineno, hits);
 
                 // Count the number of lines instrumented & hit.
                 numLinesInstrumented_++;
@@ -229,13 +229,13 @@ LCovSource::writeScript(JSScript* script)
             }
 
             uint64_t taken = hits - fallthroughHits;
-            outBRDA_.printf("BRDA:%" PRIuSIZE ",%" PRIuSIZE ",0,", lineno, branchId);
+            outBRDA_.printf("BRDA:%zu,%zu,0,", lineno, branchId);
             if (taken)
                 outBRDA_.printf("%" PRIu64 "\n", taken);
             else
                 outBRDA_.put("-\n", 2);
 
-            outBRDA_.printf("BRDA:%" PRIuSIZE ",%" PRIuSIZE ",1,", lineno, branchId);
+            outBRDA_.printf("BRDA:%zu,%zu,1,", lineno, branchId);
             if (fallthroughHits)
                 outBRDA_.printf("%" PRIu64 "\n", fallthroughHits);
             else
@@ -317,7 +317,7 @@ LCovSource::writeScript(JSScript* script)
                         caseHits -= fallsThroughHits;
                     }
 
-                    outBRDA_.printf("BRDA:%" PRIuSIZE ",%" PRIuSIZE ",%" PRIuSIZE ",",
+                    outBRDA_.printf("BRDA:%zu,%zu,%zu,",
                                     lineno, branchId, caseId);
                     if (caseHits)
                         outBRDA_.printf("%" PRIu64 "\n", caseHits);
@@ -369,7 +369,7 @@ LCovSource::writeScript(JSScript* script)
             }
 
             if (defaultHasOwnClause) {
-                outBRDA_.printf("BRDA:%" PRIuSIZE ",%" PRIuSIZE ",%" PRIuSIZE ",",
+                outBRDA_.printf("BRDA:%zu,%zu,%zu,",
                                 lineno, branchId, caseId);
                 if (defaultHits)
                     outBRDA_.printf("%" PRIu64 "\n", defaultHits);
@@ -563,7 +563,7 @@ LCovRuntime::fillWithFilename(char *name, size_t length)
     static mozilla::Atomic<size_t> globalRuntimeId(0);
     size_t rid = globalRuntimeId++;
 
-    int len = snprintf(name, length, "%s/%" PRId64 "-%" PRIuSIZE "-%" PRIuSIZE ".info",
+    int len = snprintf(name, length, "%s/%" PRId64 "-%zu-%zu.info",
                        outDir, timestamp, pid_, rid);
     if (length != size_t(len)) {
         fprintf(stderr, "Warning: LCovRuntime::init: Cannot serialize file name.");

@@ -14,7 +14,6 @@
 #include "mozilla/RefPtr.h"
 #include "mozilla/Move.h"
 #include "mozilla/IntegerPrintfMacros.h"
-#include "mozilla/SizePrintfMacros.h"
 
 namespace mozilla {
 
@@ -460,8 +459,8 @@ ContentCacheInChild::CacheTextRects(nsIWidget* aWidget,
 
   MOZ_LOG(sContentCacheLog, LogLevel::Info,
     ("0x%p CacheTextRects(), Succeeded, "
-     "mText.Length()=%x, mTextRectArray={ mStart=%u, mRects.Length()=%"
-     PRIuSIZE " }, mSelection={ mAnchor=%u, mAnchorCharRects[eNextCharRect]=%s, "
+     "mText.Length()=%x, mTextRectArray={ mStart=%u, mRects.Length()=%zu"
+     " }, mSelection={ mAnchor=%u, mAnchorCharRects[eNextCharRect]=%s, "
      "mAnchorCharRects[ePrevCharRect]=%s, mFocus=%u, "
      "mFocusCharRects[eNextCharRect]=%s, mFocusCharRects[ePrevCharRect]=%s, "
      "mRect=%s }, mFirstCharRect=%s",
@@ -563,7 +562,7 @@ ContentCacheInParent::AssignContent(const ContentCache& aOther,
      "mAnchorCharRects[ePrevCharRect]=%s, mFocusCharRects[eNextCharRect]=%s, "
      "mFocusCharRects[ePrevCharRect]=%s, mRect=%s }, "
      "mFirstCharRect=%s, mCaret={ mOffset=%u, mRect=%s }, mTextRectArray={ "
-     "mStart=%u, mRects.Length()=%" PRIuSIZE " }, mWidgetHasComposition=%s, "
+     "mStart=%u, mRects.Length()=%zu }, mWidgetHasComposition=%s, "
      "mPendingCompositionCount=%u, mCompositionStart=%u, mEditorRect=%s",
      this, GetNotificationName(aNotification),
      mText.Length(), mSelection.mAnchor, mSelection.mFocus,
@@ -852,7 +851,7 @@ ContentCacheInParent::GetTextRect(uint32_t aOffset,
   MOZ_LOG(sContentCacheLog, LogLevel::Info,
     ("0x%p GetTextRect(aOffset=%u, "
      "aRoundToExistingOffset=%s), "
-     "mTextRectArray={ mStart=%u, mRects.Length()=%" PRIuSIZE " }, "
+     "mTextRectArray={ mStart=%u, mRects.Length()=%zu }, "
      "mSelection={ mAnchor=%u, mFocus=%u }",
      this, aOffset, GetBoolName(aRoundToExistingOffset),
      mTextRectArray.mStart, mTextRectArray.mRects.Length(),
@@ -921,7 +920,7 @@ ContentCacheInParent::GetUnionTextRects(
   MOZ_LOG(sContentCacheLog, LogLevel::Info,
     ("0x%p GetUnionTextRects(aOffset=%u, "
      "aLength=%u, aRoundToExistingOffset=%s), mTextRectArray={ "
-     "mStart=%u, mRects.Length()=%" PRIuSIZE " }, "
+     "mStart=%u, mRects.Length()=%zu }, "
      "mSelection={ mAnchor=%u, mFocus=%u }",
      this, aOffset, aLength, GetBoolName(aRoundToExistingOffset),
      mTextRectArray.mStart, mTextRectArray.mRects.Length(),
@@ -1026,7 +1025,7 @@ ContentCacheInParent::GetCaretRect(uint32_t aOffset,
     ("0x%p GetCaretRect(aOffset=%u, "
      "aRoundToExistingOffset=%s), "
      "mCaret={ mOffset=%u, mRect=%s, IsValid()=%s }, mTextRectArray={ "
-     "mStart=%u, mRects.Length()=%" PRIuSIZE " }, mSelection={ mAnchor=%u, mFocus=%u, "
+     "mStart=%u, mRects.Length()=%zu }, mSelection={ mAnchor=%u, mFocus=%u, "
      "mWritingMode=%s, mAnchorCharRects[eNextCharRect]=%s, "
      "mAnchorCharRects[ePrevCharRect]=%s, mFocusCharRects[eNextCharRect]=%s, "
      "mFocusCharRects[ePrevCharRect]=%s }, mFirstCharRect=%s",
@@ -1080,7 +1079,7 @@ ContentCacheInParent::OnCompositionEvent(const WidgetCompositionEvent& aEvent)
 {
   MOZ_LOG(sContentCacheLog, LogLevel::Info,
     ("0x%p OnCompositionEvent(aEvent={ "
-     "mMessage=%s, mData=\"%s\" (Length()=%u), mRanges->Length()=%" PRIuSIZE " }), "
+     "mMessage=%s, mData=\"%s\" (Length()=%u), mRanges->Length()=%zu }), "
      "mPendingEventsNeedingAck=%u, mWidgetHasComposition=%s, "
      "mPendingCompositionCount=%u, mCommitStringByRequest=0x%p",
      this, ToChar(aEvent.mMessage),

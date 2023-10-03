@@ -8,7 +8,6 @@
 
 #include "mozilla/FloatingPoint.h"
 #include "mozilla/MemoryReporting.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "mozilla/Sprintf.h"
 #include "mozilla/Vector.h"
 
@@ -1528,7 +1527,7 @@ FieldDescriptorCountError(JSContext* cx, HandleValue typeVal, size_t length)
     return false;
 
   char lengthStr[16];
-  SprintfLiteral(lengthStr, "%" PRIuSIZE, length);
+  SprintfLiteral(lengthStr, "%zu", length);
 
   JS_ReportErrorNumberLatin1(cx, GetErrorMessage, nullptr,
                              CTYPESMSG_FIELD_DESC_COUNT, valStr, lengthStr);
@@ -1792,10 +1791,10 @@ static bool
 InvalidIndexRangeError(JSContext* cx, size_t index, size_t length)
 {
   char indexStr[16];
-  SprintfLiteral(indexStr, "%" PRIuSIZE, index);
+  SprintfLiteral(indexStr, "%zu", index);
 
   char lengthStr[16];
-  SprintfLiteral(lengthStr,"%" PRIuSIZE, length);
+  SprintfLiteral(lengthStr,"%zu", length);
 
   JS_ReportErrorNumberASCII(cx, GetErrorMessage, nullptr,
                             CTYPESMSG_INVALID_RANGE, indexStr, lengthStr);
@@ -1952,8 +1951,8 @@ SizeMismatchCastError(JSContext* cx,
 
   char sourceSizeStr[16];
   char targetSizeStr[16];
-  SprintfLiteral(sourceSizeStr, "%" PRIuSIZE, sourceSize);
-  SprintfLiteral(targetSizeStr, "%" PRIuSIZE, targetSize);
+  SprintfLiteral(sourceSizeStr, "%zu", sourceSize);
+  SprintfLiteral(targetSizeStr, "%zu", targetSize);
 
   JS_ReportErrorNumberLatin1(cx, GetErrorMessage, nullptr,
                              CTYPESMSG_SIZE_MISMATCH_CAST,
@@ -6385,7 +6384,7 @@ StructType::ConstructData(JSContext* cx,
   size_t count = fields->count();
   if (count >= 2) {
     char fieldLengthStr[32];
-    SprintfLiteral(fieldLengthStr, "0, 1, or %" PRIuSIZE, count);
+    SprintfLiteral(fieldLengthStr, "0, 1, or %zu", count);
     return ArgumentLengthError(cx, "StructType constructor", fieldLengthStr,
                                "s");
   }

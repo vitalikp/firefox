@@ -10,7 +10,6 @@
 #include "mozilla/MemoryReporting.h"
 #include "mozilla/PodOperations.h"
 #include "mozilla/RangedPtr.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "mozilla/TypeTraits.h"
 #include "mozilla/Unused.h"
 

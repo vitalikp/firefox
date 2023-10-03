@@ -33,7 +33,6 @@
 #include "nsISocketTransportService.h"
 #include <algorithm>
 #include "mozilla/ChaosMode.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "mozilla/Unused.h"
 #include "nsIURI.h"
 
@@ -1006,8 +1005,8 @@ nsHttpConnectionMgr::ProcessPendingQForEntry(nsConnectionEntry *ent, bool consid
     MOZ_ASSERT(OnSocketThread(), "not on socket thread");
 
     LOG(("nsHttpConnectionMgr::ProcessPendingQForEntry "
-         "[ci=%s ent=%p active=%" PRIuSIZE " idle=%" PRIuSIZE " urgent-start-queue=%" PRIuSIZE
-         " queued=%" PRIuSIZE "]\n",
+         "[ci=%s ent=%p active=%zu idle=%zu urgent-start-queue=%zu"
+         " queued=%zu]\n",
          ent->mConnInfo->HashKey().get(), ent, ent->mActiveConns.Length(),
          ent->mIdleConns.Length(), ent->mUrgentStartQ.Length(),
          ent->PendingQLength()));
@@ -1106,8 +1105,8 @@ nsHttpConnectionMgr::ProcessPendingQForEntry(nsConnectionEntry *ent, bool consid
                availableConnections);
 
     LOG(("nsHttpConnectionMgr::ProcessPendingQForEntry "
-         "pendingQ.Length()=%" PRIuSIZE
-         ", remainingPendingQ.Length()=%" PRIuSIZE "\n",
+         "pendingQ.Length()=%zu"
+         ", remainingPendingQ.Length()=%zu\n",
          pendingQ.Length(), remainingPendingQ.Length()));
 
     // Append elements in |remainingPendingQ| to |pendingQ|. The order in
@@ -1409,7 +1408,7 @@ nsHttpConnectionMgr::TryDispatchTransaction(nsConnectionEntry *ent,
 
     LOG(("nsHttpConnectionMgr::TryDispatchTransaction without conn "
          "[trans=%p halfOpen=%p conn=%p ci=%p ci=%s caps=%x tunnelprovider=%p "
-         "onlyreused=%d active=%" PRIuSIZE " idle=%" PRIuSIZE "]\n", trans,
+         "onlyreused=%d active=%zu idle=%zu]\n", trans,
          pendingTransInfo->mHalfOpen.get(),
          pendingTransInfo->mActiveConn.get(), ent->mConnInfo.get(),
          ent->mConnInfo->HashKey().get(),
@@ -1805,13 +1804,13 @@ nsHttpConnectionMgr::ProcessNewTransaction(nsHttpTransaction *trans)
         }
         if (trans->Caps() & NS_HTTP_URGENT_START) {
             LOG(("  adding transaction to pending queue "
-                 "[trans=%p urgent-start-count=%" PRIuSIZE "]\n",
+                 "[trans=%p urgent-start-count=%zu]\n",
                  trans, ent->mUrgentStartQ.Length() + 1));
             // put this transaction on the urgent-start queue...
             InsertTransactionSorted(ent->mUrgentStartQ, pendingTransInfo);
         } else {
             LOG(("  adding transaction to pending queue "
-                 "[trans=%p pending-count=%" PRIuSIZE "]\n",
+                 "[trans=%p pending-count=%zu]\n",
                  trans, ent->PendingQLength() + 1));
             // put this transaction on the pending queue...
             ent->InsertTransaction(pendingTransInfo);
@@ -2846,9 +2845,9 @@ nsHttpConnectionMgr::TimeoutTick()
         nsAutoPtr<nsConnectionEntry>& ent = iter.Data();
 
         LOG(("nsHttpConnectionMgr::TimeoutTick() this=%p host=%s "
-             "idle=%" PRIuSIZE " active=%" PRIuSIZE
-             " half-len=%" PRIuSIZE " pending=%" PRIuSIZE
-             " urgentStart pending=%" PRIuSIZE "\n",
+             "idle=%zu active=%zu"
+             " half-len=%zu pending=%zu"
+             " urgentStart pending=%zu\n",
              this, ent->mConnInfo->Origin(), ent->mIdleConns.Length(),
              ent->mActiveConns.Length(), ent->mHalfOpens.Length(),
              ent->PendingQLength(), ent->mUrgentStartQ.Length()));
@@ -4398,7 +4397,7 @@ nsConnectionEntry::AppendPendingQForFocusedWindow(
     infoArray->RemoveElementsAt(0, countToAppend);
 
     LOG(("nsConnectionEntry::AppendPendingQForFocusedWindow [ci=%s], "
-         "pendingQ count=%" PRIuSIZE " for focused window (id=%" PRIu64 ")\n",
+         "pendingQ count=%zu for focused window (id=%" PRIu64 ")\n",
          mConnInfo->HashKey().get(), result.Length(),
          windowId));
 }
@@ -4438,7 +4437,7 @@ nsConnectionEntry::AppendPendingQForNonFocusedWindows(
     }
 
     LOG(("nsConnectionEntry::AppendPendingQForNonFocusedWindows [ci=%s], "
-         "pendingQ count=%" PRIuSIZE " for non focused window\n",
+         "pendingQ count=%zu for non focused window\n",
          mConnInfo->HashKey().get(), result.Length()));
 }
 
@@ -4480,12 +4479,12 @@ nsHttpConnectionMgr::MoveToWildCardConnEntry(nsHttpConnectionInfo *specificCI,
     wcEnt->mUsingSpdy = true;
 
     LOG(("nsHttpConnectionMgr::MakeConnEntryWildCard ent %p "
-         "idle=%" PRIuSIZE " active=%" PRIuSIZE " half=%" PRIuSIZE " pending=%" PRIuSIZE "\n",
+         "idle=%zu active=%zu half=%zu pending=%zu\n",
          ent, ent->mIdleConns.Length(), ent->mActiveConns.Length(),
          ent->mHalfOpens.Length(), ent->PendingQLength()));
 
     LOG(("nsHttpConnectionMgr::MakeConnEntryWildCard wc-ent %p "
-         "idle=%" PRIuSIZE " active=%" PRIuSIZE " half=%" PRIuSIZE " pending=%" PRIuSIZE "\n",
+         "idle=%zu active=%zu half=%zu pending=%zu\n",
          wcEnt, wcEnt->mIdleConns.Length(), wcEnt->mActiveConns.Length(),
          wcEnt->mHalfOpens.Length(), wcEnt->PendingQLength()));
 

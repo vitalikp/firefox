@@ -7,7 +7,6 @@
 #include "LoadMonitor.h"
 #include "nsString.h"
 #include "mozilla/Logging.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "prtime.h"
 #include "prinrval.h"
 #include "prsystem.h"
@@ -154,7 +153,7 @@ void
 LoadManagerSingleton::LoadHasChanged(webrtc::CPULoadState aNewState)
 {
   mLock.AssertCurrentThreadOwns();
-  LOG(("LoadManager - Signaling LoadHasChanged from %d to %d to %" PRIuSIZE " listeners",
+  LOG(("LoadManager - Signaling LoadHasChanged from %d to %d to %zu listeners",
        mCurrentState, aNewState, mObservers.Length()));
 
   // Record how long we spent in this state for later Telemetry or display

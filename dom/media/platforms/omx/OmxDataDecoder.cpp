@@ -13,7 +13,6 @@
 #include "OmxPlatformLayer.h"
 
 #include "mozilla/IntegerPrintfMacros.h"
-#include "mozilla/SizePrintfMacros.h"
 
 #ifdef LOG
 #undef LOG
@@ -729,7 +728,7 @@ OmxDataDecoder::CollectBufferPromises(OMX_DIRTYPE aType)
     }
   }
 
-  LOG("CollectBufferPromises: type %d, total %" PRIuSIZE " promiese", aType, promises.Length());
+  LOG("CollectBufferPromises: type %d, total %zu promiese", aType, promises.Length());
   if (promises.Length()) {
     return OmxBufferPromise::All(mOmxTaskQueue, promises);
   }

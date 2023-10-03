@@ -10,7 +10,6 @@
 #include <inttypes.h>
 
 #include "mozilla/dom/nsCSPContext.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "mozilla/Sprintf.h"
 
 #include "nsHttp.h"
@@ -7948,7 +7947,7 @@ NS_IMETHODIMP
 nsHttpChannel::OnRedirectVerifyCallback(nsresult result)
 {
     LOG(("nsHttpChannel::OnRedirectVerifyCallback [this=%p] "
-         "result=%" PRIx32 " stack=%" PRIuSIZE " mWaitingForRedirectCallback=%u\n",
+         "result=%" PRIx32 " stack=%zu mWaitingForRedirectCallback=%u\n",
          this, static_cast<uint32_t>(result), mRedirectFuncStack.Length(),
          mWaitingForRedirectCallback));
     MOZ_ASSERT(mWaitingForRedirectCallback,

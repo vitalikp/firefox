@@ -182,14 +182,14 @@ IonSpewer::init()
 #endif
 
         size_t len;
-        len = snprintf(jsonBuffer, bufferLength, JIT_SPEW_DIR "/ion%" PRIuSIZE ".json", pid);
+        len = snprintf(jsonBuffer, bufferLength, JIT_SPEW_DIR "/ion%zu.json", pid);
         if (bufferLength <= len) {
             fprintf(stderr, "Warning: IonSpewer::init: Cannot serialize file name.");
             return false;
         }
         jsonFilename = jsonBuffer;
 
-        len = snprintf(c1Buffer, bufferLength, JIT_SPEW_DIR "/ion%" PRIuSIZE ".cfg", pid);
+        len = snprintf(c1Buffer, bufferLength, JIT_SPEW_DIR "/ion%zu.cfg", pid);
         if (bufferLength <= len) {
             fprintf(stderr, "Warning: IonSpewer::init: Cannot serialize file name.");
             return false;

@@ -13,7 +13,6 @@
 #include "mozilla/dom/Event.h"
 #include "mozilla/ClearOnShutdown.h"
 #include "mozilla/IntegerPrintfMacros.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "mozilla/Telemetry.h"
 #include "nsComponentManagerUtils.h"
 #include "nsVariant.h"
@@ -281,7 +280,7 @@ TextTrackManager::UpdateCueDisplay()
 
   if (activeCues.Length() > 0) {
     WEBVTT_LOG("UpdateCueDisplay ProcessCues");
-    WEBVTT_LOGV("UpdateCueDisplay activeCues.Length() %" PRIuSIZE, activeCues.Length());
+    WEBVTT_LOGV("UpdateCueDisplay activeCues.Length() %zu", activeCues.Length());
     RefPtr<nsVariantCC> jsCues = new nsVariantCC();
 
     jsCues->SetAsArray(nsIDataType::VTYPE_INTERFACE,

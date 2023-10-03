@@ -12,7 +12,6 @@
 #include "mozilla/AutoRestore.h"
 #include "mozilla/MiscEvents.h"
 #include "mozilla/MouseEvents.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "mozilla/TextEventDispatcher.h"
 #include "mozilla/TextEvents.h"
 
@@ -369,7 +368,7 @@ TISInputSourceWrapper::TranslateToString(UInt32 aKeyCode, UInt32 aModifiers,
                                   &deadKeyState, 5, &len, chars);
 
   MOZ_LOG(gLog, LogLevel::Info,
-    ("%p TISInputSourceWrapper::TranslateToString, err=0x%X, len=%" PRIuSIZE,
+    ("%p TISInputSourceWrapper::TranslateToString, err=0x%X, len=%zu",
      this, static_cast<int>(err), len));
 
   NS_ENSURE_TRUE(err == noErr, false);

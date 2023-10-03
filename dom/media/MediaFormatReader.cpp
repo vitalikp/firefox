@@ -5,7 +5,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "AutoTaskQueue.h"
-#include "mozilla/SizePrintfMacros.h"
 #include "Layers.h"
 #include "MediaData.h"
 #include "MediaInfo.h"
@@ -1676,7 +1675,7 @@ void
 MediaFormatReader::OnVideoDemuxCompleted(
   RefPtr<MediaTrackDemuxer::SamplesHolder> aSamples)
 {
-  LOGV("%" PRIuSIZE " video samples demuxed (sid:%d)",
+  LOGV("%zu video samples demuxed (sid:%d)",
        aSamples->mSamples.Length(),
        aSamples->mSamples[0]->mTrackInfo
        ? aSamples->mSamples[0]->mTrackInfo->GetID()
@@ -1753,7 +1752,7 @@ void
 MediaFormatReader::OnAudioDemuxCompleted(
   RefPtr<MediaTrackDemuxer::SamplesHolder> aSamples)
 {
-  LOGV("%" PRIuSIZE " audio samples demuxed (sid:%d)",
+  LOGV("%zu audio samples demuxed (sid:%d)",
        aSamples->mSamples.Length(),
        aSamples->mSamples[0]->mTrackInfo
        ? aSamples->mSamples[0]->mTrackInfo->GetID()
