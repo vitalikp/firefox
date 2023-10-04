@@ -7,7 +7,6 @@
 #include "../contentproc/plugin-container.cpp"
 
 #include "mozilla/Bootstrap.h"
-#include "mozilla/WindowsDllBlocklist.h"
 
 using namespace mozilla;
 

@@ -67,7 +67,6 @@
 
 #include "mozilla/ipc/TestShellParent.h"
 #include "mozilla/ipc/XPCShellEnvironment.h"
-#include "mozilla/WindowsDllBlocklist.h"
 
 #include "mozilla/gfx/GPUProcessImpl.h"
 

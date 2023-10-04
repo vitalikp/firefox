@@ -8,7 +8,6 @@
 
 #include <stdio.h>
 
-#include "mozilla/WindowsDllBlocklist.h"
 #include "mozilla/Bootstrap.h"
 
 #include "nsXULAppAPI.h"

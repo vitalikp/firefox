@@ -46,7 +46,6 @@ if not CONFIG['JS_STANDALONE']:
         'arm.h',
         'mips.h',
         'SSE.h',
-        'WindowsDllBlocklist.h',
     ]
 
     if CONFIG['CPU_ARCH'].startswith('x86'):

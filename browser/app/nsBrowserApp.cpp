@@ -40,7 +40,6 @@
 
 #include "mozilla/Sprintf.h"
 #include "mozilla/StartupTimeline.h"
-#include "mozilla/WindowsDllBlocklist.h"
 
 #if !defined(MOZ_WIDGET_COCOA) && !defined(MOZ_WIDGET_ANDROID) \
   && !(defined(XP_LINUX) && defined(MOZ_SANDBOX))
