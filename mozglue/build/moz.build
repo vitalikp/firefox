@@ -42,18 +42,6 @@ if not CONFIG['JS_STANDALONE']:
             'dummy.cpp',
         ]
 
-    if CONFIG['OS_TARGET'] == 'WINNT':
-        LOCAL_INCLUDES += [
-            '/memory/build',
-        ]
-        SOURCES += [
-            'WindowsDllBlocklist.cpp',
-        ]
-        DISABLE_STL_WRAPPING = True
-        OS_LIBS += [
-            'version',
-        ]
-
     EXPORTS.mozilla += [
         'arm.h',
         'mips.h',
