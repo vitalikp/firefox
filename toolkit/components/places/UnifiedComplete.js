@@ -262,8 +262,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "PromiseUtils",
                                   "resource://gre/modules/PromiseUtils.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "ExtensionSearchHandler",
                                   "resource://gre/modules/ExtensionSearchHandler.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "Task",
-                                  "resource://gre/modules/Task.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "PlacesSearchAutocompleteProvider",
                                   "resource://gre/modules/PlacesSearchAutocompleteProvider.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "PlacesRemoteTabsAutocompleteProvider",
@@ -290,11 +288,11 @@ XPCOMUtils.defineLazyGetter(this, "SwitchToTabStorage", () => Object.seal({
   _conn: null,
   // Temporary queue used while the database connection is not available.
   _queue: new Map(),
-  initDatabase: Task.async(function* (conn) {
+  async initDatabase(conn) {
     // To reduce IO use an in-memory table for switch-to-tab tracking.
     // Note: this should be kept up-to-date with the definition in
     //       nsPlacesTables.h.
-    yield conn.execute(
+    await conn.execute(
       `CREATE TEMP TABLE moz_openpages_temp (
          url TEXT,
          userContextId INTEGER,
@@ -304,7 +302,7 @@ XPCOMUtils.defineLazyGetter(this, "SwitchToTabStorage", () => Object.seal({
 
     // Note: this should be kept up-to-date with the definition in
     //       nsPlacesTriggers.h.
-    yield conn.execute(
+    await conn.execute(
       `CREATE TEMPORARY TRIGGER moz_openpages_temp_afterupdate_trigger
        AFTER UPDATE OF open_count ON moz_openpages_temp FOR EACH ROW
        WHEN NEW.open_count = 0
@@ -325,7 +323,7 @@ XPCOMUtils.defineLazyGetter(this, "SwitchToTabStorage", () => Object.seal({
 
     // ...then clear it to avoid double additions.
     this._queue.clear();
-  }),
+  },
 
   add(uri, userContextId) {
     if (!this._conn) {
@@ -860,7 +858,7 @@ Search.prototype = {
    * @param conn
    *        The Sqlite connection.
    */
-  execute: Task.async(function* (conn) {
+  async execute(conn) {
     // A search might be canceled before it starts.
     if (!this.pending)
       return;
@@ -871,7 +869,7 @@ Search.prototype = {
 
     // Since we call the synchronous parseSubmissionURL function later, we must
     // wait for the initialization of PlacesSearchAutocompleteProvider first.
-    yield PlacesSearchAutocompleteProvider.ensureInitialized();
+    await PlacesSearchAutocompleteProvider.ensureInitialized();
     if (!this.pending)
       return;
 
@@ -912,7 +910,7 @@ Search.prototype = {
     // to true so that when the result is added, "heuristic" can be included in
     // its style.
     this._addingHeuristicFirstMatch = true;
-    let hasHeuristic = yield this._matchFirstHeuristicResult(conn);
+    let hasHeuristic = await this._matchFirstHeuristicResult(conn);
     this._addingHeuristicFirstMatch = false;
     if (!this.pending)
       return;
@@ -923,25 +921,25 @@ Search.prototype = {
     // Though, if there's no heuristic result, we start searching immediately,
     // since autocomplete may be waiting for us.
     if (hasHeuristic) {
-      yield this._sleep(Prefs.delay);
+      await this._sleep(Prefs.delay);
       if (!this.pending)
         return;
     }
 
     if (this._enableActions && this._searchTokens.length > 0) {
-      yield this._matchSearchSuggestions();
+      await this._matchSearchSuggestions();
       if (!this.pending)
         return;
     }
 
     for (let [query, params] of queries) {
-      yield conn.executeCached(query, params, this._onResultRow.bind(this));
+      await conn.executeCached(query, params, this._onResultRow.bind(this));
       if (!this.pending)
         return;
     }
 
     if (this._enableActions && this.hasBehavior("openpage")) {
-      yield this._matchRemoteTabs();
+      await this._matchRemoteTabs();
       if (!this.pending)
         return;
     }
@@ -954,7 +952,7 @@ Search.prototype = {
       this._matchBehavior = MATCH_ANYWHERE;
       for (let [query, params] of [ this._adaptiveQuery,
                                     this._searchQuery ]) {
-        yield conn.executeCached(query, params, this._onResultRow.bind(this));
+        await conn.executeCached(query, params, this._onResultRow.bind(this));
         if (!this.pending)
           return;
       }
@@ -964,7 +962,7 @@ Search.prototype = {
     // and the search string has characters after the first token.
     if (ExtensionSearchHandler.isKeywordRegistered(this._searchTokens[0]) &&
         this._originalSearchString.length > this._searchTokens[0].length) {
-      yield this._matchExtensionSuggestions();
+      await this._matchExtensionSuggestions();
       if (!this.pending)
         return;
     } else if (ExtensionSearchHandler.hasActiveInputSession()) {
@@ -973,10 +971,10 @@ Search.prototype = {
 
     // Ensure to fill any remaining space. Suggestions which come from extensions are
     // inserted at the beginning, so any suggestions
-    yield Promise.all(this._remoteMatchesPromises);
-  }),
+    await Promise.all(this._remoteMatchesPromises);
+  },
 
-  *_matchFirstHeuristicResult(conn) {
+  async _matchFirstHeuristicResult(conn) {
     // We always try to make the first result a special "heuristic" result.  The
     // heuristics below determine what type of result it will be, if any.
 
@@ -984,7 +982,7 @@ Search.prototype = {
 
     if (hasSearchTerms) {
       // It may be a keyword registered by an extension.
-      let matched = yield this._matchExtensionHeuristicResult();
+      let matched = await this._matchExtensionHeuristicResult();
       if (matched) {
         return true;
       }
@@ -992,7 +990,7 @@ Search.prototype = {
 
     if (this._enableActions && hasSearchTerms) {
       // It may be a search engine with an alias - which works like a keyword.
-      let matched = yield this._matchSearchEngineAlias();
+      let matched = await this._matchSearchEngineAlias();
       if (matched) {
         return true;
       }
@@ -1000,7 +998,7 @@ Search.prototype = {
 
     if (this.pending && hasSearchTerms) {
       // It may be a Places keyword.
-      let matched = yield this._matchPlacesKeyword();
+      let matched = await this._matchPlacesKeyword();
       if (matched) {
         return true;
       }
@@ -1009,7 +1007,7 @@ Search.prototype = {
     let shouldAutofill = this._shouldAutofill;
     if (this.pending && shouldAutofill) {
       // It may also look like a URL we know from the database.
-      let matched = yield this._matchKnownUrl(conn);
+      let matched = await this._matchKnownUrl(conn);
       if (matched) {
         return true;
       }
@@ -1017,7 +1015,7 @@ Search.prototype = {
 
     if (this.pending && shouldAutofill) {
       // Or it may look like a URL we know about from search engines.
-      let matched = yield this._matchSearchEngineUrl();
+      let matched = await this._matchSearchEngineUrl();
       if (matched) {
         return true;
       }
@@ -1031,7 +1029,7 @@ Search.prototype = {
       // However, even if the input is a valid URL, we may not want to use
       // it as such. This can happen if the host would require whitelisting,
       // but isn't in the whitelist.
-      let matched = yield this._matchUnknownUrl();
+      let matched = await this._matchUnknownUrl();
       if (matched) {
         // Since we can't tell if this is a real URL and
         // whether the user wants to visit or search for it,
@@ -1041,7 +1039,7 @@ Search.prototype = {
         } catch (ex) {
           if (Prefs.keywordEnabled && !looksLikeUrl(this._originalSearchString, true)) {
             this._addingHeuristicFirstMatch = false;
-            yield this._matchCurrentSearchEngine();
+            await this._matchCurrentSearchEngine();
             this._addingHeuristicFirstMatch = true;
           }
         }
@@ -1052,7 +1050,7 @@ Search.prototype = {
     if (this.pending && this._enableActions && this._originalSearchString) {
       // When all else fails, and the search string is non-empty, we search
       // using the current search engine.
-      let matched = yield this._matchCurrentSearchEngine();
+      let matched = await this._matchCurrentSearchEngine();
       if (matched) {
         return true;
       }
@@ -1061,7 +1059,7 @@ Search.prototype = {
     return false;
   },
 
-  *_matchSearchSuggestions() {
+  async _matchSearchSuggestions() {
     // Limit the string sent for search suggestions to a maximum length.
     let searchString = this._searchTokens.join(" ")
                            .substr(0, Prefs.maxCharsForSearchSuggestions);
@@ -1103,7 +1101,7 @@ Search.prototype = {
 
     if (this.hasBehavior("restrict")) {
       // We're done if we're restricting to search suggestions.
-      yield promise;
+      await promise;
       this.stop();
     } else {
       this._remoteMatchesPromises.push(promise);
@@ -1130,7 +1128,7 @@ Search.prototype = {
     return this._searchTokens.some(looksLikeUrl);
   },
 
-  *_matchKnownUrl(conn) {
+  async _matchKnownUrl(conn) {
     // Hosts have no "/" in them.
     let lastSlashIndex = this._searchString.lastIndexOf("/");
     // Search only URLs if there's a slash in the search string...
@@ -1144,7 +1142,7 @@ Search.prototype = {
         // like a URL, then we'll probably have a result.
         let gotResult = false;
         let [ query, params ] = this._urlQuery;
-        yield conn.executeCached(query, params, row => {
+        await conn.executeCached(query, params, row => {
           gotResult = true;
           this._onResultRow(row);
         });
@@ -1155,14 +1153,14 @@ Search.prototype = {
 
     let gotResult = false;
     let [ query, params ] = this._hostQuery;
-    yield conn.executeCached(query, params, row => {
+    await conn.executeCached(query, params, row => {
       gotResult = true;
       this._onResultRow(row);
     });
     return gotResult;
   },
 
-  *_matchExtensionHeuristicResult() {
+  _matchExtensionHeuristicResult() {
     if (ExtensionSearchHandler.isKeywordRegistered(this._searchTokens[0]) &&
         this._originalSearchString.length > this._searchTokens[0].length) {
       let description = ExtensionSearchHandler.getDescription(this._searchTokens[0]);
@@ -1172,10 +1170,10 @@ Search.prototype = {
     return false;
   },
 
-  *_matchPlacesKeyword() {
+  async _matchPlacesKeyword() {
     // The first word could be a keyword, so that's what we'll search.
     let keyword = this._searchTokens[0];
-    let entry = yield PlacesUtils.keywords.fetch(this._searchTokens[0]);
+    let entry = await PlacesUtils.keywords.fetch(this._searchTokens[0]);
     if (!entry)
       return false;
 
@@ -1184,7 +1182,7 @@ Search.prototype = {
     let url = null, postData = null;
     try {
       [url, postData] =
-        yield BrowserUtils.parseUrlAndPostData(entry.url.href,
+        await BrowserUtils.parseUrlAndPostData(entry.url.href,
                                                entry.postData,
                                                searchString);
     } catch (ex) {
@@ -1211,11 +1209,11 @@ Search.prototype = {
     return true;
   },
 
-  *_matchSearchEngineUrl() {
+  async _matchSearchEngineUrl() {
     if (!Prefs.autofillSearchEngines)
       return false;
 
-    let match = yield PlacesSearchAutocompleteProvider.findMatchByToken(
+    let match = await PlacesSearchAutocompleteProvider.findMatchByToken(
                                                            this._searchString);
     if (!match)
       return false;
@@ -1263,12 +1261,12 @@ Search.prototype = {
     return true;
   },
 
-  *_matchSearchEngineAlias() {
+  async _matchSearchEngineAlias() {
     if (this._searchTokens.length < 1)
       return false;
 
     let alias = this._searchTokens[0];
-    let match = yield PlacesSearchAutocompleteProvider.findMatchByAlias(alias);
+    let match = await PlacesSearchAutocompleteProvider.findMatchByAlias(alias);
     if (!match)
       return false;
 
@@ -1279,8 +1277,8 @@ Search.prototype = {
     return true;
   },
 
-  *_matchCurrentSearchEngine() {
-    let match = yield PlacesSearchAutocompleteProvider.getDefaultMatch();
+  async _matchCurrentSearchEngine() {
+    let match = await PlacesSearchAutocompleteProvider.getDefaultMatch();
     if (!match)
       return false;
 
@@ -1330,7 +1328,7 @@ Search.prototype = {
     });
   },
 
-  *_matchExtensionSuggestions() {
+  _matchExtensionSuggestions() {
     let promise = ExtensionSearchHandler.handleSearch(this._searchTokens[0], this._originalSearchString,
       suggestions => {
         suggestions.forEach(suggestion => {
@@ -1342,8 +1340,8 @@ Search.prototype = {
     this._remoteMatchesPromises.push(promise);
   },
 
-  *_matchRemoteTabs() {
-    let matches = yield PlacesRemoteTabsAutocompleteProvider.getMatches(this._originalSearchString);
+  async _matchRemoteTabs() {
+    let matches = await PlacesRemoteTabsAutocompleteProvider.getMatches(this._originalSearchString);
     for (let {url, title, icon, deviceName} of matches) {
       // It's rare that Sync supplies the icon for the page (but if it does, it
       // is a string URL)
@@ -1371,7 +1369,7 @@ Search.prototype = {
 
   // TODO (bug 1054814): Use visited URLs to inform which scheme to use, if the
   // scheme isn't specificed.
-  *_matchUnknownUrl() {
+  _matchUnknownUrl() {
     let flags = Ci.nsIURIFixup.FIXUP_FLAG_FIX_SCHEME_TYPOS |
                 Ci.nsIURIFixup.FIXUP_FLAG_ALLOW_KEYWORD_LOOKUP;
     let fixupInfo = null;
@@ -1965,21 +1963,21 @@ UnifiedComplete.prototype = {
    */
   getDatabaseHandle() {
     if (Prefs.enabled && !this._promiseDatabase) {
-      this._promiseDatabase = Task.spawn(function* () {
-        let conn = yield Sqlite.cloneStorageConnection({
+      this._promiseDatabase = (async function() {
+        let conn = await Sqlite.cloneStorageConnection({
           connection: PlacesUtils.history.DBConnection,
           readOnly: true
         });
 
         try {
            Sqlite.shutdown.addBlocker("Places UnifiedComplete.js clone closing",
-                                      Task.async(function* () {
+                                      async function() {
                                         SwitchToTabStorage.shutdown();
-                                        yield conn.close();
-                                      }));
+                                        await conn.close();
+                                      });
         } catch (ex) {
           // It's too late to block shutdown, just close the connection.
-          yield conn.close();
+          await conn.close();
           throw ex;
         }
 
@@ -1987,15 +1985,15 @@ UnifiedComplete.prototype = {
         // indices.  A larger cache helps reducing IO and improving performance.
         // The value used here is larger than the default Storage value defined
         // as MAX_CACHE_SIZE_BYTES in storage/mozStorageConnection.cpp.
-        yield conn.execute("PRAGMA cache_size = -6144"); // 6MiB
+        await conn.execute("PRAGMA cache_size = -6144"); // 6MiB
 
-        yield SwitchToTabStorage.initDatabase(conn);
+        await SwitchToTabStorage.initDatabase(conn);
 
         return conn;
-      }.bind(this)).then(null, ex => {
- dump("Couldn't get database handle: " + ex + "\n");
-                                       Cu.reportError(ex);
-});
+      })().then(null, ex => {
+        dump("Couldn't get database handle: " + ex + "\n");
+        Cu.reportError(ex);
+      });
     }
     return this._promiseDatabase;
   },
