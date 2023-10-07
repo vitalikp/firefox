@@ -15,6 +15,7 @@
 #include "mozilla/DebugOnly.h"
 #include "mozilla/dom/ipc/StructuredCloneData.h"
 #include "mozilla/Maybe.h"
+#include "mozilla/ByteBuffer.h"
 #include "mozilla/net/WebSocketFrame.h"
 #include "mozilla/TimeStamp.h"
 #ifdef XP_WIN
@@ -266,6 +267,28 @@ struct ParamTraits<base::FileDescriptor>
   }
 };
 #endif  // !defined(OS_POSIX)
+
+template<>
+struct ParamTraits<mozilla::ByteBuffer>
+{
+  typedef mozilla::ByteBuffer paramType;
+
+  static void
+  Write(Message* aMsg, const paramType& aParam)
+  {
+    WriteParam(aMsg, aParam.mLength);
+    aMsg->WriteBytes(aParam.mData, aParam.mLength);
+  }
+
+  static bool
+  Read(const Message* aMsg, PickleIterator* aIter, paramType* aResult)
+  {
+    size_t length;
+    return ReadParam(aMsg, aIter, &length)
+        && aResult->Allocate(length)
+        && aMsg->ReadBytesInto(aIter, aResult->mData, length);
+  }
+};
 
 template <>
 struct ParamTraits<nsACString>

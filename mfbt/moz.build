@@ -23,6 +23,7 @@ EXPORTS.mozilla = [
     'BinarySearch.h',
     'BloomFilter.h',
     'BufferList.h',
+    'ByteBuffer.h',
     'Casting.h',
     'ChaosMode.h',
     'Char16.h',
