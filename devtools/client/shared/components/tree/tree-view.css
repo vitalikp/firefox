@@ -181,12 +181,12 @@
 
 .theme-light .treeTable .treeLabel,
 .theme-dark .treeTable .treeLabel {
-  color: var(--theme-highlight-pink);
+  color: var(--theme-highlight-purple);
 }
 
 .theme-light .treeTable .treeRow.hasChildren > .treeLabelCell > .treeLabel:hover,
 .theme-dark .treeTable .treeRow.hasChildren > .treeLabelCell > .treeLabel:hover {
-  color: var(--theme-highlight-pink);
+  color: var(--theme-highlight-purple);
 }
 
 .theme-firebug .treeTable .treeLabel {

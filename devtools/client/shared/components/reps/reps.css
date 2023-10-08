@@ -6,7 +6,7 @@
 .theme-dark,
 .theme-light {
   --number-color: var(--theme-highlight-green);
-  --string-color: var(--theme-highlight-orange);
+  --string-color: var(--theme-highlight-grey);
   --null-color: var(--theme-comment);
   --object-color: var(--theme-body-color);
   --caption-color: var(--theme-highlight-blue);
