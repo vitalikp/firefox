@@ -51,10 +51,9 @@
 #endif
 #ifdef XP_MACOSX
 #include "nsILocalFileMac.h"
-// for chflags()
+#endif
 #include <sys/stat.h>
 #include <unistd.h>
-#endif
 #ifdef XP_UNIX
 #include <ctype.h>
 #endif
@@ -299,6 +298,100 @@ GetSystemParentDirectory(nsIFile** aFile)
 }
 #endif
 
+static bool
+isDir(const nsCString& aDir)
+{
+  struct stat st = {};
+
+  if (stat(aDir.get(), &st) < 0)
+    return false;
+
+  return S_ISDIR(st.st_mode);
+}
+
+static nsresult
+appendDir(nsCString& aDir, const char* aPath, uint32_t aMode = 0)
+{
+  aDir.Append('/');
+  aDir.Append(aPath);
+
+  if (!aMode || isDir(aDir))
+    return NS_OK;
+
+  if (mkdir(aDir.get(), aMode) < 0)
+    return NS_ERROR_FAILURE;
+
+  return NS_OK;
+}
+
+#define _H_PATH(p) ("." p)
+#define NSS_USER_PATH1 "pki"
+#define NSS_USER_PATH2 "nssdb"
+#define XDG_USER_PATH1 "local"
+#define XDG_USER_PATH2 "share"
+#define NSS_DIR(d, f) NS_NewNativeLocalFile(d, true, f)
+
+/**
+ * Implemented like getUserDB function from nss
+ * (see lib/sysinit/nsssysinit.c file).
+ * Search in the following dirs in order:
+ * (1) $HOME/.pki/nssdb;
+ * (2) $XDG_DATA_HOME/pki/nssdb if XDG_DATA_HOME is set;
+ * (3) $HOME/.local/share/pki/nssdb (default XDG_DATA_HOME value);
+ *
+ * If (1) does not exist, then the returned dir will be set to either
+ * (2) or (3), depending if XDG_DATA_HOME is set.
+ */
+static nsresult
+getNSSConfDir(nsIFile** aFile)
+{
+  nsAutoCString confDir;
+  const char* xdgDir;
+  size_t len;
+  nsresult rv;
+
+  confDir.Assign(getenv("HOME"));
+  if (confDir.IsEmpty())
+      return NS_ERROR_FAILURE;
+  len = confDir.Length();
+
+  appendDir(confDir, _H_PATH(NSS_USER_PATH1));
+  appendDir(confDir, NSS_USER_PATH2);
+
+  if (isDir(confDir))
+    return NSS_DIR(confDir, aFile);
+  confDir.SetLength(len);
+
+  xdgDir = getenv("XDG_DATA_HOME");
+  if (xdgDir)
+  {
+    confDir.Assign(xdgDir);
+    if (!isDir(confDir))
+      return NS_ERROR_FAILURE;
+  }
+  else
+  {
+    rv = appendDir(confDir, _H_PATH(XDG_USER_PATH1), 0755);
+    if (NS_FAILED(rv))
+      return rv;
+
+    rv = appendDir(confDir, XDG_USER_PATH2, 0755);
+    if (NS_FAILED(rv))
+      return rv;
+  }
+
+  rv = appendDir(confDir, NSS_USER_PATH1, 0760);
+  if (NS_FAILED(rv))
+    return rv;
+
+  rv = appendDir(confDir, NSS_USER_PATH2, 0760);
+  if (NS_FAILED(rv))
+    return rv;
+
+  return NSS_DIR(confDir, aFile);
+}
+#undef _H_PATH
+
 NS_IMETHODIMP
 nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
                           nsIFile** aFile)
@@ -322,8 +415,7 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
     // This falls through to the case below
     gettingProfile = true;
   }
-  if (!strcmp(aProperty, NS_APP_USER_PROFILE_50_DIR)
-      || !strcmp(aProperty, NS_APP_USER_NSS_CONF_DIR) || gettingProfile) {
+  if (!strcmp(aProperty, NS_APP_USER_PROFILE_50_DIR) || gettingProfile) {
     if (!mProfileNotified)
       return NS_ERROR_FAILURE;
 
@@ -351,6 +443,9 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
   }
   else if (!strcmp(aProperty, NS_GRE_BIN_DIR)) {
     return mGREBinDir->Clone(aFile);
+  }
+  else if (!strcmp(aProperty, NS_APP_USER_NSS_CONF_DIR)) {
+    return getNSSConfDir(aFile);
   }
   else if (!strcmp(aProperty, NS_OS_CURRENT_PROCESS_DIR) ||
            !strcmp(aProperty, NS_APP_INSTALL_CLEANUP_DIR)) {
