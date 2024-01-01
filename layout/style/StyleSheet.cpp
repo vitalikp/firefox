@@ -6,6 +6,7 @@
 
 #include "mozilla/StyleSheet.h"
 
+#include "mozilla/css/GroupRule.h"
 #include "mozilla/dom/CSSRuleList.h"
 #include "mozilla/dom/MediaList.h"
 #include "mozilla/dom/ShadowRoot.h"
