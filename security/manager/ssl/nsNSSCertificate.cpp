@@ -388,7 +388,7 @@ nsNSSCertificate::GetDisplayName(nsAString& aDisplayName)
       // Substring will gracefully handle the case where index is the last
       // character in the string (that is, if the nickname is just
       // "Builtin Object Token:"). In that case, we'll get an empty string.
-      nickname = Substring(nickname, AssertedCast<uint32_t>(index + 1));
+      nickname.Cut(0, AssertedCast<uint32_t>(index + 1));
     }
   }
   const char* nameOptions[] = {
