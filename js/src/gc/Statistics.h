@@ -329,9 +329,6 @@ struct Statistics
     /* Total time in a given phase for this GC. */
     PhaseTimeTable phaseTimes;
 
-    /* Total time in a given phase over all GCs. */
-    PhaseTimeTable phaseTotals;
-
     /* Number of events of this type for this GC. */
     EnumeratedArray<Stat,
                     STAT_LIMIT,

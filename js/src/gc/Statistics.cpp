@@ -910,11 +910,6 @@ Statistics::beginGC(JSGCInvocationKind kind)
 void
 Statistics::endGC()
 {
-    for (auto j : IntegerRange(NumTimingArrays)) {
-        for (auto i : AllPhases())
-            phaseTotals[j][i] += phaseTimes[j][i];
-    }
-
     TimeDuration sccTotal, sccLongest;
     sccDurations(&sccTotal, &sccLongest);
 
