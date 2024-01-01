@@ -1569,9 +1569,9 @@ GetNSSProfilePath(nsAutoCString& aProfilePath)
     return NS_OK;
   }
 
-  nsCOMPtr<nsIFile> profileFile;
-  nsresult rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR,
-                                       getter_AddRefs(profileFile));
+  nsCOMPtr<nsIFile> confDir;
+  nsresult rv = NS_GetSpecialDirectory(NS_APP_USER_NSS_CONF_DIR,
+                                       getter_AddRefs(confDir));
   if (NS_FAILED(rv)) {
     NS_WARNING("NSS will be initialized without a profile directory. "
                "Some things may not work as expected.");
@@ -1581,7 +1581,7 @@ GetNSSProfilePath(nsAutoCString& aProfilePath)
 #if defined(XP_WIN)
   // Native path will drop Unicode characters that cannot be mapped to system's
   // codepage, using short (canonical) path as workaround.
-  nsCOMPtr<nsILocalFileWin> profileFileWin(do_QueryInterface(profileFile));
+  nsCOMPtr<nsILocalFileWin> profileFileWin(do_QueryInterface(confDir));
   if (!profileFileWin) {
     MOZ_LOG(gPIPNSSLog, LogLevel::Error,
            ("Could not get nsILocalFileWin for profile directory.\n"));
@@ -1589,7 +1589,7 @@ GetNSSProfilePath(nsAutoCString& aProfilePath)
   }
   rv = profileFileWin->GetNativeCanonicalPath(aProfilePath);
 #else
-  rv = profileFile->GetNativePath(aProfilePath);
+  rv = confDir->GetNativePath(aProfilePath);
 #endif
   if (NS_FAILED(rv)) {
     MOZ_LOG(gPIPNSSLog, LogLevel::Error,

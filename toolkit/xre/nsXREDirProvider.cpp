@@ -322,7 +322,8 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
     // This falls through to the case below
     gettingProfile = true;
   }
-  if (!strcmp(aProperty, NS_APP_USER_PROFILE_50_DIR) || gettingProfile) {
+  if (!strcmp(aProperty, NS_APP_USER_PROFILE_50_DIR)
+      || !strcmp(aProperty, NS_APP_USER_NSS_CONF_DIR) || gettingProfile) {
     if (!mProfileNotified)
       return NS_ERROR_FAILURE;
 
