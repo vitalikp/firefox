@@ -2908,6 +2908,8 @@ public:
 
   bool PrerenderHref(nsIURI* aHref);
 
+  virtual bool IsThirdParty() = 0;
+
 protected:
   bool GetUseCounter(mozilla::UseCounter aUseCounter)
   {
