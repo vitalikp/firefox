@@ -372,10 +372,8 @@ nsNSSCertificate::GetDisplayName(nsAString& aDisplayName)
     return rv;
   }
 
-  // Only use the nickname for built-in roots where we already have a hard-coded
-  // reasonable display name (unfortunately we have to strip off the leading
-  // slot identifier followed by a ':'). Otherwise, attempt to use the following
-  // in order:
+  // Use the following in order:
+  //  - nickname, if present
   //  - the common name, if present
   //  - an organizational unit name, if present
   //  - an organization name, if present
@@ -383,20 +381,18 @@ nsNSSCertificate::GetDisplayName(nsAString& aDisplayName)
   //  - an email address, if one can be found
   // In the unlikely event that none of these fields are present and non-empty
   // (the subject really shouldn't be empty), an empty string is returned.
-  nsAutoCString builtInRootNickname;
+  nsAutoCString nickname(mCert->nickname);
   if (isBuiltInRoot) {
-    nsAutoCString fullNickname(mCert->nickname);
-    int32_t index = fullNickname.Find(":");
+    int32_t index = nickname.Find(":");
     if (index != kNotFound) {
       // Substring will gracefully handle the case where index is the last
       // character in the string (that is, if the nickname is just
       // "Builtin Object Token:"). In that case, we'll get an empty string.
-      builtInRootNickname = Substring(fullNickname,
-                                      AssertedCast<uint32_t>(index + 1));
+      nickname = Substring(nickname, AssertedCast<uint32_t>(index + 1));
     }
   }
   const char* nameOptions[] = {
-    builtInRootNickname.get(),
+    nickname.get(),
     commonName.get(),
     organizationalUnitName.get(),
     organizationName.get(),
