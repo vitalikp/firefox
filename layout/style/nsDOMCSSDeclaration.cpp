@@ -333,7 +333,7 @@ nsDOMCSSDeclaration::ParsePropertyValue(const nsCSSPropertyID aPropID,
                                         bool aIsImportant)
 {
   return ModifyDeclaration(
-    [&](Declaration* decl, CSSParsingEnvironment& env, bool* changed) {
+    [&](css::Declaration* decl, CSSParsingEnvironment& env, bool* changed) {
       nsCSSParser cssParser(env.mCSSLoader);
       cssParser.ParseProperty(aPropID, aPropValue,
                               env.mSheetURI, env.mBaseURI, env.mPrincipal,
@@ -353,7 +353,7 @@ nsDOMCSSDeclaration::ParseCustomPropertyValue(const nsAString& aPropertyName,
 {
   MOZ_ASSERT(nsCSSProps::IsCustomPropertyName(aPropertyName));
   return ModifyDeclaration(
-    [&](Declaration* decl, CSSParsingEnvironment& env, bool* changed) {
+    [&](css::Declaration* decl, CSSParsingEnvironment& env, bool* changed) {
       nsCSSParser cssParser(env.mCSSLoader);
       auto propName = Substring(aPropertyName, CSS_CUSTOM_NAME_PREFIX_LENGTH);
       cssParser.ParseVariable(propName, aPropValue, env.mSheetURI,
