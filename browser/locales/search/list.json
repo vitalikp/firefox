@@ -13,7 +13,7 @@
       },
       "experimental-hidden": {
         "visibleDefaultEngines": [
-          "yandex-en", "google-2018"
+          "yandex-en"
         ]
       }
     },
