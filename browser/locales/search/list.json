@@ -730,32 +730,32 @@
     "uk": {
       "default": {
         "visibleDefaultEngines": [
-          "google", "meta-ua", "ddg", "wikipedia-uk", "metamarket"
+          "google", "meta-ua", "ddg", "wikipedia-uk"
         ]
       },
       "UA": {
         "visibleDefaultEngines": [
-          "google-nocodes", "meta-ua", "ddg", "wikipedia-uk", "metamarket"
+          "google-nocodes", "meta-ua", "ddg", "wikipedia-uk"
         ]
       },
       "TR": {
         "visibleDefaultEngines": [
-          "google-nocodes", "meta-ua", "ddg", "wikipedia-uk", "metamarket"
+          "google-nocodes", "meta-ua", "ddg", "wikipedia-uk"
         ]
       },
       "BY": {
         "visibleDefaultEngines": [
-          "google-nocodes", "meta-ua", "ddg", "wikipedia-uk", "metamarket"
+          "google-nocodes", "meta-ua", "ddg", "wikipedia-uk"
         ]
       },
       "KZ": {
         "visibleDefaultEngines": [
-          "google-nocodes", "meta-ua", "ddg", "wikipedia-uk", "metamarket"
+          "google-nocodes", "meta-ua", "ddg", "wikipedia-uk"
         ]
       },
       "RU": {
         "visibleDefaultEngines": [
-          "google-nocodes", "meta-ua", "ddg", "wikipedia-uk", "metamarket"
+          "google-nocodes", "meta-ua", "ddg", "wikipedia-uk"
         ]
       }
     },
