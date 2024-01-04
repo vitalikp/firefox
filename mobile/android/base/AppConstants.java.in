@@ -137,14 +137,12 @@ public class AppConstants {
 
     public static final String USER_AGENT_FENNEC_MOBILE = "Mozilla/5.0 (Android " +
         Build.VERSION.RELEASE + "; Mobile; rv:" +
-        AppConstants.MOZ_APP_VERSION + ") Gecko/" +
-        AppConstants.MOZ_APP_VERSION + " Firefox/" +
+        AppConstants.MOZ_APP_VERSION + ") Firefox/" +
         AppConstants.MOZ_APP_VERSION;
 
     public static final String USER_AGENT_FENNEC_TABLET = "Mozilla/5.0 (Android " +
         Build.VERSION.RELEASE + "; Tablet; rv:" +
-        AppConstants.MOZ_APP_VERSION + ") Gecko/" +
-        AppConstants.MOZ_APP_VERSION + " Firefox/" +
+        AppConstants.MOZ_APP_VERSION + ") Firefox/" +
         AppConstants.MOZ_APP_VERSION;
 
     public static final int MOZ_MIN_CPU_VERSION = @MOZ_MIN_CPU_VERSION@;

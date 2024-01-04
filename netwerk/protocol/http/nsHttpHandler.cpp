@@ -199,7 +199,6 @@ nsHttpHandler::nsHttpHandler()
     , mSessionStartTime(0)
     , mLegacyAppName("Mozilla")
     , mLegacyAppVersion("5.0")
-    , mProduct("Gecko")
     , mCompatFirefoxEnabled(false)
     , mUserAgentIsDirty(true)
     , mAcceptLanguagesIsDirty(true)
@@ -427,8 +426,8 @@ nsHttpHandler::Init()
     if (NS_SUCCEEDED(rv)) {
         spoofedVersion = spoofedVersion - (spoofedVersion % 10);
         mSpoofedUserAgent.Assign(nsPrintfCString(
-            "Mozilla/5.0 (%s; rv:%d.0) Gecko/%s Firefox/%d.0",
-            SPOOFED_OSCPU, spoofedVersion, LEGACY_BUILD_ID, spoofedVersion));
+            "Mozilla/5.0 (%s; rv:%d.0) Firefox/%d.0",
+            SPOOFED_OSCPU, spoofedVersion, spoofedVersion));
     }
 
     mSessionStartTime = NowInSeconds();
@@ -446,12 +445,6 @@ nsHttpHandler::Init()
     mRequestContextService =
         do_GetService("@mozilla.org/network/request-context-service;1");
 
-#if defined(ANDROID) || defined(MOZ_MULET)
-    mProductSub.AssignLiteral(MOZILLA_UAVERSION);
-#else
-    mProductSub.AssignLiteral(LEGACY_BUILD_ID);
-#endif
-
 #if DEBUG
     // dump user agent prefs
     LOG(("> legacy-app-name = %s\n", mLegacyAppName.get()));
@@ -459,8 +452,6 @@ nsHttpHandler::Init()
     LOG(("> platform = %s\n", mPlatform.get()));
     LOG(("> oscpu = %s\n", mOscpu.get()));
     LOG(("> misc = %s\n", mMisc.get()));
-    LOG(("> product = %s\n", mProduct.get()));
-    LOG(("> product-sub = %s\n", mProductSub.get()));
     LOG(("> app-name = %s\n", mAppName.get()));
     LOG(("> app-version = %s\n", mAppVersion.get()));
     LOG(("> compat-firefox = %s\n", mCompatFirefox.get()));
@@ -805,8 +796,6 @@ nsHttpHandler::BuildUserAgent()
 #endif
                            mOscpu.Length() +
                            mMisc.Length() +
-                           mProduct.Length() +
-                           mProductSub.Length() +
                            mAppName.Length() +
                            mAppVersion.Length() +
                            mCompatFirefox.Length() +
@@ -842,12 +831,6 @@ nsHttpHandler::BuildUserAgent()
     }
     mUserAgent += mMisc;
     mUserAgent += ')';
-
-    // Product portion
-    mUserAgent += ' ';
-    mUserAgent += mProduct;
-    mUserAgent += '/';
-    mUserAgent += mProductSub;
 
     bool isFirefox = mAppName.EqualsLiteral("Firefox");
     if (isFirefox || mCompatFirefoxEnabled) {

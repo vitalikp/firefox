@@ -477,8 +477,6 @@ private:
     nsCString      mPlatform;
     nsCString      mOscpu;
     nsCString      mMisc;
-    nsCString      mProduct;
-    nsCString      mProductSub;
     nsCString      mAppName;
     nsCString      mAppVersion;
     nsCString      mCompatFirefox;

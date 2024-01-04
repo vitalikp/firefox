@@ -2983,7 +2983,6 @@ var LightWeightThemeWebInstaller = {
 var DesktopUserAgent = {
   DESKTOP_UA: null,
   TCO_DOMAIN: "t.co",
-  TCO_REPLACE: / Gecko.*/,
 
   init: function ua_init() {
     Services.obs.addObserver(this, "DesktopMode:Change", false);
@@ -2992,8 +2991,7 @@ var DesktopUserAgent = {
     // See https://developer.mozilla.org/en/Gecko_user_agent_string_reference
     this.DESKTOP_UA = Cc["@mozilla.org/network/protocol;1?name=http"]
                         .getService(Ci.nsIHttpProtocolHandler).userAgent
-                        .replace(/Android \d.+?; [a-zA-Z]+/, "X11; Linux x86_64")
-                        .replace(/Gecko\/[0-9\.]+/, "Gecko/20100101");
+                        .replace(/Android \d.+?; [a-zA-Z]+/, "X11; Linux x86_64");
   },
 
   onRequest: function(channel, defaultUA) {
@@ -3002,8 +3000,8 @@ var DesktopUserAgent = {
       channel.referrer = channel.URI;
 
       // Send a bot-like UA to t.co to get a real redirect. We strip off the
-      // "Gecko/x.y Firefox/x.y" part
-      return defaultUA.replace(this.TCO_REPLACE, "");
+      // Firefox/x.y" part
+      return defaultUA;
     }
 
     let channelWindow = this._getWindowForRequest(channel);
