@@ -1194,7 +1194,7 @@ this.BrowserTestUtils = {
    *        notification is expected to appear.
    * @param notificationValue (string)
    *        The "value" of the notification, which is often used as
-   *        a unique identifier. Example: "captive-portal-detected".
+   *        a unique identifier.
    * @return Promise
    *        Resolves to the <xul:notification> that is being shown.
    */

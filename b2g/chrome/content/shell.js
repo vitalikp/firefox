@@ -56,10 +56,6 @@ if (isGonk) {
   });
 }
 
-XPCOMUtils.defineLazyServiceGetter(Services, 'captivePortalDetector',
-                                  '@mozilla.org/toolkit/captive-detector;1',
-                                  'nsICaptivePortalDetector');
-
 XPCOMUtils.defineLazyModuleGetter(this, "SafeMode",
                                   "resource://gre/modules/SafeMode.jsm");
 
@@ -321,7 +317,6 @@ var shell = {
 
     CustomEventManager.init();
     UserAgentOverrides.init();
-    CaptivePortalLoginHelper.init();
 
     this.contentBrowser.src = homeURL;
 
@@ -710,9 +705,6 @@ var CustomEventManager = {
       case 'system-message-listener-ready':
         Services.obs.notifyObservers(null, 'system-message-listener-ready', null);
         break;
-      case 'captive-portal-login-cancel':
-        CaptivePortalLoginHelper.handleEvent(detail);
-        break;
       case 'inputmethod-update-layouts':
       case 'inputregistry-add':
       case 'inputregistry-remove':
@@ -816,20 +808,6 @@ window.addEventListener('ContentStart', function ss_onContentStart() {
     },
     "ipc:content-shutdown", false);
 })();
-
-var CaptivePortalLoginHelper = {
-  init: function init() {
-    Services.obs.addObserver(this, 'captive-portal-login', false);
-    Services.obs.addObserver(this, 'captive-portal-login-abort', false);
-    Services.obs.addObserver(this, 'captive-portal-login-success', false);
-  },
-  handleEvent: function handleEvent(detail) {
-    Services.captivePortalDetector.cancelLogin(detail.id);
-  },
-  observe: function observe(subject, topic, data) {
-    shell.sendChromeEvent(JSON.parse(data));
-  }
-}
 
 // Listen for crashes submitted through the crash reporter UI.
 window.addEventListener('ContentStart', function cr_onContentStart() {

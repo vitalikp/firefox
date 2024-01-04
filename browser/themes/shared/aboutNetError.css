@@ -16,10 +16,6 @@ body.certerror {
                                             #f0d000 66%, #f0d000);
 }
 
-body.captiveportal .title {
-  background-image: url("wifi.svg");
-}
-
 body.certerror .title {
   background-image: url("cert-error.svg");
 }
@@ -43,11 +39,11 @@ button:disabled {
   display: none;
 }
 
-#certErrorAndCaptivePortalButtonContainer {
+#certErrorButtonContainer {
   display: none;
 }
 
-body:not(.neterror) #certErrorAndCaptivePortalButtonContainer {
+body:not(.neterror) #certErrorButtonContainer {
   display: flex;
 }
 
@@ -66,18 +62,6 @@ body:not(.neterror) #netErrorButtonContainer {
 
 #advancedButton {
   display: none;
-}
-
-body.captiveportal #returnButton {
-  display: none;
-}
-
-body:not(.captiveportal) #openPortalLoginPageButton {
-  display: none;
-}
-
-#openPortalLoginPageButton {
-  margin-inline-start: 0;
 }
 
 body:not(.neterror) #advancedButton {

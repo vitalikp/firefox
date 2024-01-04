@@ -386,11 +386,6 @@ NetworkManager.prototype = {
                 this.mRil.getRadioInterface(i).updateRILNetworkInterface();
               }
             }
-
-            // Probing the public network accessibility after routing table is ready
-            CaptivePortalDetectionHelper
-              .notify(CaptivePortalDetectionHelper.EVENT_CONNECT,
-                      this.activeNetworkInfo);
           })
           .then(() => {
             // Notify outer modules like MmsService to start the transaction after
@@ -436,10 +431,6 @@ NetworkManager.prototype = {
                 extNetworkInfo.type == this.activeNetworkInfo.type) {
               this.clearNetworkProxy();
             }
-
-            // Abort ongoing captive portal detection on the wifi interface
-            CaptivePortalDetectionHelper
-              .notify(CaptivePortalDetectionHelper.EVENT_DISCONNECT, extNetworkInfo);
           })
           .then(() => this.setAndConfigureActive())
           .then(() => {
@@ -1134,80 +1125,6 @@ NetworkManager.prototype = {
     Services.prefs.clearUserPref("network.proxy.ssl_port");
   },
 };
-
-var CaptivePortalDetectionHelper = (function() {
-
-  const EVENT_CONNECT = "Connect";
-  const EVENT_DISCONNECT = "Disconnect";
-  let _ongoingInterface = null;
-  let _available = ("nsICaptivePortalDetector" in Ci);
-  let getService = function() {
-    return Cc['@mozilla.org/toolkit/captive-detector;1']
-             .getService(Ci.nsICaptivePortalDetector);
-  };
-
-  let _performDetection = function(interfaceName, callback) {
-    let capService = getService();
-    let capCallback = {
-      QueryInterface: XPCOMUtils.generateQI([Ci.nsICaptivePortalCallback]),
-      prepare: function() {
-        capService.finishPreparation(interfaceName);
-      },
-      complete: function(success) {
-        _ongoingInterface = null;
-        callback(success);
-      }
-    };
-
-    // Abort any unfinished captive portal detection.
-    if (_ongoingInterface != null) {
-      capService.abort(_ongoingInterface);
-      _ongoingInterface = null;
-    }
-    try {
-      capService.checkCaptivePortal(interfaceName, capCallback);
-      _ongoingInterface = interfaceName;
-    } catch (e) {
-      debug('Fail to detect captive portal due to: ' + e.message);
-    }
-  };
-
-  let _abort = function(interfaceName) {
-    if (_ongoingInterface !== interfaceName) {
-      return;
-    }
-
-    let capService = getService();
-    capService.abort(_ongoingInterface);
-    _ongoingInterface = null;
-  };
-
-  return {
-    EVENT_CONNECT: EVENT_CONNECT,
-    EVENT_DISCONNECT: EVENT_DISCONNECT,
-    notify: function(eventType, network) {
-      switch (eventType) {
-        case EVENT_CONNECT:
-          // perform captive portal detection on wifi interface
-          if (_available && network &&
-              network.type == Ci.nsINetworkInfo.NETWORK_TYPE_WIFI) {
-            _performDetection(network.name, function() {
-              // TODO: bug 837600
-              // We can disconnect wifi in here if user abort the login procedure.
-            });
-          }
-
-          break;
-        case EVENT_DISCONNECT:
-          if (_available &&
-              network.type == Ci.nsINetworkInfo.NETWORK_TYPE_WIFI) {
-            _abort(network.name);
-          }
-          break;
-      }
-    }
-  };
-}());
 
 XPCOMUtils.defineLazyGetter(NetworkManager.prototype, "mRil", function() {
   try {

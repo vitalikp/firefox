@@ -227,7 +227,6 @@ struct XPCOMInitData
 {
     bool isOffline;
     bool isConnected;
-    int32_t captivePortalState;
     bool isLangRTL;
     bool haveBidiKeyboards;
     nsString[] dictionaries;
@@ -370,7 +369,6 @@ child:
 
     async SetOffline(bool offline);
     async SetConnectivity(bool connectivity);
-    async SetCaptivePortalState(int32_t aState);
 
     async NotifyVisited(URIParams uri);
 

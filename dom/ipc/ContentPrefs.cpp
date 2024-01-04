@@ -164,7 +164,6 @@ const char* mozilla::dom::ContentPrefs::gInitPrefs[] = {
   "network.IDN_show_punycode",
   "network.buffer.cache.count",
   "network.buffer.cache.size",
-  "network.captive-portal-service.enabled",
   "network.cookie.cookieBehavior",
   "network.cookie.lifetimePolicy",
   "network.dns.disablePrefetch",

@@ -257,9 +257,7 @@ function getSerializedSecurityInfo(docShell) {
 var AboutNetAndCertErrorListener = {
   init(chromeGlobal) {
     addMessageListener("CertErrorDetails", this);
-    addMessageListener("Browser:CaptivePortalFreed", this);
     chromeGlobal.addEventListener("AboutNetErrorLoad", this, false, true);
-    chromeGlobal.addEventListener("AboutNetErrorOpenCaptivePortal", this, false, true);
     chromeGlobal.addEventListener("AboutNetErrorSetAutomatic", this, false, true);
     chromeGlobal.addEventListener("AboutNetErrorOverride", this, false, true);
     chromeGlobal.addEventListener("AboutNetErrorResetPreferences", this, false, true);
@@ -281,9 +279,6 @@ var AboutNetAndCertErrorListener = {
     switch (msg.name) {
       case "CertErrorDetails":
         this.onCertErrorDetails(msg);
-        break;
-      case "Browser:CaptivePortalFreed":
-        this.onCaptivePortalFreed(msg);
         break;
     }
   },
@@ -310,10 +305,6 @@ var AboutNetAndCertErrorListener = {
     }
   },
 
-  onCaptivePortalFreed(msg) {
-    content.dispatchEvent(new content.CustomEvent("AboutNetErrorCaptivePortalFreed"));
-  },
-
   handleEvent(aEvent) {
     if (!this.isAboutNetError && !this.isAboutCertError) {
       return;
@@ -322,9 +313,6 @@ var AboutNetAndCertErrorListener = {
     switch (aEvent.type) {
     case "AboutNetErrorLoad":
       this.onPageLoad(aEvent);
-      break;
-    case "AboutNetErrorOpenCaptivePortal":
-      this.openCaptivePortalPage(aEvent);
       break;
     case "AboutNetErrorSetAutomatic":
       this.onSetAutomatic(aEvent);
@@ -367,11 +355,6 @@ var AboutNetAndCertErrorListener = {
     sendAsyncMessage("Browser:SSLErrorReportTelemetry",
                      {reportStatus: TLS_ERROR_REPORT_TELEMETRY_UI_SHOWN});
   },
-
-  openCaptivePortalPage(evt) {
-    sendAsyncMessage("Browser:OpenCaptivePortalPage");
-  },
-
 
   onResetPreferences(evt) {
     sendAsyncMessage("Browser:ResetSSLPreferences");

@@ -58,7 +58,6 @@
 #include "mozilla/layout/RenderFrameChild.h"
 #include "mozilla/loader/ScriptCacheActors.h"
 #include "mozilla/net/NeckoChild.h"
-#include "mozilla/net/CaptivePortalService.h"
 #include "mozilla/plugins/PluginInstanceParent.h"
 #include "mozilla/plugins/PluginModuleParent.h"
 #include "mozilla/widget/ScreenManager.h"
@@ -1047,7 +1046,6 @@ ContentChild::InitXPCOM(const XPCOMInitData& aXPCOMInit,
 
   RecvSetOffline(aXPCOMInit.isOffline());
   RecvSetConnectivity(aXPCOMInit.isConnected());
-  RecvSetCaptivePortalState(aXPCOMInit.captivePortalState());
   RecvBidiKeyboardNotify(aXPCOMInit.isLangRTL(), aXPCOMInit.haveBidiKeyboards());
 
   // Create the CPOW manager as soon as possible.
@@ -2002,21 +2000,6 @@ ContentChild::RecvSetConnectivity(const bool& connectivity)
   NS_ASSERTION(ioInternal, "IO Service can not be null");
 
   ioInternal->SetConnectivity(connectivity);
-
-  return IPC_OK();
-}
-
-mozilla::ipc::IPCResult
-ContentChild::RecvSetCaptivePortalState(const int32_t& aState)
-{
-  nsCOMPtr<nsICaptivePortalService> cps = do_GetService(NS_CAPTIVEPORTAL_CID);
-  if (!cps) {
-    return IPC_OK();
-  }
-
-  mozilla::net::CaptivePortalService *portal =
-    static_cast<mozilla::net::CaptivePortalService*>(cps.get());
-  portal->SetStateInChild(aState);
 
   return IPC_OK();
 }

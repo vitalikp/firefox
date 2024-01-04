@@ -53,7 +53,6 @@
 #include "mozilla/ipc/URIUtils.h"
 #include "mozilla/net/NeckoChild.h"
 #include "mozilla/dom/ContentParent.h"
-#include "mozilla/net/CaptivePortalService.h"
 #include "ReferrerPolicy.h"
 #include "nsContentSecurityManager.h"
 #include "nsContentUtils.h"
@@ -78,7 +77,6 @@ namespace net {
 #define NECKO_BUFFER_CACHE_COUNT_PREF "network.buffer.cache.count"
 #define NECKO_BUFFER_CACHE_SIZE_PREF  "network.buffer.cache.size"
 #define NETWORK_NOTIFY_CHANGED_PREF   "network.notify.changed"
-#define NETWORK_CAPTIVE_PORTAL_PREF   "network.captive-portal-service.enabled"
 
 #define MAX_RECURSION_COUNT 50
 
@@ -222,8 +220,6 @@ nsIOService::Init()
     else
         NS_WARNING("failed to get error service");
 
-    InitializeCaptivePortalService();
-
     // setup our bad port list stuff
     for(int i=0; gBadPortList[i]; i++)
         mRestrictedPortList.AppendElement(gBadPortList[i]);
@@ -237,7 +233,6 @@ nsIOService::Init()
         prefBranch->AddObserver(NECKO_BUFFER_CACHE_COUNT_PREF, this, true);
         prefBranch->AddObserver(NECKO_BUFFER_CACHE_SIZE_PREF, this, true);
         prefBranch->AddObserver(NETWORK_NOTIFY_CHANGED_PREF, this, true);
-        prefBranch->AddObserver(NETWORK_CAPTIVE_PORTAL_PREF, this, true);
         PrefsChanged(prefBranch);
     }
     
@@ -272,22 +267,6 @@ nsIOService::Init()
 nsIOService::~nsIOService()
 {
     gIOService = nullptr;
-}
-
-nsresult
-nsIOService::InitializeCaptivePortalService()
-{
-    if (XRE_GetProcessType() != GeckoProcessType_Default) {
-        // We only initalize a captive portal service in the main process
-        return NS_OK;
-    }
-
-    mCaptivePortalService = do_GetService(NS_CAPTIVEPORTAL_CID);
-    if (mCaptivePortalService) {
-        return static_cast<CaptivePortalService*>(mCaptivePortalService.get())->Initialize();
-    }
-
-    return NS_OK;
 }
 
 nsresult
@@ -371,62 +350,10 @@ NS_IMPL_ISUPPORTS(nsIOService,
 ////////////////////////////////////////////////////////////////////////////////
 
 nsresult
-nsIOService::RecheckCaptivePortal()
-{
-  MOZ_ASSERT(NS_IsMainThread(), "Must be called on the main thread");
-  if (mCaptivePortalService) {
-    mCaptivePortalService->RecheckCaptivePortal();
-  }
-  return NS_OK;
-}
-
-nsresult
-nsIOService::RecheckCaptivePortalIfLocalRedirect(nsIChannel* newChan)
-{
-    nsresult rv;
-
-    if (!mCaptivePortalService) {
-        return NS_OK;
-    }
-
-    nsCOMPtr<nsIURI> uri;
-    rv = newChan->GetURI(getter_AddRefs(uri));
-    if (NS_FAILED(rv)) {
-        return rv;
-    }
-
-    nsCString host;
-    rv = uri->GetHost(host);
-    if (NS_FAILED(rv)) {
-        return rv;
-    }
-
-    PRNetAddr prAddr;
-    if (PR_StringToNetAddr(host.BeginReading(), &prAddr) != PR_SUCCESS) {
-        // The redirect wasn't to an IP literal, so there's probably no need
-        // to trigger the captive portal detection right now. It can wait.
-        return NS_OK;
-    }
-
-    NetAddr netAddr;
-    PRNetAddrToNetAddr(&prAddr, &netAddr);
-    if (IsIPAddrLocal(&netAddr)) {
-        // Redirects to local IP addresses are probably captive portals
-        mCaptivePortalService->RecheckCaptivePortal();
-    }
-
-    return NS_OK;
-}
-
-nsresult
 nsIOService::AsyncOnChannelRedirect(nsIChannel* oldChan, nsIChannel* newChan,
                                     uint32_t flags,
                                     nsAsyncRedirectVerifyHelper *helper)
 {
-    // If a redirect to a local network address occurs, then chances are we
-    // are in a captive portal, so we trigger a recheck.
-    RecheckCaptivePortalIfLocalRedirect(newChan);
-
     // This is silly. I wish there was a simpler way to get at the global
     // reference of the contentSecurityManager. But it lives in the XPCOM
     // service registry.
@@ -1156,15 +1083,6 @@ nsIOService::SetConnectivityInternal(bool aConnectivity)
     // we have statistic about network change event even if we are offline.
     mLastConnectivityChange = PR_IntervalNow();
 
-    if (mCaptivePortalService) {
-        if (aConnectivity && !xpc::AreNonLocalConnectionsDisabled()) {
-            // This will also trigger a captive portal check for the new network
-            static_cast<CaptivePortalService*>(mCaptivePortalService.get())->Start();
-        } else {
-            static_cast<CaptivePortalService*>(mCaptivePortalService.get())->Stop();
-        }
-    }
-
     nsCOMPtr<nsIObserverService> observerService = services::GetObserverService();
     if (!observerService) {
         return NS_OK;
@@ -1297,18 +1215,6 @@ nsIOService::PrefsChanged(nsIPrefBranch *prefs, const char *pref)
             mNetworkNotifyChanged = allow;
         }
     }
-
-    if (!pref || strcmp(pref, NETWORK_CAPTIVE_PORTAL_PREF) == 0) {
-        bool captivePortalEnabled;
-        nsresult rv = prefs->GetBoolPref(NETWORK_CAPTIVE_PORTAL_PREF, &captivePortalEnabled);
-        if (NS_SUCCEEDED(rv) && mCaptivePortalService) {
-            if (captivePortalEnabled && !xpc::AreNonLocalConnectionsDisabled()) {
-                static_cast<CaptivePortalService*>(mCaptivePortalService.get())->Start();
-            } else {
-                static_cast<CaptivePortalService*>(mCaptivePortalService.get())->Stop();
-            }
-        }
-    }
 }
 
 void
@@ -1390,8 +1296,6 @@ nsIOService::NotifyWakeup()
                             (u"" NS_NETWORK_LINK_DATA_CHANGED));
     }
 
-    RecheckCaptivePortal();
-
     return NS_OK;
 }
 
@@ -1453,11 +1357,6 @@ nsIOService::Observe(nsISupports *subject,
         mHttpHandlerAlreadyShutingDown = false;
 
         SetOffline(true);
-
-        if (mCaptivePortalService) {
-            static_cast<CaptivePortalService*>(mCaptivePortalService.get())->Stop();
-            mCaptivePortalService = nullptr;
-        }
 
         // Break circular reference.
         mProxyService = nullptr;
@@ -1626,9 +1525,6 @@ nsIOService::OnNetworkLinkEvent(const char *data)
     bool isUp = true;
     if (!strcmp(data, NS_NETWORK_LINK_DATA_CHANGED)) {
         mLastNetworkLinkChange = PR_IntervalNow();
-        // CHANGED means UP/DOWN didn't change
-        // but the status of the captive portal may have changed.
-        RecheckCaptivePortal();
         return NS_OK;
     } else if (!strcmp(data, NS_NETWORK_LINK_DATA_DOWN)) {
         isUp = false;

@@ -330,7 +330,6 @@ public:
   virtual mozilla::ipc::IPCResult RecvSetOffline(const bool& offline) override;
 
   virtual mozilla::ipc::IPCResult RecvSetConnectivity(const bool& connectivity) override;
-  virtual mozilla::ipc::IPCResult RecvSetCaptivePortalState(const int32_t& state) override;
 
   virtual mozilla::ipc::IPCResult RecvBidiKeyboardNotify(const bool& isLangRTL,
                                                          const bool& haveBidiKeyboards) override;
