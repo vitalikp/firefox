@@ -700,7 +700,6 @@
                   <image id="translated-notification-icon" class="notification-anchor-icon translation-icon in-use" role="button"
                          tooltiptext="&urlbar.translatedNotificationAnchor.tooltip;"/>
                 </box>
-                <image id="tracking-protection-icon"/>
                 <image id="connection-icon"/>
                 <hbox id="identity-icon-labels">
                   <label id="identity-icon-label" class="plain" flex="1"/>

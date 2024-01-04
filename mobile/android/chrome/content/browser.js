@@ -513,7 +513,6 @@ var BrowserApp = {
       // Collect telemetry data.
       // We do this at startup because we want to move away from "gather-telemetry" (bug 1127907)
       InitLater(() => {
-        Telemetry.addData("FENNEC_TRACKING_PROTECTION_STATE", parseInt(BrowserApp.getTrackingProtectionState()));
         Telemetry.addData("ZOOMED_VIEW_ENABLED", Services.prefs.getBoolPref("ui.zoomedview.enabled"));
       });
 
@@ -1369,25 +1368,6 @@ var BrowserApp = {
     });
   },
 
-  // These values come from pref_tracking_protection_entries in arrays.xml.
-  PREF_TRACKING_PROTECTION_ENABLED: "2",
-  PREF_TRACKING_PROTECTION_ENABLED_PB: "1",
-  PREF_TRACKING_PROTECTION_DISABLED: "0",
-
-  /**
-   * Returns the current state of the tracking protection pref.
-   * (0 = Disabled, 1 = Enabled in PB, 2 = Enabled)
-   */
-  getTrackingProtectionState: function() {
-    if (Services.prefs.getBoolPref("privacy.trackingprotection.enabled")) {
-      return this.PREF_TRACKING_PROTECTION_ENABLED;
-    }
-    if (Services.prefs.getBoolPref("privacy.trackingprotection.pbmode.enabled")) {
-      return this.PREF_TRACKING_PROTECTION_ENABLED_PB;
-    }
-    return this.PREF_TRACKING_PROTECTION_DISABLED;
-  },
-
   sanitize: function (aItems, callback, aShutdown) {
     let success = true;
     var promises = [];
@@ -1581,31 +1561,6 @@ var BrowserApp = {
             flags |= Ci.nsIWebNavigation.LOAD_FLAGS_BYPASS_CACHE |
                      Ci.nsIWebNavigation.LOAD_FLAGS_BYPASS_PROXY;
           }
-
-          if (data.contentType === "tracking") {
-            let normalizedUrl = Services.io.newURI("https://" + browser.currentURI.hostPort, null, null);
-            if (data.allowContent) {
-              // Add the current host in the 'trackingprotection' consumer of
-              // the permission manager using a normalized URI. This effectively
-              // places this host on the tracking protection white list.
-              if (PrivateBrowsingUtils.isBrowserPrivate(browser)) {
-                PrivateBrowsingUtils.addToTrackingAllowlist(normalizedUrl);
-              } else {
-                Services.perms.add(normalizedUrl, "trackingprotection", Services.perms.ALLOW_ACTION);
-                Telemetry.addData("TRACKING_PROTECTION_EVENTS", 1);
-              }
-            } else {
-              // Remove the current host from the 'trackingprotection' consumer
-              // of the permission manager. This effectively removes this host
-              // from the tracking protection white list (any list actually).
-              if (PrivateBrowsingUtils.isBrowserPrivate(browser)) {
-                PrivateBrowsingUtils.removeFromTrackingAllowlist(normalizedUrl);
-              } else {
-                Services.perms.remove(normalizedUrl, "trackingprotection");
-                Telemetry.addData("TRACKING_PROTECTION_EVENTS", 2);
-              }
-            }
-          }
         }
 
         // Try to use the session history to reload so that framesets are
@@ -1760,11 +1715,6 @@ var BrowserApp = {
           case "privacy.masterpassword.enabled":
             aSubject.setAsBool(MasterPassword.enabled);
             break;
-
-          case "privacy.trackingprotection.state": {
-            aSubject.setAsAString(this.getTrackingProtectionState());
-            break;
-          }
         }
         break;
       }
@@ -1792,32 +1742,6 @@ var BrowserApp = {
             }
             aSubject.setAsEmpty();
             break;
-
-          // "privacy.trackingprotection.state" is not a "real" pref name, but
-          // it's used in the setting menu.  By default
-          // "privacy.trackingprotection.pbmode.enabled" is true, and
-          // "privacy.trackingprotection.enabled" is false.
-          case "privacy.trackingprotection.state": {
-            switch (value) {
-              // Tracking protection disabled.
-              case this.PREF_TRACKING_PROTECTION_DISABLED:
-                Services.prefs.setBoolPref("privacy.trackingprotection.pbmode.enabled", false);
-                Services.prefs.setBoolPref("privacy.trackingprotection.enabled", false);
-                break;
-              // Tracking protection only in private browsing,
-              case this.PREF_TRACKING_PROTECTION_ENABLED_PB:
-                Services.prefs.setBoolPref("privacy.trackingprotection.pbmode.enabled", true);
-                Services.prefs.setBoolPref("privacy.trackingprotection.enabled", false);
-                break;
-              // Tracking protection everywhere.
-              case this.PREF_TRACKING_PROTECTION_ENABLED:
-                Services.prefs.setBoolPref("privacy.trackingprotection.pbmode.enabled", true);
-                Services.prefs.setBoolPref("privacy.trackingprotection.enabled", true);
-                break;
-            }
-            aSubject.setAsEmpty();
-            break;
-          }
         }
         break;
       }
@@ -5545,18 +5469,6 @@ var IdentityHandler = {
   // Loaded active mixed content.
   MIXED_MODE_CONTENT_LOADED: "loaded",
 
-  // The following tracking content modes are only used if tracking protection
-  // is enabled. Our Java frontend coalesces them into one indicator.
-
-  // No tracking content information. No tracking content icon is shown.
-  TRACKING_MODE_UNKNOWN: "unknown",
-
-  // Blocked active tracking content. Shield icon is shown, with a popup option to load content.
-  TRACKING_MODE_CONTENT_BLOCKED: "tracking_content_blocked",
-
-  // Loaded active tracking content. Yellow triangle icon is shown.
-  TRACKING_MODE_CONTENT_LOADED: "tracking_content_loaded",
-
   // Cache the most recent SSLStatus and Location seen in getIdentityStrings
   _lastStatus : null,
   _lastLocation : null,
@@ -5641,33 +5553,6 @@ var IdentityHandler = {
     return this.MIXED_MODE_UNKNOWN;
   },
 
-  getTrackingMode: function getTrackingMode(aState, aBrowser) {
-    if (aState & Ci.nsIWebProgressListener.STATE_BLOCKED_TRACKING_CONTENT) {
-      this.shieldHistogramAdd(aBrowser, 2);
-      return this.TRACKING_MODE_CONTENT_BLOCKED;
-    }
-
-    // Only show an indicator for loaded tracking content if the pref to block it is enabled
-    let tpEnabled = Services.prefs.getBoolPref("privacy.trackingprotection.enabled") ||
-                    (Services.prefs.getBoolPref("privacy.trackingprotection.pbmode.enabled") &&
-                     PrivateBrowsingUtils.isBrowserPrivate(aBrowser));
-
-    if ((aState & Ci.nsIWebProgressListener.STATE_LOADED_TRACKING_CONTENT) && tpEnabled) {
-      this.shieldHistogramAdd(aBrowser, 1);
-      return this.TRACKING_MODE_CONTENT_LOADED;
-    }
-
-    this.shieldHistogramAdd(aBrowser, 0);
-    return this.TRACKING_MODE_UNKNOWN;
-  },
-
-  shieldHistogramAdd: function(browser, value) {
-    if (PrivateBrowsingUtils.isBrowserPrivate(browser)) {
-      return;
-    }
-    Telemetry.addData("TRACKING_PROTECTION_SHIELD", value);
-  },
-
   /**
    * Determine the identity of the page being displayed by examining its SSL cert
    * (if available). Return the data needed to update the UI.
@@ -5702,14 +5587,12 @@ var IdentityHandler = {
     let identityMode = this.getIdentityMode(aState, uri);
     let mixedDisplay = this.getMixedDisplayMode(aState);
     let mixedActive = this.getMixedActiveMode(aState);
-    let trackingMode = this.getTrackingMode(aState, aBrowser);
     let result = {
       origin: locationObj.origin,
       mode: {
         identity: identityMode,
         mixed_display: mixedDisplay,
-        mixed_active: mixedActive,
-        tracking: trackingMode
+        mixed_active: mixedActive
       }
     };
 

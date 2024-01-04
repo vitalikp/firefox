@@ -173,10 +173,6 @@
 
         <service android:name="org.mozilla.gecko.GeckoService" />
 
-        <activity android:name="org.mozilla.gecko.trackingprotection.TrackingProtectionPrompt"
-                  android:launchMode="singleTop"
-                  android:theme="@style/OverlayActivity" />
-
         <activity android:name="org.mozilla.gecko.promotion.SimpleHelperUI"
                   android:launchMode="singleTop"
                   android:theme="@style/OverlayActivity" />

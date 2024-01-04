@@ -548,11 +548,6 @@
 ; Modules
 @RESPATH@/modules/*
 
-; Private Browsing
-@RESPATH@/components/privatebrowsing.xpt
-@RESPATH@/components/PrivateBrowsing.manifest
-@RESPATH@/components/PrivateBrowsingTrackingProtectionWhitelist.js
-
 ; Security Reports
 @RESPATH@/components/SecurityReporter.manifest
 @RESPATH@/components/SecurityReporter.js

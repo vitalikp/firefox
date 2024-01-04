@@ -629,9 +629,6 @@ private:
     RefPtr<nsDNSPrefetch>           mDNSPrefetch;
 
     Http2PushedStream                 *mPushedStream;
-    // True if the channel's principal was found on a phishing, malware, or
-    // tracking (if tracking protection is enabled) blocklist
-    bool                              mLocalBlocklist;
 
     MOZ_MUST_USE nsresult WaitForRedirectCallback();
     void PushRedirectAsyncFunc(nsContinueRedirectionFunc func);

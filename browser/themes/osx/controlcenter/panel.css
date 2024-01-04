@@ -30,24 +30,15 @@
   border-bottom-left-radius: 3.5px;
 }
 
-#tracking-action-block,
-#tracking-action-unblock,
-#tracking-action-unblock-private,
 #identity-popup-securityView-body > button {
   @hudButton@
   min-height: 30px;
 }
 
-#tracking-action-block:hover:active,
-#tracking-action-unblock:hover:active,
-#tracking-action-unblock-private:hover:active,
 #identity-popup-securityView-body > button:hover:active {
   @hudButtonPressed@
 }
 
-#tracking-action-block:-moz-focusring,
-#tracking-action-unblock:-moz-focusring,
-#tracking-action-unblock-private:-moz-focusring,
 #identity-popup-securityView-body > button:-moz-focusring {
   @hudButtonFocused@
 }

@@ -9,14 +9,6 @@
 
 <preferences id="privacyPreferences" hidden="true" data-category="panePrivacy">
 
-  <!-- Tracking -->
-  <preference id="privacy.trackingprotection.enabled"
-              name="privacy.trackingprotection.enabled"
-              type="bool"/>
-  <preference id="privacy.trackingprotection.pbmode.enabled"
-              name="privacy.trackingprotection.pbmode.enabled"
-              type="bool"/>
-
   <!-- XXX button prefs -->
   <preference id="pref.privacy.disable_button.cookie_exceptions"
               name="pref.privacy.disable_button.cookie_exceptions"
@@ -26,9 +18,6 @@
               type="bool"/>
   <preference id="pref.privacy.disable_button.change_blocklist"
               name="pref.privacy.disable_button.change_blocklist"
-              type="bool"/>
-  <preference id="pref.privacy.disable_button.tracking_protection_exceptions"
-              name="pref.privacy.disable_button.tracking_protection_exceptions"
               type="bool"/>
 
   <!-- Location Bar -->
@@ -85,58 +74,6 @@
   <label class="header-name" flex="1">&panePrivacy.title;</label>
   <html:a class="help-button" target="_blank" aria-label="&helpButton.label;"></html:a>
 </hbox>
-
-<!-- Tracking -->
-<groupbox id="trackingGroup" data-category="panePrivacy" hidden="true">
-  <vbox id="trackingprotectionbox" hidden="true">
-    <hbox align="start">
-      <vbox>
-        <caption><label>&trackingProtectionHeader.label;
-          <label id="trackingProtectionLearnMore" class="text-link"
-                 value="&trackingProtectionLearnMore.label;"/>
-        </label></caption>
-        <radiogroup id="trackingProtectionRadioGroup">
-          <radio value="always"
-                 label="&trackingProtectionAlways.label;"
-                 accesskey="&trackingProtectionAlways.accesskey;"/>
-          <radio value="private"
-                 label="&trackingProtectionPrivate.label;"
-                 accesskey="&trackingProtectionPrivate.accesskey;"/>
-          <radio value="never"
-                 label="&trackingProtectionNever.label;"
-                 accesskey="&trackingProtectionNever.accesskey;"/>
-        </radiogroup>
-      </vbox>
-      <spacer flex="1" />
-      <vbox>
-        <button id="trackingProtectionExceptions"
-                label="&trackingProtectionExceptions.label;"
-                accesskey="&trackingProtectionExceptions.accesskey;"
-                preference="pref.privacy.disable_button.tracking_protection_exceptions"/>
-        <button id="changeBlockList"
-                label="&changeBlockList.label;"
-                accesskey="&changeBlockList.accesskey;"
-                preference="pref.privacy.disable_button.change_blocklist"/>
-      </vbox>
-    </hbox>
-  </vbox>
-  <vbox id="trackingprotectionpbmbox">
-    <caption><label>&tracking.label;</label></caption>
-    <hbox align="center">
-      <checkbox id="trackingProtectionPBM"
-                preference="privacy.trackingprotection.pbmode.enabled"
-                accesskey="&trackingProtectionPBM5.accesskey;"
-                label="&trackingProtectionPBM5.label;" />
-      <label id="trackingProtectionPBMLearnMore"
-             class="text-link"
-             value="&trackingProtectionPBMLearnMore.label;"/>
-      <spacer flex="1" />
-      <button id="changeBlockListPBM"
-              label="&changeBlockList.label;" accesskey="&changeBlockList.accesskey;"
-              preference="pref.privacy.disable_button.change_blocklist"/>
-    </hbox>
-  </vbox>
-</groupbox>
 
 <!-- History -->
 <groupbox id="historyGroup" data-category="panePrivacy" hidden="true">

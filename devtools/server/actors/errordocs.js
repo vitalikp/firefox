@@ -83,7 +83,6 @@ const ErrorDocs = {
 };
 
 const MIXED_CONTENT_LEARN_MORE = "https://developer.mozilla.org/docs/Web/Security/Mixed_content";
-const TRACKING_PROTECTION_LEARN_MORE = "https://developer.mozilla.org/Firefox/Privacy/Tracking_Protection";
 const INSECURE_PASSWORDS_LEARN_MORE = "https://developer.mozilla.org/docs/Web/Security/Insecure_passwords";
 const PUBLIC_KEY_PINS_LEARN_MORE = "https://developer.mozilla.org/docs/Web/HTTP/Public_Key_Pinning";
 const STRICT_TRANSPORT_SECURITY_LEARN_MORE = "https://developer.mozilla.org/docs/Web/HTTP/Headers/Strict-Transport-Security";
@@ -96,7 +95,6 @@ const ErrorCategories = {
   "Invalid HPKP Headers": PUBLIC_KEY_PINS_LEARN_MORE,
   "Invalid HSTS Headers": STRICT_TRANSPORT_SECURITY_LEARN_MORE,
   "SHA-1 Signature": WEAK_SIGNATURE_ALGORITHM_LEARN_MORE,
-  "Tracking Protection": TRACKING_PROTECTION_LEARN_MORE,
   "MIMEMISMATCH": MIME_TYPE_MISMATCH_LEARN_MORE,
 };
 

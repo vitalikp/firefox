@@ -1010,7 +1010,6 @@ var gBrowserInit = {
     FeedHandler.init();
     CompactTheme.init();
     AboutPrivateBrowsingListener.init();
-    TrackingProtection.init();
     RefreshBlocker.init();
 
     let mm = window.getGroupMessageManager("browsers");
@@ -1524,8 +1523,6 @@ var gBrowserInit = {
     FeedHandler.uninit();
 
     CompactTheme.uninit();
-
-    TrackingProtection.uninit();
 
     RefreshBlocker.uninit();
 
@@ -4505,8 +4502,7 @@ var XULBrowserWindow = {
   //  1. Due to the nsIWebProgressListener.onSecurityChange notification.
   //  2. Called by tabbrowser.xml when updating the current browser.
   //  3. Called directly during this object's initializations.
-  // aRequest will be null always in case 2 and 3, and sometimes in case 1 (for
-  // instance, there won't be a request when STATE_BLOCKED_TRACKING_CONTENT is observed).
+  // aRequest will be null always in case 2 and 3, and sometimes in case 1.
   onSecurityChange(aWebProgress, aRequest, aState, aIsSimulated) {
     // Don't need to do anything if the data we use to update the UI hasn't
     // changed
@@ -4534,7 +4530,6 @@ var XULBrowserWindow = {
       uri = Services.uriFixup.createExposableURI(uri);
     } catch (e) {}
     gIdentityHandler.updateIdentity(this._state, uri);
-    TrackingProtection.onSecurityChange(this._state, aIsSimulated);
   },
 
   // simulate all change notifications after switching tabs
@@ -8045,17 +8040,6 @@ var AboutPrivateBrowsingListener = {
       "AboutPrivateBrowsing:OpenPrivateWindow",
       msg => {
         OpenBrowserWindow({private: true});
-    });
-    window.messageManager.addMessageListener(
-      "AboutPrivateBrowsing:ToggleTrackingProtection",
-      msg => {
-        const PREF = "privacy.trackingprotection.pbmode.enabled";
-        Services.prefs.setBoolPref(PREF, !Services.prefs.getBoolPref(PREF));
-    });
-    window.messageManager.addMessageListener(
-      "AboutPrivateBrowsing:DontShowIntroPanelAgain",
-      msg => {
-        TrackingProtection.dontShowIntroPanelAgain();
     });
   }
 };

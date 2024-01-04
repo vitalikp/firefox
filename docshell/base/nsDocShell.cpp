@@ -2214,22 +2214,6 @@ nsDocShell::GetHasMixedDisplayContentBlocked(
 }
 
 NS_IMETHODIMP
-nsDocShell::GetHasTrackingContentBlocked(bool* aHasTrackingContentBlocked)
-{
-  nsCOMPtr<nsIDocument> doc(GetDocument());
-  *aHasTrackingContentBlocked = doc && doc->GetHasTrackingContentBlocked();
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsDocShell::GetHasTrackingContentLoaded(bool* aHasTrackingContentLoaded)
-{
-  nsCOMPtr<nsIDocument> doc(GetDocument());
-  *aHasTrackingContentLoaded = doc && doc->GetHasTrackingContentLoaded();
-  return NS_OK;
-}
-
-NS_IMETHODIMP
 nsDocShell::GetAllowPlugins(bool* aAllowPlugins)
 {
   NS_ENSURE_ARG_POINTER(aAllowPlugins);
@@ -13640,21 +13624,6 @@ NS_IMETHODIMP
 nsDocShell::GetNestedFrameId(uint64_t* aId)
 {
   *aId = 0;
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsDocShell::IsTrackingProtectionOn(bool* aIsTrackingProtectionOn)
-{
-  if (Preferences::GetBool("privacy.trackingprotection.enabled", false)) {
-    *aIsTrackingProtectionOn = true;
-  } else if (UsePrivateBrowsing() &&
-             Preferences::GetBool("privacy.trackingprotection.pbmode.enabled", false)) {
-    *aIsTrackingProtectionOn = true;
-  } else {
-    *aIsTrackingProtectionOn = false;
-  }
-
   return NS_OK;
 }
 

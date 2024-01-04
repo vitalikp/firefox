@@ -76,26 +76,6 @@ public class ContentSecurityDoorHanger extends DoorHanger {
                 addLink(linkLabel, linkUrl);
             } catch (JSONException e) { }
         }
-
-        final JSONObject trackingProtection = options.optJSONObject("tracking_protection");
-        if (trackingProtection != null) {
-            mTitle.setVisibility(VISIBLE);
-            mTitle.setText(R.string.doorhanger_tracking_title);
-            try {
-                final boolean enabled = trackingProtection.getBoolean("enabled");
-                if (enabled) {
-                    mMessage.setText(R.string.doorhanger_tracking_message_enabled);
-                    mSecurityState.setText(R.string.doorhanger_tracking_state_enabled);
-                    mSecurityState.setTextColor(ContextCompat.getColor(getContext(), R.color.affirmative_green));
-                } else {
-                    mMessage.setText(R.string.doorhanger_tracking_message_disabled);
-                    mSecurityState.setText(R.string.doorhanger_tracking_state_disabled);
-                    mSecurityState.setTextColor(ContextCompat.getColor(getContext(), R.color.rejection_red));
-                }
-                mMessage.setVisibility(VISIBLE);
-                mSecurityState.setVisibility(VISIBLE);
-            } catch (JSONException e) { }
-        }
     }
 
     @Override

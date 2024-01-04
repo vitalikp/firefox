@@ -506,7 +506,6 @@ var settingsToObserve = {
   'layout.display-list.dump': false,
   'mms.debugging.enabled': false,
   'network.debugging.enabled': false,
-  'privacy.trackingprotection.enabled': false,
   'ril.debugging.enabled': false,
   'ril.radio.disabled': false,
   'ril.mms.requestReadReport.enabled': {

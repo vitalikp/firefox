@@ -27,15 +27,6 @@
 }
 
 
-#tracking-protection-icon@selectorSuffix@ {
-  list-style-image: url(chrome://browser/skin/tracking-protection-16.svg#enabled@iconVariant@);
-}
-
-#tracking-protection-icon[state="loaded-tracking-content"]@selectorSuffix@ {
-  list-style-image: url(chrome://browser/skin/tracking-protection-16.svg#disabled@iconVariant@);
-}
-
-
 #urlbar[pageproxystate="valid"] > #identity-box.verifiedDomain > #connection-icon@selectorSuffix@,
 #urlbar[pageproxystate="valid"] > #identity-box.verifiedIdentity > #connection-icon@selectorSuffix@,
 #urlbar[pageproxystate="valid"] > #identity-box.mixedActiveBlocked > #connection-icon@selectorSuffix@ {

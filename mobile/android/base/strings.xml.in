@@ -222,12 +222,6 @@
   <string name="pref_show_web_fonts">&pref_show_web_fonts;</string>
   <string name="pref_show_web_fonts_summary">&pref_show_web_fonts_summary2;</string>
 
-  <string name="pref_tracking_protection_title">&pref_tracking_protection_title2;</string>
-  <string name="pref_tracking_protection_summary">&pref_tracking_protection_summary3;</string>
-  <string name="pref_tracking_protection_enabled">&pref_tracking_protection_enabled;</string>
-  <string name="pref_tracking_protection_enabled_pb">&pref_tracking_protection_enabled_pb;</string>
-  <string name="pref_tracking_protection_disabled">&pref_tracking_protection_disabled;</string>
-
   <string name="pref_whats_new_notification">&pref_whats_new_notification;</string>
   <string name="pref_whats_new_notification_summary">&pref_whats_new_notification_summary;</string>
 
@@ -290,11 +284,6 @@
   <string name="pref_update_autodownload_wifi">&pref_update_autodownload_wifi;</string>
   <string name="pref_update_autodownload_disabled">&pref_update_autodownload_never;</string>
   <string name="pref_update_autodownload_enabled">&pref_update_autodownload_always;</string>
-
-  <string name="tracking_protection_prompt_title">&tracking_protection_prompt_title;</string>
-  <string name="tracking_protection_prompt_text">&tracking_protection_prompt_text;</string>
-  <string name="tracking_protection_prompt_tip_text">&tracking_protection_prompt_tip_text;</string>
-  <string name="tracking_protection_prompt_action_button">&tracking_protection_prompt_action_button;</string>
 
   <string name="pref_tab_queue_title">&pref_tab_queue_title3;</string>
   <string name="pref_tab_queue_summary">&pref_tab_queue_summary4;</string>
@@ -505,12 +494,6 @@
   <string name="mixed_content_blocked_some">&mixed_content_blocked_some1;</string>
   <string name="mixed_content_display_loaded">&mixed_content_display_loaded1;</string>
   <string name="mixed_content_protection_disabled">&mixed_content_protection_disabled1;</string>
-
-  <string name="doorhanger_tracking_title">&doorhanger_tracking_title2;</string>
-  <string name="doorhanger_tracking_state_enabled">&doorhanger_tracking_state_enabled;</string>
-  <string name="doorhanger_tracking_state_disabled">&doorhanger_tracking_state_disabled;</string>
-  <string name="doorhanger_tracking_message_enabled">&doorhanger_tracking_message_enabled1;</string>
-  <string name="doorhanger_tracking_message_disabled">&doorhanger_tracking_message_disabled2;</string>
 
   <string name="learn_more">&learn_more;</string>
   <string name="enable_protection">&enable_protection;</string>

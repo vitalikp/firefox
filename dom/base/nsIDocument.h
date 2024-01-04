@@ -777,38 +777,6 @@ public:
   }
 
   /**
-   * Get tracking content blocked flag for this document.
-   */
-  bool GetHasTrackingContentBlocked()
-  {
-    return mHasTrackingContentBlocked;
-  }
-
-  /**
-   * Set the tracking content blocked flag for this document.
-   */
-  void SetHasTrackingContentBlocked(bool aHasTrackingContentBlocked)
-  {
-    mHasTrackingContentBlocked = aHasTrackingContentBlocked;
-  }
-
-  /**
-   * Get tracking content loaded flag for this document.
-   */
-  bool GetHasTrackingContentLoaded()
-  {
-    return mHasTrackingContentLoaded;
-  }
-
-  /**
-   * Set the tracking content loaded flag for this document.
-   */
-  void SetHasTrackingContentLoaded(bool aHasTrackingContentLoaded)
-  {
-    mHasTrackingContentLoaded = aHasTrackingContentLoaded;
-  }
-
-  /**
    * Get the sandbox flags for this document.
    * @see nsSandboxFlags.h for the possible flags
    */
@@ -3178,12 +3146,6 @@ protected:
 
   // True if a document load has a CSP with unsafe-inline attached.
   bool mHasUnsafeInlineCSP : 1;
-
-  // True if a document has blocked Tracking Content
-  bool mHasTrackingContentBlocked : 1;
-
-  // True if a document has loaded Tracking Content
-  bool mHasTrackingContentLoaded : 1;
 
   // True if DisallowBFCaching has been called on this document.
   bool mBFCacheDisallowed : 1;

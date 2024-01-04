@@ -260,12 +260,6 @@
 <!ENTITY pref_show_web_fonts "Show web fonts">
 <!ENTITY pref_show_web_fonts_summary2 "Download remote fonts when loading a page">
 
-<!ENTITY pref_tracking_protection_title2 "Tracking Protection">
-<!ENTITY pref_tracking_protection_summary3 "Enabled in Private Browsing">
-<!ENTITY pref_tracking_protection_enabled "Enabled">
-<!ENTITY pref_tracking_protection_enabled_pb "Enabled in Private Browsing">
-<!ENTITY pref_tracking_protection_disabled "Disabled">
-
 <!ENTITY pref_whats_new_notification "What\'s new in &brandShortName;">
 <!ENTITY pref_whats_new_notification_summary "Learn about new features after an update">
 
@@ -282,11 +276,6 @@
 <!-- Localization note (pref_activity_stream): Experimental feature, see https://testpilot.firefox.com/experiments/activity-stream  -->
 <!ENTITY pref_activity_stream "Activity Stream">
 <!ENTITY pref_activity_stream_summary "A rich visual history feed and a reimagined home page make it easier than ever to find exactly what you\'re looking for in &brandShortName;.">
-
-<!ENTITY tracking_protection_prompt_title "Now with Tracking Protection">
-<!ENTITY tracking_protection_prompt_text "Actively block tracking elements so you don\'t have to worry.">
-<!ENTITY tracking_protection_prompt_tip_text "Visit Privacy settings to learn more">
-<!ENTITY tracking_protection_prompt_action_button "Got it!">
 
 <!ENTITY tab_queue_toast_message3 "Tab saved in &brandShortName;">
 <!ENTITY tab_queue_toast_action "Open now">
@@ -639,13 +628,6 @@ just addresses the organization to follow, e.g. "This site is run by " -->
 <!ENTITY mixed_content_blocked_some1 "&brandShortName; has blocked some of the insecure content on this page.">
 <!ENTITY mixed_content_display_loaded1 "Parts of this page are not secure (such as images).">
 <!ENTITY mixed_content_protection_disabled1 "You have disabled protection from insecure content.">
-
-<!-- Tracking content notifications in site identity popup -->
-<!ENTITY doorhanger_tracking_title2 "Tracking Protection">
-<!ENTITY doorhanger_tracking_state_enabled "Enabled">
-<!ENTITY doorhanger_tracking_state_disabled "Disabled">
-<!ENTITY doorhanger_tracking_message_enabled1 "Attempts to track your online behavior have been blocked.">
-<!ENTITY doorhanger_tracking_message_disabled2 "This page includes elements that may track your browsing.">
 
 <!-- Common mixed and tracking content strings in site identity popup -->
 <!ENTITY learn_more "Learn More">

@@ -17,7 +17,6 @@ import org.mozilla.gecko.reader.ReaderModeUtils;
 import org.mozilla.gecko.SiteIdentity;
 import org.mozilla.gecko.SiteIdentity.MixedMode;
 import org.mozilla.gecko.SiteIdentity.SecurityMode;
-import org.mozilla.gecko.SiteIdentity.TrackingMode;
 import org.mozilla.gecko.Tab;
 import org.mozilla.gecko.animation.PropertyAnimator;
 import org.mozilla.gecko.animation.ViewHelper;
@@ -63,7 +62,6 @@ import com.keepsafe.switchboard.SwitchBoard;
 public class ToolbarDisplayLayout extends ThemedLinearLayout {
 
     private static final String LOGTAG = "GeckoToolbarDisplayLayout";
-    private boolean mTrackingProtectionEnabled;
 
     // To be used with updateFromTab() to allow the caller
     // to give enough context for the requested state change.
@@ -121,9 +119,6 @@ public class ToolbarDisplayLayout extends ThemedLinearLayout {
     // Levels for displaying Mixed Content state icons.
     private static final int LEVEL_WARNING_MINOR = 3;
     private static final int LEVEL_LOCK_DISABLED = 4;
-    // Levels for displaying Tracking Protection state icons.
-    private static final int LEVEL_SHIELD_ENABLED = 5;
-    private static final int LEVEL_SHIELD_DISABLED = 6;
     // Icon used for about:home
     private static final int LEVEL_SEARCH_ICON = 999;
 
@@ -354,17 +349,14 @@ public class ToolbarDisplayLayout extends ThemedLinearLayout {
         final SecurityMode securityMode;
         final MixedMode activeMixedMode;
         final MixedMode displayMixedMode;
-        final TrackingMode trackingMode;
         if (siteIdentity == null) {
             securityMode = SecurityMode.UNKNOWN;
             activeMixedMode = MixedMode.UNKNOWN;
             displayMixedMode = MixedMode.UNKNOWN;
-            trackingMode = TrackingMode.UNKNOWN;
         } else {
             securityMode = siteIdentity.getSecurityMode();
             activeMixedMode = siteIdentity.getMixedModeActive();
             displayMixedMode = siteIdentity.getMixedModeDisplay();
-            trackingMode = siteIdentity.getTrackingMode();
         }
 
         // This is a bit tricky, but we have one icon and three potential indicators.
@@ -383,10 +375,6 @@ public class ToolbarDisplayLayout extends ThemedLinearLayout {
         if (AboutPages.isTitlelessAboutPage(tab.getURL())) {
             // We always want to just show a search icon on about:home
             imageLevel = LEVEL_SEARCH_ICON;
-        } else if (trackingMode == TrackingMode.TRACKING_CONTENT_LOADED) {
-            imageLevel = LEVEL_SHIELD_DISABLED;
-        } else if (trackingMode == TrackingMode.TRACKING_CONTENT_BLOCKED) {
-            imageLevel = LEVEL_SHIELD_ENABLED;
         } else if (activeMixedMode == MixedMode.MIXED_CONTENT_LOADED) {
             imageLevel = LEVEL_LOCK_DISABLED;
         } else if (displayMixedMode == MixedMode.MIXED_CONTENT_LOADED) {
@@ -398,18 +386,12 @@ public class ToolbarDisplayLayout extends ThemedLinearLayout {
             mSiteSecurity.setImageLevel(mSecurityImageLevel);
             updatePageActions();
         }
-
-        mTrackingProtectionEnabled = trackingMode == TrackingMode.TRACKING_CONTENT_BLOCKED;
     }
 
     private void updateProgress(@NonNull Tab tab) {
         final boolean shouldShowThrobber = tab.getState() == Tab.STATE_LOADING;
 
         updateUiMode(shouldShowThrobber ? UIMode.PROGRESS : UIMode.DISPLAY);
-
-        if (Tab.STATE_SUCCESS == tab.getState() && mTrackingProtectionEnabled) {
-            mActivity.showTrackingProtectionPromptIfApplicable();
-        }
     }
 
     private void updateUiMode(UIMode uiMode) {

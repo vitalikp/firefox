@@ -25,7 +25,6 @@ import org.mozilla.gecko.GeckoAppShell;
 import org.mozilla.gecko.SiteIdentity;
 import org.mozilla.gecko.SiteIdentity.SecurityMode;
 import org.mozilla.gecko.SiteIdentity.MixedMode;
-import org.mozilla.gecko.SiteIdentity.TrackingMode;
 import org.mozilla.gecko.SnackbarBuilder;
 import org.mozilla.gecko.Tab;
 import org.mozilla.gecko.Tabs;
@@ -61,8 +60,6 @@ public class SiteIdentityPopup extends AnchoredPopup implements GeckoEventListen
 
     private static final String MIXED_CONTENT_SUPPORT_URL =
         "https://support.mozilla.org/kb/how-does-insecure-content-affect-safety-android";
-    private static final String TRACKING_CONTENT_SUPPORT_URL =
-        "https://support.mozilla.org/kb/firefox-android-tracking-protection";
 
     // Placeholder string.
     private final static String FORMAT_S = "%s";
@@ -415,36 +412,6 @@ public class SiteIdentityPopup extends AnchoredPopup implements GeckoEventListen
         mVerifier.setText(verifier);
     }
 
-    private void addTrackingContentNotification(boolean blocked) {
-        // Remove any existing tracking content notification.
-        removeTrackingContentNotification();
-
-        final DoorhangerConfig config = new DoorhangerConfig(DoorHanger.Type.TRACKING, mContentButtonClickListener);
-
-        final int icon = blocked ? R.drawable.shield_enabled : R.drawable.shield_disabled;
-
-        final JSONObject options = new JSONObject();
-        final JSONObject tracking = new JSONObject();
-        try {
-            tracking.put("enabled", blocked);
-            options.put("tracking_protection", tracking);
-        } catch (JSONException e) {
-            Log.e(LOGTAG, "Error adding tracking protection options", e);
-        }
-        config.setOptions(options);
-
-        config.setLink(mContext.getString(R.string.learn_more), TRACKING_CONTENT_SUPPORT_URL);
-
-        addNotificationButtons(config, blocked);
-
-        mTrackingContentNotification = DoorHanger.Get(mContext, config);
-
-        mTrackingContentNotification.setIcon(icon);
-
-        mContent.addView(mTrackingContentNotification);
-        mDivider.setVisibility(View.VISIBLE);
-    }
-
     private void removeTrackingContentNotification() {
         if (mTrackingContentNotification != null) {
             mContent.removeView(mTrackingContentNotification);
@@ -486,11 +453,6 @@ public class SiteIdentityPopup extends AnchoredPopup implements GeckoEventListen
         }
 
         updateIdentity(mSiteIdentity);
-
-        final TrackingMode trackingMode = mSiteIdentity.getTrackingMode();
-        if (trackingMode != TrackingMode.UNKNOWN) {
-            addTrackingContentNotification(trackingMode == TrackingMode.TRACKING_CONTENT_BLOCKED);
-        }
 
         try {
             addSelectLoginDoorhanger(selectedTab);

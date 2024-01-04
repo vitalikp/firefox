@@ -15,7 +15,6 @@ public class SiteIdentity {
     private boolean mSecure;
     private MixedMode mMixedModeActive;
     private MixedMode mMixedModeDisplay;
-    private TrackingMode mTrackingMode;
     private String mHost;
     private String mOwner;
     private String mSupplemental;
@@ -90,39 +89,6 @@ public class SiteIdentity {
         }
     }
 
-    // The order of the items here relate to image levels in
-    // site_security_level.xml
-    public enum TrackingMode {
-        UNKNOWN("unknown"),
-        TRACKING_CONTENT_BLOCKED("tracking_content_blocked"),
-        TRACKING_CONTENT_LOADED("tracking_content_loaded");
-
-        private final String mId;
-
-        private TrackingMode(String id) {
-            mId = id;
-        }
-
-        public static TrackingMode fromString(String id) {
-            if (id == null) {
-                throw new IllegalArgumentException("Can't convert null String to TrackingMode");
-            }
-
-            for (TrackingMode mode : TrackingMode.values()) {
-                if (TextUtils.equals(mode.mId, id.toLowerCase())) {
-                    return mode;
-                }
-            }
-
-            throw new IllegalArgumentException("Could not convert String id to TrackingMode");
-        }
-
-        @Override
-        public String toString() {
-            return mId;
-        }
-    }
-
     public SiteIdentity() {
         reset();
     }
@@ -142,7 +108,6 @@ public class SiteIdentity {
         resetIdentity();
         mMixedModeActive = MixedMode.UNKNOWN;
         mMixedModeDisplay = MixedMode.UNKNOWN;
-        mTrackingMode = TrackingMode.UNKNOWN;
     }
 
     void update(JSONObject identityData) {
@@ -164,12 +129,6 @@ public class SiteIdentity {
                 mMixedModeActive = MixedMode.fromString(mode.getString("mixed_active"));
             } catch (Exception e) {
                 mMixedModeActive = MixedMode.UNKNOWN;
-            }
-
-            try {
-                mTrackingMode = TrackingMode.fromString(mode.getString("tracking"));
-            } catch (Exception e) {
-                mTrackingMode = TrackingMode.UNKNOWN;
             }
 
             try {
@@ -241,9 +200,5 @@ public class SiteIdentity {
 
     public MixedMode getMixedModeDisplay() {
         return mMixedModeDisplay;
-    }
-
-    public TrackingMode getTrackingMode() {
-        return mTrackingMode;
     }
 }

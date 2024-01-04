@@ -600,19 +600,6 @@ interface nsIDocShell : nsIDocShellTreeItem
    */
   [infallible] readonly attribute boolean hasMixedDisplayContentBlocked;
 
-   /**
-   * This attribute determines whether a document has Tracking Content
-   * that has been blocked from loading.
-   */
-   [infallible] readonly attribute boolean hasTrackingContentBlocked;
-
-   /**
-   * This attribute determines whether Tracking Content is loaded on the
-   * document. When it is true, tracking content was not blocked and has
-   * loaded (or is about to load) on the page.
-   */
-  [infallible] readonly attribute boolean hasTrackingContentLoaded;
-
   /**
    * Disconnects this docshell's editor from its window, and stores the
    * editor data in the open document's session history entry.  This

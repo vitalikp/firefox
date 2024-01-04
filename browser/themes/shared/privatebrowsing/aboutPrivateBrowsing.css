@@ -92,27 +92,6 @@ p {
   background-position: right, center;
 }
 
-.about-subheader {
-  display: flex;
-  align-items: center;
-  font-size: 1.5em;
-  font-weight: lighter;
-  min-height: 32px;
-  background-image: url("chrome://browser/skin/privatebrowsing/tracking-protection.svg");
-  background-repeat: no-repeat;
-  background-size: 32px;
-  margin-inline-start: calc(var(--icon-margin) - 32px);
-  padding-inline-start: 56px;
-}
-
-.about-subheader:dir(rtl) {
-  background-position: right;
-}
-
-.about-subheader.tp-off {
-  background-image: url("chrome://browser/skin/privatebrowsing/tracking-protection-off.svg");
-}
-
 .about-info {
   font-size: .875em;
 }

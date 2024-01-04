@@ -343,7 +343,6 @@ nsHttpChannel::nsHttpChannel()
     , mReqContentLengthDetermined(0)
     , mReqContentLength(0U)
     , mPushedStream(nullptr)
-    , mLocalBlocklist(false)
     , mWarningReporter(nullptr)
     , mIsReadingFromCache(false)
     , mOnCacheAvailableCalled(false)
@@ -775,7 +774,7 @@ nsHttpChannel::SpeculativeConnect()
     // application cache, if we are offline, when doing http upgrade (i.e.
     // websockets bootstrap), or if we can't do keep-alive (because then we
     // couldn't reuse the speculative connection anyhow).
-    if (mLocalBlocklist || mApplicationCache || gIOService->IsOffline() ||
+    if (mApplicationCache || gIOService->IsOffline() ||
         mUpgradeProtocolCallback || !(mCaps & NS_HTTP_ALLOW_KEEPALIVE))
         return;
 
@@ -6170,7 +6169,7 @@ nsHttpChannel::BeginConnectContinue()
     if (mLoadFlags & VALIDATE_ALWAYS || BYPASS_LOCAL_CACHE(mLoadFlags))
         mCaps |= NS_HTTP_REFRESH_DNS;
 
-    if (!mLocalBlocklist && !mConnectionInfo->UsingHttpProxy() &&
+    if (!mConnectionInfo->UsingHttpProxy() &&
         !(mLoadFlags & (LOAD_NO_NETWORK_IO | LOAD_ONLY_FROM_CACHE))) {
         // Start a DNS lookup very early in case the real open is queued the DNS can
         // happen in parallel. Do not do so in the presence of an HTTP proxy as
@@ -6238,22 +6237,7 @@ nsHttpChannel::BeginConnectContinue()
         return ContinueBeginConnectWithResult();
     }
 
-    // mLocalBlocklist is true only if tracking protection is enabled and the
-    // URI is a tracking domain, it makes no guarantees about phishing or
-    // malware.
-    bool callContinueBeginConnect = true;
-    if (!mLocalBlocklist) {
-        rv = ContinueBeginConnectWithResult();
-        if (NS_FAILED(rv)) {
-            return rv;
-        }
-        callContinueBeginConnect = false;
-    }
-
-    if (callContinueBeginConnect) {
-        return ContinueBeginConnectWithResult();
-    }
-    return NS_OK;
+    return ContinueBeginConnectWithResult();
 }
 
 NS_IMETHODIMP
