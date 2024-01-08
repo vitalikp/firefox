@@ -1503,8 +1503,6 @@ nsPermissionManager::CreateTable()
   if (NS_FAILED(rv)) return rv;
 
   // create the table
-  // SQL also lives in automation.py.in. If you change this SQL change that
-  // one too
   rv = mDBConn->ExecuteSimpleSQL(NS_LITERAL_CSTRING(
     "CREATE TABLE moz_perms ("
       " id INTEGER PRIMARY KEY"

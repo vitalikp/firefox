@@ -17,7 +17,6 @@ __all__ = ['MissingPrimaryLocationError', 'MultiplePrimaryLocationsError',
            'LocationsSyntaxError', 'Location', 'ServerLocations',
            'Permissions']
 
-# http://hg.mozilla.org/mozilla-central/file/b871dfb2186f/build/automation.py.in#l28
 DEFAULT_PORTS = {'http': '8888',
                  'https': '4443',
                  'ws': '4443',
@@ -316,8 +315,7 @@ class Permissions(object):
 
     def pac_prefs(self, user_proxy=None):
         """
-        return preferences for Proxy Auto Config. originally taken from
-        http://dxr.mozilla.org/mozilla-central/source/build/automation.py.in
+        return preferences for Proxy Auto Config.
         """
         proxy = DEFAULT_PORTS.copy()
 

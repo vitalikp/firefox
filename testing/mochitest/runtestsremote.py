@@ -276,10 +276,6 @@ class MochiRemote(MochitestDesktop):
         return browserEnv
 
     def runApp(self, *args, **kwargs):
-        """front-end automation.py's `runApp` functionality until FennecRunner is written"""
-
-        # automation.py/remoteautomation `runApp` takes the profile path,
-        # whereas runtest.py's `runApp` takes a mozprofile object.
         if 'profileDir' not in kwargs and 'profile' in kwargs:
             kwargs['profileDir'] = kwargs.pop('profile').profile
 
