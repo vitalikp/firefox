@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# include automation-build.mk to get the path to the binary
 TARGET_DEPTH = $(DEPTH)
 include $(topsrcdir)/build/binary-location.mk
 
