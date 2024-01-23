@@ -11,6 +11,7 @@
 #include "nsIChannelEventSink.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIAsyncVerifyRedirectCallback.h"
+#include "nsINamed.h"
 #include "nsCOMPtr.h"
 #include "nsAutoPtr.h"
 #include "nsCycleCollectionParticipant.h"
