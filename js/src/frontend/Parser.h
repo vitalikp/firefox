@@ -167,7 +167,7 @@ class ParserBase : public StrictModeGetter
                UsedNameTracker& usedNames);
     ~ParserBase();
 
-    JSVersion versionNumber() const { return tokenStream.versionNumber(); }
+    JSVersion versionNumber() const { return anyChars.versionNumber(); }
     const char* getFilename() const { return anyChars.getFilename(); }
     TokenPos pos() const { return anyChars.currentToken().pos; }
 
