@@ -668,6 +668,14 @@ class FullParseHandler
         return newBinary(PNK_COLON, key, fn, AccessorTypeToJSOp(atype));
     }
 
+    bool setComprehensionLambdaBody(ParseNode* pn, ParseNode* body) {
+        MOZ_ASSERT(body->isKind(PNK_STATEMENTLIST));
+        ParseNode* paramsBody = newList(PNK_PARAMSBODY, body);
+        if (!paramsBody)
+            return false;
+        setFunctionFormalParametersAndBody(pn, paramsBody);
+        return true;
+    }
     void setFunctionFormalParametersAndBody(ParseNode* funcNode, ParseNode* kid) {
         MOZ_ASSERT_IF(kid, kid->isKind(PNK_PARAMSBODY));
         funcNode->pn_body = kid;
