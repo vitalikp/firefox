@@ -349,16 +349,14 @@ class FullParseHandler
     MOZ_MUST_USE bool addObjectMethodDefinition(ParseNode* literal, ParseNode* key, ParseNode* fn,
                                                 AccessorType atype)
     {
-        MOZ_ASSERT(literal->isKind(PNK_OBJECT));
         MOZ_ASSERT(literal->isArity(PN_LIST));
-        MOZ_ASSERT(isUsableAsObjectPropertyName(key));
+        literal->pn_xflags |= PNX_NONCONST;
 
-        ParseNode* propdef = newBinary(PNK_COLON, key, fn, AccessorTypeToJSOp(atype));
+        ParseNode* propdef = newObjectMethodOrPropertyDefinition(key, fn, atype);
         if (!propdef)
             return false;
 
         addList(/* list = */ literal, /* child = */ propdef);
-        literal->pn_xflags |= PNX_NONCONST;
         return true;
     }
 
@@ -656,6 +654,12 @@ class FullParseHandler
         return node->isKind(PNK_FUNCTION) &&
                node->pn_funbox->isExprBody() &&
                !node->pn_funbox->isArrow();
+    }
+
+    ParseNode* newObjectMethodOrPropertyDefinition(ParseNode* key, ParseNode* fn, AccessorType atype) {
+        MOZ_ASSERT(isUsableAsObjectPropertyName(key));
+
+        return newBinary(PNK_COLON, key, fn, AccessorTypeToJSOp(atype));
     }
 
     void setFunctionFormalParametersAndBody(ParseNode* funcNode, ParseNode* kid) {
