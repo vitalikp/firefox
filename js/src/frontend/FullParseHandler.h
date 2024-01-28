@@ -230,8 +230,7 @@ class FullParseHandler
         ParseNode* elision = new_<NullaryNode>(PNK_ELISION, pos);
         if (!elision)
             return false;
-
-        literal->append(elision);
+        addList(/* list = */ literal, /* child = */ elision);
         literal->pn_xflags |= PNX_ARRAYHOLESPREAD | PNX_NONCONST;
         return true;
     }
@@ -243,8 +242,7 @@ class FullParseHandler
         ParseNode* spread = newSpread(begin, inner);
         if (!spread)
             return false;
-
-        literal->append(spread);
+        addList(/* list = */ literal, /* child = */ spread);
         literal->pn_xflags |= PNX_ARRAYHOLESPREAD | PNX_NONCONST;
         return true;
     }
@@ -254,8 +252,7 @@ class FullParseHandler
 
         if (!element->isConstant())
             literal->pn_xflags |= PNX_NONCONST;
-
-        literal->append(element);
+        addList(/* list = */ literal, /* child = */ element);
     }
 
     ParseNode* newCall(const TokenPos& pos) {
@@ -306,7 +303,7 @@ class FullParseHandler
         ParseNode* mutation = newUnary(PNK_MUTATEPROTO, begin, expr);
         if (!mutation)
             return false;
-        literal->append(mutation);
+        addList(/* list = */ literal, /* child = */ mutation);
         return true;
     }
 
@@ -321,7 +318,7 @@ class FullParseHandler
         ParseNode* propdef = newBinary(PNK_COLON, key, val, JSOP_INITPROP);
         if (!propdef)
             return false;
-        literal->append(propdef);
+        addList(/* list = */ literal, /* child = */ propdef);
         return true;
     }
 
@@ -336,7 +333,7 @@ class FullParseHandler
         ParseNode* propdef = newBinary(PNK_SHORTHAND, name, expr, JSOP_INITPROP);
         if (!propdef)
             return false;
-        literal->append(propdef);
+        addList(/* list = */ literal, /* child = */ propdef);
         return true;
     }
 
@@ -348,7 +345,7 @@ class FullParseHandler
         ParseNode* spread = newSpread(begin, inner);
         if (!spread)
             return false;
-        literal->append(spread);
+        addList(/* list = */ literal, /* child = */ spread);
         return true;
     }
 
@@ -366,7 +363,7 @@ class FullParseHandler
         if (!propdef)
             return false;
 
-        literal->append(propdef);
+        addList(/* list = */ literal, /* child = */ propdef);
         literal->pn_xflags |= PNX_NONCONST;
         return true;
     }
@@ -383,7 +380,7 @@ class FullParseHandler
         ParseNode* classMethod = new_<ClassMethod>(key, fn, AccessorTypeToJSOp(atype), isStatic);
         if (!classMethod)
             return false;
-        methodList->append(classMethod);
+        addList(/* list = */ methodList, /* child = */ classMethod);
         return true;
     }
 
@@ -422,7 +419,7 @@ class FullParseHandler
     void addStatementToList(ParseNode* list, ParseNode* stmt) {
         MOZ_ASSERT(list->isKind(PNK_STATEMENTLIST));
 
-        list->append(stmt);
+        addList(/* list = */ list, /* child = */ stmt);
 
         if (isFunctionStmt(stmt)) {
             // PNX_FUNCDEFS notifies the emitter that the block contains
@@ -442,7 +439,7 @@ class FullParseHandler
         MOZ_ASSERT(casepn->isKind(PNK_CASE));
         MOZ_ASSERT(casepn->pn_right->isKind(PNK_STATEMENTLIST));
 
-        list->append(casepn);
+        addList(/* list = */ list, /* child = */ casepn);
 
         if (casepn->pn_right->pn_xflags & PNX_FUNCDEFS)
             list->pn_xflags |= PNX_FUNCDEFS;
@@ -681,11 +678,11 @@ class FullParseHandler
         funbox->functionNode = pn;
     }
     void addFunctionFormalParameter(ParseNode* pn, ParseNode* argpn) {
-        pn->pn_body->append(argpn);
+        addList(/* list = */ pn->pn_body, /* child = */ argpn);
     }
     void setFunctionBody(ParseNode* fn, ParseNode* body) {
         MOZ_ASSERT(fn->pn_body->isKind(PNK_PARAMSBODY));
-        fn->pn_body->append(body);
+        addList(/* list = */ fn->pn_body, /* child = */ body);
     }
 
     ParseNode* newModule(const TokenPos& pos) {
@@ -701,7 +698,7 @@ class FullParseHandler
         if (!newExpr)
             return nullptr;
 
-        addList(newExpr, ctor);
+        addList(/* list = */ newExpr, /* child = */ ctor);
         return newExpr;
     }
 
