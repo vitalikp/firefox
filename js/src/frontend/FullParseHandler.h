@@ -436,6 +436,10 @@ class FullParseHandler
             list->pn_xflags |= PNX_FUNCDEFS;
     }
 
+    MOZ_MUST_USE inline bool addCatchBlock(ParseNode* catchList, ParseNode* lexicalScope,
+                              ParseNode* catchName, ParseNode* catchGuard,
+                              ParseNode* catchBody);
+
     MOZ_MUST_USE bool prependInitialYield(ParseNode* stmtList, ParseNode* genName) {
         MOZ_ASSERT(stmtList->isKind(PNK_STATEMENTLIST));
         MOZ_ASSERT(stmtList->isArity(PN_LIST));
@@ -878,6 +882,19 @@ class FullParseHandler
         return lazyOuterFunction_->closedOverBindings()[lazyClosedOverBindingIndex++];
     }
 };
+
+inline bool
+FullParseHandler::addCatchBlock(ParseNode* catchList, ParseNode* lexicalScope,
+                                ParseNode* catchName, ParseNode* catchGuard,
+                                ParseNode* catchBody)
+{
+    ParseNode* catchpn = newCatchBlock(catchName, catchGuard, catchBody);
+    if (!catchpn)
+        return false;
+    addList(/* list = */ catchList, /* child = */ lexicalScope);
+    lexicalScope->setScopeBody(catchpn);
+    return true;
+}
 
 inline bool
 FullParseHandler::setLastFunctionFormalParameterDefault(ParseNode* funcpn,
