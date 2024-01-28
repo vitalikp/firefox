@@ -310,10 +310,7 @@ class FullParseHandler
     MOZ_MUST_USE bool addPropertyDefinition(ParseNode* literal, ParseNode* key, ParseNode* val) {
         MOZ_ASSERT(literal->isKind(PNK_OBJECT));
         MOZ_ASSERT(literal->isArity(PN_LIST));
-        MOZ_ASSERT(key->isKind(PNK_NUMBER) ||
-                   key->isKind(PNK_OBJECT_PROPERTY_NAME) ||
-                   key->isKind(PNK_STRING) ||
-                   key->isKind(PNK_COMPUTED_NAME));
+        MOZ_ASSERT(isUsableAsObjectPropertyName(key));
 
         ParseNode* propdef = newBinary(PNK_COLON, key, val, JSOP_INITPROP);
         if (!propdef)
@@ -354,10 +351,7 @@ class FullParseHandler
     {
         MOZ_ASSERT(literal->isKind(PNK_OBJECT));
         MOZ_ASSERT(literal->isArity(PN_LIST));
-        MOZ_ASSERT(key->isKind(PNK_NUMBER) ||
-                   key->isKind(PNK_OBJECT_PROPERTY_NAME) ||
-                   key->isKind(PNK_STRING) ||
-                   key->isKind(PNK_COMPUTED_NAME));
+        MOZ_ASSERT(isUsableAsObjectPropertyName(key));
 
         ParseNode* propdef = newBinary(PNK_COLON, key, fn, AccessorTypeToJSOp(atype));
         if (!propdef)
@@ -372,10 +366,7 @@ class FullParseHandler
                                                AccessorType atype, bool isStatic)
     {
         MOZ_ASSERT(methodList->isKind(PNK_CLASSMETHODLIST));
-        MOZ_ASSERT(key->isKind(PNK_NUMBER) ||
-                   key->isKind(PNK_OBJECT_PROPERTY_NAME) ||
-                   key->isKind(PNK_STRING) ||
-                   key->isKind(PNK_COMPUTED_NAME));
+        MOZ_ASSERT(isUsableAsObjectPropertyName(key));
 
         ParseNode* classMethod = new_<ClassMethod>(key, fn, AccessorTypeToJSOp(atype), isStatic);
         if (!classMethod)
@@ -738,6 +729,13 @@ class FullParseHandler
 
     bool isSuperBase(ParseNode* node) {
         return node->isKind(PNK_SUPERBASE);
+    }
+
+    bool isUsableAsObjectPropertyName(ParseNode* node) {
+        return node->isKind(PNK_NUMBER)
+            || node->isKind(PNK_OBJECT_PROPERTY_NAME)
+            || node->isKind(PNK_STRING)
+            || node->isKind(PNK_COMPUTED_NAME);
     }
 
     inline MOZ_MUST_USE bool finishInitializerAssignment(ParseNode* pn, ParseNode* init);
