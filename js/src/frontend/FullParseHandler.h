@@ -456,8 +456,7 @@ class FullParseHandler
 
         MOZ_ASSERT(genName->getOp() == JSOP_GETNAME);
         genName->setOp(JSOP_SETNAME);
-
-        ParseNode* genInit = newBinary(PNK_ASSIGN, genName, makeGen);
+        ParseNode* genInit = newAssignment(PNK_ASSIGN, /* lhs = */ genName, /* rhs = */ makeGen);
         if (!genInit)
             return false;
 
