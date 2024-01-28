@@ -291,7 +291,9 @@ class FullParseHandler
     ParseNode* newSuperBase(ParseNode* thisName, const TokenPos& pos) {
         return new_<UnaryNode>(PNK_SUPERBASE, pos, thisName);
     }
-
+    ParseNode* newCatchBlock(ParseNode* catchName, ParseNode* catchGuard, ParseNode* catchBody) {
+        return new_<TernaryNode>(PNK_CATCH, catchName, catchGuard, catchBody);
+    }
     MOZ_MUST_USE bool addPrototypeMutation(ParseNode* literal, uint32_t begin, ParseNode* expr) {
         MOZ_ASSERT(literal->isKind(PNK_OBJECT));
         MOZ_ASSERT(literal->isArity(PN_LIST));
