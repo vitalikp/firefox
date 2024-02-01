@@ -45,7 +45,7 @@ using mozilla::TimeDuration;
 JS_STATIC_ASSERT(JS::gcreason::NUM_TELEMETRY_REASONS >= JS::gcreason::NUM_REASONS);
 
 static inline decltype(mozilla::MakeEnumeratedRange(PhaseKind::FIRST, PhaseKind::LIMIT))
-AllPhases()
+AllPhaseKinds()
 {
     return mozilla::MakeEnumeratedRange(PhaseKind::FIRST, PhaseKind::LIMIT);
 }
@@ -821,7 +821,7 @@ Statistics::initialize()
     mozilla::Vector<PhaseKind, 0, SystemAllocPolicy> stack;
     if (!stack.append(PhaseKind::LIMIT)) // Dummy entry to avoid special-casing the first node
         return false;
-    for (auto i : AllPhases()) {
+    for (auto i : AllPhaseKinds()) {
         if (phases[i].parent == PhaseKind::NONE ||
             phases[i].parent == PhaseKind::MULTI_PARENTS)
         {
