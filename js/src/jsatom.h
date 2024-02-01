@@ -20,7 +20,7 @@ class JSAtom;
 class JSAutoByteString;
 
 namespace JS {
-class Value;
+union Value;
 struct Zone;
 } // namespace JS
 
