@@ -5477,6 +5477,8 @@ GCRuntime::beginSweepingSweepGroup()
 
     using namespace gcstats;
 
+    AutoSCC scc(stats(), sweepGroupIndex);
+
     bool sweepingAtoms = false;
     for (GCSweepGroupIter zone(rt); !zone.done(); zone.next()) {
         /* Set the GC state to sweeping. */
@@ -5524,7 +5526,6 @@ GCRuntime::beginSweepingSweepGroup()
             updateAtomsBitmap.emplace(rt, UpdateAtomsBitmap, PhaseKind::UPDATE_ATOMS_BITMAP, lock);
 
         AutoPhase ap(stats(), PhaseKind::SWEEP_COMPARTMENTS);
-        AutoSCC scc(stats(), sweepGroupIndex);
 
         AutoRunParallelTask sweepCCWrappers(rt, SweepCCWrappers, PhaseKind::SWEEP_CC_WRAPPER, lock);
         AutoRunParallelTask sweepObjectGroups(rt, SweepObjectGroups, PhaseKind::SWEEP_TYPE_OBJECT, lock);
@@ -5557,7 +5558,6 @@ GCRuntime::beginSweepingSweepGroup()
     // or on the background thread.
 
     for (GCSweepGroupIter zone(rt); !zone.done(); zone.next()) {
-        AutoSCC scc(stats(), sweepGroupIndex);
 
         zone->arenas.queueForForegroundSweep(&fop, ForegroundObjectFinalizePhase);
         for (unsigned i = 0; i < ArrayLength(IncrementalFinalizePhases); ++i)
