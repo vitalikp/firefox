@@ -28,14 +28,6 @@ else:
         'PushServiceAndroidGCM.jsm',
     ]
 
-MOCHITEST_MANIFESTS += [
-    'test/mochitest.ini',
-]
-
-XPCSHELL_TESTS_MANIFESTS += [
-    'test/xpcshell/xpcshell.ini',
-]
-
 EXPORTS.mozilla.dom += [
     'PushManager.h',
     'PushNotifier.h',
@@ -51,8 +43,6 @@ UNIFIED_SOURCES += [
     'PushSubscriptionOptions.cpp',
     'PushUtil.cpp',
 ]
-
-TEST_DIRS += ['test/xpcshell']
 
 include('/ipc/chromium/chromium-config.mozbuild')
 
