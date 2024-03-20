@@ -98,11 +98,6 @@ ARCHIVE_FILES = {
             'dest': 'external-media-tests',
         },
         {
-            'source': buildconfig.topsrcdir,
-            'base': 'testing',
-            'pattern': 'tps/**',
-        },
-        {
             'source': buildconfig.topobjdir,
             'base': '',
             'pattern': 'mozinfo.json',
