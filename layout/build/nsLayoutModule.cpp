@@ -119,9 +119,6 @@ using mozilla::dom::AudioChannelAgent;
 #include "SystemPrincipal.h"
 #include "NullPrincipal.h"
 #include "nsNetCID.h"
-#if defined(MOZ_WIDGET_ANDROID)
-#include "nsHapticFeedback.h"
-#endif
 #include "nsParserUtils.h"
 
 #include "nsHTMLCanvasFrame.h"

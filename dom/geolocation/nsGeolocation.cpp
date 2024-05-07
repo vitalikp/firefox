@@ -30,10 +30,6 @@
 
 class nsIPrincipal;
 
-#ifdef MOZ_WIDGET_ANDROID
-#include "AndroidLocationProvider.h"
-#endif
-
 #ifdef MOZ_WIDGET_GONK
 #include "GonkGPSGeolocationProvider.h"
 #endif
@@ -688,10 +684,6 @@ nsresult nsGeolocationService::Init()
   }
 
   obs->AddObserver(this, "xpcom-shutdown", false);
-
-#ifdef MOZ_WIDGET_ANDROID
-  mProvider = new AndroidLocationProvider();
-#endif
 
 #ifdef MOZ_WIDGET_GONK
   // GonkGPSGeolocationProvider can be started at boot up time for initialization reasons.
