@@ -155,10 +155,6 @@
 
 #include "PermissionMessageUtils.h"
 
-#if defined(MOZ_WIDGET_ANDROID)
-#include "APKOpen.h"
-#endif
-
 #if defined(MOZ_WIDGET_GONK)
 #include "nsVolume.h"
 #include "nsVolumeService.h"

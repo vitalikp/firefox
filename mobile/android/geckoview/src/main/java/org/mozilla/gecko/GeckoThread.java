@@ -664,7 +664,6 @@ public class GeckoThread extends Thread {
         }
     }
 
-    // Implemented in mozglue/android/APKOpen.cpp.
     /* package */ static native void registerUiThread();
 
     @WrapForJNI(calledFrom = "ui")

@@ -537,10 +537,8 @@ public final class GeckoLoader {
         }
     }
 
-    // These methods are implemented in mozglue/android/nsGeckoUtils.cpp
     private static native void putenv(String map);
 
-    // These methods are implemented in mozglue/android/APKOpen.cpp
     public static native void nativeRun(String args);
     private static native void loadGeckoLibsNative(String apkName);
     private static native void loadSQLiteLibsNative(String apkName);
