@@ -1703,8 +1703,6 @@ _getvalue(NPP npp, NPNVariable variable, void *result)
 
   PluginDestructionGuard guard(npp);
 
-  // Cast NPNVariable enum to int to avoid warnings about including switch
-  // cases for android_npapi.h's non-standard ANPInterface values.
   switch (static_cast<int>(variable)) {
 
 #if defined(XP_UNIX) && !defined(XP_MACOSX)
@@ -2021,8 +2019,6 @@ _setvalue(NPP npp, NPPVariable variable, void *result)
 
   PluginDestructionGuard guard(inst);
 
-  // Cast NPNVariable enum to int to avoid warnings about including switch
-  // cases for android_npapi.h's non-standard ANPInterface values.
   switch (static_cast<int>(variable)) {
 
     // we should keep backward compatibility with NPAPI where the
