@@ -11,6 +11,3 @@ DIRS += [
   'build',
   'misc',
 ]
-
-if not CONFIG['JS_STANDALONE']:
-    TEST_DIRS += ['tests']
