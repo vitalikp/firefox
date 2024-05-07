@@ -60,9 +60,6 @@ public:
 #if defined(XP_MACOSX)
   WidgetRenderingContext() : mLayerManager(nullptr) {}
   layers::LayerManagerComposite* mLayerManager;
-#elif defined(MOZ_WIDGET_ANDROID)
-  WidgetRenderingContext() : mCompositor(nullptr) {}
-  layers::Compositor* mCompositor;
 #endif
 };
 

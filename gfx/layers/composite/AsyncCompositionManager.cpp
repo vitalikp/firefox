@@ -37,10 +37,6 @@
 #include "nsTArrayForwardDeclare.h"     // for InfallibleTArray
 #include "UnitTransforms.h"             // for TransformTo
 #include "gfxPrefs.h"
-#if defined(MOZ_WIDGET_ANDROID)
-# include <android/log.h>
-# include "mozilla/widget/AndroidCompositorWidget.h"
-#endif
 #include "GeckoProfiler.h"
 #include "FrameUniformityData.h"
 #include "TreeTraversal.h"              // for ForEachNode, BreadthFirstSearch

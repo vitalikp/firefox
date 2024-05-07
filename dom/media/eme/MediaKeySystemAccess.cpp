@@ -31,9 +31,6 @@
 #include "mozilla/ClearOnShutdown.h"
 #include "nsUnicharUtils.h"
 #include "mozilla/dom/MediaSource.h"
-#ifdef MOZ_WIDGET_ANDROID
-#include "FennecJNIWrappers.h"
-#endif
 
 namespace mozilla {
 namespace dom {

@@ -58,8 +58,6 @@ XPCOMUtils.defineLazyGetter(Services, "io", () => {
 });
 
 var initTable = [
-  ["androidBridge", "@mozilla.org/android/bridge;1", "nsIAndroidBridge",
-   AppConstants.platform == "android"],
   ["appShell", "@mozilla.org/appshell/appShellService;1", "nsIAppShellService"],
   ["cache", "@mozilla.org/network/cache-service;1", "nsICacheService"],
   ["cache2", "@mozilla.org/netwerk/cache-storage-service;1", "nsICacheStorageService"],

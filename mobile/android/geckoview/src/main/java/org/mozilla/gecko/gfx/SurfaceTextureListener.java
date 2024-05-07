@@ -19,7 +19,6 @@ final class SurfaceTextureListener
 
     @Override
     protected void disposeNative() {
-        // SurfaceTextureListener is disposed inside AndroidSurfaceTexture.
         throw new IllegalStateException("unreachable code");
     }
 

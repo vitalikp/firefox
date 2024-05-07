@@ -61,10 +61,6 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-#ifdef MOZ_WIDGET_ANDROID
-#include "FennecJNIWrappers.h"
-#endif
-
 #ifdef MOZ_WIDGET_GTK
 #include <gtk/gtk.h>
 #endif
@@ -1420,19 +1416,6 @@ nsDownloadManager::GetDefaultDownloadsDirectory(nsIFile **aResult)
     }
   }
 #elif defined(XP_UNIX)
-#if defined(MOZ_WIDGET_ANDROID)
-    // Android doesn't have a $HOME directory, and by default we only have
-    // write access to /data/data/org.mozilla.{$APP} and /sdcard
-    char* downloadDirPath = getenv("DOWNLOADS_DIRECTORY");
-    if (downloadDirPath) {
-      rv = NS_NewNativeLocalFile(nsDependentCString(downloadDirPath),
-                                 true, getter_AddRefs(downloadDir));
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-    else {
-      rv = NS_ERROR_FAILURE;
-    }
-#else
   rv = dirService->Get(NS_UNIX_DEFAULT_DOWNLOAD_DIR,
                        NS_GET_IID(nsIFile),
                        getter_AddRefs(downloadDir));
@@ -1445,7 +1428,6 @@ nsDownloadManager::GetDefaultDownloadsDirectory(nsIFile **aResult)
     rv = downloadDir->Append(folderName);
     NS_ENSURE_SUCCESS(rv, rv);
   }
-#endif
 #else
   rv = dirService->Get(NS_OS_HOME_DIR,
                        NS_GET_IID(nsIFile),
@@ -2766,7 +2748,7 @@ nsDownload::SetState(DownloadState aState)
         }
       }
 
-#if defined(XP_WIN) || defined(XP_MACOSX) || defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GTK)
+#if defined(XP_WIN) || defined(XP_MACOSX) || defined(MOZ_WIDGET_GTK)
       nsCOMPtr<nsIFileURL> fileURL = do_QueryInterface(mTarget);
       nsCOMPtr<nsIFile> file;
       nsAutoString path;
@@ -2776,27 +2758,13 @@ nsDownload::SetState(DownloadState aState)
           file &&
           NS_SUCCEEDED(file->GetPath(path))) {
 
-#if defined(XP_WIN) || defined(MOZ_WIDGET_GTK) || defined(MOZ_WIDGET_ANDROID)
+#if defined(XP_WIN) || defined(MOZ_WIDGET_GTK)
         // On Windows and Gtk, add the download to the system's "recent documents"
         // list, with a pref to disable.
         {
           bool addToRecentDocs = true;
           if (pref)
             pref->GetBoolPref(PREF_BDM_ADDTORECENTDOCS, &addToRecentDocs);
-#ifdef MOZ_WIDGET_ANDROID
-          if (addToRecentDocs) {
-            nsCOMPtr<nsIMIMEInfo> mimeInfo;
-            nsAutoCString contentType;
-            GetMIMEInfo(getter_AddRefs(mimeInfo));
-
-            if (mimeInfo)
-              mimeInfo->GetMIMEType(contentType);
-
-            if (jni::IsFennec()) {
-                java::DownloadsIntegration::ScanMedia(path, NS_ConvertUTF8toUTF16(contentType));
-            }
-          }
-#else
           if (addToRecentDocs && !mPrivate) {
 #ifdef XP_WIN
             ::SHAddToRecentDocs(SHARD_PATHW, path.get());
@@ -2811,7 +2779,6 @@ nsDownload::SetState(DownloadState aState)
             }
 #endif
           }
-#endif
 #ifdef MOZ_WIDGET_GTK
           // Use GIO to store the source URI for later display in the file manager.
           GFile* gio_file = g_file_new_for_path(NS_ConvertUTF16toUTF8(path).get());

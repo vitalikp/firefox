@@ -46,9 +46,6 @@ public class ImmutableViewportMetrics {
         zoomFactor = 1.0f;
     }
 
-    /** This constructor is used by native code in AndroidJavaWrappers.cpp, be
-     * careful when modifying the signature.
-     */
     @WrapForJNI(calledFrom = "gecko")
     private ImmutableViewportMetrics(float aPageRectLeft, float aPageRectTop,
         float aPageRectRight, float aPageRectBottom, float aCssPageRectLeft,

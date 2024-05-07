@@ -69,11 +69,6 @@
 #include "GeckoTaskTracer.h"
 #endif
 
-#if defined(GP_OS_android)
-# include "FennecJNINatives.h"
-# include "FennecJNIWrappers.h"
-#endif
-
 #if defined(MOZ_PROFILING) && \
     (defined(GP_OS_windows) || defined(GP_OS_darwin))
 # define HAVE_NATIVE_UNWIND
@@ -100,29 +95,13 @@
 # define VALGRIND_MAKE_MEM_DEFINED(_addr,_len)   ((void)0)
 #endif
 
-#if defined(GP_OS_linux) || defined(GP_OS_android)
+#if defined(GP_OS_linux)
 #include <ucontext.h>
 #endif
 
 using namespace mozilla;
 
 LazyLogModule gProfilerLog("prof");
-
-#if defined(GP_OS_android)
-class GeckoJavaSampler : public java::GeckoJavaSampler::Natives<GeckoJavaSampler>
-{
-private:
-  GeckoJavaSampler();
-
-public:
-  static double GetProfilerTime() {
-    if (!profiler_is_active()) {
-      return 0.0;
-    }
-    return profiler_time();
-  };
-};
-#endif
 
 class PSMutex : public StaticMutex {};
 
@@ -287,12 +266,6 @@ private:
   {
     // Filter out any features unavailable in this platform/configuration.
     aFeatures &= profiler_get_available_features();
-
-#if defined(GP_OS_android)
-    if (!jni::IsFennec()) {
-      aFeatures &= ~ProfilerFeature::Java;
-    }
-#endif
 
     // Always enable ProfilerFeature::Threads if we have a filter, because
     // users sometimes ask to filter by a list of threads but forget to
@@ -648,7 +621,7 @@ public:
   Address mSP;    // Stack pointer.
   Address mFP;    // Frame pointer.
   Address mLR;    // ARM link register.
-#if defined(GP_OS_linux) || defined(GP_OS_android)
+#if defined(GP_OS_linux)
   // This contains all the registers, which means it duplicates the four fields
   // above. This is ok.
   ucontext_t* mContext; // The context from the signal handler.
@@ -1453,61 +1426,6 @@ StreamMetaJSCustomObject(PSLockRef aLock, SpliceableJSONWriter& aWriter,
   }
 }
 
-#if defined(GP_OS_android)
-static void
-BuildJavaThreadJSObject(SpliceableJSONWriter& aWriter)
-{
-  aWriter.StringProperty("name", "Java Main Thread");
-
-  aWriter.StartArrayProperty("samples");
-  {
-    for (int sampleId = 0; true; sampleId++) {
-      bool firstRun = true;
-      for (int frameId = 0; true; frameId++) {
-        jni::String::LocalRef frameName =
-            java::GeckoJavaSampler::GetFrameName(0, sampleId, frameId);
-
-        // When we run out of frames, we stop looping.
-        if (!frameName) {
-          // If we found at least one frame, we have objects to close.
-          if (!firstRun) {
-            aWriter.EndArray();
-            aWriter.EndObject();
-          }
-          break;
-        }
-        // The first time around, open the sample object and frames array.
-        if (firstRun) {
-          firstRun = false;
-
-          double sampleTime =
-              java::GeckoJavaSampler::GetSampleTime(0, sampleId);
-
-          aWriter.StartObjectElement();
-            aWriter.DoubleProperty("time", sampleTime);
-
-            aWriter.StartArrayProperty("frames");
-        }
-
-        // Add a frame to the sample.
-        aWriter.StartObjectElement();
-        {
-          aWriter.StringProperty("location",
-                                 frameName->ToCString().BeginReading());
-        }
-        aWriter.EndObject();
-      }
-
-      // If we found no frames for this sample, we are done.
-      if (firstRun) {
-        break;
-      }
-    }
-  }
-  aWriter.EndArray();
-}
-#endif
-
 static TimeStamp
 locked_profiler_stream_json_for_this_process(PSLockRef aLock,
                                              SpliceableJSONWriter& aWriter,
@@ -1567,20 +1485,6 @@ locked_profiler_stream_json_for_this_process(PSLockRef aLock,
                          CorePS::ProcessStartTime(), aSinceTime);
       firstSampleTime = std::min(thisThreadFirstSampleTime, firstSampleTime);
     }
-
-#if defined(GP_OS_android)
-    if (ActivePS::FeatureJava(aLock)) {
-      java::GeckoJavaSampler::Pause();
-
-      aWriter.Start();
-      {
-        BuildJavaThreadJSObject(aWriter);
-      }
-      aWriter.End();
-
-      java::GeckoJavaSampler::Unpause();
-    }
-#endif
   }
   aWriter.EndArray();
 
@@ -1689,7 +1593,7 @@ PrintUsageThenExit(int aExitCode)
 ////////////////////////////////////////////////////////////////////////
 // BEGIN Sampler
 
-#if defined(GP_OS_linux) || defined(GP_OS_android)
+#if defined(GP_OS_linux)
 struct SigHandlerCoordinator;
 #endif
 
@@ -1727,7 +1631,7 @@ public:
                                        const Func& aProcessRegs);
 
 private:
-#if defined(GP_OS_linux) || defined(GP_OS_android)
+#if defined(GP_OS_linux)
   // Used to restore the SIGPROF handler when ours is removed.
   struct sigaction mOldSigprofHandler;
 
@@ -1785,7 +1689,7 @@ private:
   // The OS-specific handle for the sampler thread.
 #if defined(GP_OS_windows)
   HANDLE mThread;
-#elif defined(GP_OS_darwin) || defined(GP_OS_linux) || defined(GP_OS_android)
+#elif defined(GP_OS_darwin) || defined(GP_OS_linux)
   pthread_t mThread;
 #endif
 
@@ -1865,7 +1769,7 @@ SamplerThread::Run()
           int64_t ussMemory = 0;
           if (i == 0 && ActivePS::FeatureMemory(lock)) {
             rssMemory = nsMemoryReporterManager::ResidentFast();
-#if defined(GP_OS_linux) || defined(GP_OS_android)
+#if defined(GP_OS_linux)
             ussMemory = nsMemoryReporterManager::ResidentUnique();
 #endif
           }
@@ -1914,7 +1818,7 @@ SamplerThread::Run()
 # include "platform-win32.cpp"
 #elif defined(GP_OS_darwin)
 # include "platform-macos.cpp"
-#elif defined(GP_OS_linux) || defined(GP_OS_android)
+#elif defined(GP_OS_linux)
 # include "platform-linux-android.cpp"
 #else
 # error "bad platform"
@@ -2103,9 +2007,6 @@ profiler_init(void* aStackTop)
   MOZ_RELEASE_ASSERT(!CorePS::Exists());
 
   uint32_t features =
-#if defined(GP_OS_android)
-                      ProfilerFeature::Java |
-#endif
                       ProfilerFeature::JS |
                       ProfilerFeature::Leaf |
 #if defined(HAVE_NATIVE_UNWIND)
@@ -2134,12 +2035,6 @@ profiler_init(void* aStackTop)
 
 #ifdef MOZ_TASK_TRACER
     tasktracer::InitTaskTracer();
-#endif
-
-#if defined(GP_OS_android)
-    if (jni::IsFennec()) {
-      GeckoJavaSampler::Init();
-    }
 #endif
 
     // Setup support for pushing/popping labels in mozglue.
@@ -2359,9 +2254,7 @@ profiler_get_available_features()
   #undef ADD_FEATURE
 
   // Now remove features not supported on this platform/configuration.
-#if !defined(GP_OS_android)
   ProfilerFeature::ClearJava(features);
-#endif
 #if !defined(HAVE_NATIVE_UNWIND)
   ProfilerFeature::ClearStackWalk(features);
 #endif
@@ -2452,17 +2345,6 @@ locked_profiler_start(PSLockRef aLock, int aEntries, double aInterval,
 #ifdef MOZ_TASK_TRACER
   if (ActivePS::FeatureTaskTracer(aLock)) {
     tasktracer::StartLogging();
-  }
-#endif
-
-#if defined(GP_OS_android)
-  if (ActivePS::FeatureJava(aLock)) {
-    int javaInterval = interval;
-    // Java sampling doesn't accurately keep up with 1ms sampling.
-    if (javaInterval < 10) {
-      javaInterval = 10;
-    }
-    java::GeckoJavaSampler::Start(javaInterval, 1000);
   }
 #endif
 

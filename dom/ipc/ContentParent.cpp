@@ -206,10 +206,6 @@
 # include "nsPermissionManager.h"
 #endif
 
-#ifdef MOZ_WIDGET_ANDROID
-# include "AndroidBridge.h"
-#endif
-
 #ifdef MOZ_WIDGET_GTK
 #include <gdk/gdk.h>
 #endif
@@ -2429,19 +2425,6 @@ mozilla::ipc::IPCResult
 ContentParent::RecvGetSystemColors(const uint32_t& colorsCount,
                                    InfallibleTArray<uint32_t>* colors)
 {
-#ifdef MOZ_WIDGET_ANDROID
-  NS_ASSERTION(AndroidBridge::Bridge() != nullptr, "AndroidBridge is not available");
-  if (AndroidBridge::Bridge() == nullptr) {
-    // Do not fail - the colors won't be right, but it's not critical
-    return IPC_OK();
-  }
-
-  colors->AppendElements(colorsCount);
-
-  // The array elements correspond to the members of AndroidSystemColors structure,
-  // so just pass the pointer to the elements buffer
-  AndroidBridge::Bridge()->GetSystemColors((AndroidSystemColors*)colors->Elements());
-#endif
   return IPC_OK();
 }
 
@@ -2450,17 +2433,6 @@ ContentParent::RecvGetIconForExtension(const nsCString& aFileExt,
                                        const uint32_t& aIconSize,
                                        InfallibleTArray<uint8_t>* bits)
 {
-#ifdef MOZ_WIDGET_ANDROID
-  NS_ASSERTION(AndroidBridge::Bridge() != nullptr, "AndroidBridge is not available");
-  if (AndroidBridge::Bridge() == nullptr) {
-    // Do not fail - just no icon will be shown
-    return IPC_OK();
-  }
-
-  bits->AppendElements(aIconSize * aIconSize * 4);
-
-  AndroidBridge::Bridge()->GetIconForExtension(aFileExt, aIconSize, bits->Elements());
-#endif
   return IPC_OK();
 }
 
@@ -2469,11 +2441,6 @@ ContentParent::RecvGetShowPasswordSetting(bool* showPassword)
 {
   // default behavior is to show the last password character
   *showPassword = true;
-#ifdef MOZ_WIDGET_ANDROID
-  NS_ASSERTION(AndroidBridge::Bridge() != nullptr, "AndroidBridge is not available");
-
-  *showPassword = java::GeckoAppShell::GetShowPasswordSetting();
-#endif
   return IPC_OK();
 }
 
@@ -4556,13 +4523,8 @@ ContentParent::RecvEndDriverCrashGuard(const uint32_t& aGuardType)
 mozilla::ipc::IPCResult
 ContentParent::RecvGetAndroidSystemInfo(AndroidSystemInfo* aInfo)
 {
-#ifdef MOZ_WIDGET_ANDROID
-  nsSystemInfo::GetAndroidSystemInfo(aInfo);
-  return IPC_OK();
-#else
   MOZ_CRASH("wrong platform!");
   return IPC_FAIL_NO_REASON(this);
-#endif
 }
 
 mozilla::ipc::IPCResult

@@ -26,12 +26,6 @@ static mozilla::LazyLogModule sGetUserMediaLog("GetUserMedia");
 #include "nsITabSource.h"
 #include "MediaTrackConstraints.h"
 
-#ifdef MOZ_WIDGET_ANDROID
-#include "VideoEngine.h"
-#include "AndroidJNIWrapper.h"
-#include "AndroidBridge.h"
-#endif
-
 #undef LOG
 #define LOG(args) MOZ_LOG(sGetUserMediaLog, mozilla::LogLevel::Debug, args)
 
@@ -148,17 +142,6 @@ MediaEngineWebRTC::EnumerateVideoDevices(dom::MediaSourceEnum aMediaSource,
 
   mozilla::camera::CaptureEngine capEngine = mozilla::camera::InvalidEngine;
 
-#ifdef MOZ_WIDGET_ANDROID
-  // get the JVM
-  JavaVM* jvm;
-  JNIEnv* const env = jni::GetEnvForThread();
-  MOZ_ALWAYS_TRUE(!env->GetJavaVM(&jvm));
-
-  if (!jvm || mozilla::camera::VideoEngine::SetAndroidObjects(jvm)) {
-    LOG(("VideoEngine::SetAndroidObjects Failed"));
-    return;
-  }
-#endif
   bool scaryKind = false; // flag sources with cross-origin exploit potential
 
   switch (aMediaSource) {
@@ -291,20 +274,6 @@ MediaEngineWebRTC::EnumerateAudioDevices(dom::MediaSourceEnum aMediaSource,
     return;
   }
 
-#ifdef MOZ_WIDGET_ANDROID
-  jobject context = mozilla::AndroidBridge::Bridge()->GetGlobalContextRef();
-
-  // get the JVM
-  JavaVM* jvm;
-  JNIEnv* const env = jni::GetEnvForThread();
-  MOZ_ALWAYS_TRUE(!env->GetJavaVM(&jvm));
-
-  if (webrtc::VoiceEngine::SetAndroidObjects(jvm, (void*)context) != 0) {
-    LOG(("VoiceEngine:SetAndroidObjects Failed"));
-    return;
-  }
-#endif
-
   if (!mVoiceEngine) {
     mConfig.Set<webrtc::ExtendedFilter>(new webrtc::ExtendedFilter(mExtendedFilter));
     mConfig.Set<webrtc::DelayAgnostic>(new webrtc::DelayAgnostic(mDelayAgnostic));
@@ -340,7 +309,7 @@ MediaEngineWebRTC::EnumerateAudioDevices(dom::MediaSourceEnum aMediaSource,
   int nDevices = 0;
   mAudioInput->GetNumOfRecordingDevices(nDevices);
   int i;
-#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GONK)
+#if defined(MOZ_WIDGET_GONK)
   i = 0; // Bug 1037025 - let the OS handle defaulting for now on android/b2g
 #else
   // -1 is "default communications device" depending on OS in webrtc.org code

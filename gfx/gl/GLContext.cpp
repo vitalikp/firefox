@@ -11,9 +11,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <vector>
-#ifdef MOZ_WIDGET_ANDROID
-#include <sys/mman.h>
-#endif
 
 #include "GLBlitHelper.h"
 #include "GLReadTexImageHelper.h"
@@ -46,10 +43,6 @@
 
 #if defined(MOZ_WIDGET_COCOA)
 #include "nsCocoaFeatures.h"
-#endif
-
-#ifdef MOZ_WIDGET_ANDROID
-#include "AndroidBridge.h"
 #endif
 
 namespace mozilla {
@@ -1051,28 +1044,6 @@ GLContext::InitWithPrefixImpl(const char* prefix, bool trygl)
         // prevents occasional driver crash.
         mNeedsFlushBeforeDeleteFB = true;
     }
-#ifdef MOZ_WIDGET_ANDROID
-    if (mWorkAroundDriverBugs &&
-        (Renderer() == GLRenderer::AdrenoTM305 ||
-         Renderer() == GLRenderer::AdrenoTM320 ||
-         Renderer() == GLRenderer::AdrenoTM330) &&
-        AndroidBridge::Bridge()->GetAPIVersion() < 21) {
-        // Bug 1164027. Driver crashes when functions such as
-        // glTexImage2D fail due to virtual memory exhaustion.
-        mTextureAllocCrashesOnMapFailure = true;
-    }
-#endif
-#if MOZ_WIDGET_ANDROID
-    if (mWorkAroundDriverBugs &&
-        Renderer() == GLRenderer::SGX540 &&
-        AndroidBridge::Bridge()->GetAPIVersion() <= 15) {
-        // Bug 1288446. Driver sometimes crashes when uploading data to a
-        // texture if the render target has changed since the texture was
-        // rendered from. Calling glCheckFramebufferStatus after
-        // glFramebufferTexture2D prevents the crash.
-        mNeedsCheckAfterAttachTextureToFb = true;
-    }
-#endif
 
     mMaxTextureImageSize = mMaxTextureSize;
 
@@ -1804,17 +1775,6 @@ GLContext::InitExtensions()
             // Bug 980048
             MarkExtensionUnsupported(OES_EGL_sync);
         }
-
-#ifdef MOZ_WIDGET_ANDROID
-        if (Vendor() == GLVendor::Imagination &&
-            Renderer() == GLRenderer::SGX544MP &&
-            AndroidBridge::Bridge()->GetAPIVersion() < 21)
-        {
-            // Bug 1026404
-            MarkExtensionUnsupported(OES_EGL_image);
-            MarkExtensionUnsupported(OES_EGL_image_external);
-        }
-#endif
 
         if (Vendor() == GLVendor::ARM &&
             (Renderer() == GLRenderer::Mali400MP ||
@@ -2928,29 +2888,6 @@ GLContext::fDeleteFramebuffers(GLsizei n, const GLuint* names)
     TRACKING_CONTEXT(DeletedFramebuffers(this, n, names));
 }
 
-#ifdef MOZ_WIDGET_ANDROID
-/**
- * Conservatively estimate whether there is enough available
- * contiguous virtual address space to map a newly allocated texture.
- */
-static bool
-WillTextureMapSucceed(GLsizei width, GLsizei height, GLenum format, GLenum type)
-{
-    bool willSucceed = false;
-    // Some drivers leave large gaps between textures, so require
-    // there to be double the actual size of the texture available.
-    size_t size = width * height * GetBytesPerTexel(format, type) * 2;
-
-    void *p = mmap(nullptr, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (p != MAP_FAILED) {
-        willSucceed = true;
-        munmap(p, size);
-    }
-
-    return willSucceed;
-}
-#endif // MOZ_WIDGET_ANDROID
-
 void
 GLContext::fTexImage2D(GLenum target, GLint level, GLint internalformat,
                        GLsizei width, GLsizei height, GLint border,
@@ -2963,17 +2900,6 @@ GLContext::fTexImage2D(GLenum target, GLint level, GLint internalformat,
         height = -1;
         border = -1;
     }
-#if MOZ_WIDGET_ANDROID
-    if (mTextureAllocCrashesOnMapFailure) {
-        // We have no way of knowing whether this texture already has
-        // storage allocated for it, and therefore whether this check
-        // is necessary. We must therefore assume it does not and
-        // always perform the check.
-        if (!WillTextureMapSucceed(width, height, internalformat, type)) {
-            return;
-        }
-    }
-#endif
     raw_fTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
 }
 

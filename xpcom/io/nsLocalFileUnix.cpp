@@ -61,12 +61,6 @@
 static nsresult MacErrorMapper(OSErr inErr);
 #endif
 
-#ifdef MOZ_WIDGET_ANDROID
-#include "GeneratedJNIWrappers.h"
-#include "nsIMIMEService.h"
-#include <linux/magic.h>
-#endif
-
 #ifdef MOZ_ENABLE_CONTENTACTION
 #include <contentaction/contentaction.h>
 #endif
@@ -2011,23 +2005,6 @@ nsLocalFile::Launch()
   }
 
   return NS_ERROR_FAILURE;
-#elif defined(MOZ_WIDGET_ANDROID)
-  // Try to get a mimetype, if this fails just use the file uri alone
-  nsresult rv;
-  nsAutoCString type;
-  nsCOMPtr<nsIMIMEService> mimeService(do_GetService("@mozilla.org/mime;1", &rv));
-  if (NS_SUCCEEDED(rv)) {
-    rv = mimeService->GetTypeFromFile(this, type);
-  }
-
-  nsAutoCString fileUri = NS_LITERAL_CSTRING("file://") + mPath;
-  return java::GeckoAppShell::OpenUriExternal(
-    NS_ConvertUTF8toUTF16(fileUri),
-    NS_ConvertUTF8toUTF16(type),
-    EmptyString(),
-    EmptyString(),
-    EmptyString(),
-    EmptyString()) ? NS_OK : NS_ERROR_FAILURE;
 #elif defined(MOZ_WIDGET_COCOA)
   CFURLRef url;
   if (NS_SUCCEEDED(GetCFURL(&url))) {

@@ -35,10 +35,6 @@
 #include "Layers.h"
 #include "mozilla/layers/ShadowLayers.h"
 
-#ifdef MOZ_ANDROID_OMX
-#include "AndroidBridge.h"
-#endif
-
 using namespace mozilla::dom;
 using namespace mozilla::layers;
 using namespace mozilla::media;
@@ -1609,16 +1605,6 @@ MediaDecoder::IsWebMEnabled()
 {
   return Preferences::GetBool("media.webm.enabled");
 }
-
-#ifdef MOZ_ANDROID_OMX
-bool
-MediaDecoder::IsAndroidMediaPluginEnabled()
-{
-  return AndroidBridge::Bridge()
-         && AndroidBridge::Bridge()->GetAPIVersion() < 16
-         && Preferences::GetBool("media.plugins.enabled");
-}
-#endif
 
 NS_IMETHODIMP
 MediaMemoryTracker::CollectReports(nsIHandleReportCallback* aHandleReport,

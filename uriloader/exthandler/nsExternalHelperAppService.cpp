@@ -100,10 +100,6 @@
 #include "nsWindowsHelpers.h"
 #endif
 
-#ifdef MOZ_WIDGET_ANDROID
-#include "FennecJNIWrappers.h"
-#endif
-
 #include "mozilla/Preferences.h"
 #include "mozilla/ipc/URIUtils.h"
 
@@ -519,9 +515,6 @@ static const nsExtraMimeTypeEntry extraMimeEntries[] =
   { APPLICATION_POSTSCRIPT, "ps,eps,ai", "Postscript File" },
   { APPLICATION_XJAVASCRIPT, "js", "Javascript Source File" },
   { APPLICATION_XJAVASCRIPT, "jsm", "Javascript Module Source File" },
-#ifdef MOZ_WIDGET_ANDROID
-  { "application/vnd.android.package-archive", "apk", "Android Package" },
-#endif
   { IMAGE_ART, "art", "ART Image" },
   { IMAGE_BMP, "bmp", "BMP Image" },
   { IMAGE_GIF, "gif", "GIF Image" },

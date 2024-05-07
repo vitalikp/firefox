@@ -89,7 +89,6 @@ LOCAL_INCLUDES += [
     '/layout/xul',
     '/netwerk/base',
     '/widget',
-    '/widget/android',
     '/widget/cocoa',
     '/xpcom/base',
 ]

@@ -17,8 +17,6 @@ Cu.import("resource://gre/modules/Services.jsm", this);
 
 /**
  * UITelemetry is a helper JSM used to record UI specific telemetry events.
- *
- * It implements nsIUITelemetryObserver, defined in nsIAndroidBridge.idl.
  */
 this.UITelemetry = {
   _enabled: undefined,
