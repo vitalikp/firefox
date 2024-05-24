@@ -207,8 +207,6 @@ nsIAtom::~nsIAtom()
   }
 }
 
-NS_IMPL_QUERY_INTERFACE(nsAtom, nsIAtom);
-
 void
 nsAtom::ToUTF8String(nsACString& aBuf) const
 {

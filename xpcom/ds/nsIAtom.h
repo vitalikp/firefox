@@ -7,23 +7,15 @@
 #ifndef nsIAtom_h
 #define nsIAtom_h
 
-#include "nsISupports.h"
+#include "nsISupportsImpl.h"
 #include "nsString.h"
 #include "nsStringBuffer.h"
 
-#define NS_IATOM_IID_STR "8b8c11d4-3ed5-4079-8974-73c7576cdb34"
 
-#define NS_IATOM_IID \
-  {0x8b8c11d4, 0x3ed5, 0x4079, \
-    { 0x89, 0x74, 0x73, 0xc7, 0x57, 0x6c, 0xdb, 0x34 }}
-
-class nsIAtom : public nsISupports
+class nsIAtom
 {
 public:
-  NS_DECLARE_STATIC_IID_ACCESSOR(NS_IATOM_IID)
-
   size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const;
-  NS_IMETHOD QueryInterface(REFNSIID aIID, void** aInstancePtr) final;
 
   enum class AtomKind : uint8_t {
     DynamicAtom = 0,
@@ -107,8 +99,6 @@ private:
   // nsStringBuffer::FromData() calls above are valid.
   char16_t* mString;
 };
-
-NS_DEFINE_STATIC_IID_ACCESSOR(nsIAtom, NS_IATOM_IID)
 
 typedef nsIAtom nsAtom;
 
