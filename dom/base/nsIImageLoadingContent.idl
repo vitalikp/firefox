@@ -89,7 +89,7 @@ interface nsIImageLoadingContent : imgINotificationObserver
    * @param aObserver the observer to unregister
    */
   void removeObserver(in imgINotificationObserver aObserver);
-  
+
   /**
    * Accessor to get the image requests
    *

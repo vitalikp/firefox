@@ -93,7 +93,7 @@ nsHTMLContentSerializer::SerializeHTMLAttributes(nsIContent* aContent,
     }
     aContent->GetAttr(namespaceID, attrName, valueStr);
 
-    // 
+    //
     // Filter out special case of <br type="_moz"> or <br _moz*>,
     // used by the editor.  Bug 16988.  Yuck.
     //
@@ -110,7 +110,7 @@ nsHTMLContentSerializer::SerializeHTMLAttributes(nsIContent* aContent,
       continue;
     }
     bool isJS = IsJavaScript(aContent, attrName, namespaceID, valueStr);
-    
+
     if (((attrName == nsGkAtoms::href &&
           (namespaceID == kNameSpaceID_None ||
            namespaceID == kNameSpaceID_XLink)) ||
@@ -230,7 +230,7 @@ nsHTMLContentSerializer::AppendElementStart(Element* aElement,
   if ((mDoFormat || forceFormat) && !mDoRaw && !PreLevel())
     NS_ENSURE_TRUE(IncrIndentation(name), NS_ERROR_OUT_OF_MEMORY);
 
-  // Need to keep track of OL and LI elements in order to get ordinal number 
+  // Need to keep track of OL and LI elements in order to get ordinal number
   // for the LI.
   if (mIsCopying && name == nsGkAtoms::ol && ns == kNameSpaceID_XHTML){
     // We are copying and current node is an OL;
@@ -246,7 +246,7 @@ nsHTMLContentSerializer::AppendElementStart(Element* aElement,
       //Therefore subtracting 1 as all the LI elements are incrementing it before using it;
       //In failure of ToInteger(), default StartAttrValue to 0.
       if (NS_SUCCEEDED(rv))
-        startAttrVal--; 
+        startAttrVal--;
       else
         startAttrVal = 0;
     }
@@ -261,7 +261,7 @@ nsHTMLContentSerializer::AppendElementStart(Element* aElement,
     }
   }
 
-  // Even LI passed above have to go through this 
+  // Even LI passed above have to go through this
   // for serializing attributes other than "value".
   nsAutoString dummyPrefix;
   NS_ENSURE_TRUE(SerializeHTMLAttributes(content,
@@ -291,8 +291,8 @@ nsHTMLContentSerializer::AppendElementStart(Element* aElement,
 
   return NS_OK;
 }
-  
-NS_IMETHODIMP 
+
+NS_IMETHODIMP
 nsHTMLContentSerializer::AppendElementEnd(Element* aElement,
                                           nsAString& aStr)
 {
@@ -331,7 +331,7 @@ nsHTMLContentSerializer::AppendElementEnd(Element* aElement,
   }
   else if (mIsCopying && name == nsGkAtoms::ol && ns == kNameSpaceID_XHTML) {
     NS_ASSERTION((!mOLStateStack.IsEmpty()), "Cannot have an empty OL Stack");
-    /* Though at this point we must always have an state to be deleted as all 
+    /* Though at this point we must always have an state to be deleted as all
     the OL opening tags are supposed to push an olState object to the stack*/
     if (!mOLStateStack.IsEmpty()) {
       mOLStateStack.RemoveElementAt(mOLStateStack.Length() -1);
@@ -487,7 +487,7 @@ nsHTMLContentSerializer::AppendAndTranslateEntities(const nsAString& aStr,
     for (uint32_t i = 0; i < len; ++i) {
       const char* entity = nullptr;
       i = FindNextBasicEntity(aStr, len, i, entityTable, &entity);
-      uint32_t normalTextLen = i - start; 
+      uint32_t normalTextLen = i - start;
       if (normalTextLen) {
         NS_ENSURE_TRUE(aOutputStr.Append(Substring(aStr, start, normalTextLen),
                                          mozilla::fallible), false);

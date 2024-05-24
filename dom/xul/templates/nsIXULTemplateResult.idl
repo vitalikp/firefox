@@ -83,7 +83,7 @@ interface nsIXULTemplateResult : nsISupports
   [noscript] AString getBindingFor(in nsIAtom aVar);
 
   /**
-   * Get an object value for a variable such as ?name for this result. 
+   * Get an object value for a variable such as ?name for this result.
    *
    * This method may return null for a variable, even if getBindingFor returns
    * a non-null value for the same variable. This method is provided as a

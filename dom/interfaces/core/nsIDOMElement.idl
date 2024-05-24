@@ -17,10 +17,10 @@ interface nsIDOMMozNamedAttrMap;
 %}
 
 /**
- * The nsIDOMElement interface represents an element in an HTML or 
- * XML document. 
+ * The nsIDOMElement interface represents an element in an HTML or
+ * XML document.
  *
- * For more information on this interface please see 
+ * For more information on this interface please see
  * http://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#interface-element
  */
 
@@ -31,12 +31,12 @@ interface nsIDOMElement : nsIDOMNode
 
   readonly attribute nsIDOMMozNamedAttrMap attributes;
   DOMString          getAttribute(in DOMString name);
-  void               setAttribute(in DOMString name, 
+  void               setAttribute(in DOMString name,
                                   in DOMString value);
   boolean            hasAttribute(in DOMString name);
 
   // Obsolete methods.
   nsIDOMAttr         getAttributeNode(in DOMString name);
-  nsIDOMAttr         getAttributeNodeNS(in DOMString namespaceURI, 
+  nsIDOMAttr         getAttributeNodeNS(in DOMString namespaceURI,
                                         in DOMString localName);
 };

@@ -305,7 +305,7 @@ public:
                                   bool aSystemEventGroup);
 
   /**
-  * Sets events listeners of all types. 
+  * Sets events listeners of all types.
   * @param an event listener
   */
   void AddEventListenerByType(nsIDOMEventListener *aListener,
@@ -348,7 +348,7 @@ public:
   void RemoveEventHandler(nsIAtom *aName, const nsAString& aTypeString);
 
   void HandleEvent(nsPresContext* aPresContext,
-                   WidgetEvent* aEvent, 
+                   WidgetEvent* aEvent,
                    nsIDOMEvent** aDOMEvent,
                    dom::EventTarget* aCurrentTarget,
                    nsEventStatus* aEventStatus)

@@ -27,7 +27,7 @@ interface nsIDOMParser : nsISupports
    *
    * @param str The UTF16 string to be parsed
    * @param contentType The content type of the string (see parseFromStream)
-   * @returns The DOM document created as a result of parsing the 
+   * @returns The DOM document created as a result of parsing the
    *          string
    */
   nsIDOMDocument parseFromString(in wstring str, in string contentType);
@@ -39,7 +39,7 @@ interface nsIDOMParser : nsISupports
    * @param buf The octet array data to be parsed
    * @param bufLen Length (in bytes) of the data
    * @param contentType The content type of the data (see parseFromStream)
-   * @returns The DOM document created as a result of parsing the 
+   * @returns The DOM document created as a result of parsing the
    *          string
    */
   nsIDOMDocument parseFromBuffer([const,array,size_is(bufLen)] in octet buf,
@@ -57,10 +57,10 @@ interface nsIDOMParser : nsISupports
    * @param contentType The content type of the string - either text/xml,
    *                    application/xml, or application/xhtml+xml.
    *                    Must not be NULL.
-   * @returns The DOM document created as a result of parsing the 
+   * @returns The DOM document created as a result of parsing the
    *          stream
    */
-  nsIDOMDocument parseFromStream(in nsIInputStream stream, 
+  nsIDOMDocument parseFromStream(in nsIInputStream stream,
                                  in string charset,
                                  in long contentLength,
                                  in string contentType);

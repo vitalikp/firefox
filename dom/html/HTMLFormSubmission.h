@@ -161,7 +161,7 @@ public:
   FSMultipartFormData(const nsACString& aCharset,
                       nsIContent* aOriginatingElement);
   ~FSMultipartFormData();
- 
+
   virtual nsresult
   AddNameValuePair(const nsAString& aName, const nsAString& aValue) override;
 

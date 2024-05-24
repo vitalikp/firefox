@@ -64,7 +64,7 @@
 #include "PLDHashTable.h"
 #include "plhash.h"
 #include "nsPIDOMWindow.h"
-#include "nsIConsoleService.h" 
+#include "nsIConsoleService.h"
 #include "nsNetUtil.h"
 #include "nsXULTemplateBuilder.h"
 #include "nsXULTemplateQueryProcessorRDF.h"
@@ -798,7 +798,7 @@ nsXULTemplateBuilder::UpdateResultInContainer(nsIXULTemplateResult* aOldResult,
                         if (findmatch->GetContainer() == aInsertionPoint) {
                             nsTemplateQuerySet* qs =
                                 mQuerySets[findmatch->QuerySetPriority()];
-                        
+
                             DetermineMatchedRule(aInsertionPoint, findmatch->mResult,
                                                  qs, &matchedrule, &ruleindex);
 
@@ -1291,7 +1291,7 @@ nsXULTemplateBuilder::LoadDataSources(nsIDocument* aDocument,
 
     nsresult rv;
     bool isRDFQuery = false;
-  
+
     // we'll set these again later, after we create a new composite ds
     mDB = nullptr;
     mCompDB = nullptr;
@@ -1307,7 +1307,7 @@ nsXULTemplateBuilder::LoadDataSources(nsIDocument* aDocument,
 
     // create the query processor. The querytype attribute on the root element
     // may be used to create one of a specific type.
-  
+
     // XXX should non-chrome be restricted to specific names?
     if (querytype.IsEmpty())
         querytype.AssignLiteral("rdf");
@@ -1348,10 +1348,10 @@ nsXULTemplateBuilder::LoadDataSources(nsIDocument* aDocument,
         // JS property "by hand".
         InitHTMLTemplateRoot();
     }
-  
+
     return NS_OK;
 }
-  
+
 nsresult
 nsXULTemplateBuilder::LoadDataSourceUrls(nsIDocument* aDocument,
                                          const nsAString& aDataSources,
@@ -1439,7 +1439,7 @@ nsXULTemplateBuilder::LoadDataSourceUrls(nsIDocument* aDocument,
                                         getter_AddRefs(mDataSource));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    if (aIsRDFQuery && mDataSource) {  
+    if (aIsRDFQuery && mDataSource) {
         // check if we were given an inference engine type
         nsCOMPtr<nsIRDFInferDataSource> inferDB = do_QueryInterface(mDataSource);
         if (inferDB) {
@@ -2123,7 +2123,7 @@ nsXULTemplateBuilder::CompileExtendedQuery(nsIContent* aRuleElement,
     // allow the conditions to be placed directly inside the rule
     if (!conditions)
         conditions = aRuleElement;
-  
+
     rv = CompileConditions(rule, conditions);
     // If the rule compilation failed, then we have to bail.
     if (NS_FAILED(rv)) {

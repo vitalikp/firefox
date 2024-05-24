@@ -20,7 +20,7 @@ interface nsIController : nsISupports {
 
   Enhanced controller interface that allows for passing of parameters
   to commands.
-  
+
 */
 
 interface nsICommandParams;
@@ -28,9 +28,9 @@ interface nsICommandParams;
 [scriptable, uuid(EEC0B435-7F53-44FE-B00A-CF3EED65C01A)]
 interface nsICommandController : nsISupports
 {
-  
+
   void        getCommandStateWithParams( in string command, in nsICommandParams aCommandParams);
-    
+
   void        doCommandWithParams(in string command, in nsICommandParams aCommandParams);
 
   void getSupportedCommands(out unsigned long count,
@@ -39,7 +39,7 @@ interface nsICommandController : nsISupports
 
 
 /*
-  An API for registering commands in groups, to allow for 
+  An API for registering commands in groups, to allow for
   updating via nsIDOMWindow::UpdateCommands.
 */
 interface nsISimpleEnumerator;
@@ -50,14 +50,14 @@ interface nsIControllerCommandGroup : nsISupports
 
   void  addCommandToGroup(in string aCommand, in string aGroup);
   void  removeCommandFromGroup(in string aCommand, in string aGroup);
-  
+
   boolean isCommandInGroup(in string aCommand, in string aGroup);
 
   /*
     We should expose some methods that allow for enumeration.
   */
   nsISimpleEnumerator getGroupsEnumerator();
-  
+
   nsISimpleEnumerator getEnumeratorForGroup(in string aGroup);
 
 };

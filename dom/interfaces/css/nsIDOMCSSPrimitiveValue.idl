@@ -45,12 +45,12 @@ interface nsIDOMCSSPrimitiveValue : nsIDOMCSSValue
   const unsigned short      CSS_RGBCOLOR                   = 25;
 
   readonly attribute unsigned short   primitiveType;
-  void               setFloatValue(in unsigned short unitType, 
+  void               setFloatValue(in unsigned short unitType,
                                    in float floatValue)
                                         raises(DOMException);
   float              getFloatValue(in unsigned short unitType)
                                         raises(DOMException);
-  void               setStringValue(in unsigned short stringType, 
+  void               setStringValue(in unsigned short stringType,
                                     in DOMString stringValue)
                                         raises(DOMException);
   DOMString          getStringValue()

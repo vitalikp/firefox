@@ -14,13 +14,13 @@ interface nsIDOMXULSelectControlItemElement : nsISupports {
   attribute DOMString label;
   attribute DOMString accessKey;
   attribute DOMString command;
-  
+
   attribute DOMString value;
-  
+
   readonly attribute boolean selected;
-  
+
   readonly attribute nsIDOMXULSelectControlElement control;
-  
+
   // XXX defined in XULElement, but should be defined here
   // void doCommand();
 };

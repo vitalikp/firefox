@@ -133,7 +133,7 @@ txStylesheetSink::HandleStartElement(const char16_t *aName,
 
         return rv;
     }
-    
+
     return NS_OK;
 }
 
@@ -217,9 +217,9 @@ txStylesheetSink::ReportError(const char16_t *aErrorText,
     return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 txStylesheetSink::DidBuildModel(bool aTerminated)
-{  
+{
     return mCompiler->doneLoading();
 }
 
@@ -521,7 +521,7 @@ static nsresult
 handleNode(nsINode* aNode, txStylesheetCompiler* aCompiler)
 {
     nsresult rv = NS_OK;
-    
+
     if (aNode->IsElement()) {
         dom::Element* element = aNode->AsElement();
 
@@ -554,7 +554,7 @@ handleNode(nsINode* aNode, txStylesheetCompiler* aCompiler)
         for (nsIContent* child = element->GetFirstChild();
              child;
              child = child->GetNextSibling()) {
-             
+
             rv = handleNode(child, aCompiler);
             NS_ENSURE_SUCCESS(rv, rv);
         }
@@ -572,7 +572,7 @@ handleNode(nsINode* aNode, txStylesheetCompiler* aCompiler)
         for (nsIContent* child = aNode->GetFirstChild();
              child;
              child = child->GetNextSibling()) {
-             
+
             rv = handleNode(child, aCompiler);
             NS_ENSURE_SUCCESS(rv, rv);
         }
@@ -674,12 +674,12 @@ TX_CompileStylesheet(nsINode* aNode, txMozillaXSLTProcessor* aProcessor,
     if (aNode->IsNodeOfType(nsINode::eCONTENT)) {
       uri = static_cast<nsIContent*>(aNode)->GetBaseURI();
     }
-    else { 
+    else {
       NS_ASSERTION(aNode->IsNodeOfType(nsINode::eDOCUMENT), "not a doc");
       uri = static_cast<nsIDocument*>(aNode)->GetBaseURI();
     }
     NS_ENSURE_TRUE(uri, NS_ERROR_FAILURE);
-    
+
     nsAutoCString spec;
     uri->GetSpec(spec);
     NS_ConvertUTF8toUTF16 baseURI(spec);
@@ -713,7 +713,7 @@ TX_CompileStylesheet(nsINode* aNode, txMozillaXSLTProcessor* aProcessor,
 
     rv = compiler->doneLoading();
     NS_ENSURE_SUCCESS(rv, rv);
-    
+
     *aStylesheet = compiler->getStylesheet();
     NS_ADDREF(*aStylesheet);
 

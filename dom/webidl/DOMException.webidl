@@ -44,7 +44,7 @@ interface ExceptionMembers
   readonly attribute DOMString               filename;
   // Valid line numbers begin at '1'. '0' indicates unknown.
   readonly attribute unsigned long           lineNumber;
-  // Valid column numbers begin at 0. 
+  // Valid column numbers begin at 0.
   // We don't have an unambiguous indicator for unknown.
   readonly attribute unsigned long           columnNumber;
 

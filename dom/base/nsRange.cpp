@@ -84,7 +84,7 @@ static void InvalidateAllFrames(nsINode* aNode)
 // If outNodeAfter is returned true, then the node ends after the range does.
 // Note that both of the above might be true.
 // If neither are true, the node is contained inside of the range.
-// XXX - callers responsibility to ensure node in same doc as range! 
+// XXX - callers responsibility to ensure node in same doc as range!
 
 // static
 nsresult
@@ -98,10 +98,10 @@ nsRange::CompareNodeToRange(nsINode* aNode, nsRange* aRange,
   //    {RANGE(start), RANGE(end)}
   // if (RANGE(start) <= NODE(start))  and (RANGE(end) => NODE(end))
   // then the Node is contained (completely) by the Range.
-  
-  if (!aRange || !aRange->IsPositioned()) 
-    return NS_ERROR_UNEXPECTED; 
-  
+
+  if (!aRange || !aRange->IsPositioned())
+    return NS_ERROR_UNEXPECTED;
+
   // gather up the dom point info
   int32_t nodeStart, nodeEnd;
   nsINode* parent = aNode->GetParentNode();
@@ -247,7 +247,7 @@ nsRange::IsNodeSelected(nsINode* aNode, uint32_t aStartOffset,
  * constructor/destructor
  ******************************************************/
 
-nsRange::~nsRange() 
+nsRange::~nsRange()
 {
   NS_ASSERTION(!IsInSelection(), "deleting nsRange that is in use");
 
@@ -906,7 +906,7 @@ nsRange::IntersectsNode(nsINode& aNode, ErrorResult& aRv)
   // Step 3.
   nsINode* parent = aNode.GetParentNode();
   if (!parent) {
-    // Steps 2 and 4. 
+    // Steps 2 and 4.
     // |parent| is null, so |node|'s root is |node| itself.
     return GetRoot() == &aNode;
   }
@@ -3026,7 +3026,7 @@ nsRange::ToString(nsAString& aReturn)
 
   nsString tempString;
 
-  // loop through the content iterator, which returns nodes in the range in 
+  // loop through the content iterator, which returns nodes in the range in
   // close tag order, and grab the text from any text node
   while (!iter->IsDone())
   {

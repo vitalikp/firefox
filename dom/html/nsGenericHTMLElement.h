@@ -489,7 +489,7 @@ public:
    * @param aData the returned rule data [INOUT]
    * @see GetAttributeMappingFunction
    */
-  static void MapCommonAttributesInto(const nsMappedAttributes* aAttributes, 
+  static void MapCommonAttributesInto(const nsMappedAttributes* aAttributes,
                                       mozilla::GenericSpecifiedValues* aGenericData);
   /**
    * Same as MapCommonAttributesInto except that it does not handle hidden.
@@ -508,7 +508,7 @@ public:
   static const MappedAttributeEntry sDivAlignAttributeMap[];
   static const MappedAttributeEntry sBackgroundAttributeMap[];
   static const MappedAttributeEntry sBackgroundColorAttributeMap[];
-  
+
   /**
    * Helper to map the align attribute into a style struct.
    *

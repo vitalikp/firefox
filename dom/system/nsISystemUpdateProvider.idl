@@ -64,7 +64,7 @@ interface nsISystemUpdateProvider : nsISupports
 
   /**
    * NOTE TO IMPLEMENTORS:
-   *   Need to consider if it is necessary to fire the pending event when 
+   *   Need to consider if it is necessary to fire the pending event when
    *   registering the listener.
    *   (E.g. UpdateAvailable or UpdateReady event.)
    */

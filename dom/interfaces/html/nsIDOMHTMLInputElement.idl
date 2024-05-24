@@ -36,5 +36,5 @@ interface nsIDOMHTMLInputElement : nsISupports
 
            attribute boolean               readOnly;
 
-  readonly attribute nsIControllers        controllers;	
+  readonly attribute nsIControllers        controllers;
 };

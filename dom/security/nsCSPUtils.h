@@ -214,7 +214,7 @@ class nsCSPBaseSrc {
 
     virtual void invalidate() const
       { mInvalidated = true; }
- 
+
   protected:
     // invalidate srcs if 'script-dynamic' is present or also invalidate
     // unsafe-inline' if nonce- or hash-source specified

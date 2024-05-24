@@ -2,7 +2,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
- 
+
 #include "nsISupports.idl"
 #include "nsIControllerCommandTable.idl"
 
@@ -21,7 +21,7 @@ interface nsIControllerContext : nsISupports
    */
   void init(in nsIControllerCommandTable aCommandTable);
 
-  /** 
+  /**
    *  Set a context on this controller, which is passed
    *  to commands to give them some context when they execute.
    *
@@ -31,5 +31,5 @@ interface nsIControllerContext : nsISupports
    *                        or be nulled out.
    */
   void setCommandContext(in nsISupports aCommandContext);
-  
+
 };

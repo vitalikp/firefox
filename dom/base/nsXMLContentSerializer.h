@@ -50,7 +50,7 @@ class nsXMLContentSerializer : public nsIContentSerializer {
 
   NS_IMETHOD AppendComment(nsIContent* aComment, int32_t aStartOffset,
                            int32_t aEndOffset, nsAString& aStr) override;
-  
+
   NS_IMETHOD AppendDoctype(nsIContent *aDoctype,
                            nsAString& aStr) override;
 
@@ -221,7 +221,7 @@ class nsXMLContentSerializer : public nsIContentSerializer {
 
   /**
    * This method can be redefined to check if the element can be serialized.
-   * It is called when the serialization of the start tag is asked 
+   * It is called when the serialization of the start tag is asked
    * (AppendElementStart)
    * In this method you can also force the formating
    * by setting aForceFormat to true.
@@ -256,7 +256,7 @@ class nsXMLContentSerializer : public nsIContentSerializer {
 
   /**
    * This method can be redefined to check if the element can be serialized.
-   * It is called when the serialization of the end tag is asked 
+   * It is called when the serialization of the end tag is asked
    * (AppendElementEnd)
    * In this method you can also force the formating
    * by setting aForceFormat to true.
@@ -343,7 +343,7 @@ class nsXMLContentSerializer : public nsIContentSerializer {
 
   // The charset that was passed to Init()
   nsCString mCharset;
-  
+
   // current column position on the current line
   uint32_t   mColPos;
 
@@ -403,4 +403,4 @@ private:
 nsresult
 NS_NewXMLContentSerializer(nsIContentSerializer** aSerializer);
 
-#endif 
+#endif

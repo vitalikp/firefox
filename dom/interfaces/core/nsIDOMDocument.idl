@@ -22,14 +22,14 @@ interface nsIDOMLocation;
 
 /**
  * The nsIDOMDocument interface represents the entire HTML or XML document.
- * Conceptually, it is the root of the document tree, and provides the 
+ * Conceptually, it is the root of the document tree, and provides the
  * primary access to the document's data.
- * Since elements, text nodes, comments, processing instructions, etc. 
- * cannot exist outside the context of a Document, the nsIDOMDocument 
- * interface also contains the factory methods needed to create these 
+ * Since elements, text nodes, comments, processing instructions, etc.
+ * cannot exist outside the context of a Document, the nsIDOMDocument
+ * interface also contains the factory methods needed to create these
  * objects.
  *
- * For more information on this interface please see 
+ * For more information on this interface please see
  * http://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html
  */
 
@@ -46,7 +46,7 @@ interface nsIDOMDocument : nsIDOMNode
   nsIDOMComment                 createComment(in DOMString data);
   nsIDOMCDATASection            createCDATASection(in DOMString data)
                                   raises(DOMException);
-  nsIDOMProcessingInstruction   createProcessingInstruction(in DOMString target, 
+  nsIDOMProcessingInstruction   createProcessingInstruction(in DOMString target,
                                                             in DOMString data)
                                   raises(DOMException);
   nsIDOMAttr                    createAttribute(in DOMString name)
@@ -217,7 +217,7 @@ interface nsIDOMDocument : nsIDOMNode
    * @see <http://dev.w3.org/csswg/cssom/#dom-document-lastStyleSheetSet>
    */
   readonly attribute DOMString lastStyleSheetSet;
-  
+
   /**
    * This must return the live list of the currently available style sheet
    * sets. This list is constructed by enumerating all the style sheets for

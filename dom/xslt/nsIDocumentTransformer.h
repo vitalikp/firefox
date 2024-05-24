@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
- 
+
 #ifndef nsIDocumentTransformer_h__
 #define nsIDocumentTransformer_h__
 
@@ -21,7 +21,7 @@ template<class> class nsTArray;
 
 class nsITransformObserver : public nsISupports
 {
-public: 
+public:
 
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_ITRANSFORMOBSERVER_IID)
 
@@ -40,7 +40,7 @@ NS_DEFINE_STATIC_IID_ACCESSOR(nsITransformObserver, NS_ITRANSFORMOBSERVER_IID)
 
 class nsIDocumentTransformer : public nsISupports
 {
-public: 
+public:
 
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_IDOCUMENTTRANSFORMER_IID)
 

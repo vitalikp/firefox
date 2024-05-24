@@ -62,7 +62,7 @@ interface nsIDOMDataTransfer : nsISupports
   /**
    * Holds a list of all the local files available on this data transfer.
    * A dataTransfer containing no files will return an empty list, and an
-   * invalid index access on the resulting file list will return null. 
+   * invalid index access on the resulting file list will return null.
    */
   readonly attribute nsIDOMFileList files;
 
@@ -80,7 +80,7 @@ interface nsIDOMDataTransfer : nsISupports
    * should be. To center the image for instance, use values that are half the
    * width and height.
    *
-   * @param image a node to use 
+   * @param image a node to use
    * @param x the horizontal offset
    * @param y the vertical offset
    * @throws NO_MODIFICATION_ALLOWED_ERR if the item cannot be modified

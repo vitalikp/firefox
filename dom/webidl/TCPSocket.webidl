@@ -108,7 +108,7 @@ interface TCPSocket : EventTarget {
    *         and the caller may wish to wait until the ondrain event
    *         handler has been called before buffering more data by more
    *         calls to send.
-   * 
+   *
    * @throws Throws if the ready state is not OPEN.
    */
   [Throws]
@@ -133,7 +133,7 @@ interface TCPSocket : EventTarget {
    *         and the caller may wish to wait until the ondrain event
    *         handler has been called before buffering more data by more
    *         calls to send.
-   * 
+   *
    * @throws Throws if the ready state is not OPEN.
    */
   [Throws]
@@ -206,5 +206,5 @@ interface TCPSocket : EventTarget {
    * If the "error" event was not dispatched before "close", then one of
    * the sides cleanly closed the connection.
    */
-  attribute EventHandler onclose;  
+  attribute EventHandler onclose;
 };

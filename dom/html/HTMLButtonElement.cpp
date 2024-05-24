@@ -145,7 +145,7 @@ HTMLButtonElement::IsHTMLFocusable(bool aWithMouse, bool *aIsFocusable, int32_t 
     return true;
   }
 
-  *aIsFocusable = 
+  *aIsFocusable =
 #ifdef XP_MACOSX
     (!aWithMouse || nsFocusManager::sMouseFocusesFormControl) &&
 #endif
@@ -445,7 +445,7 @@ HTMLButtonElement::SaveState()
   if (!mDisabledChanged) {
     return NS_OK;
   }
-  
+
   nsPresState* state = GetPrimaryPresState();
   if (state) {
     // We do not want to save the real disabled state but the disabled
@@ -470,7 +470,7 @@ EventStates
 HTMLButtonElement::IntrinsicState() const
 {
   EventStates state = nsGenericHTMLFormElementWithState::IntrinsicState();
-  
+
   if (IsCandidateForConstraintValidation()) {
     if (IsValid()) {
       state |= NS_EVENT_STATE_VALID;

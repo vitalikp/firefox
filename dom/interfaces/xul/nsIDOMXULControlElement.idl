@@ -12,10 +12,10 @@ interface nsIControllers;
 interface nsIDOMXULControlElement : nsISupports {
   attribute boolean disabled;
   attribute long tabIndex;
-  
+
 // XXX defined in XULElement, but should be defined here
 //  readonly attribute nsIControllers controllers;
-  
+
 //  void focus();
 //  void blur();
 };

@@ -24,8 +24,8 @@ interface nsIDOMCSSStyleDeclaration : nsISupports
   DOMString          removeProperty(in DOMString propertyName)
                                         raises(DOMException);
   DOMString          getPropertyPriority(in DOMString propertyName);
-  void               setProperty(in DOMString propertyName, 
-                                 in DOMString value, 
+  void               setProperty(in DOMString propertyName,
+                                 in DOMString value,
                                  [optional] in DOMString priority)
                                         raises(DOMException);
   readonly attribute unsigned long    length;

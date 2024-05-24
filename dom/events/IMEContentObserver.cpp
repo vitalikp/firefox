@@ -1822,7 +1822,7 @@ IMEContentObserver::AChangeEvent::IsSafeToNotifyIME(
 /******************************************************************************
  * mozilla::IMEContentObserver::IMENotificationSender
  ******************************************************************************/
- 
+
 NS_IMETHODIMP
 IMEContentObserver::IMENotificationSender::Run()
 {

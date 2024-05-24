@@ -21,7 +21,7 @@ interface nsIDOMNSEditableElement : nsISupports
 {
   [noscript] readonly attribute nsIEditor editor;
   // This is similar to set .value on nsIDOMInput/TextAreaElements, but
-  // handling of the value change is closer to the normal user input, so 
+  // handling of the value change is closer to the normal user input, so
   // 'change' event for example will be dispatched when focusing out the
   // element.
   [noscript] void setUserInput(in DOMString input);

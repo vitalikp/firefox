@@ -25,7 +25,7 @@ dictionary TouchInit {
   float force = 0;
 };
 
-[Constructor(TouchInit touchInitDict), 
+[Constructor(TouchInit touchInitDict),
  Func="mozilla::dom::Touch::PrefEnabled"]
 interface Touch {
   readonly    attribute long         identifier;

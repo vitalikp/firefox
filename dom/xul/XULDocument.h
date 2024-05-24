@@ -254,7 +254,7 @@ protected:
                            nsIPrincipal* aDocumentPrincipal,
                            nsIParser** aResult);
 
-    nsresult 
+    nsresult
     LoadOverlayInternal(nsIURI* aURI, bool aIsDynamic, bool* aShouldReturn,
                         bool* aFailureFromContent);
 
@@ -484,7 +484,7 @@ protected:
 
 
 protected:
-    /* Declarations related to forward references. 
+    /* Declarations related to forward references.
      *
      * Forward references are declarations which are added to the temporary
      * list (mForwardReferences) during the document (or overlay) load and
@@ -603,7 +603,7 @@ protected:
     nsresult
     InsertElement(nsINode* aParent, nsIContent* aChild, bool aNotify);
 
-    static 
+    static
     nsresult
     RemoveElement(nsINode* aParent, nsINode* aChild);
 

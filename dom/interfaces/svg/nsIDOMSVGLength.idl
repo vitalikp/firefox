@@ -7,7 +7,7 @@
 
 [uuid(2596325c-aed0-487e-96a1-0a6d589b9c6b)]
 interface nsIDOMSVGLength : nsISupports
-{ 
+{
   // Length Unit Types
   const unsigned short SVG_LENGTHTYPE_UNKNOWN    = 0;
   const unsigned short SVG_LENGTHTYPE_NUMBER     = 1;
@@ -28,7 +28,7 @@ interface nsIDOMSVGLength : nsISupports
   // raises DOMException on setting
   attribute DOMString      valueAsString;
   // raises DOMException on setting
-  
+
   void newValueSpecifiedUnits(in unsigned short unitType, in float valueInSpecifiedUnits);
   void convertToSpecifiedUnits(in unsigned short unitType);
 };

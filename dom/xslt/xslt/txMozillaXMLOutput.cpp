@@ -212,7 +212,7 @@ txMozillaXMLOutput::endDocument(nsresult aResult)
         if (mNotifier) {
             mNotifier->OnTransformEnd(aResult);
         }
-        
+
         return NS_OK;
     }
 
@@ -221,7 +221,7 @@ txMozillaXMLOutput::endDocument(nsresult aResult)
         if (mNotifier) {
             mNotifier->OnTransformEnd(rv);
         }
-        
+
         return rv;
     }
 
@@ -267,7 +267,7 @@ txMozillaXMLOutput::endElement()
                ("endElement, mBadChildLevel = %d\n", mBadChildLevel));
         return NS_OK;
     }
-    
+
     --mTreeDepth;
 
     nsresult rv = closePrevious(true);
@@ -309,7 +309,7 @@ txMozillaXMLOutput::endElement()
                                                 nsGkAtoms::audio,
                                                 nsGkAtoms::video)) {
           element->DoneCreatingElement();
-        }   
+        }
     }
 
     if (mCreatingNewDocument) {
@@ -440,8 +440,8 @@ txMozillaXMLOutput::startElement(nsIAtom* aPrefix, nsIAtom* aLocalName,
 
             aLowercaseLocalName = owner;
         }
-        return startElementInternal(nullptr, 
-                                    aLowercaseLocalName, 
+        return startElementInternal(nullptr,
+                                    aLowercaseLocalName,
                                     kNameSpaceID_XHTML);
     }
 
@@ -565,7 +565,7 @@ txMozillaXMLOutput::closePrevious(bool aFlushText)
             // We already have a document element, but the XSLT spec allows this.
             // As a workaround, create a wrapper object and use that as the
             // document element.
-            
+
             rv = createTxWrapper();
             NS_ENSURE_SUCCESS(rv, rv);
         }
@@ -586,7 +586,7 @@ txMozillaXMLOutput::closePrevious(bool aFlushText)
         if (mDocument == mCurrentNode) {
             if (XMLUtils::isWhitespace(mText)) {
                 mText.Truncate();
-                
+
                 return NS_OK;
             }
 
@@ -760,7 +760,7 @@ txMozillaXMLOutput::endHTMLElement(nsIContent* aElement)
             }
         }
     }
-    
+
     return NS_OK;
 }
 
@@ -939,7 +939,7 @@ txMozillaXMLOutput::createHTMLElement(nsIAtom* aName,
 
 txTransformNotifier::txTransformNotifier()
     : mPendingStylesheetCount(0),
-      mInTransform(false)      
+      mInTransform(false)
 {
 }
 
@@ -952,10 +952,10 @@ NS_IMPL_ISUPPORTS(txTransformNotifier,
                   nsICSSLoaderObserver)
 
 NS_IMETHODIMP
-txTransformNotifier::ScriptAvailable(nsresult aResult, 
-                                     nsIScriptElement *aElement, 
+txTransformNotifier::ScriptAvailable(nsresult aResult,
+                                     nsIScriptElement *aElement,
                                      bool aIsInline,
-                                     nsIURI *aURI, 
+                                     nsIURI *aURI,
                                      int32_t aLineNo)
 {
     if (NS_FAILED(aResult) &&
@@ -966,8 +966,8 @@ txTransformNotifier::ScriptAvailable(nsresult aResult,
     return NS_OK;
 }
 
-NS_IMETHODIMP 
-txTransformNotifier::ScriptEvaluated(nsresult aResult, 
+NS_IMETHODIMP
+txTransformNotifier::ScriptEvaluated(nsresult aResult,
                                      nsIScriptElement *aElement,
                                      bool aIsInline)
 {
@@ -978,7 +978,7 @@ txTransformNotifier::ScriptEvaluated(nsresult aResult,
     return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 txTransformNotifier::StyleSheetLoaded(StyleSheet* aSheet,
                                       bool aWasAlternate,
                                       nsresult aStatus)
@@ -995,7 +995,7 @@ txTransformNotifier::StyleSheetLoaded(StyleSheet* aSheet,
         --mPendingStylesheetCount;
         SignalTransformEnd();
     }
-    
+
     return NS_OK;
 }
 

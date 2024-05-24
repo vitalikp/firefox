@@ -2869,7 +2869,7 @@ nsDocument::InitCSP(nsIChannel* aChannel)
     (cspSandboxFlags & SANDBOXED_ORIGIN) && !(mSandboxFlags & SANDBOXED_ORIGIN);
 
   mSandboxFlags |= cspSandboxFlags;
-  
+
   if (needNewNullPrincipal) {
     principal = NullPrincipal::CreateWithInheritedAttributes(principal);
     principal->SetCsp(csp);

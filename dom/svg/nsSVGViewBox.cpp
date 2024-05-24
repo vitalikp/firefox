@@ -326,7 +326,7 @@ nsSVGViewBox::SMILViewBox
   *static_cast<nsSVGViewBoxRect*>(val.mU.mPtr) = viewBox;
   aValue = Move(val);
   aPreventCachingOfSandwich = false;
-  
+
   return NS_OK;
 }
 

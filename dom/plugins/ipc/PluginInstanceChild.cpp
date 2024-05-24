@@ -392,7 +392,7 @@ PluginInstanceChild::NPN_GetValue(NPNVariable aVar,
         }
         *(void **)aValue = mWsInfo.display;
         return NPERR_NO_ERROR;
-    
+
 #elif defined(OS_WIN)
     case NPNVToolkit:
         return NPERR_GENERIC_ERROR;
@@ -988,17 +988,17 @@ PluginInstanceChild::AnswerNPP_HandleEvent_Shmem(const NPRemoteEvent& event,
                 *handled = false;
                 *rtnmem = mem;
                 return IPC_OK();
-            } 
+            }
         }
         if (!mShContext) {
             void* cgContextByte = mem.get<char>();
-            mShContext = ::CGBitmapContextCreate(cgContextByte, 
+            mShContext = ::CGBitmapContextCreate(cgContextByte,
                               mWindow.width * scaleFactor,
-                              mWindow.height * scaleFactor, 8, 
-                              mWindow.width * 4 * scaleFactor, mShColorSpace, 
+                              mWindow.height * scaleFactor, 8,
+                              mWindow.width * 4 * scaleFactor, mShColorSpace,
                               kCGImageAlphaPremultipliedFirst |
                               kCGBitmapByteOrder32Host);
-    
+
             if (!mShContext) {
                 PLUGIN_LOG_DEBUG(("Could not allocate CGBitmapContext."));
                 *handled = false;
@@ -1008,13 +1008,13 @@ PluginInstanceChild::AnswerNPP_HandleEvent_Shmem(const NPRemoteEvent& event,
         }
         CGRect clearRect = ::CGRectMake(0, 0, mWindow.width, mWindow.height);
         ::CGContextClearRect(mShContext, clearRect);
-        evcopy.data.draw.context = mShContext; 
+        evcopy.data.draw.context = mShContext;
     } else {
         PLUGIN_LOG_DEBUG(("Invalid event type for AnswerNNP_HandleEvent_Shmem."));
         *handled = false;
         *rtnmem = mem;
         return IPC_OK();
-    } 
+    }
 
     if (!mPluginIface->event) {
         *handled = false;
@@ -1099,10 +1099,10 @@ PluginInstanceChild::AnswerNPP_HandleEvent_IOSurface(const NPRemoteEvent& event,
         mCARenderer->AttachIOSurface(surf);
         if (!mCARenderer->isInit()) {
             void *caLayer = nullptr;
-            NPError result = mPluginIface->getvalue(GetNPP(), 
+            NPError result = mPluginIface->getvalue(GetNPP(),
                                      NPPVpluginCoreAnimationLayer,
                                      &caLayer);
-            
+
             if (result != NPERR_NO_ERROR || !caLayer) {
                 PLUGIN_LOG_DEBUG(("Plugin requested CoreAnimation but did not "
                                   "provide CALayer."));
@@ -1124,7 +1124,7 @@ PluginInstanceChild::AnswerNPP_HandleEvent_IOSurface(const NPRemoteEvent& event,
                           "AnswerNNP_HandleEvent_IOSurface."));
         *handled = false;
         return IPC_FAIL_NO_REASON(this);
-    } 
+    }
 
     mCARenderer->Render(mWindow.width, mWindow.height,
                         mContentsScaleFactor, nullptr);
@@ -1167,7 +1167,7 @@ PluginInstanceChild::RecvContentsScaleFactorChanged(const double& aContentsScale
 #if defined(XP_MACOSX)
     if (mShContext) {
         // Release the shared context so that it is reallocated
-        // with the new size. 
+        // with the new size.
         ::CGContextRelease(mShContext);
         mShContext = nullptr;
     }
@@ -1182,7 +1182,7 @@ PluginInstanceChild::RecvContentsScaleFactorChanged(const double& aContentsScale
 #if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
 // Create a new window from NPWindow
 bool PluginInstanceChild::CreateWindow(const NPRemoteWindow& aWindow)
-{ 
+{
     PLUGIN_LOG_DEBUG(("%s (aWindow=<window: 0x%" PRIx64 ", x: %d, y: %d, width: %d, height: %d>)",
                       FULLFUNCTION,
                       aWindow.window,
@@ -1196,9 +1196,9 @@ bool PluginInstanceChild::CreateWindow(const NPRemoteWindow& aWindow)
     else {
         Window browserSocket = (Window)(aWindow.window);
         xt_client_init(&mXtClient, mWsInfo.visual, mWsInfo.colormap, mWsInfo.depth);
-        xt_client_create(&mXtClient, browserSocket, mWindow.width, mWindow.height); 
+        xt_client_create(&mXtClient, browserSocket, mWindow.width, mWindow.height);
         mWindow.window = (void *)XtWindow(mXtClient.child_widget);
-    }  
+    }
 #else
     mWindow.window = reinterpret_cast<void*>(aWindow.window);
 #endif
@@ -1219,9 +1219,9 @@ void PluginInstanceChild::DeleteWindow()
       return;
 
 #ifdef MOZ_WIDGET_GTK
-  if (mXtClient.top_widget) {     
+  if (mXtClient.top_widget) {
       xt_client_unrealize(&mXtClient);
-      xt_client_destroy(&mXtClient); 
+      xt_client_destroy(&mXtClient);
       mXtClient.top_widget = nullptr;
   }
 #endif
@@ -1401,7 +1401,7 @@ PluginInstanceChild::AnswerNPP_SetWindow(const NPRemoteWindow& aWindow)
 
     if (mShContext) {
         // Release the shared context so that it is reallocated
-        // with the new size. 
+        // with the new size.
         ::CGContextRelease(mShContext);
         mShContext = nullptr;
     }
@@ -1448,7 +1448,7 @@ PluginInstanceChild::Initialize()
     else {
         mWsInfo.display = xt_client_get_display();
     }
-#endif 
+#endif
 
     return true;
 }
@@ -1581,7 +1581,7 @@ PluginInstanceChild::CreatePluginWindow()
     // already initialized
     if (mPluginWindowHWND)
         return true;
-        
+
     if (!RegisterWindowClass())
         return false;
 
@@ -1936,7 +1936,7 @@ PluginInstanceChild::MaybePostKeyMessage(UINT message,
  * Note, ascii versions can be nixed once flash versions < 10.1
  * are considered obsolete.
  */
- 
+
 #ifdef _WIN64
 typedef LONG_PTR
   (WINAPI *User32SetWindowLongPtrA)(HWND hWnd,
@@ -2008,14 +2008,14 @@ PluginInstanceChild::SetWindowLongAHook(HWND hWnd,
     if (SetWindowLongHookCheck(hWnd, nIndex, newLong))
         return sUser32SetWindowLongAHookStub(hWnd, nIndex, newLong);
 
-    // Set flash's new subclass to get the result. 
+    // Set flash's new subclass to get the result.
     LONG_PTR proc = sUser32SetWindowLongAHookStub(hWnd, nIndex, newLong);
 
     // We already checked this in SetWindowLongHookCheck
     PluginInstanceChild* self = reinterpret_cast<PluginInstanceChild*>(
         GetProp(hWnd, kPluginInstanceChildProperty));
 
-    // Hook our subclass back up, just like we do on setwindow.   
+    // Hook our subclass back up, just like we do on setwindow.
     WNDPROC currentProc =
         reinterpret_cast<WNDPROC>(GetWindowLongPtr(hWnd, GWLP_WNDPROC));
     if (currentProc != PluginWindowProc) {
@@ -2042,14 +2042,14 @@ PluginInstanceChild::SetWindowLongWHook(HWND hWnd,
     if (SetWindowLongHookCheck(hWnd, nIndex, newLong))
         return sUser32SetWindowLongWHookStub(hWnd, nIndex, newLong);
 
-    // Set flash's new subclass to get the result. 
+    // Set flash's new subclass to get the result.
     LONG_PTR proc = sUser32SetWindowLongWHookStub(hWnd, nIndex, newLong);
 
     // We already checked this in SetWindowLongHookCheck
     PluginInstanceChild* self = reinterpret_cast<PluginInstanceChild*>(
         GetProp(hWnd, kPluginInstanceChildProperty));
 
-    // Hook our subclass back up, just like we do on setwindow.   
+    // Hook our subclass back up, just like we do on setwindow.
     WNDPROC currentProc =
         reinterpret_cast<WNDPROC>(GetWindowLongPtr(hWnd, GWLP_WNDPROC));
     if (currentProc != PluginWindowProc) {
@@ -2107,7 +2107,7 @@ PluginInstanceChild::TrackPopupHookProc(HMENU hMenu,
   // displayed by plugins that have working parent-child relationships.
   wchar_t szClass[21];
   bool haveClass = GetClassNameW(hWnd, szClass, ArrayLength(szClass));
-  if (!haveClass || 
+  if (!haveClass ||
       (wcscmp(szClass, L"MozillaWindowClass") &&
        wcscmp(szClass, L"SWFlash_Placeholder"))) {
       // Unrecognized parent
@@ -2332,7 +2332,7 @@ PluginInstanceChild::WinlessHandleEvent(NPEvent& event)
     // Events that might generate nested event dispatch loops need
     // special handling during delivery.
     int16_t handled;
-    
+
     HWND focusHwnd = nullptr;
 
     // TrackPopupMenu will fail if the parent window is not associated with
@@ -2342,9 +2342,9 @@ PluginInstanceChild::WinlessHandleEvent(NPEvent& event)
           (event.event == WM_RBUTTONDOWN || // flash
            event.event == WM_RBUTTONUP)) {  // silverlight
       sWinlessPopupSurrogateHWND = mWinlessPopupSurrogateHWND;
-      
+
       // A little trick scrounged from chromium's code - set the focus
-      // to our surrogate parent so keyboard nav events go to the menu. 
+      // to our surrogate parent so keyboard nav events go to the menu.
       focusHwnd = SetFocus(mWinlessPopupSurrogateHWND);
     }
 
@@ -2436,7 +2436,7 @@ PluginInstanceChild::WinlessHiddenFlashWndProc(HWND hWnd,
 }
 
 // Enumerate all thread windows looking for flash's hidden message window.
-// Once we find it, sub class it so we can throttle user msgs.  
+// Once we find it, sub class it so we can throttle user msgs.
 // static
 BOOL CALLBACK
 PluginInstanceChild::EnumThreadWindowsCallback(HWND hWnd,
@@ -2451,7 +2451,7 @@ PluginInstanceChild::EnumThreadWindowsCallback(HWND hWnd,
     wchar_t className[64];
     if (!GetClassNameW(hWnd, className, sizeof(className)/sizeof(char16_t)))
       return TRUE;
-    
+
     if (!wcscmp(className, L"SWFlash_PlaceholderX")) {
         WNDPROC oldWndProc =
             reinterpret_cast<WNDPROC>(GetWindowLongPtr(hWnd, GWLP_WNDPROC));
@@ -2496,14 +2496,14 @@ PluginInstanceChild::SetupFlashMsgThrottle()
 
 WNDPROC
 PluginInstanceChild::FlashThrottleAsyncMsg::GetProc()
-{ 
+{
     if (mInstance) {
         return mWindowed ? mInstance->mPluginWndProc :
                            mInstance->mWinlessThrottleOldWndProc;
     }
     return nullptr;
 }
- 
+
 NS_IMETHODIMP
 PluginInstanceChild::FlashThrottleAsyncMsg::Run()
 {
@@ -2514,8 +2514,8 @@ PluginInstanceChild::FlashThrottleAsyncMsg::Run()
     // ptrs around in FlashThrottleAsyncMsg msgs.
     if (!GetProc())
         return NS_OK;
-  
-    // deliver the event to flash 
+
+    // deliver the event to flash
     CallWindowProc(GetProc(), GetWnd(), GetMsg(), GetWParam(), GetLParam());
     return NS_OK;
 }
@@ -2572,7 +2572,7 @@ PluginInstanceChild::AnswerUpdateWindow()
     if (mPluginWindowHWND) {
         RECT rect;
         if (GetUpdateRect(GetParent(mPluginWindowHWND), &rect, FALSE)) {
-            ::InvalidateRect(mPluginWindowHWND, &rect, FALSE); 
+            ::InvalidateRect(mPluginWindowHWND, &rect, FALSE);
         }
         UpdateWindow(mPluginWindowHWND);
     }
@@ -3811,8 +3811,8 @@ PluginInstanceChild::ShowPluginFrame()
         // Fix up old invalidations that might have been made when our
         // surface was a different size
         rect.IntersectRect(rect,
-                          nsIntRect(0, 0, 
-                          mDoubleBufferCARenderer.GetFrontSurfaceWidth(), 
+                          nsIntRect(0, 0,
+                          mDoubleBufferCARenderer.GetFrontSurfaceWidth(),
                           mDoubleBufferCARenderer.GetFrontSurfaceHeight()));
 
         if (mDrawingModel == NPDrawingModelCoreGraphics) {
@@ -4254,13 +4254,13 @@ PluginInstanceChild::SwapSurfaces()
 
     // Outdated back surface... not usable anymore due to changed plugin size.
     // Dropping obsolete surface
-    if (mDoubleBufferCARenderer.HasFrontSurface() && 
+    if (mDoubleBufferCARenderer.HasFrontSurface() &&
         mDoubleBufferCARenderer.HasBackSurface() &&
-        (mDoubleBufferCARenderer.GetFrontSurfaceWidth() != 
+        (mDoubleBufferCARenderer.GetFrontSurfaceWidth() !=
             mDoubleBufferCARenderer.GetBackSurfaceWidth() ||
-        mDoubleBufferCARenderer.GetFrontSurfaceHeight() != 
+        mDoubleBufferCARenderer.GetFrontSurfaceHeight() !=
             mDoubleBufferCARenderer.GetBackSurfaceHeight() ||
-        mDoubleBufferCARenderer.GetFrontSurfaceContentsScaleFactor() != 
+        mDoubleBufferCARenderer.GetFrontSurfaceContentsScaleFactor() !=
             mDoubleBufferCARenderer.GetBackSurfaceContentsScaleFactor())) {
 
         mDoubleBufferCARenderer.ClearFrontSurface();
@@ -4452,7 +4452,7 @@ PluginInstanceChild::Destroy()
         mPendingAsyncCalls[i]->Cancel();
 
     mPendingAsyncCalls.Clear();
-    
+
 #ifdef MOZ_WIDGET_GTK
     if (mWindow.type == NPWindowTypeWindow && !mXEmbed) {
       xt_client_xloop_destroy();

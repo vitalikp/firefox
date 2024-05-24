@@ -52,7 +52,7 @@ public:
   NS_DEFINE_STATIC_CID_ACCESSOR(NS_XPCEXCEPTION_CID)
 
   NS_DECL_CYCLE_COLLECTION_SCRIPT_HOLDER_CLASS(Exception)
-  
+
   NS_DECL_CYCLE_COLLECTING_ISUPPORTS
   NS_DECL_NSIEXCEPTION
   NS_DECL_NSIXPCEXCEPTION
@@ -77,7 +77,7 @@ public:
   virtual void GetErrorMessage(nsAString& aRetVal)
   {
     // Since GetName and GetMessageMoz are non-virtual and they deal with
-    // different member variables in Exception vs. DOMException, have a 
+    // different member variables in Exception vs. DOMException, have a
     // virtual method to ensure the right error message creation.
     nsAutoString name;
     nsAutoString message;

@@ -397,7 +397,7 @@ HTMLObjectElement::GetDesiredIMEState()
   if (Type() == eType_Plugin) {
     return IMEState(IMEState::PLUGIN);
   }
-   
+
   return nsGenericHTMLFormElement::GetDesiredIMEState();
 }
 

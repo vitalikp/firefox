@@ -74,7 +74,7 @@ struct IPCByteRange
 {
   int32_t offset;
   uint32_t length;
-};  
+};
 
 typedef nsTArray<IPCByteRange> IPCByteRanges;
 
@@ -204,9 +204,9 @@ NPPVariableToString(NPPVariable aVar)
         VARSTR(NPPVpluginScriptableNPObject);
 
         VARSTR(NPPVformValue);
-  
+
         VARSTR(NPPVpluginUrlRequestsDisplayedBool);
-  
+
         VARSTR(NPPVpluginWantsAllNetworkStreams);
 
 #ifdef XP_MACOSX
@@ -710,7 +710,7 @@ struct ParamTraits<NPNURLVariable>
   }
 };
 
-  
+
 template<>
 struct ParamTraits<NPCoordinateSpace>
 {
@@ -902,7 +902,7 @@ struct ParamTraits<mozilla::plugins::GetFileNameFunc>
 // Serializing NPEvents is completely platform-specific and can be rather
 // intricate depending on the platform.  So for readability we split it
 // into separate files and have the only macro crud live here.
-// 
+//
 // NB: these guards are based on those where struct NPEvent is defined
 // in npapi.h.  They should be kept in sync.
 #if defined(XP_MACOSX)

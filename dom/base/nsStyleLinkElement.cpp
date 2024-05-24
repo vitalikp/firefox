@@ -70,7 +70,7 @@ nsStyleLinkElement::Traverse(nsCycleCollectionTraversalCallback &cb)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE(mStyleSheet);
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsStyleLinkElement::SetStyleSheet(StyleSheet* aStyleSheet)
 {
   if (mStyleSheet) {
@@ -84,7 +84,7 @@ nsStyleLinkElement::SetStyleSheet(StyleSheet* aStyleSheet)
       mStyleSheet->SetOwningNode(node);
     }
   }
-    
+
   return NS_OK;
 }
 
@@ -94,7 +94,7 @@ nsStyleLinkElement::GetStyleSheet()
   return mStyleSheet;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsStyleLinkElement::InitStyleLinkElement(bool aDontLoadStyle)
 {
   mDontLoadStyle = aDontLoadStyle;

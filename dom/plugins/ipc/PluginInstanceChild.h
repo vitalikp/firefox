@@ -344,7 +344,7 @@ private:
     static LONG_PTR WINAPI SetWindowLongPtrWHook(HWND hWnd,
                                                  int nIndex,
                                                  LONG_PTR newLong);
-                      
+
 #else
     static LONG WINAPI SetWindowLongAHook(HWND hWnd,
                                           int nIndex,
@@ -367,7 +367,7 @@ private:
     {
       public:
         FlashThrottleAsyncMsg();
-        FlashThrottleAsyncMsg(PluginInstanceChild* aInst, 
+        FlashThrottleAsyncMsg(PluginInstanceChild* aInst,
                               HWND aWnd, UINT aMsg,
                               WPARAM aWParam, LPARAM aLParam,
                               bool isWindowed)
@@ -494,7 +494,7 @@ public:
     const NPCocoaEvent* getCurrentEvent() {
         return mCurrentEvent;
     }
-  
+
     bool CGDraw(CGContextRef ref, nsIntRect aUpdateRect);
 
 #if defined(__i386__)
@@ -600,7 +600,7 @@ private:
 #ifdef XP_MACOSX
     // Current IOSurface available for rendering
     // We can't use thebes gfxASurface like other platforms.
-    PluginUtilsOSX::nsDoubleBufferCARenderer mDoubleBufferCARenderer; 
+    PluginUtilsOSX::nsDoubleBufferCARenderer mDoubleBufferCARenderer;
 #endif
 
     // (Not to be confused with mBackSurface).  This is a recent copy

@@ -13,7 +13,7 @@
 #include "nsPluginNativeWindow.h"
 
 class nsPluginNativeWindowPLATFORM : public nsPluginNativeWindow {
-public: 
+public:
   nsPluginNativeWindowPLATFORM();
   virtual ~nsPluginNativeWindowPLATFORM();
 };
@@ -21,11 +21,11 @@ public:
 nsPluginNativeWindowPLATFORM::nsPluginNativeWindowPLATFORM() : nsPluginNativeWindow()
 {
   // initialize the struct fields
-  window = nullptr; 
-  x = 0; 
-  y = 0; 
-  width = 0; 
-  height = 0; 
+  window = nullptr;
+  x = 0;
+  y = 0;
+  width = 0;
+  height = 0;
   memset(&clipRect, 0, sizeof(clipRect));
 #if defined(XP_UNIX) && !defined(XP_MACOSX)
   ws_info = nullptr;
@@ -33,7 +33,7 @@ nsPluginNativeWindowPLATFORM::nsPluginNativeWindowPLATFORM() : nsPluginNativeWin
   type = NPWindowTypeWindow;
 }
 
-nsPluginNativeWindowPLATFORM::~nsPluginNativeWindowPLATFORM() 
+nsPluginNativeWindowPLATFORM::~nsPluginNativeWindowPLATFORM()
 {
 }
 

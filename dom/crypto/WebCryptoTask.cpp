@@ -23,7 +23,7 @@
 #include "mozilla/dom/workers/bindings/WorkerHolder.h"
 
 // https://hg.mozilla.org/projects/nss/file/tip/lib
-// Template taken from pkcs12/pkcs12t.h:328 and util/templates.c:125 
+// Template taken from pkcs12/pkcs12t.h:328 and util/templates.c:125
 // (need rename to sgn_DigestInfoTemplate?)
 // This (or SGN_EncodeDigestInfo) would ideally be exported
 // by NSS and until that happens we have to keep our own copy.

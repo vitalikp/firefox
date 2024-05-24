@@ -100,8 +100,8 @@ interface nsISelection : nsISupports
     void collapseToEnd();
 
     /**
-     * Indicates whether the node is part of the selection. If partlyContained 
-     * is set to PR_TRUE, the function returns true when some part of the node 
+     * Indicates whether the node is part of the selection. If partlyContained
+     * is set to PR_TRUE, the function returns true when some part of the node
      * is part of the selection. If partlyContained is set to PR_FALSE, the
      * function only returns true when the entire node is part of the selection.
      */
@@ -111,13 +111,13 @@ interface nsISelection : nsISupports
      * Adds all children of the specified node to the selection.
      * @param parentNode  the parent of the children to be added to the selection.
      */
-    void selectAllChildren(in nsIDOMNode parentNode); 
+    void selectAllChildren(in nsIDOMNode parentNode);
 
     /**
      * Adds a range to the current selection.
      */
     void addRange(in nsIDOMRange range);
- 
+
     /**
      * Removes a range from the current selection.
      */

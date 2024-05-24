@@ -167,12 +167,12 @@ interface nsIXULTemplateBuilder : nsISupports
      * will be removed first. The query processor's done() method will be
      * invoked during cleanup, followed by its initializeForBuilding method
      * when the content is to be regenerated.
-     * 
+     *
      */
     void rebuild();
 
     /**
-     * Reload any of our RDF datasources that support nsIRDFRemoteDatasource. 
+     * Reload any of our RDF datasources that support nsIRDFRemoteDatasource.
      *
      * @note This is a temporary hack so that remote-XUL authors can
      *       reload remote datasources. When RDF becomes remote-scriptable,
@@ -306,8 +306,8 @@ interface nsIXULTemplateBuilder : nsISupports
 
 /**
  * nsIXULTreeBuilderObserver
- *  This interface allows clients of the XULTreeBuilder to define domain 
- *  specific handling of specific nsITreeView methods that 
+ *  This interface allows clients of the XULTreeBuilder to define domain
+ *  specific handling of specific nsITreeView methods that
  *  XULTreeBuilder does not implement.
  */
 [scriptable, uuid(57CED9A7-EC0B-4A0E-8AEB-5DA32EBE951C)]
@@ -329,33 +329,33 @@ interface nsIXULTreeBuilderObserver : nsISupports
      * specifies before/on/after the given |row|.
      */
     void onDrop(in long row, in long orientation, in nsIDOMDataTransfer dataTransfer);
- 
-    /** 
-     * Called when an item is opened or closed. 
+
+    /**
+     * Called when an item is opened or closed.
      */
     void onToggleOpenState (in long index);
 
-    /** 
+    /**
 	 * Called when a header is clicked.
      */
     void onCycleHeader(in wstring colID, in nsIDOMElement elt);
 
     /**
-     * Called when a cell in a non-selectable cycling column (e.g. 
+     * Called when a cell in a non-selectable cycling column (e.g.
      * unread/flag/etc.) is clicked.
      */
     void onCycleCell(in long row, in wstring colID);
 
-    /** 
+    /**
      * Called when selection in the tree changes
      */
     void onSelectionChanged();
 
     /**
-     * A command API that can be used to invoke commands on the selection.  
-     * The tree will automatically invoke this method when certain keys 
-     * are pressed.  For example, when the DEL key is pressed, performAction 
-     * will be called with the "delete" string. 
+     * A command API that can be used to invoke commands on the selection.
+     * The tree will automatically invoke this method when certain keys
+     * are pressed.  For example, when the DEL key is pressed, performAction
+     * will be called with the "delete" string.
      */
     void onPerformAction(in wstring action);
 
@@ -383,18 +383,18 @@ interface nsIXULTreeBuilder : nsISupports
      */
     long getIndexOfResource(in nsIRDFResource resource);
 
-    /** 
-     * Add a Tree Builder Observer to handle Tree View 
-     * methods that the base builder does not implement. 
+    /**
+     * Add a Tree Builder Observer to handle Tree View
+     * methods that the base builder does not implement.
      */
     void addObserver(in nsIXULTreeBuilderObserver aObserver);
 
-    /** 
+    /**
      * Remove an Tree Builder Observer.
      */
     void removeObserver(in nsIXULTreeBuilderObserver aObserver);
 
-    /** 
+    /**
      * Sort the contents of the tree using the specified column.
      */
     void sort(in nsIDOMElement aColumnElement);

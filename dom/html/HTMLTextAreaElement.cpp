@@ -221,14 +221,14 @@ NS_IMPL_BOOL_ATTR(HTMLTextAreaElement, Required, required)
 NS_IMPL_UINT_ATTR_NON_ZERO_DEFAULT_VALUE(HTMLTextAreaElement, Rows, rows, DEFAULT_ROWS_TEXTAREA)
 NS_IMPL_STRING_ATTR(HTMLTextAreaElement, Wrap, wrap)
 NS_IMPL_STRING_ATTR(HTMLTextAreaElement, Placeholder, placeholder)
-  
+
 int32_t
 HTMLTextAreaElement::TabIndexDefault()
 {
   return 0;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 HTMLTextAreaElement::GetType(nsAString& aType)
 {
   aType.AssignLiteral("textarea");
@@ -236,7 +236,7 @@ HTMLTextAreaElement::GetType(nsAString& aType)
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 HTMLTextAreaElement::GetValue(nsAString& aValue)
 {
   GetValueInternal(aValue, true);
@@ -386,7 +386,7 @@ HTMLTextAreaElement::SetValueInternal(const nsAString& aValue,
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 HTMLTextAreaElement::SetValue(const nsAString& aValue)
 {
   // If the value has been set by a script, we basically want to keep the
@@ -413,7 +413,7 @@ HTMLTextAreaElement::SetValue(const nsAString& aValue)
   return NS_OK;
 }
 
-NS_IMETHODIMP 
+NS_IMETHODIMP
 HTMLTextAreaElement::SetUserInput(const nsAString& aValue)
 {
   return SetValueInternal(aValue,
@@ -446,7 +446,7 @@ HTMLTextAreaElement::GetDefaultValue(nsAString& aDefaultValue)
     return NS_ERROR_OUT_OF_MEMORY;
   }
   return NS_OK;
-}  
+}
 
 NS_IMETHODIMP
 HTMLTextAreaElement::SetDefaultValue(const nsAString& aDefaultValue)
@@ -575,7 +575,7 @@ HTMLTextAreaElement::GetEventTargetParent(EventChainPreVisitor& aVisitor)
   }
 
   // If noContentDispatch is true we will not allow content to handle
-  // this event.  But to allow middle mouse button paste to work we must allow 
+  // this event.  But to allow middle mouse button paste to work we must allow
   // middle clicks to go to text fields anyway.
   if (aVisitor.mEvent->mFlags.mNoContentDispatch) {
     aVisitor.mItemFlags |= NS_NO_CONTENT_DISPATCH;
@@ -930,7 +930,7 @@ HTMLTextAreaElement::RestoreState(nsPresState* aState)
 {
   nsCOMPtr<nsISupportsString> state
     (do_QueryInterface(aState->GetStateProperty()));
-  
+
   if (state) {
     nsAutoString data;
     state->GetData(data);

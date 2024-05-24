@@ -191,7 +191,7 @@ interface nsIXMLHttpRequest : nsISupports
    * All event listeners must be set before calling send().
    *
    * After the initial response, all event listeners will be cleared.
-   * // XXXbz what does that mean, exactly?   
+   * // XXXbz what does that mean, exactly?
    *
    * @param body Either an instance of nsIDOMDocument, nsIInputStream
    *             or a string (nsISupportsString in the native calling
@@ -306,7 +306,7 @@ interface nsIXMLHttpRequest : nsISupports
    * This attribute should not be used from native code!!
    *
    * After the initial response, all event listeners will be cleared.
-   * // XXXbz what does that mean, exactly?   
+   * // XXXbz what does that mean, exactly?
    *
    * Call open() before setting an onreadystatechange listener.
    */

@@ -12,7 +12,7 @@ interface nsIDOMXULSelectControlElement : nsIDOMXULControlElement {
   attribute long selectedIndex;
 
   attribute DOMString value;
-  
+
   nsIDOMXULSelectControlItemElement appendItem(in DOMString label, in DOMString value);
   nsIDOMXULSelectControlItemElement insertItemAt(in long index, in DOMString label, in DOMString value);
   nsIDOMXULSelectControlItemElement removeItemAt(in long index);

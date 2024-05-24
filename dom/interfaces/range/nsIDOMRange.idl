@@ -48,7 +48,7 @@ interface nsIDOMRange : nsISupports
   nsIDOMRange        cloneRange();
   DOMString          toString();
   void               detach();
-  
+
   // This method comes from
   // http://html5.org/specs/dom-parsing.html#extensions-to-the-range-interface
   nsIDOMDocumentFragment    createContextualFragment(in DOMString fragment);
@@ -70,7 +70,7 @@ interface nsIDOMRange : nsISupports
    */
   boolean                   intersectsNode(in nsIDOMNode node);
 
-  // These methods come from 
+  // These methods come from
   // http://dev.w3.org/csswg/cssom-view/#extensions-to-the-range-interface
   nsIDOMClientRectList getClientRects();
   nsIDOMClientRect getBoundingClientRect();

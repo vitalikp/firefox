@@ -367,7 +367,7 @@ NSCursor* NSCursorInfo::GetNSCursor() const
           NSImage* image = [[NSImage alloc] init];
           if (image) {
             [image addRepresentation:rep];
-            retval = [[[NSCursor alloc] initWithImage:image 
+            retval = [[[NSCursor alloc] initWithImage:image
                                               hotSpot:NSMakePoint(mHotSpot.x, mHotSpot.y)]
                       autorelease];
             [image release];

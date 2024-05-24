@@ -39,9 +39,9 @@ interface nsIDOMHTMLSelectElement : nsISupports
   // since IDL doesn't support overfload.
   //   void add(in nsIDOMHTMLElement, [optional] in nsIDOMHTMLElement)
   //   void add(in nsIDOMHTMLElement, in long)
-  void                      add(in nsIDOMHTMLElement element, 
+  void                      add(in nsIDOMHTMLElement element,
                                 [optional] in nsIVariant before)
-                                                     raises(DOMException);   
+                                                     raises(DOMException);
   void                      remove(in long index);
 
   readonly attribute nsIDOMHTMLCollection  selectedOptions;

@@ -16,7 +16,7 @@ interface nsIDOMXULButtonElement : nsIDOMXULLabeledControlElement {
 
   // For buttons of type="menu" only.
   attribute boolean open;
-  
+
   // For buttons of type="checkbox" only.
   attribute boolean checked;
   attribute long checkState;

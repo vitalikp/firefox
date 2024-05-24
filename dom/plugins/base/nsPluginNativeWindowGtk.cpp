@@ -31,11 +31,11 @@ static void socket_unrealize_cb   (GtkWidget *widget, gpointer data);
 nsPluginNativeWindowGtk::nsPluginNativeWindowGtk() : nsPluginNativeWindow()
 {
   // initialize the struct fields
-  window = nullptr; 
-  x = 0; 
-  y = 0; 
-  width = 0; 
-  height = 0; 
+  window = nullptr;
+  x = 0;
+  y = 0;
+  width = 0;
+  height = 0;
   memset(&clipRect, 0, sizeof(clipRect));
   ws_info = &mWsInfo;
   type = NPWindowTypeWindow;
@@ -47,7 +47,7 @@ nsPluginNativeWindowGtk::nsPluginNativeWindowGtk() : nsPluginNativeWindow()
   mWsInfo.depth = 0;
 }
 
-nsPluginNativeWindowGtk::~nsPluginNativeWindowGtk() 
+nsPluginNativeWindowGtk::~nsPluginNativeWindowGtk()
 {
   if(mSocketWidget) {
     gtk_widget_destroy(mSocketWidget);
@@ -100,7 +100,7 @@ nsresult nsPluginNativeWindowGtk::CallSetWindow(RefPtr<nsNPAPIPluginInstance> &a
 #endif
 
         bool isOOPPlugin = aPluginInstance->GetPlugin()->GetLibrary()->IsOOP();
-        if (needsXEmbed || isOOPPlugin) {        
+        if (needsXEmbed || isOOPPlugin) {
           bool enableXtFocus = !needsXEmbed;
           rv = CreateXEmbedWindow(enableXtFocus);
         }
@@ -222,7 +222,7 @@ nsresult nsPluginNativeWindowGtk::CreateXEmbedWindow(bool aEnableXtFocus) {
   mWsInfo.depth = gdk_visual_get_depth(gdkVisual);
 #endif
   mWsInfo.visual = GDK_VISUAL_XVISUAL(gdkVisual);
-    
+
   return NS_OK;
 }
 
@@ -242,7 +242,7 @@ void nsPluginNativeWindowGtk::SetAllocation() {
 nsresult nsPluginNativeWindowGtk::CreateXtWindow() {
   NS_ASSERTION(!mSocketWidget,"Already created a socket widget!");
 
-#ifdef DEBUG      
+#ifdef DEBUG
   printf("About to create new xtbin of %i X %i from %p...\n",
          width, height, (void*)window);
 #endif

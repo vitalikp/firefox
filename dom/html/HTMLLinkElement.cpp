@@ -518,7 +518,7 @@ HTMLLinkElement::GetStyleSheetInfo(nsAString& aTitle,
 CORSMode
 HTMLLinkElement::GetCORSMode() const
 {
-  return AttrValueToCORSMode(GetParsedAttr(nsGkAtoms::crossorigin)); 
+  return AttrValueToCORSMode(GetParsedAttr(nsGkAtoms::crossorigin));
 }
 
 EventStates

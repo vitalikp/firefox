@@ -41,7 +41,7 @@ void ZeroPole::process(const float *source, float *destination, int framesToProc
     // Gain compensation to make 0dB @ 0Hz
     const float k1 = 1 / (1 - zero);
     const float k2 = 1 - pole;
-    
+
     // Member variables to locals.
     float lastX = m_lastX;
     float lastY = m_lastY;
@@ -59,7 +59,7 @@ void ZeroPole::process(const float *source, float *destination, int framesToProc
 
         destination[i] = output2;
     }
-    
+
     // Locals to member variables. Flush denormals here so we don't
     // slow down the inner loop above.
     if (lastX == 0.0f && lastY != 0.0f && fabsf(lastY) < FLT_MIN) {

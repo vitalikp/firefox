@@ -91,7 +91,7 @@ public:
    *        changes or false if it should not.
    */
   void ResetLinkState(bool aNotify, bool aHasHref);
-  
+
   // This method nevers returns a null element.
   Element* GetElement() const { return mElement; }
 
@@ -99,7 +99,7 @@ public:
    * DNS prefetch has been deferred until later, e.g. page load complete.
    */
   virtual void OnDNSPrefetchDeferred() { /*do nothing*/ }
-  
+
   /**
    * DNS prefetch has been submitted to Host Resolver.
    */
@@ -107,7 +107,7 @@ public:
 
   /**
    * Checks if DNS Prefetching is ok
-   * 
+   *
    * @returns boolean
    *          Defaults to true; should be overridden for specialised cases
    */

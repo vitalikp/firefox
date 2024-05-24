@@ -49,7 +49,7 @@ public:
   virtual int32_t IndexOf(nsIContent* aContent) override;
   virtual nsIContent* Item(uint32_t aIndex) override;
 
-  uint32_t Length() const { 
+  uint32_t Length() const {
     return mElements.Length();
   }
 
@@ -222,7 +222,7 @@ struct nsContentListKey
   {
     return mHash;
   }
-  
+
   nsINode* const mRootNode; // Weak ref
   const int32_t mMatchNameSpaceId;
   const nsAString& mTagname;
@@ -365,7 +365,7 @@ public:
   NS_DECL_NSIMUTATIONOBSERVER_CONTENTINSERTED
   NS_DECL_NSIMUTATIONOBSERVER_CONTENTREMOVED
   NS_DECL_NSIMUTATIONOBSERVER_NODEWILLBEDESTROYED
-  
+
   static nsContentList* FromSupports(nsISupports* aSupports)
   {
     nsINodeList* list = static_cast<nsINodeList*>(aSupports);
@@ -498,7 +498,7 @@ protected:
   // pack different typedefs together.  Once we no longer have to worry about
   // flushes in XML documents, we can go back to using bool for the
   // booleans.
-  
+
   /**
    * True if we are looking for elements named "*"
    */

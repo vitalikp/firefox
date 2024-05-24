@@ -108,7 +108,7 @@ public:
   {
     mMaySpanAnonymousSubtrees = aMaySpanAnonymousSubtrees;
   }
-  
+
   /**
    * Return true iff this range is part of a Selection object
    * and isn't detached.

@@ -68,7 +68,7 @@ txNodeSorter::addSortElement(Expr* aSelectExpr, Expr* aLangExpr,
 
     if (!aDataTypeExpr || TX_StringEqualsAtom(dataType, nsGkAtoms::text)) {
         // Text comparator
-        
+
         // Language
         nsAutoString lang;
         if (aLangExpr) {
@@ -76,7 +76,7 @@ txNodeSorter::addSortElement(Expr* aSelectExpr, Expr* aLangExpr,
             NS_ENSURE_SUCCESS(rv, rv);
         }
 
-        // Case-order 
+        // Case-order
         bool upperFirst = false;
         if (aCaseOrderExpr) {
             nsAutoString attrValue;
@@ -107,7 +107,7 @@ txNodeSorter::addSortElement(Expr* aSelectExpr, Expr* aLangExpr,
         return NS_ERROR_XSLT_BAD_VALUE;
     }
 
-    // mSortKeys owns key now. 
+    // mSortKeys owns key now.
     rv = mSortKeys.add(key);
     NS_ENSURE_SUCCESS(rv, rv);
 

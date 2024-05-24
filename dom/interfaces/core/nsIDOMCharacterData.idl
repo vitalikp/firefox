@@ -6,10 +6,10 @@
 #include "nsIDOMNode.idl"
 
 /**
- * The nsIDOMCharacterData interface extends nsIDOMNode with a set of 
+ * The nsIDOMCharacterData interface extends nsIDOMNode with a set of
  * attributes and methods for accessing character data in the DOM.
- * 
- * For more information on this interface please see 
+ *
+ * For more information on this interface please see
  * http://www.w3.org/TR/DOM-Level-2-Core/
  */
 
@@ -21,19 +21,19 @@ interface nsIDOMCharacterData : nsIDOMNode
                                   // raises(DOMException) on retrieval
 
   readonly attribute unsigned long        length;
-  DOMString                 substringData(in unsigned long offset, 
+  DOMString                 substringData(in unsigned long offset,
                                           in unsigned long count)
                                   raises(DOMException);
   void                      appendData(in DOMString arg)
                                   raises(DOMException);
-  void                      insertData(in unsigned long offset, 
+  void                      insertData(in unsigned long offset,
                                        in DOMString arg)
                                   raises(DOMException);
-  void                      deleteData(in unsigned long offset, 
+  void                      deleteData(in unsigned long offset,
                                        in unsigned long count)
                                   raises(DOMException);
-  void                      replaceData(in unsigned long offset, 
-                                        in unsigned long count, 
+  void                      replaceData(in unsigned long offset,
+                                        in unsigned long count,
                                         in DOMString arg)
                                   raises(DOMException);
 };

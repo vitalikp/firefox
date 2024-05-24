@@ -35,7 +35,7 @@ parent:
                         nsString key);
   async AsyncClear(nsCString originSuffix, nsCString originNoSuffix);
   async AsyncFlush();
-  
+
 child:
   async Observe(nsCString topic,
                 nsString originAttributesPattern,

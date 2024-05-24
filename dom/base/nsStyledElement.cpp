@@ -152,7 +152,7 @@ nsStyledElement::ReparseStyleAttribute(bool aForceInDataDoc, bool aForceIfAlread
                                                    &oldValueSet);
     NS_ENSURE_SUCCESS(rv, rv);
   }
-  
+
   return NS_OK;
 }
 

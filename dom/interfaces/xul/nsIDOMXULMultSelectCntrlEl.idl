@@ -14,7 +14,7 @@ interface nsIDOMXULMultiSelectControlElement : nsIDOMXULSelectControlElement
   attribute long currentIndex;
 
   readonly attribute nsIDOMNodeList selectedItems;
-  
+
   void addItemToSelection(in nsIDOMXULSelectControlItemElement item);
   void removeItemFromSelection(in nsIDOMXULSelectControlItemElement item);
   void toggleItemSelection(in nsIDOMXULSelectControlItemElement item);
@@ -26,7 +26,7 @@ interface nsIDOMXULMultiSelectControlElement : nsIDOMXULSelectControlElement
   void invertSelection();
   void clearSelection();
 
-  // XXX - temporary, pending implementation of scriptable, 
+  // XXX - temporary, pending implementation of scriptable,
   //       mutable nsIDOMNodeList for selectedItems
   readonly attribute long selectedCount;
   [binaryname(MultiGetSelectedItem)]

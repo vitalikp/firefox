@@ -89,7 +89,7 @@ static bool IsValidSelectionPoint(nsFrameSelection *aFrameSel, nsINode *aNode);
 static void printRange(nsRange *aDomRange);
 #define DEBUG_OUT_RANGE(x)  printRange(x)
 #else
-#define DEBUG_OUT_RANGE(x)  
+#define DEBUG_OUT_RANGE(x)
 #endif // PRINT_RANGE
 
 /******************************************************************************
@@ -270,17 +270,17 @@ nsresult NS_NewDomSelection(nsISelection **aDomSelection)
 /*
 The limiter is used specifically for the text areas and textfields
 In that case it is the DIV tag that is anonymously created for the text
-areas/fields.  Text nodes and BR nodes fall beneath it.  In the case of a 
+areas/fields.  Text nodes and BR nodes fall beneath it.  In the case of a
 BR node the limiter will be the parent and the offset will point before or
-after the BR node.  In the case of the text node the parent content is 
+after the BR node.  In the case of the text node the parent content is
 the text node itself and the offset will be the exact character position.
-The offset is not important to check for validity.  Simply look at the 
+The offset is not important to check for validity.  Simply look at the
 passed in content.  If it equals the limiter then the selection point is valid.
-If its parent it the limiter then the point is also valid.  In the case of 
+If its parent it the limiter then the point is also valid.  In the case of
 NO limiter all points are valid since you are in a topmost iframe. (browser
 or composer)
 */
-bool         
+bool
 IsValidSelectionPoint(nsFrameSelection *aFrameSel, nsINode *aNode)
 {
   if (!aFrameSel || !aNode)
@@ -410,7 +410,7 @@ void printRange(nsRange *aDomRange)
          (unsigned long)aDomRange,
          (unsigned long)startNode, (long)startOffset,
          (unsigned long)endNode, (long)endOffset);
-         
+
 }
 #endif /* PRINT_RANGE */
 
@@ -584,7 +584,7 @@ Selection::GetTableCellLocationFromRange(nsRange* aRange,
 
   nsresult result = GetTableSelectionType(aRange, aSelectionType);
   if (NS_FAILED(result)) return result;
-  
+
   // Don't fail if range does not point to a single table cell,
   //  let aSelectionType tell user if we don't have a cell
   if (*aSelectionType  != nsISelectionPrivate::TABLESELECTION_CELL)
@@ -614,7 +614,7 @@ Selection::GetTableCellLocationFromRange(nsRange* aRange,
 nsresult
 Selection::AddTableCellRange(nsRange* aRange, bool* aDidAddRange,
                              int32_t* aOutIndex)
-{  
+{
   if (!aDidAddRange || !aOutIndex)
     return NS_ERROR_NULL_POINTER;
 
@@ -633,7 +633,7 @@ Selection::AddTableCellRange(nsRange* aRange, bool* aDidAddRange,
   int32_t newRow, newCol, tableMode;
   result = GetTableCellLocationFromRange(aRange, &tableMode, &newRow, &newCol);
   if (NS_FAILED(result)) return result;
-  
+
   // If not adding a cell range, we are done here
   if (tableMode != nsISelectionPrivate::TABLESELECTION_CELL)
   {
@@ -641,7 +641,7 @@ Selection::AddTableCellRange(nsRange* aRange, bool* aDidAddRange,
     // Don't fail if range isn't a selected cell, aDidAddRange tells caller if we didn't proceed
     return NS_OK;
   }
-  
+
   // Set frame selection mode only if not already set to a table mode
   //  so we don't lose the select row and column flags (not detected by getTableCellLocation)
   if (mFrameSelection->mSelectingTableCellMode == TABLESELECTION_NONE)
@@ -1635,7 +1635,7 @@ Selection::GetPrimaryFrameForAnchorNode(nsIFrame** aReturnFrame)
 {
   if (!aReturnFrame)
     return NS_ERROR_NULL_POINTER;
-  
+
   int32_t frameOffset = 0;
   *aReturnFrame = 0;
   nsCOMPtr<nsIContent> content = do_QueryInterface(GetAnchorNode());
@@ -1657,16 +1657,16 @@ Selection::GetPrimaryFrameForFocusNode(nsIFrame** aReturnFrame,
 {
   if (!aReturnFrame)
     return NS_ERROR_NULL_POINTER;
-  
+
   nsCOMPtr<nsIContent> content = do_QueryInterface(GetFocusNode());
   if (!content || !mFrameSelection)
     return NS_ERROR_FAILURE;
-  
+
   int32_t frameOffset = 0;
   *aReturnFrame = 0;
   if (!aOffsetUsed)
     aOffsetUsed = &frameOffset;
-    
+
   CaretAssociationHint hint = mFrameSelection->GetHint();
 
   if (aVisual) {
@@ -1675,7 +1675,7 @@ Selection::GetPrimaryFrameForFocusNode(nsIFrame** aReturnFrame,
     return nsCaret::GetCaretFrameForNodeOffset(mFrameSelection,
       content, FocusOffset(), hint, caretBidiLevel, aReturnFrame, aOffsetUsed);
   }
-  
+
   *aReturnFrame = mFrameSelection->
     GetFrameForNodeOffset(content, FocusOffset(),
                           hint, aOffsetUsed);
@@ -1963,7 +1963,7 @@ Selection::Repaint(nsPresContext* aPresContext)
     return NS_OK;
 
   int32_t i;
-  
+
   for (i = 0; i < arrCount; i++)
   {
     nsresult rv = SelectFrames(aPresContext, mRanges[i].mRange, true);
@@ -1978,7 +1978,7 @@ Selection::Repaint(nsPresContext* aPresContext)
 
 NS_IMETHODIMP
 Selection::GetCanCacheFrameOffset(bool* aCanCacheFrameOffset)
-{ 
+{
   NS_ENSURE_ARG_POINTER(aCanCacheFrameOffset);
 
   if (mCachedOffsetForFrame)
@@ -1989,7 +1989,7 @@ Selection::GetCanCacheFrameOffset(bool* aCanCacheFrameOffset)
   return NS_OK;
 }
 
-NS_IMETHODIMP    
+NS_IMETHODIMP
 Selection::SetCanCacheFrameOffset(bool aCanCacheFrameOffset)
 {
   if (!mCachedOffsetForFrame) {
@@ -2007,7 +2007,7 @@ Selection::SetCanCacheFrameOffset(bool aCanCacheFrameOffset)
   return NS_OK;
 }
 
-NS_IMETHODIMP    
+NS_IMETHODIMP
 Selection::GetCachedFrameOffset(nsIFrame* aFrame, int32_t inOffset,
                                 nsPoint& aPoint)
 {
@@ -2023,7 +2023,7 @@ Selection::GetCachedFrameOffset(nsIFrame* aFrame, int32_t inOffset,
   {
      // get cached frame offset
      aPoint = mCachedOffsetForFrame->mCachedFrameOffset;
-  } 
+  }
   else
   {
      // Recalculate frame offset and cache it. Don't cache a frame offset if
@@ -2032,7 +2032,7 @@ Selection::GetCachedFrameOffset(nsIFrame* aFrame, int32_t inOffset,
      if (NS_SUCCEEDED(rv) && mCachedOffsetForFrame->mCanCacheFrameOffset) {
        mCachedOffsetForFrame->mCachedFrameOffset = aPoint;
        mCachedOffsetForFrame->mLastCaretFrame = aFrame;
-       mCachedOffsetForFrame->mLastContentOffset = inOffset; 
+       mCachedOffsetForFrame->mLastContentOffset = inOffset;
      }
   }
 
@@ -2291,7 +2291,7 @@ Selection::AddRangeInternal(nsRange& aRange, nsIDocument* aDocument,
   }
 
   SetAnchorFocusRange(rangeIndex);
-  
+
   // Make sure the caret appears on the next line, if at a newline
   if (mSelectionType == SelectionType::eNormal) {
     SetInterlinePosition(true);
@@ -4032,7 +4032,7 @@ Selection::SelectionLanguageChange(bool aLangRTL)
     nsCOMPtr<nsIContent> focusContent = do_QueryInterface(GetFocusNode());
     nsPrevNextBidiLevels levels = frameSelection->
       GetPrevNextBidiLevels(focusContent, focusOffset, false);
-      
+
     levelBefore = levels.mLevelBefore;
     levelAfter = levels.mLevelAfter;
   }
@@ -4057,11 +4057,11 @@ Selection::SelectionLanguageChange(bool aLangRTL)
     else
       frameSelection->SetCaretBidiLevel(levelAfter);
   }
-  
+
   // The caret might have moved, so invalidate the desired position
   // for future usages of up-arrow or down-arrow
   frameSelection->InvalidateDesiredPos();
-  
+
   return NS_OK;
 }
 

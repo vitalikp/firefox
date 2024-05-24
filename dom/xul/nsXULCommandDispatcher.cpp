@@ -290,7 +290,7 @@ nsXULCommandDispatcher::AddCommandUpdater(nsIDOMElement* aElement,
   }
 #ifdef DEBUG
   if (MOZ_LOG_TEST(gCommandLog, LogLevel::Debug)) {
-    nsAutoCString aeventsC, atargetsC; 
+    nsAutoCString aeventsC, atargetsC;
     CopyUTF16toUTF8(aEvents, aeventsC);
     CopyUTF16toUTF8(aTargets, atargetsC);
 
@@ -381,7 +381,7 @@ nsXULCommandDispatcher::UpdateCommands(const nsAString& aEventName)
 
 #ifdef DEBUG
     if (MOZ_LOG_TEST(gCommandLog, LogLevel::Debug)) {
-      nsAutoCString aeventnameC; 
+      nsAutoCString aeventnameC;
       CopyUTF16toUTF8(aEventName, aeventnameC);
       MOZ_LOG(gCommandLog, LogLevel::Debug,
              ("xulcmd[%p] update %p event=%s",
@@ -397,7 +397,7 @@ nsXULCommandDispatcher::UpdateCommands(const nsAString& aEventName)
 }
 
 bool
-nsXULCommandDispatcher::Matches(const nsString& aList, 
+nsXULCommandDispatcher::Matches(const nsString& aList,
                                 const nsAString& aElement)
 {
   if (aList.EqualsLiteral("*"))

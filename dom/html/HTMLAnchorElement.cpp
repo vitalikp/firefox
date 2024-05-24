@@ -316,7 +316,7 @@ IMPL_URI_PART(Hash)
 
 #undef IMPL_URI_PART
 
-NS_IMETHODIMP    
+NS_IMETHODIMP
 HTMLAnchorElement::GetText(nsAString& aText)
 {
   if(!nsContentUtils::GetNodeTextContent(this, true, aText, fallible)) {
@@ -325,7 +325,7 @@ HTMLAnchorElement::GetText(nsAString& aText)
   return NS_OK;
 }
 
-NS_IMETHODIMP    
+NS_IMETHODIMP
 HTMLAnchorElement::SetText(const nsAString& aText)
 {
   return nsContentUtils::SetNodeTextContent(this, aText, false);

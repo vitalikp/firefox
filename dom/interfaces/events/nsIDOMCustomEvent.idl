@@ -12,8 +12,8 @@ interface nsIDOMCustomEvent : nsISupports
 
   readonly attribute nsIVariant detail;
 
-  void initCustomEvent(in DOMString  typeArg, 
-                       in boolean    canBubbleArg, 
-                       in boolean    cancelableArg, 
+  void initCustomEvent(in DOMString  typeArg,
+                       in boolean    canBubbleArg,
+                       in boolean    cancelableArg,
                        in nsIVariant detailArg);
 };

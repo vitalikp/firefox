@@ -8628,7 +8628,7 @@ protected:
     , mMetadata(IndexMetadataForParams(aTransaction, aParams))
   { }
 
-  
+
   ~IndexRequestOpBase() override = default;
 
 private:
@@ -8837,7 +8837,7 @@ protected:
     MOZ_ASSERT(aCursor);
   }
 
-  
+
   ~CursorOpBase() override = default;
 
   bool

@@ -8,13 +8,13 @@
 
 /**
  * nsIWebContentHandlerRegistrar
- * 
+ *
  * Applications wishing to use web content handlers need to implement this
  * interface. Typically they will prompt the user to confirm adding an entry
- * to the local list. 
+ * to the local list.
  *
  * The component must have the contract id defined below so that nsNavigator
- * can invoke it. 
+ * can invoke it.
  */
 
 [scriptable, uuid(65a3fafd-0e4a-4b06-8b4e-6a611da63d98)]

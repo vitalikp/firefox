@@ -250,7 +250,7 @@ ContentListHashtableMatchEntry(const PLDHashEntryHdr *entry, const void *key)
 }
 
 already_AddRefed<nsContentList>
-NS_GetContentList(nsINode* aRootNode, 
+NS_GetContentList(nsINode* aRootNode,
                   int32_t  aMatchNameSpaceId,
                   const nsAString& aTagname)
 {
@@ -536,7 +536,7 @@ uint32_t
 nsContentList::Length(bool aDoFlush)
 {
   BringSelfUpToDate(aDoFlush);
-    
+
   return mElements.Length();
 }
 
@@ -639,7 +639,7 @@ int32_t
 nsContentList::IndexOf(nsIContent *aContent, bool aDoFlush)
 {
   BringSelfUpToDate(aDoFlush);
-    
+
   return mElements.IndexOf(aContent);
 }
 
@@ -736,7 +736,7 @@ nsContentList::AttributeChanged(nsIDocument *aDocument, Element* aElement,
     // whether we might match aElement.
     return;
   }
-  
+
   if (Match(aElement)) {
     if (mElements.IndexOf(aElement) == mElements.NoIndex) {
       // We match aElement now, and it's not in our list already.  Just dirty
@@ -759,7 +759,7 @@ nsContentList::ContentAppended(nsIDocument* aDocument, nsIContent* aContainer,
                                int32_t aNewIndexInContainer)
 {
   NS_PRECONDITION(aContainer, "Can't get at the new content if no container!");
-  
+
   /*
    * If the state is LIST_DIRTY then we have no useful information in our list
    * and we want to put off doing work as much as possible.
@@ -787,7 +787,7 @@ nsContentList::ContentAppended(nsIDocument* aDocument, nsIContent* aContainer,
    * Do a bit of work to see whether we could just append to what we
    * already have.
    */
-  
+
   int32_t count = aContainer->GetChildCount();
 
   if (count > 0) {
@@ -805,7 +805,7 @@ nsContentList::ContentAppended(nsIDocument* aDocument, nsIContent* aContainer,
         appendToList = true;
       }
     }
-    
+
 
     if (!appendToList) {
       // The new stuff is somewhere in the middle of our list; check
@@ -906,7 +906,7 @@ nsContentList::Match(Element *aElement)
     return false;
 
   NodeInfo *ni = aElement->NodeInfo();
- 
+
   bool unknown = mMatchNameSpaceId == kNameSpaceID_Unknown;
   bool wildcard = mMatchNameSpaceId == kNameSpaceID_Wildcard;
   bool toReturn = mMatchAll;
@@ -928,12 +928,12 @@ nsContentList::Match(Element *aElement)
     return matchHTML ? ni->Equals(mHTMLMatchAtom) :
                        ni->Equals(mXMLMatchAtom);
   }
-  
+
   return matchHTML ? ni->Equals(mHTMLMatchAtom, mMatchNameSpaceId) :
                      ni->Equals(mXMLMatchAtom, mMatchNameSpaceId);
 }
 
-bool 
+bool
 nsContentList::MatchSelf(nsIContent *aContent)
 {
   NS_PRECONDITION(aContent, "Can't match null stuff, you know");
@@ -943,7 +943,7 @@ nsContentList::MatchSelf(nsIContent *aContent)
   if (!aContent->IsElement()) {
     return false;
   }
-  
+
   if (Match(aContent->AsElement()))
     return true;
 
@@ -957,11 +957,11 @@ nsContentList::MatchSelf(nsIContent *aContent)
       return true;
     }
   }
-  
+
   return false;
 }
 
-void 
+void
 nsContentList::PopulateSelf(uint32_t aNeededLength)
 {
   if (!mRootNode) {
@@ -1026,7 +1026,7 @@ nsContentList::RemoveFromHashtable()
     // This can't be in the table anyway
     return;
   }
-  
+
   nsDependentAtomString str(mXMLMatchAtom);
   nsContentListKey key(mRootNode, mMatchNameSpaceId, str, mIsHTMLDocument);
   uint32_t recentlyUsedCacheIndex = RecentlyUsedCacheIndex(key);
@@ -1059,7 +1059,7 @@ nsContentList::BringSelfUpToDate(bool aDoFlush)
 
   if (mState != LIST_UP_TO_DATE)
     PopulateSelf(uint32_t(-1));
-    
+
   ASSERT_IN_SYNC;
   NS_ASSERTION(!mRootNode || mState == LIST_UP_TO_DATE,
                "PopulateSelf dod not bring content list up to date!");

@@ -11,7 +11,7 @@ interface mozIDOMWindowProxy;
 	The nsPICommandUpdater interface is used by modules that implement
 	commands, to tell the command manager that commands need updating.
 	This is a private interface; embedders should not use it.
-	
+
 	Command-implementing modules should get one of these by a QI
 	from an nsICommandManager.
 */
@@ -21,19 +21,19 @@ interface nsPICommandUpdater : nsISupports
 {
 
   /*
-   * Init the command updater, passing an nsIDOMWindow which 
+   * Init the command updater, passing an nsIDOMWindow which
    * is the window that the command updater lives on.
-   * 
+   *
    */
   void    init(in mozIDOMWindowProxy aWindow);
-   
+
   /*
    * Notify the command manager that the status of a command
    * changed. It may have changed from enabled to disabled,
    * or vice versa, or become toggled etc.
    */
 	void		commandStatusChanged(in string aCommandName);
-	
+
 };
 
 
