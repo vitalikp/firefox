@@ -67,7 +67,7 @@ private:
     nsresult Renumber(int32_t aStartIndex, int32_t aIncrement);
     nsresult SetNextValue(int32_t aIndex);
     nsresult GetNextValue(nsIRDFResource** aResult);
-    
+
     nsIRDFDataSource* mDataSource;
     nsIRDFResource*   mContainer;
 

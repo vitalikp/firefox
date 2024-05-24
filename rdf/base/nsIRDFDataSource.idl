@@ -57,8 +57,8 @@ interface nsIRDFDataSource : nsISupports
     /**
      * Add an assertion to the graph.
      */
-    void Assert(in nsIRDFResource aSource, 
-                in nsIRDFResource aProperty, 
+    void Assert(in nsIRDFResource aSource,
+                in nsIRDFResource aProperty,
                 in nsIRDFNode     aTarget,
                 in boolean        aTruthValue);
 
@@ -75,7 +75,7 @@ interface nsIRDFDataSource : nsISupports
      *   [aSource]--[aProperty]-->[aOldTarget]
      *
      * to
-     * 
+     *
      *   [aSource]--[aProperty]-->[aNewTarget]
      */
     void Change(in nsIRDFResource aSource,
@@ -89,7 +89,7 @@ interface nsIRDFDataSource : nsISupports
      *   [aOldSource]--[aProperty]-->[aTarget]
      *
      * to
-     * 
+     *
      *   [aNewSource]--[aProperty]-->[aTarget]
      */
     void Move(in nsIRDFResource aOldSource,
@@ -135,7 +135,7 @@ interface nsIRDFDataSource : nsISupports
     nsISimpleEnumerator GetAllResources();
 
     /**
-     * Returns whether a given command is enabled for a set of sources. 
+     * Returns whether a given command is enabled for a set of sources.
      */
     boolean IsCommandEnabled(in nsISupports aSources,
                              in nsIRDFResource   aCommand,

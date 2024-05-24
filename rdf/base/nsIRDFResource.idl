@@ -8,7 +8,7 @@
 
 
 /**
- * An nsIRDFResource is an object that has unique identity in the 
+ * An nsIRDFResource is an object that has unique identity in the
  * RDF data model. The object's identity is determined by its URI.
  */
 [scriptable, uuid(fb9686a7-719a-49dc-9107-10dea5739341)]
