@@ -407,9 +407,9 @@ private:
                          CustomElementDefinition* aDefinition,
                          ErrorResult& aRv);
 
-  typedef nsRefPtrHashtable<nsISupportsHashKey, CustomElementDefinition>
+  typedef nsRefPtrHashtable<nsRefPtrHashKey<nsIAtom>, CustomElementDefinition>
     DefinitionMap;
-  typedef nsClassHashtable<nsISupportsHashKey, nsTArray<nsWeakPtr>>
+  typedef nsClassHashtable<nsRefPtrHashKey<nsIAtom>, nsTArray<nsWeakPtr>>
     CandidateMap;
   typedef JS::GCHashMap<JS::Heap<JSObject*>,
                         RefPtr<nsIAtom>,
@@ -426,7 +426,7 @@ private:
   // mCustomDefinitions again to get definitions.
   ConstructorMap mConstructors;
 
-  typedef nsRefPtrHashtable<nsISupportsHashKey, Promise>
+  typedef nsRefPtrHashtable<nsRefPtrHashKey<nsIAtom>, Promise>
     WhenDefinedPromiseMap;
   WhenDefinedPromiseMap mWhenDefinedPromiseMap;
 

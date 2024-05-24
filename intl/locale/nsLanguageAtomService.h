@@ -43,7 +43,7 @@ public:
   already_AddRefed<nsIAtom> GetUncachedLanguageGroup(nsIAtom* aLanguage) const;
 
 private:
-  nsInterfaceHashtable<nsISupportsHashKey, nsIAtom> mLangToGroup;
+  nsInterfaceHashtable<nsRefPtrHashKey<nsIAtom>, nsIAtom> mLangToGroup;
   RefPtr<nsIAtom> mLocaleLanguage;
 };
 

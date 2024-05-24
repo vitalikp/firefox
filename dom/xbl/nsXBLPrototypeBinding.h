@@ -268,7 +268,7 @@ public:
   bool SimpleScopeChain() const { return mSimpleScopeChain; }
   bool BindToUntrustedContent() const { return mBindToUntrustedContent; }
 
-  typedef nsClassHashtable<nsISupportsHashKey, nsXBLAttributeEntry> InnerAttributeTable;
+  typedef nsClassHashtable<nsRefPtrHashKey<nsIAtom>, nsXBLAttributeEntry> InnerAttributeTable;
 
 protected:
   // Ensure that mAttributeTable has been created.
