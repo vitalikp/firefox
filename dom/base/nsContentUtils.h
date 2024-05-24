@@ -3036,7 +3036,7 @@ private:
 
   static nsDataHashtable<nsISupportsHashKey, EventNameMapping>* sAtomEventTable;
   static nsDataHashtable<nsStringHashKey, EventNameMapping>* sStringEventTable;
-  static nsCOMArray<nsIAtom>* sUserDefinedEvents;
+  static nsTArray<RefPtr<nsIAtom>>* sUserDefinedEvents;
 
   static nsIStringBundleService* sStringBundleService;
   static nsIStringBundle* sStringBundles[PropertiesFile_COUNT];

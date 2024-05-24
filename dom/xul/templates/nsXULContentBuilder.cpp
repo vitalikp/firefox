@@ -1774,7 +1774,7 @@ nsXULContentBuilder::CompareResultToNode(nsIXULTemplateResult* aResult,
     else {
         // iterate over each sort key and compare. If the nodes are equal,
         // continue to compare using the next sort key. If not equal, stop.
-        int32_t length = mSortState.sortKeys.Count();
+        int32_t length = mSortState.sortKeys.Length();
         for (int32_t t = 0; t < length; t++) {
             nsresult rv = mQueryProcessor->CompareResults(aResult, match->mResult,
                                                           mSortState.sortKeys[t],

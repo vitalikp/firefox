@@ -193,7 +193,7 @@ public:
     TX_DECL_PATTERN;
 
 private:
-    nsCOMArray<nsIAtom> mIds;
+    nsTArray<RefPtr<nsIAtom>> mIds;
 };
 
 class txKeyPattern : public txPattern

@@ -14,7 +14,7 @@
 #include "nsRefPtrHashtable.h"
 #include "nsStyleContext.h"
 
-typedef nsCOMArray<nsIAtom> AtomArray;
+typedef nsTArray<RefPtr<nsIAtom>> AtomArray;
 
 class nsTreeStyleCache
 {

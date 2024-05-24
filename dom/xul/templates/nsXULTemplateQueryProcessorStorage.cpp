@@ -51,7 +51,7 @@ nsXULTemplateResultSetStorage::nsXULTemplateResultSetStorage(mozIStorageStatemen
         rv = aStatement->GetColumnName(c, name);
         if (NS_SUCCEEDED(rv)) {
             RefPtr<nsIAtom> columnName = NS_Atomize(NS_LITERAL_CSTRING("?") + name);
-            mColumnNames.AppendObject(columnName);
+            mColumnNames.AppendElement(columnName);
         }
     }
 }
@@ -89,7 +89,7 @@ nsXULTemplateResultSetStorage::GetNext(nsISupports **aResult)
 int32_t
 nsXULTemplateResultSetStorage::GetColumnIndex(nsIAtom* aColumnName)
 {
-    int32_t count = mColumnNames.Count();
+    int32_t count = mColumnNames.Length();
     for (int32_t c = 0; c < count; c++) {
         if (mColumnNames[c] == aColumnName)
             return c;
@@ -104,7 +104,7 @@ nsXULTemplateResultSetStorage::FillColumnValues(nsCOMArray<nsIVariant>& aArray)
     if (!mStatement)
         return;
 
-    int32_t count = mColumnNames.Count();
+    int32_t count = mColumnNames.Length();
 
     for (int32_t c = 0; c < count; c++) {
         RefPtr<nsVariant> value = new nsVariant();

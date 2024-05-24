@@ -150,7 +150,7 @@ struct CustomElementDefinition
   CustomElementDefinition(nsIAtom* aType,
                           nsIAtom* aLocalName,
                           Function* aConstructor,
-                          nsCOMArray<nsIAtom>&& aObservedAttributes,
+                          nsTArray<RefPtr<nsIAtom>>&& aObservedAttributes,
                           JSObject* aPrototype,
                           mozilla::dom::LifecycleCallbacks* aCallbacks,
                           uint32_t aDocOrder);
@@ -165,7 +165,7 @@ struct CustomElementDefinition
   RefPtr<CustomElementConstructor> mConstructor;
 
   // The list of attributes that this custom element observes.
-  nsCOMArray<nsIAtom> mObservedAttributes;
+  nsTArray<RefPtr<nsIAtom>> mObservedAttributes;
 
   // The prototype to use for new custom elements of this type.
   JS::Heap<JSObject *> mPrototype;

@@ -258,7 +258,7 @@ nsIUUIDGenerator *nsContentUtils::sUUIDGenerator;
 nsIConsoleService *nsContentUtils::sConsoleService;
 nsDataHashtable<nsISupportsHashKey, EventNameMapping>* nsContentUtils::sAtomEventTable = nullptr;
 nsDataHashtable<nsStringHashKey, EventNameMapping>* nsContentUtils::sStringEventTable = nullptr;
-nsCOMArray<nsIAtom>* nsContentUtils::sUserDefinedEvents = nullptr;
+nsTArray<RefPtr<nsIAtom>>* nsContentUtils::sUserDefinedEvents = nullptr;
 nsIStringBundleService *nsContentUtils::sStringBundleService;
 nsIStringBundle *nsContentUtils::sStringBundles[PropertiesFile_COUNT];
 nsIContentPolicy *nsContentUtils::sContentPolicyService;
@@ -905,7 +905,7 @@ nsContentUtils::InitializeEventTable() {
       ArrayLength(eventArray));
   sStringEventTable = new nsDataHashtable<nsStringHashKey, EventNameMapping>(
       ArrayLength(eventArray));
-  sUserDefinedEvents = new nsCOMArray<nsIAtom>(64);
+  sUserDefinedEvents = new nsTArray<RefPtr<nsIAtom>>(64);
 
   // Subtract one from the length because of the trailing null
   for (uint32_t i = 0; i < ArrayLength(eventArray) - 1; ++i) {
@@ -4223,18 +4223,18 @@ nsContentUtils::GetEventMessageAndAtom(const nsAString& aName,
   }
 
   // If we have cached lots of user defined event names, clear some of them.
-  if (sUserDefinedEvents->Count() > 127) {
-    while (sUserDefinedEvents->Count() > 64) {
-      nsIAtom* first = sUserDefinedEvents->ObjectAt(0);
+  if (sUserDefinedEvents->Length() > 127) {
+    while (sUserDefinedEvents->Length() > 64) {
+      nsIAtom* first = sUserDefinedEvents->ElementAt(0);
       sStringEventTable->Remove(Substring(nsDependentAtomString(first), 2));
-      sUserDefinedEvents->RemoveObjectAt(0);
+      sUserDefinedEvents->RemoveElementAt(0);
     }
   }
 
   *aEventMessage = eUnidentifiedEvent;
   RefPtr<nsIAtom> atom =
     NS_AtomizeMainThread(NS_LITERAL_STRING("on") + aName);
-  sUserDefinedEvents->AppendObject(atom);
+  sUserDefinedEvents->AppendElement(atom);
   mapping.mAtom = atom;
   mapping.mMessage = eUnidentifiedEvent;
   mapping.mType = EventNameType_None;

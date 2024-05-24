@@ -27,7 +27,7 @@ txNamespaceMap::mapNamespace(nsIAtom* aPrefix, const nsAString& aNamespaceURI)
         // Remove the mapping
         int32_t index = mPrefixes.IndexOf(prefix);
         if (index >= 0) {
-            mPrefixes.RemoveObjectAt(index);
+            mPrefixes.RemoveElementAt(index);
             mNamespaces.RemoveElementAt(index);
         }
 
@@ -52,12 +52,12 @@ txNamespaceMap::mapNamespace(nsIAtom* aPrefix, const nsAString& aNamespaceURI)
     }
 
     // New mapping
-    if (!mPrefixes.AppendObject(prefix)) {
+    if (!mPrefixes.AppendElement(prefix)) {
         return NS_ERROR_OUT_OF_MEMORY;
     }
 
     if (mNamespaces.AppendElement(nsId) == nullptr) {
-        mPrefixes.RemoveObjectAt(mPrefixes.Count() - 1);
+        mPrefixes.RemoveElementAt(mPrefixes.Length() - 1);
 
         return NS_ERROR_OUT_OF_MEMORY;
     }

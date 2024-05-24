@@ -646,7 +646,7 @@ CustomElementRegistry::Define(const nsAString& aName,
 
   JS::Rooted<JSObject*> constructorPrototype(cx);
   nsAutoPtr<LifecycleCallbacks> callbacksHolder(new LifecycleCallbacks());
-  nsCOMArray<nsIAtom> observedAttributes;
+  nsTArray<RefPtr<nsIAtom>> observedAttributes;
   { // Set mIsCustomDefinitionRunning.
     /**
      * 9. Set this CustomElementRegistry's element definition is running flag.
@@ -1159,7 +1159,7 @@ NS_IMPL_CYCLE_COLLECTION_UNROOT_NATIVE(CustomElementDefinition, Release)
 CustomElementDefinition::CustomElementDefinition(nsIAtom* aType,
                                                  nsIAtom* aLocalName,
                                                  Function* aConstructor,
-                                                 nsCOMArray<nsIAtom>&& aObservedAttributes,
+                                                 nsTArray<RefPtr<nsIAtom>>&& aObservedAttributes,
                                                  JSObject* aPrototype,
                                                  LifecycleCallbacks* aCallbacks,
                                                  uint32_t aDocOrder)
