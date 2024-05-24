@@ -97,14 +97,11 @@ protected:
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIAtom, NS_IATOM_IID)
 
-#define NS_DECL_NSIATOM \
-  NS_IMETHOD_(void) ToUTF8String(nsACString& _retval) override; \
-  NS_IMETHOD_(size_t) SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) override;
-
 class nsAtom final : public nsIAtom
 {
 public:
-  NS_DECL_NSIATOM
+  NS_IMETHOD_(void) ToUTF8String(nsACString& _retval) override;
+  NS_IMETHOD_(size_t) SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) override;
   NS_IMETHOD QueryInterface(REFNSIID aIID, void** aInstancePtr) final;
   typedef mozilla::TrueType HasThreadSafeRefCnt;
 
