@@ -711,7 +711,7 @@ EventListenerManager::AddEventListenerByType(
                         const nsAString& aType,
                         const EventListenerFlags& aFlags)
 {
-  nsCOMPtr<nsIAtom> atom;
+  RefPtr<nsIAtom> atom;
   EventMessage message = mIsMainThreadELM ?
     nsContentUtils::GetEventMessageAndAtomForListener(aType,
                                                       getter_AddRefs(atom)) :
@@ -726,7 +726,7 @@ EventListenerManager::RemoveEventListenerByType(
                         const nsAString& aType,
                         const EventListenerFlags& aFlags)
 {
-  nsCOMPtr<nsIAtom> atom;
+  RefPtr<nsIAtom> atom;
   EventMessage message = mIsMainThreadELM ?
     nsContentUtils::GetEventMessageAndAtomForListener(aType,
                                                       getter_AddRefs(atom)) :
@@ -949,7 +949,7 @@ EventListenerManager::CompileEventHandlerInternal(Listener* aListener,
   }
   JSContext* cx = jsapi.cx();
 
-  nsCOMPtr<nsIAtom> typeAtom = aListener->mTypeAtom;
+  RefPtr<nsIAtom> typeAtom = aListener->mTypeAtom;
   nsIAtom* attrName = typeAtom;
 
   // Flag us as not a string so we don't keep trying to compile strings which
@@ -1519,7 +1519,7 @@ bool
 EventListenerManager::HasListenersFor(const nsAString& aEventName)
 {
   if (mIsMainThreadELM) {
-    nsCOMPtr<nsIAtom> atom = NS_Atomize(NS_LITERAL_STRING("on") + aEventName);
+    RefPtr<nsIAtom> atom = NS_Atomize(NS_LITERAL_STRING("on") + aEventName);
     return HasListenersFor(atom);
   }
 

@@ -1156,7 +1156,7 @@ nsTreeSanitizer::SanitizeAttributes(mozilla::dom::Element* aElement,
   for (int32_t i = ac - 1; i >= 0; --i) {
     const nsAttrName* attrName = aElement->GetAttrNameAt(i);
     int32_t attrNs = attrName->NamespaceID();
-    nsCOMPtr<nsIAtom> attrLocal = attrName->LocalName();
+    RefPtr<nsIAtom> attrLocal = attrName->LocalName();
 
     if (kNameSpaceID_None == attrNs) {
       if (aAllowStyle && nsGkAtoms::style == attrLocal) {
@@ -1478,7 +1478,7 @@ nsTreeSanitizer::RemoveAllAttributes(nsIContent* aElement)
   const nsAttrName* attrName;
   while ((attrName = aElement->GetAttrNameAt(0))) {
     int32_t attrNs = attrName->NamespaceID();
-    nsCOMPtr<nsIAtom> attrLocal = attrName->LocalName();
+    RefPtr<nsIAtom> attrLocal = attrName->LocalName();
     aElement->UnsetAttr(attrNs, attrLocal, false);
   }
 }

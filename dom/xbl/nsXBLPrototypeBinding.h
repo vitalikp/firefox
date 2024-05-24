@@ -358,7 +358,7 @@ protected:
   nsInterfaceHashtable<IIDHashKey, nsIContent> mInterfaceTable; // A table of cached interfaces that we support.
 
   int32_t mBaseNameSpaceID;    // If we extend a tagname/namespace, then that information will
-  nsCOMPtr<nsIAtom> mBaseTag;  // be stored in here.
+  RefPtr<nsIAtom> mBaseTag;  // be stored in here.
 
   nsCOMArray<nsXBLKeyEventHandler> mKeyHandlers;
 };

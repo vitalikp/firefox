@@ -76,7 +76,7 @@ private:
 
   nsDataHashtable<nsISupportsHashKey, int32_t> mURIToIDTable;
   nsDataHashtable<nsISupportsHashKey, int32_t> mDisabledURIToIDTable;
-  nsTArray<nsCOMPtr<nsIAtom>> mURIArray;
+  nsTArray<RefPtr<nsIAtom>> mURIArray;
 
   static mozilla::StaticRefPtr<nsNameSpaceManager> sInstance;
 };

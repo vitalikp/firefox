@@ -305,7 +305,7 @@ txIdPattern::txIdPattern(const nsAString& aString)
     nsWhitespaceTokenizer tokenizer(aString);
     while (tokenizer.hasMoreTokens()) {
         // this can fail, XXX move to a Init(aString) method
-        nsCOMPtr<nsIAtom> atom = NS_Atomize(tokenizer.nextToken());
+        RefPtr<nsIAtom> atom = NS_Atomize(tokenizer.nextToken());
         mIds.AppendObject(atom);
     }
 }

@@ -360,13 +360,13 @@ XULSortServiceImpl::InitializeSortState(nsIContent* aRootElement,
     nsAutoString sortResource, sortResource2;
     aRootElement->GetAttr(kNameSpaceID_None, nsGkAtoms::sortResource, sortResource);
     if (!sortResource.IsEmpty()) {
-      nsCOMPtr<nsIAtom> sortkeyatom = NS_Atomize(sortResource);
+      RefPtr<nsIAtom> sortkeyatom = NS_Atomize(sortResource);
       aSortState->sortKeys.AppendObject(sortkeyatom);
       sort.Append(sortResource);
 
       aRootElement->GetAttr(kNameSpaceID_None, nsGkAtoms::sortResource2, sortResource2);
       if (!sortResource2.IsEmpty()) {
-        nsCOMPtr<nsIAtom> sortkeyatom2 = NS_Atomize(sortResource2);
+        RefPtr<nsIAtom> sortkeyatom2 = NS_Atomize(sortResource2);
         aSortState->sortKeys.AppendObject(sortkeyatom2);
         sort.Append(' ');
         sort.Append(sortResource2);
@@ -376,7 +376,7 @@ XULSortServiceImpl::InitializeSortState(nsIContent* aRootElement,
   else {
     nsWhitespaceTokenizer tokenizer(sort);
     while (tokenizer.hasMoreTokens()) {
-      nsCOMPtr<nsIAtom> keyatom = NS_Atomize(tokenizer.nextToken());
+      RefPtr<nsIAtom> keyatom = NS_Atomize(tokenizer.nextToken());
       NS_ENSURE_TRUE(keyatom, NS_ERROR_OUT_OF_MEMORY);
       aSortState->sortKeys.AppendObject(keyatom);
     }

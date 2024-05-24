@@ -712,7 +712,7 @@ nsAtomFriend::Atomize(const nsACString& aUTF8String)
                                         &hash);
 
   if (he->mAtom) {
-    nsCOMPtr<nsIAtom> atom = he->mAtom;
+    RefPtr<nsIAtom> atom = he->mAtom;
 
     return atom.forget();
   }
@@ -752,7 +752,7 @@ nsAtomFriend::Atomize(const nsAString& aUTF16String)
                                         &hash);
 
   if (he->mAtom) {
-    nsCOMPtr<nsIAtom> atom = he->mAtom;
+    RefPtr<nsIAtom> atom = he->mAtom;
 
     return atom.forget();
   }
@@ -774,7 +774,7 @@ already_AddRefed<nsIAtom>
 nsAtomFriend::AtomizeMainThread(const nsAString& aUTF16String)
 {
   MOZ_ASSERT(NS_IsMainThread());
-  nsCOMPtr<nsIAtom> retVal;
+  RefPtr<nsIAtom> retVal;
   uint32_t hash;
   AtomTableKey key(aUTF16String.Data(), aUTF16String.Length(), &hash);
   uint32_t index = hash % RECENTLY_USED_MAIN_THREAD_ATOM_CACHE_SIZE;

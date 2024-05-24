@@ -65,7 +65,7 @@ EventListenerChange::GetCountOfEventListenerChangesAffectingAccessibility(
   NS_ENSURE_SUCCESS(rv, rv);
 
   for (size_t i = 0; i < length; i++) {
-    nsCOMPtr<nsIAtom> listenerName =
+    RefPtr<nsIAtom> listenerName =
       do_QueryElementAt(mChangedListenerNames, i);
 
     // These are the event listener changes which may make an element

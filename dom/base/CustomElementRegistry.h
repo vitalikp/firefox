@@ -102,7 +102,7 @@ struct CustomElementData
   CustomElementData(nsIAtom* aType, State aState);
   // Custom element type, for <button is="x-button"> or <x-button>
   // this would be x-button.
-  nsCOMPtr<nsIAtom> mType;
+  RefPtr<nsIAtom> mType;
   // Element is being created flag as described in the custom elements spec.
   bool mElementIsBeingCreated;
   // Flag to determine if the created callback has been invoked, thus it
@@ -156,10 +156,10 @@ struct CustomElementDefinition
                           uint32_t aDocOrder);
 
   // The type (name) for this custom element.
-  nsCOMPtr<nsIAtom> mType;
+  RefPtr<nsIAtom> mType;
 
   // The localname to (e.g. <button is=type> -- this would be button).
-  nsCOMPtr<nsIAtom> mLocalName;
+  RefPtr<nsIAtom> mLocalName;
 
   // The custom element constructor.
   RefPtr<CustomElementConstructor> mConstructor;
@@ -412,7 +412,7 @@ private:
   typedef nsClassHashtable<nsISupportsHashKey, nsTArray<nsWeakPtr>>
     CandidateMap;
   typedef JS::GCHashMap<JS::Heap<JSObject*>,
-                        nsCOMPtr<nsIAtom>,
+                        RefPtr<nsIAtom>,
                         js::MovableCellHasher<JS::Heap<JSObject*>>,
                         js::SystemAllocPolicy> ConstructorMap;
 

@@ -55,7 +55,7 @@ protected:
 
   private:
     DFAState mState;
-    nsCOMPtr<nsIAtom> mInputSymbol;
+    RefPtr<nsIAtom> mInputSymbol;
   };
 
   typedef nsDataHashtable<nsGenericHashKey<Transition>, DFAState> TransitionTable;

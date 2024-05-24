@@ -143,7 +143,7 @@ public:
     delete mNext;
   }
 
-  nsCOMPtr<nsIAtom> mField;
+  RefPtr<nsIAtom> mField;
   nsString          mData;
   nsDocHeaderData*  mNext;
 };

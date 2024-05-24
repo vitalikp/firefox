@@ -534,7 +534,7 @@ public:
                                         bool& aFound) override
   {
     aFound = false;
-    nsCOMPtr<nsIAtom> name = NS_Atomize(aName);
+    RefPtr<nsIAtom> name = NS_Atomize(aName);
     for (uint32_t i = 0; i < mElements.Length(); i++) {
       MOZ_DIAGNOSTIC_ASSERT(mElements[i]);
       Element* element = mElements[i]->AsElement();
@@ -5736,7 +5736,7 @@ GetPseudoElementType(const nsString& aString, ErrorResult& aRv)
     aRv.Throw(NS_ERROR_DOM_SYNTAX_ERR);
     return CSSPseudoElementType::NotPseudo;
   }
-  nsCOMPtr<nsIAtom> pseudo = NS_Atomize(Substring(aString, 1));
+  RefPtr<nsIAtom> pseudo = NS_Atomize(Substring(aString, 1));
   return nsCSSPseudoElements::GetPseudoType(pseudo,
       nsCSSProps::EnabledState::eInUASheets);
 }
@@ -6068,7 +6068,7 @@ nsDocument::CustomElementConstructor(JSContext* aCx, unsigned aArgc, JS::Value* 
     return true;
   }
 
-  nsCOMPtr<nsIAtom> typeAtom(NS_Atomize(elemName));
+  RefPtr<nsIAtom> typeAtom(NS_Atomize(elemName));
   CustomElementDefinition* definition =
     registry->mCustomDefinitions.GetWeak(typeAtom);
   if (!definition) {
@@ -6772,7 +6772,7 @@ nsIDocument::GetAnonymousElementByAttribute(Element& aElement,
                                             const nsAString& aAttrName,
                                             const nsAString& aAttrValue)
 {
-  nsCOMPtr<nsIAtom> attribute = NS_Atomize(aAttrName);
+  RefPtr<nsIAtom> attribute = NS_Atomize(aAttrName);
 
   return GetAnonymousElementByAttribute(&aElement, attribute, aAttrValue);
 }
@@ -7180,7 +7180,7 @@ nsDocument::GetBoxObjectFor(Element* aElement, ErrorResult& aRv)
   }
 
   int32_t namespaceID;
-  nsCOMPtr<nsIAtom> tag = BindingManager()->ResolveTag(aElement, &namespaceID);
+  RefPtr<nsIAtom> tag = BindingManager()->ResolveTag(aElement, &namespaceID);
 #ifdef MOZ_XUL
   if (namespaceID == kNameSpaceID_XUL) {
     if (tag == nsGkAtoms::browser ||
@@ -8464,7 +8464,7 @@ nsDocument::RetrieveRelevantHeaders(nsIChannel *aChannel)
       rv =
         httpChannel->GetResponseHeader(nsDependentCString(*name), headerVal);
       if (NS_SUCCEEDED(rv) && !headerVal.IsEmpty()) {
-        nsCOMPtr<nsIAtom> key = NS_Atomize(*name);
+        RefPtr<nsIAtom> key = NS_Atomize(*name);
         SetHeaderData(key, NS_ConvertASCIItoUTF16(headerVal));
       }
       ++name;

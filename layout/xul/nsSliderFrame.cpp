@@ -219,7 +219,7 @@ public:
   }
 
   nsCOMPtr<nsISliderListener> mListener;
-  nsCOMPtr<nsIAtom> mWhich;
+  RefPtr<nsIAtom> mWhich;
   int32_t mValue;
   bool mUserChanged;
 };

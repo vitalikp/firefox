@@ -86,7 +86,7 @@ public:
     public:
         txStylesheet::ImportFrame* mFrame;
         int32_t mModeNsId;
-        nsCOMPtr<nsIAtom> mModeLocalName;
+        RefPtr<nsIAtom> mModeLocalName;
         txVariableMap* mParams;
     };
 

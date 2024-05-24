@@ -125,7 +125,7 @@ private:
   NS_DECL_OWNINGTHREAD
 };
 
-// The four forms of NS_Atomize (for use with |nsCOMPtr<nsIAtom>|) return the
+// The four forms of NS_Atomize (for use with |RefPtr<nsIAtom>|) return the
 // atom for the string given. At any given time there will always be one atom
 // representing a given string. Atoms are intended to make string comparison
 // cheaper by simplifying it to pointer equality. A pointer to the atom that

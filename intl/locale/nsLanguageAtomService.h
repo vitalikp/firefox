@@ -44,7 +44,7 @@ public:
 
 private:
   nsInterfaceHashtable<nsISupportsHashKey, nsIAtom> mLangToGroup;
-  nsCOMPtr<nsIAtom> mLocaleLanguage;
+  RefPtr<nsIAtom> mLocaleLanguage;
 };
 
 #endif

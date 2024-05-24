@@ -3094,7 +3094,7 @@ public:
   NS_DECL_NSIRUNNABLE
 
   nsCOMPtr<nsIContent> mContent;
-  nsCOMPtr<nsIAtom> mAttrName;
+  RefPtr<nsIAtom> mAttrName;
   nsAutoString mValue;
 };
 
@@ -3106,7 +3106,7 @@ public:
   NS_DECL_NSIRUNNABLE
 
   nsCOMPtr<nsIContent> mContent;
-  nsCOMPtr<nsIAtom> mAttrName;
+  RefPtr<nsIAtom> mAttrName;
 };
 
 // This class allows you to easily set any pointer variable and ensure it's

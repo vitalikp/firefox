@@ -227,8 +227,8 @@ nsXBLPrototypeHandler::ExecuteHandler(EventTarget* aTarget,
 
   // Look for a compiled handler on the element.
   // Should be compiled and bound with "on" in front of the name.
-  nsCOMPtr<nsIAtom> onEventAtom = NS_Atomize(NS_LITERAL_STRING("onxbl") +
-                                             nsDependentAtomString(mEventName));
+  RefPtr<nsIAtom> onEventAtom = NS_Atomize(NS_LITERAL_STRING("onxbl") +
+                                           nsDependentAtomString(mEventName));
 
   // Compile the handler and bind it to the element.
   nsCOMPtr<nsIScriptGlobalObject> boundGlobal;
@@ -539,7 +539,7 @@ nsXBLPrototypeHandler::DispatchXULKeyCommand(nsIDOMEvent* aEvent)
 already_AddRefed<nsIAtom>
 nsXBLPrototypeHandler::GetEventName()
 {
-  nsCOMPtr<nsIAtom> eventName = mEventName;
+  RefPtr<nsIAtom> eventName = mEventName;
   return eventName.forget();
 }
 

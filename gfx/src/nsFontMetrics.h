@@ -249,7 +249,7 @@ private:
 
     nsFont mFont;
     RefPtr<gfxFontGroup> mFontGroup;
-    nsCOMPtr<nsIAtom> mLanguage;
+    RefPtr<nsIAtom> mLanguage;
     nsDeviceContext* mDeviceContext;
     int32_t mP2A;
 

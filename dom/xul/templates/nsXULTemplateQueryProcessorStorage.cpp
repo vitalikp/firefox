@@ -50,7 +50,7 @@ nsXULTemplateResultSetStorage::nsXULTemplateResultSetStorage(mozIStorageStatemen
         nsAutoCString name;
         rv = aStatement->GetColumnName(c, name);
         if (NS_SUCCEEDED(rv)) {
-            nsCOMPtr<nsIAtom> columnName = NS_Atomize(NS_LITERAL_CSTRING("?") + name);
+            RefPtr<nsIAtom> columnName = NS_Atomize(NS_LITERAL_CSTRING("?") + name);
             mColumnNames.AppendObject(columnName);
         }
     }

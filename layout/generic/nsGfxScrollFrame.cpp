@@ -1829,7 +1829,7 @@ public:
   }
 
   // Most recent scroll origin.
-  nsCOMPtr<nsIAtom> mOrigin;
+  RefPtr<nsIAtom> mOrigin;
 
   // Allowed destination positions around mDestination
   nsRect mRange;

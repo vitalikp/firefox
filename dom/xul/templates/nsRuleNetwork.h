@@ -186,7 +186,7 @@ public:
  */
 class nsAssignment {
 public:
-    const nsCOMPtr<nsIAtom> mVariable;
+    const RefPtr<nsIAtom> mVariable;
     nsCOMPtr<nsIRDFNode> mValue;
 
     nsAssignment(nsIAtom* aVariable, nsIRDFNode* aValue)

@@ -111,8 +111,8 @@ public:
   }
 
   nsCOMPtr<nsINode>             mTarget;
-  nsCOMPtr<nsIAtom>             mType;
-  nsCOMPtr<nsIAtom>             mAttrName;
+  RefPtr<nsIAtom>               mType;
+  RefPtr<nsIAtom>               mAttrName;
   nsString                      mAttrNamespace;
   nsString                      mPrevValue;
   RefPtr<nsSimpleContentList> mAddedNodes;

@@ -214,7 +214,7 @@ public:
 private:
     txExpandedName mName;
 #ifdef TX_TO_STRING
-    nsCOMPtr<nsIAtom> mPrefix;
+    RefPtr<nsIAtom> mPrefix;
 #endif
     nsString mValue;
 };

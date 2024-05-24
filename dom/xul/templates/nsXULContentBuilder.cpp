@@ -732,7 +732,7 @@ nsXULContentBuilder::CopyAttributesToElement(nsIContent* aTemplateNode,
         int32_t attribNameSpaceID = name->NamespaceID();
         // Hold a strong reference here so that the atom doesn't go away
         // during UnsetAttr.
-        nsCOMPtr<nsIAtom> attribName = name->LocalName();
+        RefPtr<nsIAtom> attribName = name->LocalName();
 
         // XXXndeakin ignore namespaces until bug 321182 is fixed
         if (attribName != nsGkAtoms::id && attribName != nsGkAtoms::uri) {
@@ -801,7 +801,7 @@ nsXULContentBuilder::AddPersistentAttributes(Element* aTemplateNode,
         if (attribute.IsEmpty())
             break;
 
-        nsCOMPtr<nsIAtom> tag;
+        RefPtr<nsIAtom> tag;
         int32_t nameSpaceID;
 
         RefPtr<mozilla::dom::NodeInfo> ni =

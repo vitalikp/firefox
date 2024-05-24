@@ -182,7 +182,7 @@ public:
   struct Listener
   {
     EventListenerHolder mListener;
-    nsCOMPtr<nsIAtom> mTypeAtom; // for the main thread
+    RefPtr<nsIAtom> mTypeAtom; // for the main thread
     nsString mTypeString; // for non-main-threads
     EventMessage mEventMessage;
 
@@ -626,7 +626,7 @@ protected:
 
   nsAutoTObserverArray<Listener, 2> mListeners;
   dom::EventTarget* MOZ_NON_OWNING_REF mTarget;
-  nsCOMPtr<nsIAtom> mNoListenerForEventAtom;
+  RefPtr<nsIAtom> mNoListenerForEventAtom;
 
   friend class ELMCreationDetector;
   static uint32_t sMainThreadCreatedCount;

@@ -6542,7 +6542,7 @@ nsComputedDOMStyle::DoGetMaskType()
 already_AddRefed<CSSValue>
 nsComputedDOMStyle::DoGetContextProperties()
 {
-  const nsTArray<nsCOMPtr<nsIAtom>>& contextProps = StyleSVG()->mContextProps;
+  const nsTArray<RefPtr<nsIAtom>>& contextProps = StyleSVG()->mContextProps;
 
   if (contextProps.IsEmpty()) {
     RefPtr<nsROCSSPrimitiveValue> val = new nsROCSSPrimitiveValue;

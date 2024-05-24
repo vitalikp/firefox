@@ -228,7 +228,7 @@ inDOMUtils::GetCSSStyleRules(nsIDOMElement *aElement,
 
   *_retval = nullptr;
 
-  nsCOMPtr<nsIAtom> pseudoElt;
+  RefPtr<nsIAtom> pseudoElt;
   if (!aPseudo.IsEmpty()) {
     pseudoElt = NS_Atomize(aPseudo);
   }
@@ -1187,7 +1187,7 @@ GetStatesForPseudoClass(const nsAString& aStatePseudo)
                 static_cast<size_t>(CSSPseudoClassType::MAX),
                 "Length of PseudoClassStates array is incorrect");
 
-  nsCOMPtr<nsIAtom> atom = NS_Atomize(aStatePseudo);
+  RefPtr<nsIAtom> atom = NS_Atomize(aStatePseudo);
   CSSPseudoClassType type = nsCSSPseudoClasses::
     GetPseudoType(atom, CSSEnabledState::eIgnoreEnabledState);
 

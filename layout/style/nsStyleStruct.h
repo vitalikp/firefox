@@ -222,7 +222,7 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStyleFont
   nscoord mScriptUnconstrainedSize;
   nscoord mScriptMinSize;        // [inherited] length
   float   mScriptSizeMultiplier; // [inherited]
-  nsCOMPtr<nsIAtom> mLanguage;   // [inherited]
+  RefPtr<nsIAtom> mLanguage;     // [inherited]
 };
 
 struct nsStyleGradientStop
@@ -2324,7 +2324,7 @@ private:
   float mDuration;
   float mDelay;
   nsCSSPropertyID mProperty;
-  nsCOMPtr<nsIAtom> mUnknownProperty; // used when mProperty is
+  RefPtr<nsIAtom> mUnknownProperty;   // used when mProperty is
                                       // eCSSProperty_UNKNOWN or
                                       // eCSSPropertyExtra_variable
 };
@@ -3485,7 +3485,7 @@ struct MOZ_NEEDS_MEMMOVABLE_MEMBERS nsStyleSVG
   RefPtr<mozilla::css::URLValue> mMarkerMid;   // [inherited]
   RefPtr<mozilla::css::URLValue> mMarkerStart; // [inherited]
   nsTArray<nsStyleCoord> mStrokeDasharray;  // [inherited] coord, percent, factor
-  nsTArray<nsCOMPtr<nsIAtom>> mContextProps;
+  nsTArray<RefPtr<nsIAtom>> mContextProps;
 
   nsStyleCoord     mStrokeDashoffset; // [inherited] coord, percent, factor
   nsStyleCoord     mStrokeWidth;      // [inherited] coord, percent, factor

@@ -3296,7 +3296,7 @@ nsContentUtils::GetNodeInfoFromQName(const nsAString& aNamespaceURI,
     const char16_t* end;
     qName.EndReading(end);
 
-    nsCOMPtr<nsIAtom> prefix =
+    RefPtr<nsIAtom> prefix =
       NS_AtomizeMainThread(Substring(qName.get(), colon));
 
     rv = aNodeInfoManager->GetNodeInfo(Substring(colon + 1, end), prefix,
@@ -4232,7 +4232,7 @@ nsContentUtils::GetEventMessageAndAtom(const nsAString& aName,
   }
 
   *aEventMessage = eUnidentifiedEvent;
-  nsCOMPtr<nsIAtom> atom =
+  RefPtr<nsIAtom> atom =
     NS_AtomizeMainThread(NS_LITERAL_STRING("on") + aName);
   sUserDefinedEvents->AppendObject(atom);
   mapping.mAtom = atom;
@@ -4261,7 +4261,7 @@ nsContentUtils::GetEventMessageAndAtomForListener(const nsAString& aName,
   // lookups, start from it.
   EventNameMapping mapping;
   EventMessage msg = eUnidentifiedEvent;
-  nsCOMPtr<nsIAtom> atom;
+  RefPtr<nsIAtom> atom;
   if (sStringEventTable->Get(aName, &mapping)) {
     if (mapping.mMaybeSpecialSVGorSMILEvent) {
       // Try the atom version so that we should get the right message for
@@ -4433,7 +4433,7 @@ nsContentUtils::MatchElementId(nsIContent *aContent, const nsAString& aId)
   NS_PRECONDITION(!aId.IsEmpty(), "Will match random elements");
 
   // ID attrs are generally stored as atoms, so just atomize this up front
-  nsCOMPtr<nsIAtom> id(NS_Atomize(aId));
+  RefPtr<nsIAtom> id(NS_Atomize(aId));
   if (!id) {
     // OOM, so just bail
     return nullptr;
@@ -5671,7 +5671,7 @@ static void ProcessViewportToken(nsIDocument *aDocument,
 
   /* Check for known keys. If we find a match, insert the appropriate
    * information into the document header. */
-  nsCOMPtr<nsIAtom> key_atom = NS_Atomize(key);
+  RefPtr<nsIAtom> key_atom = NS_Atomize(key);
   if (key_atom == nsGkAtoms::height)
     aDocument->SetHeaderData(nsGkAtoms::viewport_height, value);
   else if (key_atom == nsGkAtoms::width)

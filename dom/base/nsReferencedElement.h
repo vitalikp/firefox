@@ -178,7 +178,7 @@ private:
   };
   friend class DocumentLoadNotification;
 
-  nsCOMPtr<nsIAtom>      mWatchID;
+  RefPtr<nsIAtom>        mWatchID;
   nsCOMPtr<nsIDocument>  mWatchDocument;
   RefPtr<Element> mElement;
   RefPtr<Notification> mPendingNotification;
