@@ -13,7 +13,7 @@
 
 #include "nsCOMPtr.h"
 #include "nsIAtom.h"
-#include "nsInterfaceHashtable.h"
+#include "nsRefPtrHashtable.h"
 
 class nsLanguageAtomService
 {
@@ -43,7 +43,7 @@ public:
   already_AddRefed<nsIAtom> GetUncachedLanguageGroup(nsIAtom* aLanguage) const;
 
 private:
-  nsInterfaceHashtable<nsRefPtrHashKey<nsIAtom>, nsIAtom> mLangToGroup;
+  nsRefPtrHashtable<nsRefPtrHashKey<nsIAtom>, nsIAtom> mLangToGroup;
   RefPtr<nsIAtom> mLocaleLanguage;
 };
 
