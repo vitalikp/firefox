@@ -12,7 +12,7 @@
 #include "nsString.h"                     // nsString members
 
 class nsAString;
-class nsIAtom;
+class nsAtom;
 
 namespace mozilla {
 
@@ -45,7 +45,7 @@ public:
    * @param aChangeType     [IN] whether to set or remove
    */
   ChangeStyleTransaction(dom::Element& aElement,
-                         nsIAtom& aProperty,
+                         nsAtom& aProperty,
                          const nsAString& aValue,
                          EChangeType aChangeType);
 
@@ -78,7 +78,7 @@ private:
    * @param aCSSProperty    [IN] the CSS property
    * @return                true if the property accepts more than one value
    */
-  bool AcceptsMoreThanOneValue(nsIAtom& aCSSProperty);
+  bool AcceptsMoreThanOneValue(nsAtom& aCSSProperty);
 
   /**
    * Remove a value from a list of white-space separated values.
@@ -100,7 +100,7 @@ private:
   nsCOMPtr<dom::Element> mElement;
 
   // The CSS property to change.
-  RefPtr<nsIAtom> mProperty;
+  RefPtr<nsAtom> mProperty;
 
   // The value to set the property to (ignored if mRemoveProperty==true).
   nsString mValue;

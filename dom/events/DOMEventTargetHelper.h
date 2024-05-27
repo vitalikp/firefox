@@ -113,16 +113,16 @@ public:
     return mListenerManager && mListenerManager->HasListenersFor(aType);
   }
 
-  bool HasListenersFor(nsIAtom* aTypeWithOn)
+  bool HasListenersFor(nsAtom* aTypeWithOn)
   {
     return mListenerManager && mListenerManager->HasListenersFor(aTypeWithOn);
   }
 
-  nsresult SetEventHandler(nsIAtom* aType,
+  nsresult SetEventHandler(nsAtom* aType,
                            JSContext* aCx,
                            const JS::Value& aValue);
   using dom::EventTarget::SetEventHandler;
-  void GetEventHandler(nsIAtom* aType,
+  void GetEventHandler(nsAtom* aType,
                        JSContext* aCx,
                        JS::Value* aValue);
   using dom::EventTarget::GetEventHandler;
@@ -162,10 +162,10 @@ public:
   }
   bool HasOrHasHadOwner() { return mHasOrHasHadOwnerWindow; }
 
-  virtual void EventListenerAdded(nsIAtom* aType) override;
+  virtual void EventListenerAdded(nsAtom* aType) override;
   virtual void EventListenerAdded(const nsAString& aType) override;
 
-  virtual void EventListenerRemoved(nsIAtom* aType) override;
+  virtual void EventListenerRemoved(nsAtom* aType) override;
   virtual void EventListenerRemoved(const nsAString& aType) override;
 
   virtual void EventListenerWasAdded(const nsAString& aType,
@@ -200,10 +200,10 @@ protected:
   virtual void LastRelease() {}
 
   void KeepAliveIfHasListenersFor(const nsAString& aType);
-  void KeepAliveIfHasListenersFor(nsIAtom* aType);
+  void KeepAliveIfHasListenersFor(nsAtom* aType);
 
   void IgnoreKeepAliveIfHasListenersFor(const nsAString& aType);
-  void IgnoreKeepAliveIfHasListenersFor(nsIAtom* aType);
+  void IgnoreKeepAliveIfHasListenersFor(nsAtom* aType);
 
 private:
   // Inner window or sandbox.
@@ -216,7 +216,7 @@ private:
 
   struct {
     nsTArray<nsString> mStrings;
-    nsTArray<RefPtr<nsIAtom>> mAtoms;
+    nsTArray<RefPtr<nsAtom>> mAtoms;
   } mKeepingAliveTypes;
 
   bool mIsKeptAlive;

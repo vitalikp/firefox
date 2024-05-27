@@ -265,7 +265,7 @@ void nsMenuBarX::RemoveMenuAtIndex(uint32_t aIndex)
 
 void nsMenuBarX::ObserveAttributeChanged(nsIDocument* aDocument,
                                          nsIContent* aContent,
-                                         nsIAtom* aAttribute)
+                                         nsAtom* aAttribute)
 {
 }
 

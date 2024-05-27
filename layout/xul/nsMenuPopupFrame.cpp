@@ -153,7 +153,7 @@ nsMenuPopupFrame::Init(nsIContent*       aContent,
   mPopupType = ePopupTypePanel;
   nsIDocument* doc = aContent->OwnerDoc();
   int32_t namespaceID;
-  RefPtr<nsIAtom> tag = doc->BindingManager()->ResolveTag(aContent, &namespaceID);
+  RefPtr<nsAtom> tag = doc->BindingManager()->ResolveTag(aContent, &namespaceID);
   if (namespaceID == kNameSpaceID_XUL) {
     if (tag == nsGkAtoms::menupopup || tag == nsGkAtoms::popup)
       mPopupType = ePopupTypeMenu;
@@ -290,7 +290,7 @@ nsMenuPopupFrame::CreateWidgetForView(nsView* aView)
 
   nsTransparencyMode mode = nsLayoutUtils::GetFrameTransparency(this, this);
   nsIContent* parentContent = GetContent()->GetParent();
-  nsIAtom *tag = nullptr;
+  nsAtom *tag = nullptr;
   if (parentContent && parentContent->IsXULElement())
     tag = parentContent->NodeInfo()->NameAtom();
   widgetData.mSupportTranslucency = mode == eTransparencyTransparent;
@@ -2214,7 +2214,7 @@ nsMenuPopupFrame::AttachedDismissalListener()
 
 nsresult 
 nsMenuPopupFrame::AttributeChanged(int32_t aNameSpaceID,
-                                   nsIAtom* aAttribute,
+                                   nsAtom* aAttribute,
                                    int32_t aModType)
 
 {

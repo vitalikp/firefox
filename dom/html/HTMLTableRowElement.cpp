@@ -121,7 +121,7 @@ HTMLTableRowElement::SectionRowIndex() const
 
 static bool
 IsCell(Element *aElement, int32_t aNamespaceID,
-       nsIAtom* aAtom, void *aData)
+       nsAtom* aAtom, void *aData)
 {
   return aElement->IsAnyOfHTMLElements(nsGkAtoms::td, nsGkAtoms::th);
 }
@@ -224,7 +224,7 @@ HTMLTableRowElement::DeleteCell(int32_t aValue, ErrorResult& aError)
 
 bool
 HTMLTableRowElement::ParseAttribute(int32_t aNamespaceID,
-                                    nsIAtom* aAttribute,
+                                    nsAtom* aAttribute,
                                     const nsAString& aValue,
                                     nsAttrValue& aResult)
 {
@@ -274,7 +274,7 @@ HTMLTableRowElement::MapAttributesIntoRule(const nsMappedAttributes* aAttributes
 }
 
 NS_IMETHODIMP_(bool)
-HTMLTableRowElement::IsAttributeMapped(const nsIAtom* aAttribute) const
+HTMLTableRowElement::IsAttributeMapped(const nsAtom* aAttribute) const
 {
   static const MappedAttributeEntry attributes[] = {
     { &nsGkAtoms::align },

@@ -21,7 +21,7 @@ public:
     }
 
     // txIEvalContext
-    nsresult getVariable(int32_t aNamespace, nsIAtom* aLName,
+    nsresult getVariable(int32_t aNamespace, nsAtom* aLName,
                          txAExprResult*& aResult)
     {
         MOZ_CRASH("shouldn't depend on this context");

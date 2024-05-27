@@ -10,7 +10,7 @@
 #include "nsISupports.h"
 
 class nsAttrValue;
-class nsIAtom;
+class nsAtom;
 class nsIContent;
 class nsIDocument;
 class nsINode;
@@ -170,7 +170,7 @@ public:
   virtual void AttributeWillChange(nsIDocument* aDocument,
                                    mozilla::dom::Element* aElement,
                                    int32_t      aNameSpaceID,
-                                   nsIAtom*     aAttribute,
+                                   nsAtom*     aAttribute,
                                    int32_t      aModType,
                                    const nsAttrValue* aNewValue) = 0;
 
@@ -196,7 +196,7 @@ public:
   virtual void AttributeChanged(nsIDocument* aDocument,
                                 mozilla::dom::Element* aElement,
                                 int32_t      aNameSpaceID,
-                                nsIAtom*     aAttribute,
+                                nsAtom*     aAttribute,
                                 int32_t      aModType,
                                 const nsAttrValue* aOldValue) = 0;
 
@@ -224,7 +224,7 @@ public:
   virtual void AttributeSetToCurrentValue(nsIDocument* aDocument,
                                           mozilla::dom::Element* aElement,
                                           int32_t aNameSpaceID,
-                                          nsIAtom* aAttribute) {}
+                                          nsAtom* aAttribute) {}
 
   /**
    * Notification that one or more content nodes have been appended to the
@@ -354,7 +354,7 @@ NS_DEFINE_STATIC_IID_ACCESSOR(nsIMutationObserver, NS_IMUTATION_OBSERVER_IID)
     virtual void AttributeWillChange(nsIDocument* aDocument,                 \
                                      mozilla::dom::Element* aElement,        \
                                      int32_t aNameSpaceID,                   \
-                                     nsIAtom* aAttribute,                    \
+                                     nsAtom* aAttribute,                    \
                                      int32_t aModType,                       \
                                      const nsAttrValue* aNewValue) override;
 
@@ -367,7 +367,7 @@ NS_DEFINE_STATIC_IID_ACCESSOR(nsIMutationObserver, NS_IMUTATION_OBSERVER_IID)
     virtual void AttributeChanged(nsIDocument* aDocument,                    \
                                   mozilla::dom::Element* aElement,           \
                                   int32_t aNameSpaceID,                      \
-                                  nsIAtom* aAttribute,                       \
+                                  nsAtom* aAttribute,                       \
                                   int32_t aModType,                          \
                                   const nsAttrValue* aOldValue) override;
 
@@ -431,7 +431,7 @@ void                                                                      \
 _class::AttributeWillChange(nsIDocument* aDocument,                       \
                             mozilla::dom::Element* aElement,              \
                             int32_t aNameSpaceID,                         \
-                            nsIAtom* aAttribute,                          \
+                            nsAtom* aAttribute,                          \
                             int32_t aModType,                             \
                             const nsAttrValue* aNewValue)                 \
 {                                                                         \
@@ -446,7 +446,7 @@ void                                                                      \
 _class::AttributeChanged(nsIDocument* aDocument,                          \
                          mozilla::dom::Element* aElement,                 \
                          int32_t aNameSpaceID,                            \
-                         nsIAtom* aAttribute,                             \
+                         nsAtom* aAttribute,                             \
                          int32_t aModType,                                \
                          const nsAttrValue* aOldValue)                    \
 {                                                                         \

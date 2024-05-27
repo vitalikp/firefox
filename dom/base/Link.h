@@ -125,7 +125,7 @@ public:
 
   // This is called by HTMLLinkElement.
   void TryDNSPrefetchOrPreconnectOrPrefetchOrPreloadOrPrerender();
-  void UpdatePreload(nsIAtom* aName, const nsAttrValue* aValue,
+  void UpdatePreload(nsAtom* aName, const nsAttrValue* aValue,
                      const nsAttrValue* aOldValue);
   void CancelPrefetchOrPreload();
 

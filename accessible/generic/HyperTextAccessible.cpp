@@ -1133,7 +1133,7 @@ HyperTextAccessible::NativeAttributes()
   return attributes.forget();
 }
 
-nsIAtom*
+nsAtom*
 HyperTextAccessible::LandmarkRole() const
 {
   if (!HasOwnContent())

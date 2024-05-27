@@ -1675,7 +1675,7 @@ TextEditor::GetDOMEventTarget()
 
 nsresult
 TextEditor::SetAttributeOrEquivalent(Element* aElement,
-                                     nsIAtom* aAttribute,
+                                     nsAtom* aAttribute,
                                      const nsAString& aValue,
                                      bool aSuppressTransaction)
 {
@@ -1684,7 +1684,7 @@ TextEditor::SetAttributeOrEquivalent(Element* aElement,
 
 nsresult
 TextEditor::RemoveAttributeOrEquivalent(Element* aElement,
-                                        nsIAtom* aAttribute,
+                                        nsAtom* aAttribute,
                                         bool aSuppressTransaction)
 {
   return EditorBase::RemoveAttribute(aElement, aAttribute);

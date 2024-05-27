@@ -35,7 +35,7 @@ public:
                     nsIFrame*         aPrevInFlow) override;
 
   virtual nsresult  AttributeChanged(int32_t         aNameSpaceID,
-                                     nsIAtom*        aAttribute,
+                                     nsAtom*        aAttribute,
                                      int32_t         aModType) override;
 
   virtual void DestroyFrom(nsIFrame* aDestructRoot) override;
@@ -97,7 +97,7 @@ nsSVGUseFrame::Init(nsIContent*       aContent,
 
 nsresult
 nsSVGUseFrame::AttributeChanged(int32_t         aNameSpaceID,
-                                nsIAtom*        aAttribute,
+                                nsAtom*        aAttribute,
                                 int32_t         aModType)
 {
   SVGUseElement *useElement = static_cast<SVGUseElement*>(mContent);

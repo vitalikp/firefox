@@ -31,7 +31,7 @@ using namespace mozilla::image;
 //
 
 static int8_t
-ParseStyleValue(nsIAtom* aAttribute, const nsAString& aAttributeValue)
+ParseStyleValue(nsAtom* aAttribute, const nsAString& aAttributeValue)
 {
   if (aAttribute == nsGkAtoms::rowalign_) {
     if (aAttributeValue.EqualsLiteral("top"))
@@ -66,7 +66,7 @@ ParseStyleValue(nsIAtom* aAttribute, const nsAString& aAttributeValue)
 
 static nsTArray<int8_t>*
 ExtractStyleValues(const nsAString& aString,
-                   nsIAtom* aAttribute,
+                   nsAtom* aAttribute,
                    bool aAllowMultiValues)
 {
   nsTArray<int8_t>* styleArray = nullptr;
@@ -141,7 +141,7 @@ NS_DECLARE_FRAME_PROPERTY_DELETABLE(ColumnAlignProperty, nsTArray<int8_t>)
 NS_DECLARE_FRAME_PROPERTY_DELETABLE(ColumnLinesProperty, nsTArray<int8_t>)
 
 static const FramePropertyDescriptor<nsTArray<int8_t>>*
-AttributeToProperty(nsIAtom* aAttribute)
+AttributeToProperty(nsAtom* aAttribute)
 {
   if (aAttribute == nsGkAtoms::rowalign_)
     return RowAlignProperty();
@@ -343,7 +343,7 @@ public:
 
 static void
 ParseFrameAttribute(nsIFrame* aFrame,
-                    nsIAtom* aAttribute,
+                    nsAtom* aAttribute,
                     bool aAllowMultiValues)
 {
   nsAutoString attrValue;
@@ -432,7 +432,7 @@ static const float kDefaultFramespacingArg1Ex = 0.5f;
 
 static void
 ExtractSpacingValues(const nsAString&   aString,
-                     nsIAtom*           aAttribute,
+                     nsAtom*           aAttribute,
                      nsTArray<nscoord>& aSpacingArray,
                      nsIFrame*          aFrame,
                      nscoord            aDefaultValue0,
@@ -487,7 +487,7 @@ ExtractSpacingValues(const nsAString&   aString,
 }
 
 static void
-ParseSpacingAttribute(nsMathMLmtableFrame* aFrame, nsIAtom* aAttribute)
+ParseSpacingAttribute(nsMathMLmtableFrame* aFrame, nsAtom* aAttribute)
 {
   NS_ASSERTION(aAttribute == nsGkAtoms::rowspacing_ ||
                aAttribute == nsGkAtoms::columnspacing_ ||
@@ -706,7 +706,7 @@ nsMathMLmtableWrapperFrame::~nsMathMLmtableWrapperFrame()
 
 nsresult
 nsMathMLmtableWrapperFrame::AttributeChanged(int32_t  aNameSpaceID,
-                                             nsIAtom* aAttribute,
+                                             nsAtom* aAttribute,
                                              int32_t  aModType)
 {
   // Attributes specific to <mtable>:
@@ -1102,7 +1102,7 @@ nsMathMLmtrFrame::~nsMathMLmtrFrame()
 
 nsresult
 nsMathMLmtrFrame::AttributeChanged(int32_t  aNameSpaceID,
-                                   nsIAtom* aAttribute,
+                                   nsAtom* aAttribute,
                                    int32_t  aModType)
 {
   // Attributes specific to <mtr>:
@@ -1203,7 +1203,7 @@ nsMathMLmtdFrame::GetColSpan()
 
 nsresult
 nsMathMLmtdFrame::AttributeChanged(int32_t  aNameSpaceID,
-                                   nsIAtom* aAttribute,
+                                   nsAtom* aAttribute,
                                    int32_t  aModType)
 {
   // Attributes specific to <mtd>:

@@ -222,7 +222,7 @@ HTMLLinkElement::UnbindFromTree(bool aDeep, bool aNullParent)
 
 bool
 HTMLLinkElement::ParseAttribute(int32_t aNamespaceID,
-                                nsIAtom* aAttribute,
+                                nsAtom* aAttribute,
                                 const nsAString& aValue,
                                 nsAttrValue& aResult)
 {
@@ -282,7 +282,7 @@ HTMLLinkElement::CreateAndDispatchEvent(nsIDocument* aDoc,
 }
 
 nsresult
-HTMLLinkElement::BeforeSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
+HTMLLinkElement::BeforeSetAttr(int32_t aNameSpaceID, nsAtom* aName,
                                const nsAttrValueOrString* aValue, bool aNotify)
 {
   if (aNameSpaceID == kNameSpaceID_None &&
@@ -297,7 +297,7 @@ HTMLLinkElement::BeforeSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
 }
 
 nsresult
-HTMLLinkElement::AfterSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
+HTMLLinkElement::AfterSetAttr(int32_t aNameSpaceID, nsAtom* aName,
                               const nsAttrValue* aValue,
                               const nsAttrValue* aOldValue, bool aNotify)
 {

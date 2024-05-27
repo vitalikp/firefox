@@ -11,7 +11,7 @@
 
 #include "nsCSSProps.h"
 
-class nsIAtom;
+class nsAtom;
 class nsPresContext;
 class nsCSSValue;
 
@@ -23,7 +23,7 @@ typedef nsresult
 
 struct nsMediaFeature
 {
-  nsIAtom **mName; // extra indirection to point to nsGkAtoms members
+  nsAtom **mName; // extra indirection to point to nsGkAtoms members
 
   enum RangeType { eMinMaxAllowed, eMinMaxNotAllowed };
   RangeType mRangeType;
@@ -71,8 +71,8 @@ struct nsMediaFeature
     //   the same format as the keyword tables in nsCSSProps.
     const nsCSSProps::KTableEntry* mKeywordTable;
     // If mGetter == GetSystemMetric (which implies mValueType ==
-    //   eBoolInteger): nsIAtom * const *, for the system metric.
-    nsIAtom * const * mMetric;
+    //   eBoolInteger): nsAtom * const *, for the system metric.
+    nsAtom * const * mMetric;
   } mData;
 
   // A function that returns the current value for this feature for a

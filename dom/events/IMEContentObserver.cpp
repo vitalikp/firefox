@@ -1174,7 +1174,7 @@ void
 IMEContentObserver::AttributeWillChange(nsIDocument* aDocument,
                                         dom::Element* aElement,
                                         int32_t aNameSpaceID,
-                                        nsIAtom* aAttribute,
+                                        nsAtom* aAttribute,
                                         int32_t aModType,
                                         const nsAttrValue* aNewValue)
 {
@@ -1190,7 +1190,7 @@ void
 IMEContentObserver::AttributeChanged(nsIDocument* aDocument,
                                      dom::Element* aElement,
                                      int32_t aNameSpaceID,
-                                     nsIAtom* aAttribute,
+                                     nsAtom* aAttribute,
                                      int32_t aModType,
                                      const nsAttrValue* aOldValue)
 {

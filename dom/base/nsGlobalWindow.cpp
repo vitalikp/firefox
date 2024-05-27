@@ -13265,7 +13265,7 @@ nsGlobalWindow::DisableOrientationChangeListener()
 
 
 void
-nsGlobalWindow::EventListenerAdded(nsIAtom* aType)
+nsGlobalWindow::EventListenerAdded(nsAtom* aType)
 {
   if (aType == nsGkAtoms::onbeforeunload &&
       mTabChild &&
@@ -13285,7 +13285,7 @@ nsGlobalWindow::EventListenerAdded(nsIAtom* aType)
 }
 
 void
-nsGlobalWindow::EventListenerRemoved(nsIAtom* aType)
+nsGlobalWindow::EventListenerRemoved(nsAtom* aType)
 {
   if (aType == nsGkAtoms::onbeforeunload &&
       mTabChild &&

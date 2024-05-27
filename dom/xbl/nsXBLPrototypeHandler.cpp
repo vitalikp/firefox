@@ -227,7 +227,7 @@ nsXBLPrototypeHandler::ExecuteHandler(EventTarget* aTarget,
 
   // Look for a compiled handler on the element.
   // Should be compiled and bound with "on" in front of the name.
-  RefPtr<nsIAtom> onEventAtom = NS_Atomize(NS_LITERAL_STRING("onxbl") +
+  RefPtr<nsAtom> onEventAtom = NS_Atomize(NS_LITERAL_STRING("onxbl") +
                                            nsDependentAtomString(mEventName));
 
   // Compile the handler and bind it to the element.
@@ -328,7 +328,7 @@ nsXBLPrototypeHandler::ExecuteHandler(EventTarget* aTarget,
 }
 
 nsresult
-nsXBLPrototypeHandler::EnsureEventHandler(AutoJSAPI& jsapi, nsIAtom* aName,
+nsXBLPrototypeHandler::EnsureEventHandler(AutoJSAPI& jsapi, nsAtom* aName,
                                           JS::MutableHandle<JSObject*> aHandler)
 {
   JSContext* cx = jsapi.cx();
@@ -536,10 +536,10 @@ nsXBLPrototypeHandler::DispatchXULKeyCommand(nsIDOMEvent* aEvent)
   return NS_OK;
 }
 
-already_AddRefed<nsIAtom>
+already_AddRefed<nsAtom>
 nsXBLPrototypeHandler::GetEventName()
 {
-  RefPtr<nsIAtom> eventName = mEventName;
+  RefPtr<nsAtom> eventName = mEventName;
   return eventName.forget();
 }
 

@@ -124,7 +124,7 @@ nsNodeUtils::CharacterDataChanged(nsIContent* aContent,
 void
 nsNodeUtils::AttributeWillChange(Element* aElement,
                                  int32_t aNameSpaceID,
-                                 nsIAtom* aAttribute,
+                                 nsAtom* aAttribute,
                                  int32_t aModType,
                                  const nsAttrValue* aNewValue)
 {
@@ -137,7 +137,7 @@ nsNodeUtils::AttributeWillChange(Element* aElement,
 void
 nsNodeUtils::AttributeChanged(Element* aElement,
                               int32_t aNameSpaceID,
-                              nsIAtom* aAttribute,
+                              nsAtom* aAttribute,
                               int32_t aModType,
                               const nsAttrValue* aOldValue)
 {
@@ -150,7 +150,7 @@ nsNodeUtils::AttributeChanged(Element* aElement,
 void
 nsNodeUtils::AttributeSetToCurrentValue(Element* aElement,
                                         int32_t aNameSpaceID,
-                                        nsIAtom* aAttribute)
+                                        nsAtom* aAttribute)
 {
   nsIDocument* doc = aElement->OwnerDoc();
   IMPL_MUTATION_NOTIFICATION(AttributeSetToCurrentValue, aElement,
@@ -387,7 +387,7 @@ nsNodeUtils::LastRelease(nsINode* aNode)
 }
 
 static void
-NoteUserData(void *aObject, nsIAtom *aKey, void *aXPCOMChild, void *aData)
+NoteUserData(void *aObject, nsAtom *aKey, void *aXPCOMChild, void *aData)
 {
   nsCycleCollectionTraversalCallback* cb =
     static_cast<nsCycleCollectionTraversalCallback*>(aData);

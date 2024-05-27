@@ -156,7 +156,7 @@ HTMLButtonElement::IsHTMLFocusable(bool aWithMouse, bool *aIsFocusable, int32_t 
 
 bool
 HTMLButtonElement::ParseAttribute(int32_t aNamespaceID,
-                                  nsIAtom* aAttribute,
+                                  nsAtom* aAttribute,
                                   const nsAString& aValue,
                                   nsAttrValue& aResult)
 {
@@ -402,7 +402,7 @@ HTMLButtonElement::DoneCreatingElement()
 }
 
 nsresult
-HTMLButtonElement::BeforeSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
+HTMLButtonElement::BeforeSetAttr(int32_t aNameSpaceID, nsAtom* aName,
                                  const nsAttrValueOrString* aValue,
                                  bool aNotify)
 {
@@ -416,7 +416,7 @@ HTMLButtonElement::BeforeSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
 }
 
 nsresult
-HTMLButtonElement::AfterSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
+HTMLButtonElement::AfterSetAttr(int32_t aNameSpaceID, nsAtom* aName,
                                 const nsAttrValue* aValue,
                                 const nsAttrValue* aOldValue, bool aNotify)
 {

@@ -132,7 +132,7 @@ RestyleManagerHandle::Ptr::ContentStateChanged(nsIContent* aContent,
 void
 RestyleManagerHandle::Ptr::AttributeWillChange(dom::Element* aElement,
                                                int32_t aNameSpaceID,
-                                               nsIAtom* aAttribute,
+                                               nsAtom* aAttribute,
                                                int32_t aModType,
                                                const nsAttrValue* aNewValue)
 {
@@ -143,7 +143,7 @@ RestyleManagerHandle::Ptr::AttributeWillChange(dom::Element* aElement,
 void
 RestyleManagerHandle::Ptr::AttributeChanged(dom::Element* aElement,
                                             int32_t aNameSpaceID,
-                                            nsIAtom* aAttribute,
+                                            nsAtom* aAttribute,
                                             int32_t aModType,
                                             const nsAttrValue* aOldValue)
 {

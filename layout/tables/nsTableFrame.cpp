@@ -353,7 +353,7 @@ nsTableFrame::SetInitialChildList(ChildListID     aListID,
 void
 nsTableFrame::AttributeChangedFor(nsIFrame*       aFrame,
                                   nsIContent*     aContent,
-                                  nsIAtom*        aAttribute)
+                                  nsAtom*        aAttribute)
 {
   nsTableCellFrame *cellFrame = do_QueryFrame(aFrame);
   if (cellFrame) {

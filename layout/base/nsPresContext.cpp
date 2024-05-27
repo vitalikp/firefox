@@ -1322,7 +1322,7 @@ nsPresContext::SetImageAnimationModeExternal(uint16_t aMode)
   SetImageAnimationModeInternal(aMode);
 }
 
-already_AddRefed<nsIAtom>
+already_AddRefed<nsAtom>
 nsPresContext::GetContentLanguage() const
 {
   nsAutoString language;
@@ -1959,7 +1959,7 @@ nsPresContext::UIResolutionChangedInternalScale(double aScale)
 void
 nsPresContext::EmulateMedium(const nsAString& aMediaType)
 {
-  nsIAtom* previousMedium = Medium();
+  nsAtom* previousMedium = Medium();
   mIsEmulatingMedia = true;
 
   nsAutoString mediaType;
@@ -1973,7 +1973,7 @@ nsPresContext::EmulateMedium(const nsAString& aMediaType)
 
 void nsPresContext::StopEmulatingMedium()
 {
-  nsIAtom* previousMedium = Medium();
+  nsAtom* previousMedium = Medium();
   mIsEmulatingMedia = false;
   if (Medium() != previousMedium) {
     MediaFeatureValuesChanged(nsRestyleHint(0), nsChangeHint(0));
@@ -1981,7 +1981,7 @@ void nsPresContext::StopEmulatingMedium()
 }
 
 void
-nsPresContext::ForceCacheLang(nsIAtom *aLanguage)
+nsPresContext::ForceCacheLang(nsAtom *aLanguage)
 {
   // force it to be cached
   GetDefaultFont(kPresContext_DefaultVariableFont_ID, aLanguage);
@@ -1994,7 +1994,7 @@ void
 nsPresContext::CacheAllLangs()
 {
   if (mFontGroupCacheDirty) {
-    RefPtr<nsIAtom> thisLang = nsStyleFont::GetLanguage(this);
+    RefPtr<nsAtom> thisLang = nsStyleFont::GetLanguage(this);
     GetDefaultFont(kPresContext_DefaultVariableFont_ID, thisLang.get());
     GetDefaultFont(kPresContext_DefaultVariableFont_ID, nsGkAtoms::x_math);
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1362599#c12

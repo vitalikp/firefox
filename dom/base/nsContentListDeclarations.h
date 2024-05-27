@@ -11,7 +11,7 @@
 #include "nsCOMPtr.h"
 
 class nsContentList;
-class nsIAtom;
+class nsAtom;
 class nsIContent;
 class nsINode;
 // Can't use nsStringFwd.h because that's internal-API-only.
@@ -34,7 +34,7 @@ class Element;
 // was passed to the list's constructor.
 typedef bool (*nsContentListMatchFunc)(mozilla::dom::Element* aElement,
                                        int32_t aNamespaceID,
-                                       nsIAtom* aAtom,
+                                       nsAtom* aAtom,
                                        void* aData);
 
 typedef void (*nsContentListDestroyFunc)(void* aData);

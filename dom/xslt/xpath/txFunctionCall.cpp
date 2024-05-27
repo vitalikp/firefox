@@ -112,7 +112,7 @@ FunctionCall::argsSensitiveTo(ContextSensitivity aContext)
 void
 FunctionCall::toString(nsAString& aDest)
 {
-    RefPtr<nsIAtom> functionNameAtom;
+    RefPtr<nsAtom> functionNameAtom;
     if (NS_FAILED(getNameAtom(getter_AddRefs(functionNameAtom)))) {
         NS_ERROR("Can't get function name.");
         return;

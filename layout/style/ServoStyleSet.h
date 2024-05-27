@@ -216,7 +216,7 @@ public:
   // |aPeudoTag| and |aPseudoType| must match.
   already_AddRefed<nsStyleContext>
   ResolveTransientStyle(dom::Element* aElement,
-                        nsIAtom* aPseudoTag,
+                        nsAtom* aPseudoTag,
                         CSSPseudoElementType aPseudoType,
                         StyleRuleInclusion aRules =
                           StyleRuleInclusion::All);
@@ -233,14 +233,14 @@ public:
   // use and must be non-null.  It must be an anon box, and must be one that
   // inherits style from the given aParentContext.
   already_AddRefed<ServoStyleContext>
-  ResolveInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag,
+  ResolveInheritingAnonymousBoxStyle(nsAtom* aPseudoTag,
                                      nsStyleContext* aParentContext);
 
   // Get a style context for an anonymous box that does not inherit style from
   // anything.  aPseudoTag is the pseudo-tag to use and must be non-null.  It
   // must be an anon box, and must be a non-inheriting one.
   already_AddRefed<nsStyleContext>
-  ResolveNonInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag);
+  ResolveNonInheritingAnonymousBoxStyle(nsAtom* aPseudoTag);
 
   // manage the set of style sheets in the style set
   nsresult AppendStyleSheet(SheetType aType, ServoStyleSheet* aSheet);
@@ -383,7 +383,7 @@ public:
 
   bool AppendFontFaceRules(nsTArray<nsFontFaceRuleContainer>& aArray);
 
-  nsCSSCounterStyleRule* CounterStyleRuleForName(nsIAtom* aName);
+  nsCSSCounterStyleRule* CounterStyleRuleForName(nsAtom* aName);
 
   already_AddRefed<ServoComputedValues>
   GetBaseComputedValuesForElement(dom::Element* aElement,
@@ -436,7 +436,7 @@ public:
    * a style sheet.
    */
   bool MightHaveAttributeDependency(const dom::Element& aElement,
-                                    nsIAtom* aAttribute);
+                                    nsAtom* aAttribute);
 
   /**
    * Returns true if a change in event state on an element might require
@@ -475,13 +475,13 @@ private:
 
   already_AddRefed<ServoStyleContext> GetContext(already_AddRefed<ServoComputedValues>,
                                                  nsStyleContext* aParentContext,
-                                                 nsIAtom* aPseudoTag,
+                                                 nsAtom* aPseudoTag,
                                                  CSSPseudoElementType aPseudoType,
                                                  dom::Element* aElementForAnimation);
 
   already_AddRefed<ServoStyleContext> GetContext(nsIContent* aContent,
                                                  nsStyleContext* aParentContext,
-                                                 nsIAtom* aPseudoTag,
+                                                 nsAtom* aPseudoTag,
                                                  CSSPseudoElementType aPseudoType,
                                                  LazyComputeBehavior aMayCompute);
 

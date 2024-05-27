@@ -187,7 +187,7 @@ public:
    */
   void AttributeChangedFor(nsIFrame*       aFrame,
                            nsIContent*     aContent,
-                           nsIAtom*        aAttribute);
+                           nsAtom*        aAttribute);
 
   /** @see nsIFrame::DestroyFrom */
   virtual void DestroyFrom(nsIFrame* aDestructRoot) override;

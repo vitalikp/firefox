@@ -434,7 +434,7 @@ nsFileControlFrame::SyncDisabledState()
 
 nsresult
 nsFileControlFrame::AttributeChanged(int32_t  aNameSpaceID,
-                                     nsIAtom* aAttribute,
+                                     nsAtom* aAttribute,
                                      int32_t  aModType)
 {
   if (aNameSpaceID == kNameSpaceID_None && aAttribute == nsGkAtoms::tabindex) {
@@ -473,7 +473,7 @@ nsFileControlFrame::UpdateDisplayedValue(const nsAString& aValue, bool aNotify)
 }
 
 nsresult
-nsFileControlFrame::SetFormProperty(nsIAtom* aName,
+nsFileControlFrame::SetFormProperty(nsAtom* aName,
                                     const nsAString& aValue)
 {
   if (nsGkAtoms::value == aName) {

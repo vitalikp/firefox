@@ -49,7 +49,7 @@ HTMLFrameElement::GetContentDocument(nsIDOMDocument** aContentDocument)
 
 bool
 HTMLFrameElement::ParseAttribute(int32_t aNamespaceID,
-                                 nsIAtom* aAttribute,
+                                 nsAtom* aAttribute,
                                  const nsAString& aValue,
                                  nsAttrValue& aResult)
 {

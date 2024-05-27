@@ -19,7 +19,7 @@ using mozilla::LogLevel;
 extern mozilla::LazyLogModule gXULTemplateLog;
 
 nsContentTestNode::nsContentTestNode(nsXULTemplateQueryProcessorRDF* aProcessor,
-                                     nsIAtom* aRefVariable)
+                                     nsAtom* aRefVariable)
     : TestNode(nullptr),
       mProcessor(aProcessor),
       mDocument(nullptr),

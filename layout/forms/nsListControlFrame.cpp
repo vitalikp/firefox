@@ -1424,7 +1424,7 @@ nsListControlFrame::OnSetSelectedIndex(int32_t aOldIndex, int32_t aNewIndex)
 //----------------------------------------------------------------------
 
 nsresult
-nsListControlFrame::SetFormProperty(nsIAtom* aName,
+nsListControlFrame::SetFormProperty(nsAtom* aName,
                                 const nsAString& aValue)
 {
   if (nsGkAtoms::selected == aName) {

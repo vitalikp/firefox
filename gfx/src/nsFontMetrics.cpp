@@ -14,7 +14,7 @@
 #include "nsBoundingMetrics.h"          // for nsBoundingMetrics
 #include "nsDebug.h"                    // for NS_ERROR
 #include "nsDeviceContext.h"            // for nsDeviceContext
-#include "nsIAtom.h"                    // for nsIAtom
+#include "nsIAtom.h"                    // for nsAtom
 #include "nsMathUtils.h"                // for NS_round
 #include "nsRenderingContext.h"         // for nsRenderingContext
 #include "nsString.h"                   // for nsString

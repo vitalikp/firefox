@@ -63,7 +63,7 @@ HTMLIFrameElement::GetContentDocument(nsIDOMDocument** aContentDocument)
 
 bool
 HTMLIFrameElement::ParseAttribute(int32_t aNamespaceID,
-                                  nsIAtom* aAttribute,
+                                  nsAtom* aAttribute,
                                   const nsAString& aValue,
                                   nsAttrValue& aResult)
 {
@@ -127,7 +127,7 @@ HTMLIFrameElement::MapAttributesIntoRule(const nsMappedAttributes* aAttributes,
 }
 
 NS_IMETHODIMP_(bool)
-HTMLIFrameElement::IsAttributeMapped(const nsIAtom* aAttribute) const
+HTMLIFrameElement::IsAttributeMapped(const nsAtom* aAttribute) const
 {
   static const MappedAttributeEntry attributes[] = {
     { &nsGkAtoms::width },
@@ -154,7 +154,7 @@ HTMLIFrameElement::GetAttributeMappingFunction() const
 }
 
 nsresult
-HTMLIFrameElement::AfterSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
+HTMLIFrameElement::AfterSetAttr(int32_t aNameSpaceID, nsAtom* aName,
                                 const nsAttrValue* aValue,
                                 const nsAttrValue* aOldValue, bool aNotify)
 {
@@ -175,7 +175,7 @@ HTMLIFrameElement::AfterSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
 }
 
 nsresult
-HTMLIFrameElement::OnAttrSetButNotChanged(int32_t aNamespaceID, nsIAtom* aName,
+HTMLIFrameElement::OnAttrSetButNotChanged(int32_t aNamespaceID, nsAtom* aName,
                                           const nsAttrValueOrString& aValue,
                                           bool aNotify)
 {
@@ -187,7 +187,7 @@ HTMLIFrameElement::OnAttrSetButNotChanged(int32_t aNamespaceID, nsIAtom* aName,
 
 void
 HTMLIFrameElement::AfterMaybeChangeAttr(int32_t aNamespaceID,
-                                        nsIAtom* aName,
+                                        nsAtom* aName,
                                         bool aNotify)
 {
   if (aNamespaceID == kNameSpaceID_None) {

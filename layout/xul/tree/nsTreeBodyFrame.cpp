@@ -1052,7 +1052,7 @@ nsTreeBodyFrame::GetCellAt(int32_t aX, int32_t aY, int32_t* aRow, nsITreeColumn*
   }
 
   nsTreeColumn* col;
-  nsIAtom* child;
+  nsAtom* child;
   GetCellAt(point.x, point.y, aRow, &col, &child);
 
   if (col) {
@@ -1479,7 +1479,7 @@ nsTreeBodyFrame::AdjustForCellText(nsAutoString& aText,
   aTextRect.width = width;
 }
 
-nsIAtom*
+nsAtom*
 nsTreeBodyFrame::GetItemWithinCellAt(nscoord aX, const nsRect& aCellRect, 
                                      int32_t aRowIndex,
                                      nsTreeColumn* aColumn)
@@ -1629,7 +1629,7 @@ nsTreeBodyFrame::GetItemWithinCellAt(nscoord aX, const nsRect& aCellRect,
 
 void
 nsTreeBodyFrame::GetCellAt(nscoord aX, nscoord aY, int32_t* aRow,
-                           nsTreeColumn** aCol, nsIAtom** aChildElt)
+                           nsTreeColumn** aCol, nsAtom** aChildElt)
 {
   *aCol = nullptr;
   *aChildElt = nullptr;
@@ -2520,7 +2520,7 @@ nsTreeBodyFrame::GetCursor(const nsPoint& aPoint,
   if (mView && GetContent()->GetComposedDoc()->GetScriptHandlingObject(dummy)) {
     int32_t row;
     nsTreeColumn* col;
-    nsIAtom* child;
+    nsAtom* child;
     GetCellAt(aPoint.x, aPoint.y, &row, &col, &child);
 
     if (child) {
@@ -4464,7 +4464,7 @@ nsTreeBodyFrame::ThumbMoved(nsScrollbarFrame* aScrollbar,
 
 // The style cache.
 nsStyleContext*
-nsTreeBodyFrame::GetPseudoStyleContext(nsIAtom* aPseudoElement)
+nsTreeBodyFrame::GetPseudoStyleContext(nsAtom* aPseudoElement)
 {
   return mStyleCache.GetStyleContext(this, PresContext(), mContent,
                                      mStyleContext, aPseudoElement,

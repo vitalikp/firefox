@@ -284,7 +284,7 @@ nsMathMLFrame::ParseNumericValue(const nsString&   aString,
 struct
 nsCSSMapping {
   int32_t        compatibility;
-  const nsIAtom* attrAtom;
+  const nsAtom* attrAtom;
   const char*    cssProperty;
 };
 

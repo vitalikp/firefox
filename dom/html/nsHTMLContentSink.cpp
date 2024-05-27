@@ -225,7 +225,7 @@ public:
 };
 
 static void
-DoCustomElementCreate(Element** aElement, nsIDocument* aDoc, nsIAtom* aLocalName,
+DoCustomElementCreate(Element** aElement, nsIDocument* aDoc, nsAtom* aLocalName,
                       CustomElementConstructor* aConstructor, ErrorResult& aRv)
 {
   RefPtr<Element> element =
@@ -257,7 +257,7 @@ NS_NewHTMLElement(Element** aResult, already_AddRefed<mozilla::dom::NodeInfo>&& 
 
   RefPtr<mozilla::dom::NodeInfo> nodeInfo = aNodeInfo;
 
-  nsIAtom *name = nodeInfo->NameAtom();
+  nsAtom *name = nodeInfo->NameAtom();
 
   NS_ASSERTION(nodeInfo->NamespaceEquals(kNameSpaceID_XHTML),
                "Trying to HTML elements that don't have the XHTML namespace");
@@ -306,8 +306,8 @@ NS_NewHTMLElement(Element** aResult, already_AddRefed<mozilla::dom::NodeInfo>&& 
       // SetupCustomElement() should be called with an element that don't have
       // CustomElementData setup, if not we will hit the assertion in
       // SetCustomElementData().
-      RefPtr<nsIAtom> tagAtom = nodeInfo->NameAtom();
-      RefPtr<nsIAtom> typeAtom = aIs ? NS_Atomize(*aIs) : tagAtom;
+      RefPtr<nsAtom> tagAtom = nodeInfo->NameAtom();
+      RefPtr<nsAtom> typeAtom = aIs ? NS_Atomize(*aIs) : tagAtom;
       // Built-in element
       *aResult = CreateHTMLElement(tag, nodeInfo.forget(), aFromParser).take();
       (*aResult)->SetCustomElementData(new CustomElementData(typeAtom));

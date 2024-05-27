@@ -251,7 +251,7 @@ protected:
 
   // This method can destroy the frame
   virtual nsresult AttributeChanged(int32_t aNameSpaceID,
-                                    nsIAtom* aAttribute,
+                                    nsAtom* aAttribute,
                                     int32_t aModType) override;
   virtual ~nsMenuFrame() { }
 

@@ -64,7 +64,7 @@ ReportLengthParseError(const nsString& aValue, nsIDocument* aDocument)
 
 static nsresult
 ReportParseErrorNoTag(const nsString& aValue,
-                      nsIAtom*        aAtom,
+                      nsAtom*        aAtom,
                       nsIDocument*    aDocument)
 {
   const char16_t *argv[] =
@@ -142,7 +142,7 @@ nsMathMLElement::UnbindFromTree(bool aDeep, bool aNullParent)
 
 bool
 nsMathMLElement::ParseAttribute(int32_t aNamespaceID,
-                                nsIAtom* aAttribute,
+                                nsAtom* aAttribute,
                                 const nsAString& aValue,
                                 nsAttrValue& aResult)
 {
@@ -203,7 +203,7 @@ static Element::MappedAttributeEntry sDirStyles[] = {
 };
 
 bool
-nsMathMLElement::IsAttributeMapped(const nsIAtom* aAttribute) const
+nsMathMLElement::IsAttributeMapped(const nsAtom* aAttribute) const
 {
   static const MappedAttributeEntry* const mtableMap[] = {
     sMtableStyles,
@@ -1068,7 +1068,7 @@ nsMathMLElement::GetHrefURI() const
 }
 
 nsresult
-nsMathMLElement::AfterSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
+nsMathMLElement::AfterSetAttr(int32_t aNameSpaceID, nsAtom* aName,
                               const nsAttrValue* aValue,
                               const nsAttrValue* aOldValue, bool aNotify)
 {

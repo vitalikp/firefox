@@ -96,7 +96,7 @@ nsIContent::GetFlattenedTreeParent() const
 }
 
 inline bool
-nsIContent::IsEventAttributeName(nsIAtom* aName)
+nsIContent::IsEventAttributeName(nsAtom* aName)
 {
   const char16_t* name = aName->GetUTF16String();
   if (name[0] != 'o' || name[1] != 'n') {

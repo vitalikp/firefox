@@ -15,7 +15,7 @@ using namespace mozilla;
 
 ServoStyleContext::ServoStyleContext(nsStyleContext* aParent,
                                nsPresContext* aPresContext,
-                               nsIAtom* aPseudoTag,
+                               nsAtom* aPseudoTag,
                                CSSPseudoElementType aPseudoType,
                                already_AddRefed<ServoComputedValues> aComputedValues)
   : nsStyleContext(aParent, aPseudoTag, aPseudoType),

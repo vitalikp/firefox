@@ -136,7 +136,7 @@ UniquePtr<nsTArray<FakeBufferRefcountHelper>> gFakeBuffers;
 #endif
 
 // This constructor is for dynamic atoms and HTML5 atoms.
-nsIAtom::nsIAtom(AtomKind aKind, const nsAString& aString, uint32_t aHash)
+nsAtom::nsAtom(AtomKind aKind, const nsAString& aString, uint32_t aHash)
   : mRefCnt(1)
 {
   mLength = aString.Length();
@@ -171,7 +171,7 @@ nsIAtom::nsIAtom(AtomKind aKind, const nsAString& aString, uint32_t aHash)
 }
 
 // This constructor is for static atoms.
-nsIAtom::nsIAtom(nsStringBuffer* aStringBuffer, uint32_t aLength,
+nsAtom::nsAtom(nsStringBuffer* aStringBuffer, uint32_t aLength,
                  uint32_t aHash)
 {
   mLength = aLength;
@@ -199,7 +199,7 @@ nsIAtom::nsIAtom(nsStringBuffer* aStringBuffer, uint32_t aLength,
              "correct storage");
 }
 
-nsIAtom::~nsIAtom()
+nsAtom::~nsAtom()
 {
   if (!IsStaticAtom()) {
     MOZ_ASSERT(IsDynamicAtom() || IsHTML5Atom());

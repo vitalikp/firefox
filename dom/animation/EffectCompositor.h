@@ -19,7 +19,7 @@
 #include "nsTArray.h"
 
 class nsCSSPropertyIDSet;
-class nsIAtom;
+class nsAtom;
 class nsIFrame;
 class nsIStyleRule;
 class nsPresContext;

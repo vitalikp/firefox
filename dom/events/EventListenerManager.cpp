@@ -241,7 +241,7 @@ void
 EventListenerManager::AddEventListenerInternal(
                         EventListenerHolder aListenerHolder,
                         EventMessage aEventMessage,
-                        nsIAtom* aTypeAtom,
+                        nsAtom* aTypeAtom,
                         const nsAString& aTypeString,
                         const EventListenerFlags& aFlags,
                         bool aHandler,
@@ -607,7 +607,7 @@ EventListenerManager::DisableDevice(EventMessage aEventMessage)
 }
 
 void
-EventListenerManager::NotifyEventListenerRemoved(nsIAtom* aUserType,
+EventListenerManager::NotifyEventListenerRemoved(nsAtom* aUserType,
                                                  const nsAString& aTypeString)
 {
   // If the following code is changed, other callsites of EventListenerRemoved
@@ -631,7 +631,7 @@ void
 EventListenerManager::RemoveEventListenerInternal(
                         EventListenerHolder aListenerHolder,
                         EventMessage aEventMessage,
-                        nsIAtom* aUserType,
+                        nsAtom* aUserType,
                         const nsAString& aTypeString,
                         const EventListenerFlags& aFlags,
                         bool aAllEvents)
@@ -711,7 +711,7 @@ EventListenerManager::AddEventListenerByType(
                         const nsAString& aType,
                         const EventListenerFlags& aFlags)
 {
-  RefPtr<nsIAtom> atom;
+  RefPtr<nsAtom> atom;
   EventMessage message = mIsMainThreadELM ?
     nsContentUtils::GetEventMessageAndAtomForListener(aType,
                                                       getter_AddRefs(atom)) :
@@ -726,7 +726,7 @@ EventListenerManager::RemoveEventListenerByType(
                         const nsAString& aType,
                         const EventListenerFlags& aFlags)
 {
-  RefPtr<nsIAtom> atom;
+  RefPtr<nsAtom> atom;
   EventMessage message = mIsMainThreadELM ?
     nsContentUtils::GetEventMessageAndAtomForListener(aType,
                                                       getter_AddRefs(atom)) :
@@ -737,7 +737,7 @@ EventListenerManager::RemoveEventListenerByType(
 
 EventListenerManager::Listener*
 EventListenerManager::FindEventHandler(EventMessage aEventMessage,
-                                       nsIAtom* aTypeAtom,
+                                       nsAtom* aTypeAtom,
                                        const nsAString& aTypeString)
 {
   // Run through the listeners for this type and see if a script
@@ -757,7 +757,7 @@ EventListenerManager::FindEventHandler(EventMessage aEventMessage,
 
 EventListenerManager::Listener*
 EventListenerManager::SetEventHandlerInternal(
-                        nsIAtom* aName,
+                        nsAtom* aName,
                         const nsAString& aTypeString,
                         const TypedEventHandler& aTypedHandler,
                         bool aPermitUntrustedEvents)
@@ -812,7 +812,7 @@ EventListenerManager::SetEventHandlerInternal(
 }
 
 nsresult
-EventListenerManager::SetEventHandler(nsIAtom* aName,
+EventListenerManager::SetEventHandler(nsAtom* aName,
                                       const nsAString& aBody,
                                       bool aDeferCompilation,
                                       bool aPermitUntrustedEvents,
@@ -905,7 +905,7 @@ EventListenerManager::SetEventHandler(nsIAtom* aName,
 }
 
 void
-EventListenerManager::RemoveEventHandler(nsIAtom* aName,
+EventListenerManager::RemoveEventHandler(nsAtom* aName,
                                          const nsAString& aTypeString)
 {
   if (mClearingListeners) {
@@ -949,8 +949,8 @@ EventListenerManager::CompileEventHandlerInternal(Listener* aListener,
   }
   JSContext* cx = jsapi.cx();
 
-  RefPtr<nsIAtom> typeAtom = aListener->mTypeAtom;
-  nsIAtom* attrName = typeAtom;
+  RefPtr<nsAtom> typeAtom = aListener->mTypeAtom;
+  nsAtom* attrName = typeAtom;
 
   // Flag us as not a string so we don't keep trying to compile strings which
   // can't be compiled.
@@ -1519,7 +1519,7 @@ bool
 EventListenerManager::HasListenersFor(const nsAString& aEventName)
 {
   if (mIsMainThreadELM) {
-    RefPtr<nsIAtom> atom = NS_Atomize(NS_LITERAL_STRING("on") + aEventName);
+    RefPtr<nsAtom> atom = NS_Atomize(NS_LITERAL_STRING("on") + aEventName);
     return HasListenersFor(atom);
   }
 
@@ -1534,7 +1534,7 @@ EventListenerManager::HasListenersFor(const nsAString& aEventName)
 }
 
 bool
-EventListenerManager::HasListenersFor(nsIAtom* aEventNameWithOn)
+EventListenerManager::HasListenersFor(nsAtom* aEventNameWithOn)
 {
 #ifdef DEBUG
   nsAutoString name;
@@ -1607,7 +1607,7 @@ EventListenerManager::HasUnloadListeners()
 }
 
 void
-EventListenerManager::SetEventHandler(nsIAtom* aEventName,
+EventListenerManager::SetEventHandler(nsAtom* aEventName,
                                       const nsAString& aTypeString,
                                       EventHandlerNonNull* aHandler)
 {
@@ -1667,7 +1667,7 @@ EventListenerManager::SetEventHandler(
 }
 
 const TypedEventHandler*
-EventListenerManager::GetTypedEventHandler(nsIAtom* aEventName,
+EventListenerManager::GetTypedEventHandler(nsAtom* aEventName,
                                            const nsAString& aTypeString)
 {
   EventMessage eventMessage = nsContentUtils::GetEventMessage(aEventName);
@@ -1769,7 +1769,7 @@ EventListenerManager::IsApzAwareListener(Listener* aListener)
 }
 
 bool
-EventListenerManager::IsApzAwareEvent(nsIAtom* aEvent)
+EventListenerManager::IsApzAwareEvent(nsAtom* aEvent)
 {
   if (aEvent == nsGkAtoms::onwheel || aEvent == nsGkAtoms::onDOMMouseScroll ||
       aEvent == nsGkAtoms::onmousewheel ||

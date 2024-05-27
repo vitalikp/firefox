@@ -14,7 +14,7 @@ namespace mozilla {
 class GeckoStyleContext final : public nsStyleContext {
 public:
   GeckoStyleContext(nsStyleContext* aParent,
-                    nsIAtom* aPseudoTag,
+                    nsAtom* aPseudoTag,
                     CSSPseudoElementType aPseudoType,
                     already_AddRefed<nsRuleNode> aRuleNode,
                     bool aSkipParentDisplayBasedStyleFixup);
@@ -56,7 +56,7 @@ public:
   //    non-null, GetStyleIfVisited()->mRuleNode == aSourceIfVisited
   //  * RelevantLinkVisited() == aRelevantLinkVisited
   already_AddRefed<GeckoStyleContext>
-  FindChildWithRules(const nsIAtom* aPseudoTag,
+  FindChildWithRules(const nsAtom* aPseudoTag,
                      nsRuleNode* aSource,
                      nsRuleNode* aSourceIfVisited,
                      bool aRelevantLinkVisited);

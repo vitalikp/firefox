@@ -68,7 +68,7 @@ SVGTransformListParser::ParseTransform()
   }
 
   const nsAString& transform = Substring(start.get(), mIter.get());
-  nsIAtom* keyAtom = NS_GetStaticAtom(transform);
+  nsAtom* keyAtom = NS_GetStaticAtom(transform);
 
   if (!keyAtom || !SkipWsp()) {
     return false;

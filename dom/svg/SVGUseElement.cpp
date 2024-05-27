@@ -161,7 +161,7 @@ void
 SVGUseElement::AttributeChanged(nsIDocument* aDocument,
                                 Element* aElement,
                                 int32_t aNameSpaceID,
-                                nsIAtom* aAttribute,
+                                nsAtom* aAttribute,
                                 int32_t aModType,
                                 const nsAttrValue* aOldValue)
 {
@@ -334,7 +334,7 @@ SVGUseElement::OurWidthAndHeightAreUsed() const
 // implementation helpers
 
 void
-SVGUseElement::SyncWidthOrHeight(nsIAtom* aName)
+SVGUseElement::SyncWidthOrHeight(nsAtom* aName)
 {
   NS_ASSERTION(aName == nsGkAtoms::width || aName == nsGkAtoms::height,
                "The clue is in the function name");
@@ -479,7 +479,7 @@ SVGUseElement::GetStringInfo()
 // nsIContent methods
 
 NS_IMETHODIMP_(bool)
-SVGUseElement::IsAttributeMapped(const nsIAtom* name) const
+SVGUseElement::IsAttributeMapped(const nsAtom* name) const
 {
   static const MappedAttributeEntry* const map[] = {
     sFEFloodMap,

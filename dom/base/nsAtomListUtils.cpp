@@ -13,7 +13,7 @@
 #include "nsStaticAtom.h"
 
 /* static */ bool
-nsAtomListUtils::IsMember(nsIAtom *aAtom,
+nsAtomListUtils::IsMember(nsAtom *aAtom,
                           const nsStaticAtom* aInfo,
                           uint32_t aInfoCount)
 {

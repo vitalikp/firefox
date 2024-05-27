@@ -196,7 +196,7 @@ ServoStyleSet::ResolveStyleFor(Element* aElement,
 already_AddRefed<ServoStyleContext>
 ServoStyleSet::GetContext(nsIContent* aContent,
                           nsStyleContext* aParentContext,
-                          nsIAtom* aPseudoTag,
+                          nsAtom* aPseudoTag,
                           CSSPseudoElementType aPseudoType,
                           LazyComputeBehavior aMayCompute)
 {
@@ -220,7 +220,7 @@ ServoStyleSet::GetContext(nsIContent* aContent,
 already_AddRefed<ServoStyleContext>
 ServoStyleSet::GetContext(already_AddRefed<ServoComputedValues> aComputedValues,
                           nsStyleContext* aParentContext,
-                          nsIAtom* aPseudoTag,
+                          nsAtom* aPseudoTag,
                           CSSPseudoElementType aPseudoType,
                           Element* aElementForAnimation)
 {
@@ -526,14 +526,14 @@ ServoStyleSet::ResolvePseudoElementStyle(Element* aOriginatingElement,
   bool isBeforeOrAfter = aType == CSSPseudoElementType::before ||
                          aType == CSSPseudoElementType::after;
 
-  nsIAtom* pseudoTag = nsCSSPseudoElements::GetPseudoAtom(aType);
+  nsAtom* pseudoTag = nsCSSPseudoElements::GetPseudoAtom(aType);
   return GetContext(computedValues.forget(), aParentContext, pseudoTag, aType,
                     isBeforeOrAfter ? aOriginatingElement : nullptr);
 }
 
 already_AddRefed<nsStyleContext>
 ServoStyleSet::ResolveTransientStyle(Element* aElement,
-                                     nsIAtom* aPseudoTag,
+                                     nsAtom* aPseudoTag,
                                      CSSPseudoElementType aPseudoType,
                                      StyleRuleInclusion aRuleInclusion)
 {
@@ -557,7 +557,7 @@ ServoStyleSet::ResolveTransientServoStyle(
 }
 
 already_AddRefed<ServoStyleContext>
-ServoStyleSet::ResolveInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag,
+ServoStyleSet::ResolveInheritingAnonymousBoxStyle(nsAtom* aPseudoTag,
                                                   nsStyleContext* aParentContext)
 {
   MOZ_ASSERT(nsCSSAnonBoxes::IsAnonBox(aPseudoTag) &&
@@ -589,7 +589,7 @@ ServoStyleSet::ResolveInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag,
 }
 
 already_AddRefed<nsStyleContext>
-ServoStyleSet::ResolveNonInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag)
+ServoStyleSet::ResolveNonInheritingAnonymousBoxStyle(nsAtom* aPseudoTag)
 {
   MOZ_ASSERT(nsCSSAnonBoxes::IsAnonBox(aPseudoTag) &&
              nsCSSAnonBoxes::IsNonInheritingAnonBox(aPseudoTag));
@@ -867,7 +867,7 @@ ServoStyleSet::ProbePseudoElementStyle(Element* aOriginatingElement,
     }
   }
 
-  nsIAtom* pseudoTag = nsCSSPseudoElements::GetPseudoAtom(aType);
+  nsAtom* pseudoTag = nsCSSPseudoElements::GetPseudoAtom(aType);
   return GetContext(computedValues.forget(), aParentContext, pseudoTag, aType,
                     isBeforeOrAfter ? aOriginatingElement : nullptr);
 }
@@ -1220,7 +1220,7 @@ ServoStyleSet::AppendFontFaceRules(nsTArray<nsFontFaceRuleContainer>& aArray)
 }
 
 nsCSSCounterStyleRule*
-ServoStyleSet::CounterStyleRuleForName(nsIAtom* aName)
+ServoStyleSet::CounterStyleRuleForName(nsAtom* aName)
 {
   return Servo_StyleSet_GetCounterStyleRule(mRawSet.get(), aName);
 }
@@ -1329,7 +1329,7 @@ ServoStyleSet::RunPostTraversalTasks()
 
 bool
 ServoStyleSet::MightHaveAttributeDependency(const Element& aElement,
-                                            nsIAtom* aAttribute)
+                                            nsAtom* aAttribute)
 {
   return Servo_StyleSet_MightHaveAttributeDependency(
       mRawSet.get(), &aElement, aAttribute);

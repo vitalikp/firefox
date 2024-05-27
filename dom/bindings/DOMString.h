@@ -172,7 +172,7 @@ public:
     eNullNotExpected
   };
 
-  void SetOwnedAtom(nsIAtom* aAtom, NullHandling aNullHandling)
+  void SetOwnedAtom(nsAtom* aAtom, NullHandling aNullHandling)
   {
     MOZ_ASSERT(mString.isNothing(), "We already have a string?");
     MOZ_ASSERT(!mIsNull, "We're already set as null");

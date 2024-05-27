@@ -296,7 +296,7 @@ nsGenericDOMDataNode::SetTextInternal(uint32_t aOffset, uint32_t aCount,
       NS_EVENT_BITS_MUTATION_CHARACTERDATAMODIFIED,
       this);
 
-  RefPtr<nsIAtom> oldValue;
+  RefPtr<nsAtom> oldValue;
   if (haveMutationListeners) {
     oldValue = GetCurrentValueAtom();
   }
@@ -619,15 +619,15 @@ nsGenericDOMDataNode::GetChildren(uint32_t aFilter)
 }
 
 nsresult
-nsGenericDOMDataNode::SetAttr(int32_t aNameSpaceID, nsIAtom* aAttr,
-                              nsIAtom* aPrefix, const nsAString& aValue,
+nsGenericDOMDataNode::SetAttr(int32_t aNameSpaceID, nsAtom* aAttr,
+                              nsAtom* aPrefix, const nsAString& aValue,
                               bool aNotify)
 {
   return NS_OK;
 }
 
 nsresult
-nsGenericDOMDataNode::UnsetAttr(int32_t aNameSpaceID, nsIAtom* aAttr,
+nsGenericDOMDataNode::UnsetAttr(int32_t aNameSpaceID, nsAtom* aAttr,
                                 bool aNotify)
 {
   return NS_OK;
@@ -1081,7 +1081,7 @@ nsGenericDOMDataNode::AppendTextTo(nsAString& aResult,
   return mText.AppendTo(aResult, aFallible);
 }
 
-already_AddRefed<nsIAtom>
+already_AddRefed<nsAtom>
 nsGenericDOMDataNode::GetCurrentValueAtom()
 {
   nsAutoString val;
@@ -1096,13 +1096,13 @@ nsGenericDOMDataNode::WalkContentStyleRules(nsRuleWalker* aRuleWalker)
 }
 
 NS_IMETHODIMP_(bool)
-nsGenericDOMDataNode::IsAttributeMapped(const nsIAtom* aAttribute) const
+nsGenericDOMDataNode::IsAttributeMapped(const nsAtom* aAttribute) const
 {
   return false;
 }
 
 nsChangeHint
-nsGenericDOMDataNode::GetAttributeChangeHint(const nsIAtom* aAttribute,
+nsGenericDOMDataNode::GetAttributeChangeHint(const nsAtom* aAttribute,
                                              int32_t aModType) const
 {
   NS_NOTREACHED("Shouldn't be calling this!");

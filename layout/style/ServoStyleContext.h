@@ -17,13 +17,13 @@ public:
   static already_AddRefed<ServoStyleContext>
   Create(nsStyleContext* aParentContext,
          nsPresContext* aPresContext,
-         nsIAtom* aPseudoTag,
+         nsAtom* aPseudoTag,
          mozilla::CSSPseudoElementType aPseudoType,
          already_AddRefed<ServoComputedValues> aComputedValues);
 
   ServoStyleContext(nsStyleContext* aParent,
                     nsPresContext* aPresContext,
-                    nsIAtom* aPseudoTag,
+                    nsAtom* aPseudoTag,
                     CSSPseudoElementType aPseudoType,
                     already_AddRefed<ServoComputedValues> aComputedValues);
 

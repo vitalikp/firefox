@@ -82,7 +82,7 @@ static bool sExpensiveStyleStructAssertionsEnabled;
 #endif
 
 nsStyleContext::nsStyleContext(nsStyleContext* aParent,
-                               nsIAtom* aPseudoTag,
+                               nsAtom* aPseudoTag,
                                CSSPseudoElementType aPseudoType)
   : mParent(aParent)
   , mPseudoTag(aPseudoTag)
@@ -615,7 +615,7 @@ nsStyleContext::Destroy()
 
 already_AddRefed<nsStyleContext>
 NS_NewStyleContext(nsStyleContext* aParentContext,
-                   nsIAtom* aPseudoTag,
+                   nsAtom* aPseudoTag,
                    CSSPseudoElementType aPseudoType,
                    nsRuleNode* aRuleNode,
                    bool aSkipParentDisplayBasedStyleFixup)
@@ -633,7 +633,7 @@ namespace mozilla {
 already_AddRefed<ServoStyleContext>
 ServoStyleContext::Create(nsStyleContext* aParentContext,
                           nsPresContext* aPresContext,
-                          nsIAtom* aPseudoTag,
+                          nsAtom* aPseudoTag,
                           CSSPseudoElementType aPseudoType,
                           already_AddRefed<ServoComputedValues> aComputedValues)
 {

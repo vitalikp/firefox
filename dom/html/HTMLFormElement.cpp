@@ -191,7 +191,7 @@ HTMLFormElement::GetElements(nsIDOMHTMLCollection** aElements)
 }
 
 nsresult
-HTMLFormElement::BeforeSetAttr(int32_t aNamespaceID, nsIAtom* aName,
+HTMLFormElement::BeforeSetAttr(int32_t aNamespaceID, nsAtom* aName,
                                const nsAttrValueOrString* aValue, bool aNotify)
 {
   if (aNamespaceID == kNameSpaceID_None) {
@@ -219,7 +219,7 @@ HTMLFormElement::BeforeSetAttr(int32_t aNamespaceID, nsIAtom* aName,
 }
 
 nsresult
-HTMLFormElement::AfterSetAttr(int32_t aNameSpaceID, nsIAtom* aName,
+HTMLFormElement::AfterSetAttr(int32_t aNameSpaceID, nsAtom* aName,
                               const nsAttrValue* aValue,
                               const nsAttrValue* aOldValue, bool aNotify)
 {
@@ -318,7 +318,7 @@ HTMLFormElement::RequestAutocomplete()
 
 bool
 HTMLFormElement::ParseAttribute(int32_t aNamespaceID,
-                                nsIAtom* aAttribute,
+                                nsAtom* aAttribute,
                                 const nsAString& aValue,
                                 nsAttrValue& aResult)
 {

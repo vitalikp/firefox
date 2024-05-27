@@ -304,7 +304,7 @@ DOMEventTargetHelper::DispatchTrustedEvent(nsIDOMEvent* event)
 }
 
 nsresult
-DOMEventTargetHelper::SetEventHandler(nsIAtom* aType,
+DOMEventTargetHelper::SetEventHandler(nsAtom* aType,
                                       JSContext* aCx,
                                       const JS::Value& aValue)
 {
@@ -318,7 +318,7 @@ DOMEventTargetHelper::SetEventHandler(nsIAtom* aType,
 }
 
 void
-DOMEventTargetHelper::GetEventHandler(nsIAtom* aType,
+DOMEventTargetHelper::GetEventHandler(nsAtom* aType,
                                       JSContext* aCx,
                                       JS::Value* aValue)
 {
@@ -395,7 +395,7 @@ DOMEventTargetHelper::WantsUntrusted(bool* aRetVal)
 }
 
 void
-DOMEventTargetHelper::EventListenerAdded(nsIAtom* aType)
+DOMEventTargetHelper::EventListenerAdded(nsAtom* aType)
 {
   IgnoredErrorResult rv;
   EventListenerWasAdded(Substring(nsDependentAtomString(aType), 2), rv);
@@ -411,7 +411,7 @@ DOMEventTargetHelper::EventListenerAdded(const nsAString& aType)
 }
 
 void
-DOMEventTargetHelper::EventListenerRemoved(nsIAtom* aType)
+DOMEventTargetHelper::EventListenerRemoved(nsAtom* aType)
 {
   IgnoredErrorResult rv;
   EventListenerWasRemoved(Substring(nsDependentAtomString(aType), 2), rv);
@@ -434,7 +434,7 @@ DOMEventTargetHelper::KeepAliveIfHasListenersFor(const nsAString& aType)
 }
 
 void
-DOMEventTargetHelper::KeepAliveIfHasListenersFor(nsIAtom* aType)
+DOMEventTargetHelper::KeepAliveIfHasListenersFor(nsAtom* aType)
 {
   mKeepingAliveTypes.mAtoms.AppendElement(aType);
   MaybeUpdateKeepAlive();
@@ -448,7 +448,7 @@ DOMEventTargetHelper::IgnoreKeepAliveIfHasListenersFor(const nsAString& aType)
 }
 
 void
-DOMEventTargetHelper::IgnoreKeepAliveIfHasListenersFor(nsIAtom* aType)
+DOMEventTargetHelper::IgnoreKeepAliveIfHasListenersFor(nsAtom* aType)
 {
   mKeepingAliveTypes.mAtoms.RemoveElement(aType);
   MaybeUpdateKeepAlive();

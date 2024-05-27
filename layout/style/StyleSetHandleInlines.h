@@ -124,14 +124,14 @@ StyleSetHandle::Ptr::ResolvePseudoElementStyle(dom::Element* aParentElement,
 }
 
 already_AddRefed<nsStyleContext>
-StyleSetHandle::Ptr::ResolveInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag,
+StyleSetHandle::Ptr::ResolveInheritingAnonymousBoxStyle(nsAtom* aPseudoTag,
                                                         nsStyleContext* aParentContext)
 {
   FORWARD(ResolveInheritingAnonymousBoxStyle, (aPseudoTag, aParentContext));
 }
 
 already_AddRefed<nsStyleContext>
-StyleSetHandle::Ptr::ResolveNonInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag)
+StyleSetHandle::Ptr::ResolveNonInheritingAnonymousBoxStyle(nsAtom* aPseudoTag)
 {
   FORWARD(ResolveNonInheritingAnonymousBoxStyle, (aPseudoTag));
 }
@@ -310,7 +310,7 @@ AppendFontFaceRules(nsTArray<nsFontFaceRuleContainer>& aArray)
 }
 
 nsCSSCounterStyleRule*
-StyleSetHandle::Ptr::CounterStyleRuleForName(nsIAtom* aName)
+StyleSetHandle::Ptr::CounterStyleRuleForName(nsAtom* aName)
 {
   FORWARD(CounterStyleRuleForName, (aName));
 }

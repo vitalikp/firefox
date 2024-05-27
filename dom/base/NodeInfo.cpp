@@ -45,8 +45,8 @@ NodeInfo::~NodeInfo()
   NS_IF_RELEASE(mInner.mExtraName);
 }
 
-NodeInfo::NodeInfo(nsIAtom *aName, nsIAtom *aPrefix, int32_t aNamespaceID,
-                   uint16_t aNodeType, nsIAtom* aExtraName,
+NodeInfo::NodeInfo(nsAtom *aName, nsAtom *aPrefix, int32_t aNamespaceID,
+                   uint16_t aNodeType, nsAtom* aExtraName,
                    nsNodeInfoManager *aOwnerManager)
   : mDocument(aOwnerManager->GetDocument()),
     mInner(aName, aPrefix, aNamespaceID, aNodeType, aExtraName),

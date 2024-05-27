@@ -113,7 +113,7 @@ private:
 class nsMenuAttributeChangedEvent : public Runnable
 {
 public:
-  nsMenuAttributeChangedEvent(nsIFrame* aFrame, nsIAtom* aAttr)
+  nsMenuAttributeChangedEvent(nsIFrame* aFrame, nsAtom* aAttr)
   : mFrame(aFrame), mAttr(aAttr)
   {
   }
@@ -139,7 +139,7 @@ public:
   }
 protected:
   WeakFrame         mFrame;
-  RefPtr<nsIAtom>   mAttr;
+  RefPtr<nsAtom>   mAttr;
 };
 
 //
@@ -657,7 +657,7 @@ nsMenuFrame::SelectMenu(bool aActivateFlag)
 
 nsresult
 nsMenuFrame::AttributeChanged(int32_t aNameSpaceID,
-                              nsIAtom* aAttribute,
+                              nsAtom* aAttribute,
                               int32_t aModType)
 {
   if (aAttribute == nsGkAtoms::acceltext && mIgnoreAccelTextChange) {

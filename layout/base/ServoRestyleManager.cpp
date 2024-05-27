@@ -506,7 +506,7 @@ ServoRestyleManager::ProcessPostTraversal(Element* aElement,
     MOZ_ASSERT(styleFrame || displayContentsNode);
 
     auto pseudo = aElement->GetPseudoElementType();
-    nsIAtom* pseudoTag = pseudo == CSSPseudoElementType::NotPseudo
+    nsAtom* pseudoTag = pseudo == CSSPseudoElementType::NotPseudo
       ? nullptr : nsCSSPseudoElements::GetPseudoAtom(pseudo);
 
     newContext = aRestyleState.StyleSet().GetContext(
@@ -677,7 +677,7 @@ ServoRestyleManager::SnapshotFor(Element* aElement)
 
 /* static */ nsIFrame*
 ServoRestyleManager::FrameForPseudoElement(const Element* aElement,
-                                           nsIAtom* aPseudoTagOrNull)
+                                           nsAtom* aPseudoTagOrNull)
 {
   if (!aPseudoTagOrNull) {
     return nsLayoutUtils::GetStyleFrame(aElement);
@@ -927,7 +927,7 @@ ServoRestyleManager::ContentStateChanged(nsIContent* aContent,
 }
 
 static inline bool
-AttributeInfluencesOtherPseudoClassState(Element* aElement, nsIAtom* aAttribute)
+AttributeInfluencesOtherPseudoClassState(Element* aElement, nsAtom* aAttribute)
 {
   // We must record some state for :-moz-browser-frame and
   // :-moz-table-border-nonzero.
@@ -940,7 +940,7 @@ AttributeInfluencesOtherPseudoClassState(Element* aElement, nsIAtom* aAttribute)
 void
 ServoRestyleManager::AttributeWillChange(Element* aElement,
                                          int32_t aNameSpaceID,
-                                         nsIAtom* aAttribute, int32_t aModType,
+                                         nsAtom* aAttribute, int32_t aModType,
                                          const nsAttrValue* aNewValue)
 {
   MOZ_ASSERT(!mInStyleRefresh);
@@ -975,7 +975,7 @@ ServoRestyleManager::AttributeWillChange(Element* aElement,
 
 void
 ServoRestyleManager::AttributeChanged(Element* aElement, int32_t aNameSpaceID,
-                                      nsIAtom* aAttribute, int32_t aModType,
+                                      nsAtom* aAttribute, int32_t aModType,
                                       const nsAttrValue* aOldValue)
 {
   MOZ_ASSERT(!mInStyleRefresh);

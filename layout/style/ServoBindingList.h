@@ -86,7 +86,7 @@ SERVO_BINDING_FUNC(Servo_StyleSet_GetFontFaceRules, void,
                    RawServoStyleSetBorrowed set,
                    RawGeckoFontFaceRuleListBorrowedMut list)
 SERVO_BINDING_FUNC(Servo_StyleSet_GetCounterStyleRule, nsCSSCounterStyleRule*,
-                   RawServoStyleSetBorrowed set, nsIAtom* name)
+                   RawServoStyleSetBorrowed set, nsAtom* name)
 SERVO_BINDING_FUNC(Servo_StyleSet_ResolveForDeclarations,
                    ServoComputedValuesStrong,
                    RawServoStyleSetBorrowed set,
@@ -95,7 +95,7 @@ SERVO_BINDING_FUNC(Servo_StyleSet_ResolveForDeclarations,
 SERVO_BINDING_FUNC(Servo_StyleSet_MightHaveAttributeDependency, bool,
                    RawServoStyleSetBorrowed set,
                    RawGeckoElementBorrowed element,
-                   nsIAtom* local_name)
+                   nsAtom* local_name)
 SERVO_BINDING_FUNC(Servo_StyleSet_HasStateDependency, bool,
                    RawServoStyleSetBorrowed set,
                    RawGeckoElementBorrowed element,
@@ -178,11 +178,11 @@ SERVO_BINDING_FUNC(Servo_Keyframe_GetStyle, RawServoDeclarationBlockStrong,
 SERVO_BINDING_FUNC(Servo_Keyframe_SetStyle, void,
                    RawServoKeyframeBorrowed keyframe,
                    RawServoDeclarationBlockBorrowed declarations)
-SERVO_BINDING_FUNC(Servo_KeyframesRule_GetName, nsIAtom*,
+SERVO_BINDING_FUNC(Servo_KeyframesRule_GetName, nsAtom*,
                    RawServoKeyframesRuleBorrowed rule)
-// This method takes an addrefed nsIAtom.
+// This method takes an addrefed nsAtom.
 SERVO_BINDING_FUNC(Servo_KeyframesRule_SetName, void,
-                   RawServoKeyframesRuleBorrowed rule, nsIAtom* name)
+                   RawServoKeyframesRuleBorrowed rule, nsAtom* name)
 SERVO_BINDING_FUNC(Servo_KeyframesRule_GetCount, uint32_t,
                    RawServoKeyframesRuleBorrowed rule)
 SERVO_BINDING_FUNC(Servo_KeyframesRule_GetKeyframe, RawServoKeyframeStrong,
@@ -198,9 +198,9 @@ SERVO_BINDING_FUNC(Servo_KeyframesRule_DeleteRule, void,
                    RawServoKeyframesRuleBorrowed rule, uint32_t index)
 SERVO_BINDING_FUNC(Servo_MediaRule_GetMedia, RawServoMediaListStrong,
                    RawServoMediaRuleBorrowed rule)
-SERVO_BINDING_FUNC(Servo_NamespaceRule_GetPrefix, nsIAtom*,
+SERVO_BINDING_FUNC(Servo_NamespaceRule_GetPrefix, nsAtom*,
                    RawServoNamespaceRuleBorrowed rule)
-SERVO_BINDING_FUNC(Servo_NamespaceRule_GetURI, nsIAtom*,
+SERVO_BINDING_FUNC(Servo_NamespaceRule_GetURI, nsAtom*,
                    RawServoNamespaceRuleBorrowed rule)
 SERVO_BINDING_FUNC(Servo_PageRule_GetStyle, RawServoDeclarationBlockStrong,
                    RawServoPageRuleBorrowed rule)
@@ -383,7 +383,7 @@ SERVO_BINDING_FUNC(Servo_DeclarationBlock_PropertyIsSet, bool,
 SERVO_BINDING_FUNC(Servo_DeclarationBlock_SetIdentStringValue, void,
                    RawServoDeclarationBlockBorrowed declarations,
                    nsCSSPropertyID property,
-                   nsIAtom* value)
+                   nsAtom* value)
 SERVO_BINDING_FUNC(Servo_DeclarationBlock_SetKeywordValue, void,
                    RawServoDeclarationBlockBorrowed declarations,
                    nsCSSPropertyID property,
@@ -460,7 +460,7 @@ SERVO_BINDING_FUNC(Servo_CSSSupports, bool,
 SERVO_BINDING_FUNC(Servo_ComputedValues_GetForAnonymousBox,
                    ServoComputedValuesStrong,
                    ServoComputedValuesBorrowedOrNull parent_style_or_null,
-                   nsIAtom* pseudo_tag, bool skip_display_fixup,
+                   nsAtom* pseudo_tag, bool skip_display_fixup,
                    RawServoStyleSetBorrowed set)
 SERVO_BINDING_FUNC(Servo_ComputedValues_Inherit, ServoComputedValuesStrong,
                    RawServoStyleSetBorrowed set,

@@ -21,7 +21,7 @@ class Element;
 } // namespace dom
 } // namespace mozilla
 class nsAttrValue;
-class nsIAtom;
+class nsAtom;
 class nsIContent;
 class nsIFrame;
 class nsStyleChangeList;
@@ -139,12 +139,12 @@ public:
   void ContentStateChanged(nsIContent* aContent, EventStates aStateMask);
   void AttributeWillChange(dom::Element* aElement,
                            int32_t aNameSpaceID,
-                           nsIAtom* aAttribute,
+                           nsAtom* aAttribute,
                            int32_t aModType,
                            const nsAttrValue* aNewValue);
 
   void AttributeChanged(dom::Element* aElement, int32_t aNameSpaceID,
-                        nsIAtom* aAttribute, int32_t aModType,
+                        nsAtom* aAttribute, int32_t aModType,
                         const nsAttrValue* aOldValue);
 
   nsresult ReparentStyleContext(nsIFrame* aFrame);
@@ -156,7 +156,7 @@ public:
    * is not null, the content needs to be an element.
    */
   static nsIFrame* FrameForPseudoElement(const Element* aElement,
-                                         nsIAtom* aPseudoTagOrNull);
+                                         nsAtom* aPseudoTagOrNull);
 
   /**
    * Clears the ServoElementData and HasDirtyDescendants from all elements

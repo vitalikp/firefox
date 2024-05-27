@@ -1096,7 +1096,7 @@ nsHTMLDocument::Applets()
 
 bool
 nsHTMLDocument::MatchLinks(Element* aElement, int32_t aNamespaceID,
-                           nsIAtom* aAtom, void* aData)
+                           nsAtom* aAtom, void* aData)
 {
   nsIDocument* doc = aElement->GetUncomposedDoc();
 
@@ -1116,7 +1116,7 @@ nsHTMLDocument::MatchLinks(Element* aElement, int32_t aNamespaceID,
 
     mozilla::dom::NodeInfo *ni = aElement->NodeInfo();
 
-    nsIAtom *localName = ni->NameAtom();
+    nsAtom *localName = ni->NameAtom();
     if (ni->NamespaceID() == kNameSpaceID_XHTML &&
         (localName == nsGkAtoms::a || localName == nsGkAtoms::area)) {
       return aElement->HasAttr(kNameSpaceID_None, nsGkAtoms::href);
@@ -1144,7 +1144,7 @@ nsHTMLDocument::Links()
 
 bool
 nsHTMLDocument::MatchAnchors(Element* aElement, int32_t aNamespaceID,
-                             nsIAtom* aAtom, void* aData)
+                             nsAtom* aAtom, void* aData)
 {
   NS_ASSERTION(aElement->IsInUncomposedDoc(),
                "This method should never be called on content nodes that "
@@ -1938,7 +1938,7 @@ nsHTMLDocument::Writeln(JSContext* cx, const Sequence<nsString>& aText,
 
 bool
 nsHTMLDocument::MatchNameAttribute(Element* aElement, int32_t aNamespaceID,
-                                   nsIAtom* aAtom, void* aData)
+                                   nsAtom* aAtom, void* aData)
 {
   NS_PRECONDITION(aElement, "Must have element to work with!");
   nsString* elementName = static_cast<nsString*>(aData);
@@ -2267,7 +2267,7 @@ nsHTMLDocument::GetForms()
 
 bool
 nsHTMLDocument::MatchFormControls(Element* aElement, int32_t aNamespaceID,
-                                  nsIAtom* aAtom, void* aData)
+                                  nsAtom* aAtom, void* aData)
 {
   return aElement->IsNodeOfType(nsIContent::eHTML_FORM_CONTROL);
 }

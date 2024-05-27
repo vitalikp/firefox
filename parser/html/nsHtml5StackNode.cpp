@@ -103,9 +103,9 @@ void
 nsHtml5StackNode::setValues(
   int32_t flags,
   int32_t ns,
-  nsIAtom* name,
+  nsAtom* name,
   nsIContentHandle* node,
-  nsIAtom* popName,
+  nsAtom* popName,
   nsHtml5HtmlAttributes* attributes,
   mozilla::dom::HTMLContentCreatorFunction htmlCreator)
 {
@@ -158,7 +158,7 @@ nsHtml5StackNode::setValues(nsHtml5ElementName* elementName,
 void
 nsHtml5StackNode::setValues(nsHtml5ElementName* elementName,
                             nsIContentHandle* node,
-                            nsIAtom* popName)
+                            nsAtom* popName)
 {
   MOZ_ASSERT(isUnused());
   this->flags = elementName->getFlags();
@@ -173,7 +173,7 @@ nsHtml5StackNode::setValues(nsHtml5ElementName* elementName,
 
 void
 nsHtml5StackNode::setValues(nsHtml5ElementName* elementName,
-                            nsIAtom* popName,
+                            nsAtom* popName,
                             nsIContentHandle* node)
 {
   MOZ_ASSERT(isUnused());
@@ -190,7 +190,7 @@ nsHtml5StackNode::setValues(nsHtml5ElementName* elementName,
 void
 nsHtml5StackNode::setValues(nsHtml5ElementName* elementName,
                             nsIContentHandle* node,
-                            nsIAtom* popName,
+                            nsAtom* popName,
                             bool markAsIntegrationPoint)
 {
   MOZ_ASSERT(isUnused());

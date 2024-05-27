@@ -263,7 +263,7 @@ public:
                                  nsIURI* aBaseURL,
                                  nsIPrincipal* aDocPrincipal);
 
-  already_AddRefed<nsIAtom> ParseCounterStyleName(const nsAString& aBuffer,
+  already_AddRefed<nsAtom> ParseCounterStyleName(const nsAString& aBuffer,
                                                   nsIURI* aURL);
 
   bool ParseCounterDescriptor(nsCSSCounterDesc aDescID,
@@ -611,7 +611,7 @@ protected:
                                        SupportsConditionTermOperator aOperator);
 
   bool ParseCounterStyleRule(RuleAppendFunc aAppendFunc, void* aProcessData);
-  already_AddRefed<nsIAtom> ParseCounterStyleName(bool aForDefinition);
+  already_AddRefed<nsAtom> ParseCounterStyleName(bool aForDefinition);
   bool ParseCounterStyleNameValue(nsCSSValue& aValue);
   bool ParseCounterDescriptor(nsCSSCounterStyleRule *aRule);
   bool ParseCounterDescriptorValue(nsCSSCounterDesc aDescID,
@@ -664,7 +664,7 @@ protected:
   nsSelectorParsingStatus ParsePseudoSelector(int32_t&       aDataMask,
                                               nsCSSSelector& aSelector,
                                               bool           aIsNegated,
-                                              nsIAtom**      aPseudoElement,
+                                              nsAtom**      aPseudoElement,
                                               nsAtomList**   aPseudoElementArgs,
                                               CSSPseudoElementType* aPseudoElementType);
 
@@ -2935,14 +2935,14 @@ CSSParserImpl::ParsePropertyWithVariableReferences(
   mTempData.AssertInitialState();
 }
 
-already_AddRefed<nsIAtom>
+already_AddRefed<nsAtom>
 CSSParserImpl::ParseCounterStyleName(const nsAString& aBuffer, nsIURI* aURL)
 {
   nsCSSScanner scanner(aBuffer, 0);
   css::ErrorReporter reporter(scanner, mSheet, mChildLoader, aURL);
   InitScanner(scanner, reporter, aURL, aURL, nullptr);
 
-  RefPtr<nsIAtom> name = ParseCounterStyleName(true);
+  RefPtr<nsAtom> name = ParseCounterStyleName(true);
   bool success = name && !GetToken(true);
 
   OUTPUT_ERROR();
@@ -3352,7 +3352,7 @@ CSSParserImpl::ParseMediaQuery(eMediaQueryType aQueryType,
     *aHitStop = true;
     return true;
   } else {
-    RefPtr<nsIAtom> mediaType;
+    RefPtr<nsAtom> mediaType;
     bool gotNotOrOnly = false;
     for (;;) {
       if (!GetToken(true)) {
@@ -3518,7 +3518,7 @@ CSSParserImpl::ParseMediaQueryExpression(nsMediaQuery* aQuery)
     expr->mRange = nsMediaExpression::eEqual;
   }
 
-  RefPtr<nsIAtom> mediaFeatureAtom = NS_Atomize(featureString);
+  RefPtr<nsAtom> mediaFeatureAtom = NS_Atomize(featureString);
   const nsMediaFeature *feature = nsMediaFeatures::features;
   for (; feature->mName; ++feature) {
     // See if name matches & all requirement flags are satisfied:
@@ -3881,7 +3881,7 @@ CSSParserImpl::ProcessNameSpace(const nsString& aPrefix,
                                 uint32_t aLineNumber,
                                 uint32_t aColumnNumber)
 {
-  RefPtr<nsIAtom> prefix;
+  RefPtr<nsAtom> prefix;
 
   if (!aPrefix.IsEmpty()) {
     prefix = NS_Atomize(aPrefix);
@@ -4704,7 +4704,7 @@ CSSParserImpl::ParseSupportsConditionTermsAfterOperator(
 bool
 CSSParserImpl::ParseCounterStyleRule(RuleAppendFunc aAppendFunc, void* aData)
 {
-  RefPtr<nsIAtom> name;
+  RefPtr<nsAtom> name;
   uint32_t linenum, colnum;
   if (!GetNextTokenLocation(true, &linenum, &colnum) ||
       !(name = ParseCounterStyleName(true))) {
@@ -4789,7 +4789,7 @@ CSSParserImpl::ParseCounterStyleRule(RuleAppendFunc aAppendFunc, void* aData)
   return true;
 }
 
-already_AddRefed<nsIAtom>
+already_AddRefed<nsAtom>
 CSSParserImpl::ParseCounterStyleName(bool aForDefinition)
 {
   if (!GetToken(true)) {
@@ -4826,7 +4826,7 @@ CSSParserImpl::ParseCounterStyleName(bool aForDefinition)
 bool
 CSSParserImpl::ParseCounterStyleNameValue(nsCSSValue& aValue)
 {
-  if (RefPtr<nsIAtom> name = ParseCounterStyleName(false)) {
+  if (RefPtr<nsAtom> name = ParseCounterStyleName(false)) {
     aValue.SetAtomIdentValue(name.forget());
     return true;
   }
@@ -5822,7 +5822,7 @@ CSSParserImpl::nsSelectorParsingStatus
 CSSParserImpl::ParsePseudoSelector(int32_t&       aDataMask,
                                    nsCSSSelector& aSelector,
                                    bool           aIsNegated,
-                                   nsIAtom**      aPseudoElement,
+                                   nsAtom**      aPseudoElement,
                                    nsAtomList**   aPseudoElementArgs,
                                    CSSPseudoElementType* aPseudoElementType)
 {
@@ -5860,7 +5860,7 @@ CSSParserImpl::ParsePseudoSelector(int32_t&       aDataMask,
   buffer.Append(char16_t(':'));
   buffer.Append(mToken.mIdent);
   nsContentUtils::ASCIIToLower(buffer);
-  RefPtr<nsIAtom> pseudo = NS_Atomize(buffer);
+  RefPtr<nsAtom> pseudo = NS_Atomize(buffer);
 
   // stash away some info about this pseudo so we only have to get it once.
   bool isTreePseudo = false;
@@ -6415,7 +6415,7 @@ CSSParserImpl::ParseSelector(nsCSSSelectorList* aList,
   }
 
   nsCSSSelector* selector = aList->AddSelector(aPrevCombinator);
-  RefPtr<nsIAtom> pseudoElement;
+  RefPtr<nsAtom> pseudoElement;
   nsAutoPtr<nsAtomList> pseudoElementArgs;
   CSSPseudoElementType pseudoElementType = CSSPseudoElementType::NotPseudo;
 
@@ -7990,7 +7990,7 @@ CSSParserImpl::ParseContextProperties()
     }
 
     value.AtomizeIdentValue();
-    nsIAtom* atom = value.GetAtomValue();
+    nsAtom* atom = value.GetAtomValue();
     if (atom == nsGkAtoms::_default) {
       return false;
     }
@@ -15170,7 +15170,7 @@ CSSParserImpl::ParseListStyle()
   }
   if ((found & 4) == 0) {
     // Provide default values
-    nsIAtom* type = (found & 1) ? nsGkAtoms::none : nsGkAtoms::disc;
+    nsAtom* type = (found & 1) ? nsGkAtoms::none : nsGkAtoms::disc;
     values[2].SetAtomIdentValue(do_AddRef(type));
   }
   if ((found & 8) == 0) {
@@ -16041,7 +16041,7 @@ bool CSSParserImpl::ParseWillChange()
     }
 
     value.AtomizeIdentValue();
-    nsIAtom* atom = value.GetAtomValue();
+    nsAtom* atom = value.GetAtomValue();
     if (atom == nsGkAtoms::_default || atom == nsGkAtoms::willChange) {
       return false;
     }
@@ -17157,7 +17157,7 @@ CSSParserImpl::GetNamespaceIdForPrefix(const nsString& aPrefix)
   int32_t nameSpaceID = kNameSpaceID_Unknown;
   if (mNameSpaceMap) {
     // user-specified identifiers are case-sensitive (bug 416106)
-    RefPtr<nsIAtom> prefix = NS_Atomize(aPrefix);
+    RefPtr<nsAtom> prefix = NS_Atomize(aPrefix);
     nameSpaceID = mNameSpaceMap->FindNameSpaceID(prefix);
   }
   // else no declared namespaces
@@ -18110,7 +18110,7 @@ nsCSSParser::ParsePropertyWithVariableReferences(
                                         aLineNumber, aLineOffset);
 }
 
-already_AddRefed<nsIAtom>
+already_AddRefed<nsAtom>
 nsCSSParser::ParseCounterStyleName(const nsAString& aBuffer, nsIURI* aURL)
 {
   return static_cast<CSSParserImpl*>(mImpl)->

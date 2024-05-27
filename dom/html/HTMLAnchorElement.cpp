@@ -362,7 +362,7 @@ HTMLAnchorElement::GetHrefURI() const
 }
 
 nsresult
-HTMLAnchorElement::BeforeSetAttr(int32_t aNamespaceID, nsIAtom* aName,
+HTMLAnchorElement::BeforeSetAttr(int32_t aNamespaceID, nsAtom* aName,
                                  const nsAttrValueOrString* aValue,
                                  bool aNotify)
 {
@@ -378,7 +378,7 @@ HTMLAnchorElement::BeforeSetAttr(int32_t aNamespaceID, nsIAtom* aName,
 }
 
 nsresult
-HTMLAnchorElement::AfterSetAttr(int32_t aNamespaceID, nsIAtom* aName,
+HTMLAnchorElement::AfterSetAttr(int32_t aNamespaceID, nsAtom* aName,
                                 const nsAttrValue* aValue,
                                 const nsAttrValue* aOldValue, bool aNotify)
 {

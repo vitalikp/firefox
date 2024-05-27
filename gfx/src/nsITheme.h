@@ -20,7 +20,7 @@ class nsPresContext;
 class nsRenderingContext;
 class nsDeviceContext;
 class nsIFrame;
-class nsIAtom;
+class nsAtom;
 class nsIWidget;
 
 // IID for the nsITheme interface
@@ -129,7 +129,7 @@ public:
   { return eUnknownTransparency; }
 
   NS_IMETHOD WidgetStateChanged(nsIFrame* aFrame, uint8_t aWidgetType, 
-                                nsIAtom* aAttribute, bool* aShouldRepaint,
+                                nsAtom* aAttribute, bool* aShouldRepaint,
                                 const nsAttrValue* aOldValue)=0;
 
   NS_IMETHOD ThemeChanged()=0;

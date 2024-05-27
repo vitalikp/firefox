@@ -56,8 +56,8 @@
 #include "nsHtml5ElementName.h"
 
 nsHtml5ElementName::nsHtml5ElementName(
-  nsIAtom* name,
-  nsIAtom* camelCaseName,
+  nsAtom* name,
+  nsAtom* camelCaseName,
   mozilla::dom::HTMLContentCreatorFunction htmlCreator,
   mozilla::dom::SVGContentCreatorFunction svgCreator,
   int32_t flags)

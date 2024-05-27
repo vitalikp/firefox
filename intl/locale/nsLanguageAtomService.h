@@ -20,9 +20,9 @@ class nsLanguageAtomService
 public:
   static nsLanguageAtomService* GetService();
 
-  nsIAtom* LookupLanguage(const nsACString &aLanguage);
-  already_AddRefed<nsIAtom> LookupCharSet(const nsACString& aCharSet);
-  nsIAtom* GetLocaleLanguage();
+  nsAtom* LookupLanguage(const nsACString &aLanguage);
+  already_AddRefed<nsAtom> LookupCharSet(const nsACString& aCharSet);
+  nsAtom* GetLocaleLanguage();
 
   // Returns the language group that the specified language is a part of.
   //
@@ -39,12 +39,12 @@ public:
   // get a true *aNeedsToCache outparam value should make an effort
   // to re-call GetLanguageGroup when it is safe to cache, to avoid
   // recomputing the language group again later.
-  nsIAtom* GetLanguageGroup(nsIAtom* aLanguage, bool* aNeedsToCache = nullptr);
-  already_AddRefed<nsIAtom> GetUncachedLanguageGroup(nsIAtom* aLanguage) const;
+  nsAtom* GetLanguageGroup(nsAtom* aLanguage, bool* aNeedsToCache = nullptr);
+  already_AddRefed<nsAtom> GetUncachedLanguageGroup(nsAtom* aLanguage) const;
 
 private:
-  nsRefPtrHashtable<nsRefPtrHashKey<nsIAtom>, nsIAtom> mLangToGroup;
-  RefPtr<nsIAtom> mLocaleLanguage;
+  nsRefPtrHashtable<nsRefPtrHashKey<nsAtom>, nsAtom> mLangToGroup;
+  RefPtr<nsAtom> mLocaleLanguage;
 };
 
 #endif

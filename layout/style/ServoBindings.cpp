@@ -89,7 +89,7 @@ static RWLock* sServoLangFontPrefsLock = nullptr;
 
 static
 const nsFont*
-ThreadSafeGetDefaultFontHelper(const nsPresContext* aPresContext, nsIAtom* aLanguage)
+ThreadSafeGetDefaultFontHelper(const nsPresContext* aPresContext, nsAtom* aLanguage)
 {
   bool needsCache = false;
   const nsFont* retval;
@@ -267,20 +267,20 @@ Gecko_MatchesElement(CSSPseudoClassType aType,
   return nsCSSPseudoClasses::MatchesElement(aType, aElement).value();
 }
 
-nsIAtom*
+nsAtom*
 Gecko_LocalName(RawGeckoElementBorrowed aElement)
 {
   return aElement->NodeInfo()->NameAtom();
 }
 
-nsIAtom*
+nsAtom*
 Gecko_Namespace(RawGeckoElementBorrowed aElement)
 {
   int32_t id = aElement->NodeInfo()->NamespaceID();
   return nsContentUtils::NameSpaceManager()->NameSpaceURIAtomForServo(id);
 }
 
-nsIAtom*
+nsAtom*
 Gecko_GetElementId(RawGeckoElementBorrowed aElement)
 {
   const nsAttrValue* attr = aElement->GetParsedAttr(nsGkAtoms::id);
@@ -318,7 +318,7 @@ Gecko_SetOwnerDocumentNeedsStyleFlush(RawGeckoElementBorrowed aElement)
 
 nsStyleContext*
 Gecko_GetStyleContext(RawGeckoElementBorrowed aElement,
-                      nsIAtom* aPseudoTagOrNull)
+                      nsAtom* aPseudoTagOrNull)
 {
   nsIFrame* relevantFrame =
     ServoRestyleManager::FrameForPseudoElement(aElement, aPseudoTagOrNull);
@@ -454,7 +454,7 @@ Gecko_GetExtraContentStyleDeclarations(RawGeckoElementBorrowed aElement)
   return nullptr;
 }
 
-static nsIAtom*
+static nsAtom*
 PseudoTagAndCorrectElementForAnimation(const Element*& aElementOrPseudo) {
   if (aElementOrPseudo->IsGeneratedContentContainerForBefore()) {
     aElementOrPseudo = aElementOrPseudo->GetParent()->AsElement();
@@ -486,7 +486,7 @@ Gecko_GetAnimationRule(RawGeckoElementBorrowed aElement,
     return false;
   }
 
-  nsIAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
+  nsAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
 
   CSSPseudoElementType pseudoType =
     nsCSSPseudoElements::GetPseudoType(
@@ -521,7 +521,7 @@ Gecko_UpdateAnimations(RawGeckoElementBorrowed aElement,
     return;
   }
 
-  nsIAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
+  nsAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
   if (presContext->IsDynamic() && aElement->IsInComposedDoc()) {
     CSSPseudoElementType pseudoType =
       nsCSSPseudoElements::GetPseudoType(pseudoTag,
@@ -571,7 +571,7 @@ Gecko_UpdateAnimations(RawGeckoElementBorrowed aElement,
 bool
 Gecko_ElementHasAnimations(RawGeckoElementBorrowed aElement)
 {
-  nsIAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
+  nsAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
   CSSPseudoElementType pseudoType =
     nsCSSPseudoElements::GetPseudoType(pseudoTag,
                                        CSSEnabledState::eForAllContent);
@@ -582,7 +582,7 @@ Gecko_ElementHasAnimations(RawGeckoElementBorrowed aElement)
 bool
 Gecko_ElementHasCSSAnimations(RawGeckoElementBorrowed aElement)
 {
-  nsIAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
+  nsAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
   nsAnimationManager::CSSAnimationCollection* collection =
     nsAnimationManager::CSSAnimationCollection
                       ::GetAnimationCollection(aElement, pseudoTag);
@@ -593,7 +593,7 @@ Gecko_ElementHasCSSAnimations(RawGeckoElementBorrowed aElement)
 bool
 Gecko_ElementHasCSSTransitions(RawGeckoElementBorrowed aElement)
 {
-  nsIAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
+  nsAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
   nsTransitionManager::CSSTransitionCollection* collection =
     nsTransitionManager::CSSTransitionCollection
                        ::GetAnimationCollection(aElement, pseudoTag);
@@ -604,7 +604,7 @@ Gecko_ElementHasCSSTransitions(RawGeckoElementBorrowed aElement)
 size_t
 Gecko_ElementTransitions_Length(RawGeckoElementBorrowed aElement)
 {
-  nsIAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
+  nsAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
   nsTransitionManager::CSSTransitionCollection* collection =
     nsTransitionManager::CSSTransitionCollection
                        ::GetAnimationCollection(aElement, pseudoTag);
@@ -615,7 +615,7 @@ Gecko_ElementTransitions_Length(RawGeckoElementBorrowed aElement)
 static CSSTransition*
 GetCurrentTransitionAt(RawGeckoElementBorrowed aElement, size_t aIndex)
 {
-  nsIAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
+  nsAtom* pseudoTag = PseudoTagAndCorrectElementForAnimation(aElement);
   nsTransitionManager::CSSTransitionCollection* collection =
     nsTransitionManager::CSSTransitionCollection
                        ::GetAnimationCollection(aElement, pseudoTag);
@@ -679,7 +679,7 @@ Gecko_AnimationGetBaseStyle(void* aBaseStyles, nsCSSPropertyID aProperty)
 
 void
 Gecko_StyleTransition_SetUnsupportedProperty(StyleTransition* aTransition,
-                                             nsIAtom* aAtom)
+                                             nsAtom* aAtom)
 {
   nsCSSPropertyID id =
     nsCSSProps::LookupProperty(nsDependentAtomString(aAtom),
@@ -733,7 +733,7 @@ Gecko_MatchStringArgPseudo(RawGeckoElementBorrowed aElement,
 
 bool
 Gecko_MatchLang(RawGeckoElementBorrowed aElement,
-                nsIAtom* aOverrideLang,
+                nsAtom* aOverrideLang,
                 bool aHasOverrideLang,
                 const char16_t* aValue)
 {
@@ -749,7 +749,7 @@ Gecko_MatchLang(RawGeckoElementBorrowed aElement,
                                                aValue, aElement->OwnerDoc());
 }
 
-nsIAtom*
+nsAtom*
 Gecko_GetXMLLangValue(RawGeckoElementBorrowed aElement)
 {
   const nsAttrValue* attr =
@@ -761,20 +761,20 @@ Gecko_GetXMLLangValue(RawGeckoElementBorrowed aElement)
 
   MOZ_ASSERT(attr->Type() == nsAttrValue::eAtom);
 
-  RefPtr<nsIAtom> atom = attr->GetAtomValue();
+  RefPtr<nsAtom> atom = attr->GetAtomValue();
   return atom.forget().take();
 }
 
 template <typename Implementor>
-static nsIAtom*
-AtomAttrValue(Implementor* aElement, nsIAtom* aName)
+static nsAtom*
+AtomAttrValue(Implementor* aElement, nsAtom* aName)
 {
   const nsAttrValue* attr = aElement->GetParsedAttr(aName);
   return attr ? attr->GetAtomValue() : nullptr;
 }
 
 template <typename Implementor>
-static nsIAtom*
+static nsAtom*
 LangValue(Implementor* aElement)
 {
   // TODO(emilio): Deduplicate a bit with nsIContent::GetLang().
@@ -789,13 +789,13 @@ LangValue(Implementor* aElement)
   }
 
   MOZ_ASSERT(attr->Type() == nsAttrValue::eAtom);
-  RefPtr<nsIAtom> atom = attr->GetAtomValue();
+  RefPtr<nsAtom> atom = attr->GetAtomValue();
   return atom.forget().take();
 }
 
 template <typename Implementor, typename MatchFn>
 static bool
-DoMatch(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName, MatchFn aMatch)
+DoMatch(Implementor* aElement, nsAtom* aNS, nsAtom* aName, MatchFn aMatch)
 {
   if (aNS) {
     int32_t ns = nsContentUtils::NameSpaceManager()->GetNameSpaceID(aNS,
@@ -819,7 +819,7 @@ DoMatch(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName, MatchFn aMatch)
 
 template <typename Implementor>
 static bool
-HasAttr(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName)
+HasAttr(Implementor* aElement, nsAtom* aNS, nsAtom* aName)
 {
   auto match = [](const nsAttrValue* aValue) { return true; };
   return DoMatch(aElement, aNS, aName, match);
@@ -827,7 +827,7 @@ HasAttr(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName)
 
 template <typename Implementor>
 static bool
-AttrEquals(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName, nsIAtom* aStr,
+AttrEquals(Implementor* aElement, nsAtom* aNS, nsAtom* aName, nsAtom* aStr,
            bool aIgnoreCase)
 {
   auto match = [aStr, aIgnoreCase](const nsAttrValue* aValue) {
@@ -838,8 +838,8 @@ AttrEquals(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName, nsIAtom* aStr,
 
 template <typename Implementor>
 static bool
-AttrDashEquals(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName,
-               nsIAtom* aStr)
+AttrDashEquals(Implementor* aElement, nsAtom* aNS, nsAtom* aName,
+               nsAtom* aStr)
 {
   auto match = [aStr](const nsAttrValue* aValue) {
     nsAutoString str;
@@ -852,8 +852,8 @@ AttrDashEquals(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName,
 
 template <typename Implementor>
 static bool
-AttrIncludes(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName,
-             nsIAtom* aStr)
+AttrIncludes(Implementor* aElement, nsAtom* aNS, nsAtom* aName,
+             nsAtom* aStr)
 {
   auto match = [aStr](const nsAttrValue* aValue) {
     nsAutoString str;
@@ -866,8 +866,8 @@ AttrIncludes(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName,
 
 template <typename Implementor>
 static bool
-AttrHasSubstring(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName,
-                 nsIAtom* aStr)
+AttrHasSubstring(Implementor* aElement, nsAtom* aNS, nsAtom* aName,
+                 nsAtom* aStr)
 {
   auto match = [aStr](const nsAttrValue* aValue) {
     nsAutoString str;
@@ -879,8 +879,8 @@ AttrHasSubstring(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName,
 
 template <typename Implementor>
 static bool
-AttrHasPrefix(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName,
-              nsIAtom* aStr)
+AttrHasPrefix(Implementor* aElement, nsAtom* aNS, nsAtom* aName,
+              nsAtom* aStr)
 {
   auto match = [aStr](const nsAttrValue* aValue) {
     nsAutoString str;
@@ -892,8 +892,8 @@ AttrHasPrefix(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName,
 
 template <typename Implementor>
 static bool
-AttrHasSuffix(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName,
-              nsIAtom* aStr)
+AttrHasSuffix(Implementor* aElement, nsAtom* aNS, nsAtom* aName,
+              nsAtom* aStr)
 {
   auto match = [aStr](const nsAttrValue* aValue) {
     nsAutoString str;
@@ -918,7 +918,7 @@ AttrHasSuffix(Implementor* aElement, nsIAtom* aNS, nsIAtom* aName,
  */
 template <typename Implementor>
 static uint32_t
-ClassOrClassList(Implementor* aElement, nsIAtom** aClass, nsIAtom*** aClassList)
+ClassOrClassList(Implementor* aElement, nsAtom** aClass, nsAtom*** aClassList)
 {
   const nsAttrValue* attr = aElement->GetParsedAttr(nsGkAtoms::_class);
   if (!attr) {
@@ -942,7 +942,7 @@ ClassOrClassList(Implementor* aElement, nsIAtom** aClass, nsIAtom*** aClassList)
   // At this point we should have an atom array. It is likely, but not
   // guaranteed, that we have two or more elements in the array.
   MOZ_ASSERT(attr->Type() == nsAttrValue::eAtomArray);
-  nsTArray<RefPtr<nsIAtom>>* atomArray = attr->GetAtomArrayValue();
+  nsTArray<RefPtr<nsAtom>>* atomArray = attr->GetAtomArrayValue();
   uint32_t length = atomArray->Length();
 
   // Special case: zero elements.
@@ -961,60 +961,60 @@ ClassOrClassList(Implementor* aElement, nsIAtom** aClass, nsIAtom*** aClassList)
   // Note: We could also expose this array as an array of nsCOMPtrs, since
   // bindgen knows what those look like, and eliminate the reinterpret_cast.
   // But it's not obvious that that would be preferable.
-  static_assert(sizeof(RefPtr<nsIAtom>) == sizeof(nsIAtom*), "Bad simplification");
-  static_assert(alignof(RefPtr<nsIAtom>) == alignof(nsIAtom*), "Bad simplification");
+  static_assert(sizeof(RefPtr<nsAtom>) == sizeof(nsAtom*), "Bad simplification");
+  static_assert(alignof(RefPtr<nsAtom>) == alignof(nsAtom*), "Bad simplification");
 
-  RefPtr<nsIAtom>* elements = atomArray->Elements();
-  nsIAtom** rawElements = reinterpret_cast<nsIAtom**>(elements);
+  RefPtr<nsAtom>* elements = atomArray->Elements();
+  nsAtom** rawElements = reinterpret_cast<nsAtom**>(elements);
   *aClassList = rawElements;
   return atomArray->Length();
 }
 
 #define SERVO_IMPL_ELEMENT_ATTR_MATCHING_FUNCTIONS(prefix_, implementor_)      \
-  nsIAtom* prefix_##AtomAttrValue(implementor_ aElement, nsIAtom* aName)       \
+  nsAtom* prefix_##AtomAttrValue(implementor_ aElement, nsAtom* aName)       \
   {                                                                            \
     return AtomAttrValue(aElement, aName);                                     \
   }                                                                            \
-  nsIAtom* prefix_##LangValue(implementor_ aElement)                           \
+  nsAtom* prefix_##LangValue(implementor_ aElement)                           \
   {                                                                            \
     return LangValue(aElement);                                                \
   }                                                                            \
-  bool prefix_##HasAttr(implementor_ aElement, nsIAtom* aNS, nsIAtom* aName)   \
+  bool prefix_##HasAttr(implementor_ aElement, nsAtom* aNS, nsAtom* aName)   \
   {                                                                            \
     return HasAttr(aElement, aNS, aName);                                      \
   }                                                                            \
-  bool prefix_##AttrEquals(implementor_ aElement, nsIAtom* aNS,                \
-                           nsIAtom* aName, nsIAtom* aStr, bool aIgnoreCase)    \
+  bool prefix_##AttrEquals(implementor_ aElement, nsAtom* aNS,                \
+                           nsAtom* aName, nsAtom* aStr, bool aIgnoreCase)    \
   {                                                                            \
     return AttrEquals(aElement, aNS, aName, aStr, aIgnoreCase);                \
   }                                                                            \
-  bool prefix_##AttrDashEquals(implementor_ aElement, nsIAtom* aNS,            \
-                               nsIAtom* aName, nsIAtom* aStr)                  \
+  bool prefix_##AttrDashEquals(implementor_ aElement, nsAtom* aNS,            \
+                               nsAtom* aName, nsAtom* aStr)                  \
   {                                                                            \
     return AttrDashEquals(aElement, aNS, aName, aStr);                         \
   }                                                                            \
-  bool prefix_##AttrIncludes(implementor_ aElement, nsIAtom* aNS,              \
-                             nsIAtom* aName, nsIAtom* aStr)                    \
+  bool prefix_##AttrIncludes(implementor_ aElement, nsAtom* aNS,              \
+                             nsAtom* aName, nsAtom* aStr)                    \
   {                                                                            \
     return AttrIncludes(aElement, aNS, aName, aStr);                           \
   }                                                                            \
-  bool prefix_##AttrHasSubstring(implementor_ aElement, nsIAtom* aNS,          \
-                                 nsIAtom* aName, nsIAtom* aStr)                \
+  bool prefix_##AttrHasSubstring(implementor_ aElement, nsAtom* aNS,          \
+                                 nsAtom* aName, nsAtom* aStr)                \
   {                                                                            \
     return AttrHasSubstring(aElement, aNS, aName, aStr);                       \
   }                                                                            \
-  bool prefix_##AttrHasPrefix(implementor_ aElement, nsIAtom* aNS,             \
-                              nsIAtom* aName, nsIAtom* aStr)                   \
+  bool prefix_##AttrHasPrefix(implementor_ aElement, nsAtom* aNS,             \
+                              nsAtom* aName, nsAtom* aStr)                   \
   {                                                                            \
     return AttrHasPrefix(aElement, aNS, aName, aStr);                          \
   }                                                                            \
-  bool prefix_##AttrHasSuffix(implementor_ aElement, nsIAtom* aNS,             \
-                              nsIAtom* aName, nsIAtom* aStr)                   \
+  bool prefix_##AttrHasSuffix(implementor_ aElement, nsAtom* aNS,             \
+                              nsAtom* aName, nsAtom* aStr)                   \
   {                                                                            \
     return AttrHasSuffix(aElement, aNS, aName, aStr);                          \
   }                                                                            \
-  uint32_t prefix_##ClassOrClassList(implementor_ aElement, nsIAtom** aClass,  \
-                                     nsIAtom*** aClassList)                    \
+  uint32_t prefix_##ClassOrClassList(implementor_ aElement, nsAtom** aClass,  \
+                                     nsAtom*** aClassList)                    \
   {                                                                            \
     return ClassOrClassList(aElement, aClass, aClassList);                     \
   }
@@ -1024,32 +1024,32 @@ SERVO_IMPL_ELEMENT_ATTR_MATCHING_FUNCTIONS(Gecko_Snapshot, const ServoElementSna
 
 #undef SERVO_IMPL_ELEMENT_ATTR_MATCHING_FUNCTIONS
 
-nsIAtom*
+nsAtom*
 Gecko_Atomize(const char* aString, uint32_t aLength)
 {
   return NS_Atomize(nsDependentCSubstring(aString, aLength)).take();
 }
 
-nsIAtom*
+nsAtom*
 Gecko_Atomize16(const nsAString* aString)
 {
   return NS_Atomize(*aString).take();
 }
 
 void
-Gecko_AddRefAtom(nsIAtom* aAtom)
+Gecko_AddRefAtom(nsAtom* aAtom)
 {
   NS_ADDREF(aAtom);
 }
 
 void
-Gecko_ReleaseAtom(nsIAtom* aAtom)
+Gecko_ReleaseAtom(nsAtom* aAtom)
 {
   NS_RELEASE(aAtom);
 }
 
 const uint16_t*
-Gecko_GetAtomAsUTF16(nsIAtom* aAtom, uint32_t* aLength)
+Gecko_GetAtomAsUTF16(nsAtom* aAtom, uint32_t* aLength)
 {
   static_assert(sizeof(char16_t) == sizeof(uint16_t), "Servo doesn't know what a char16_t is");
   MOZ_ASSERT(aAtom);
@@ -1061,7 +1061,7 @@ Gecko_GetAtomAsUTF16(nsIAtom* aAtom, uint32_t* aLength)
 }
 
 bool
-Gecko_AtomEqualsUTF8(nsIAtom* aAtom, const char* aString, uint32_t aLength)
+Gecko_AtomEqualsUTF8(nsAtom* aAtom, const char* aString, uint32_t aLength)
 {
   // XXXbholley: We should be able to do this without converting, I just can't
   // find the right thing to call.
@@ -1071,7 +1071,7 @@ Gecko_AtomEqualsUTF8(nsIAtom* aAtom, const char* aString, uint32_t aLength)
 }
 
 bool
-Gecko_AtomEqualsUTF8IgnoreCase(nsIAtom* aAtom, const char* aString, uint32_t aLength)
+Gecko_AtomEqualsUTF8IgnoreCase(nsAtom* aAtom, const char* aString, uint32_t aLength)
 {
   // XXXbholley: We should be able to do this without converting, I just can't
   // find the right thing to call.
@@ -1113,7 +1113,7 @@ Gecko_FontFamilyList_Clear(FontFamilyList* aList) {
 }
 
 void
-Gecko_FontFamilyList_AppendNamed(FontFamilyList* aList, nsIAtom* aName, bool aQuoted)
+Gecko_FontFamilyList_AppendNamed(FontFamilyList* aList, nsAtom* aName, bool aQuoted)
 {
   FontFamilyName family;
   aName->ToString(family.mName);
@@ -1185,13 +1185,13 @@ Gecko_CopyImageOrientationFrom(nsStyleVisibility* aDst,
 }
 
 void
-Gecko_SetCounterStyleToName(CounterStylePtr* aPtr, nsIAtom* aName,
+Gecko_SetCounterStyleToName(CounterStylePtr* aPtr, nsAtom* aName,
                             RawGeckoPresContextBorrowed aPresContext)
 {
   // Try resolving the counter style if possible, and keep it unresolved
   // otherwise.
   CounterStyleManager* manager = aPresContext->CounterStyleManager();
-  RefPtr<nsIAtom> name = already_AddRefed<nsIAtom>(aName);
+  RefPtr<nsAtom> name = already_AddRefed<nsAtom>(aName);
   if (CounterStyle* style = manager->GetCounterStyle(name)) {
     *aPtr = style;
   } else {
@@ -1223,7 +1223,7 @@ Gecko_CopyCounterStyle(CounterStylePtr* aDst, const CounterStylePtr* aSrc)
   *aDst = *aSrc;
 }
 
-nsIAtom*
+nsAtom*
 Gecko_CounterStyle_GetName(const CounterStylePtr* aPtr)
 {
   if (!aPtr->IsResolved()) {
@@ -1304,7 +1304,7 @@ Gecko_SetLayerImageImageValue(nsStyleImage* aImage,
 }
 
 void
-Gecko_SetImageElement(nsStyleImage* aImage, nsIAtom* aAtom) {
+Gecko_SetImageElement(nsStyleImage* aImage, nsAtom* aAtom) {
   MOZ_ASSERT(aImage);
   aImage->SetElementId(do_AddRef(aAtom));
 }
@@ -1552,7 +1552,7 @@ Gecko_ClearWillChange(nsStyleDisplay* aDisplay, size_t aLength)
 }
 
 void
-Gecko_AppendWillChange(nsStyleDisplay* aDisplay, nsIAtom* aAtom)
+Gecko_AppendWillChange(nsStyleDisplay* aDisplay, nsAtom* aAtom)
 {
   aDisplay->mWillChange.AppendElement(aAtom);
 }
@@ -1927,15 +1927,15 @@ Gecko_CSSValue_SetString(nsCSSValueBorrowedMut aCSSValue,
 
 void
 Gecko_CSSValue_SetStringFromAtom(nsCSSValueBorrowedMut aCSSValue,
-                                 nsIAtom* aAtom, nsCSSUnit aUnit)
+                                 nsAtom* aAtom, nsCSSUnit aUnit)
 {
   aCSSValue->SetStringValue(nsDependentAtomString(aAtom), aUnit);
 }
 
 void
-Gecko_CSSValue_SetAtomIdent(nsCSSValueBorrowedMut aCSSValue, nsIAtom* aAtom)
+Gecko_CSSValue_SetAtomIdent(nsCSSValueBorrowedMut aCSSValue, nsAtom* aAtom)
 {
-  aCSSValue->SetAtomIdentValue(already_AddRefed<nsIAtom>(aAtom));
+  aCSSValue->SetAtomIdentValue(already_AddRefed<nsAtom>(aAtom));
 }
 
 void
@@ -2034,9 +2034,9 @@ Gecko_CSSValue_Drop(nsCSSValueBorrowedMut aCSSValue)
 }
 
 void
-Gecko_nsStyleFont_SetLang(nsStyleFont* aFont, nsIAtom* aAtom)
+Gecko_nsStyleFont_SetLang(nsStyleFont* aFont, nsAtom* aAtom)
 {
-  already_AddRefed<nsIAtom> atom = already_AddRefed<nsIAtom>(aAtom);
+  already_AddRefed<nsAtom> atom = already_AddRefed<nsAtom>(aAtom);
   aFont->mLanguage = atom;
   aFont->mExplicitLanguage = true;
 }
@@ -2069,10 +2069,10 @@ FontSizePrefs::CopyFrom(const LangGroupFontPrefs& prefs)
 }
 
 FontSizePrefs
-Gecko_GetBaseSize(nsIAtom* aLanguage)
+Gecko_GetBaseSize(nsAtom* aLanguage)
 {
   LangGroupFontPrefs prefs;
-  RefPtr<nsIAtom> langGroupAtom = StaticPresData::Get()->GetUncachedLangGroup(aLanguage);
+  RefPtr<nsAtom> langGroupAtom = StaticPresData::Get()->GetUncachedLangGroup(aLanguage);
 
   prefs.Initialize(langGroupAtom);
   FontSizePrefs sizes;
@@ -2261,7 +2261,7 @@ Gecko_AddPropertyToSet(nsCSSPropertyIDSetBorrowedMut aPropertySet,
 NS_IMPL_FFI_REFCOUNTING(nsCSSFontFaceRule, CSSFontFaceRule);
 
 nsCSSCounterStyleRule*
-Gecko_CSSCounterStyle_Create(nsIAtom* aName)
+Gecko_CSSCounterStyle_Create(nsAtom* aName)
 {
   RefPtr<nsCSSCounterStyleRule> rule = new nsCSSCounterStyleRule(aName, 0, 0);
   return rule.forget().take();

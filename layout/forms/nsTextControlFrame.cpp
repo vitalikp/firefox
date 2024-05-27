@@ -704,7 +704,7 @@ void nsTextControlFrame::SetFocus(bool aOn, bool aRepaint)
     docSel->RemoveAllRanges();
 }
 
-nsresult nsTextControlFrame::SetFormProperty(nsIAtom* aName, const nsAString& aValue)
+nsresult nsTextControlFrame::SetFormProperty(nsAtom* aName, const nsAString& aValue)
 {
   if (!mIsProcessing)//some kind of lock.
   {
@@ -986,7 +986,7 @@ nsTextControlFrame::OffsetToDOMPoint(uint32_t aOffset,
 ////NSIFRAME
 nsresult
 nsTextControlFrame::AttributeChanged(int32_t         aNameSpaceID,
-                                     nsIAtom*        aAttribute,
+                                     nsAtom*        aAttribute,
                                      int32_t         aModType)
 {
   nsCOMPtr<nsITextControlElement> txtCtrl = do_QueryInterface(GetContent());

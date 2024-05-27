@@ -100,7 +100,7 @@ public:
    */
   void AddAttrs(Element* aElement,
                 int32_t aNameSpaceID,
-                nsIAtom* aChangedAttribute);
+                nsAtom* aChangedAttribute);
 
   /**
    * Captures some other pseudo-class matching state not included in
@@ -120,12 +120,12 @@ public:
     return BorrowedAttrInfo(&mAttrs[aIndex].mName, &mAttrs[aIndex].mValue);
   }
 
-  const nsAttrValue* GetParsedAttr(nsIAtom* aLocalName) const
+  const nsAttrValue* GetParsedAttr(nsAtom* aLocalName) const
   {
     return GetParsedAttr(aLocalName, kNameSpaceID_None);
   }
 
-  const nsAttrValue* GetParsedAttr(nsIAtom* aLocalName,
+  const nsAttrValue* GetParsedAttr(nsAtom* aLocalName,
                                    int32_t aNamespaceID) const
   {
     MOZ_ASSERT(HasAttrs());

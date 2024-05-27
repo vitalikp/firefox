@@ -133,7 +133,7 @@ public:
 class nsDocHeaderData
 {
 public:
-  nsDocHeaderData(nsIAtom* aField, const nsAString& aData)
+  nsDocHeaderData(nsAtom* aField, const nsAString& aData)
     : mField(aField), mData(aData), mNext(nullptr)
   {
   }
@@ -143,7 +143,7 @@ public:
     delete mNext;
   }
 
-  RefPtr<nsIAtom> mField;
+  RefPtr<nsAtom> mField;
   nsString          mData;
   nsDocHeaderData*  mNext;
 };
@@ -437,17 +437,17 @@ public:
    */
   virtual void RemoveCharSetObserver(nsIObserver* aObserver) override;
 
-  virtual Element* AddIDTargetObserver(nsIAtom* aID, IDTargetObserver aObserver,
+  virtual Element* AddIDTargetObserver(nsAtom* aID, IDTargetObserver aObserver,
                                        void* aData, bool aForImage) override;
-  virtual void RemoveIDTargetObserver(nsIAtom* aID, IDTargetObserver aObserver,
+  virtual void RemoveIDTargetObserver(nsAtom* aID, IDTargetObserver aObserver,
                                       void* aData, bool aForImage) override;
 
   /**
    * Access HTTP header data (this may also get set from other sources, like
    * HTML META tags).
    */
-  virtual void GetHeaderData(nsIAtom* aHeaderField, nsAString& aData) const override;
-  virtual void SetHeaderData(nsIAtom* aheaderField,
+  virtual void GetHeaderData(nsAtom* aHeaderField, nsAString& aData) const override;
+  virtual void SetHeaderData(nsAtom* aheaderField,
                              const nsAString& aData) override;
 
   /**
@@ -536,10 +536,10 @@ public:
   /**
    * Add/Remove an element to the document's id and name hashes
    */
-  virtual void AddToIdTable(Element* aElement, nsIAtom* aId) override;
-  virtual void RemoveFromIdTable(Element* aElement, nsIAtom* aId) override;
-  virtual void AddToNameTable(Element* aElement, nsIAtom* aName) override;
-  virtual void RemoveFromNameTable(Element* aElement, nsIAtom* aName) override;
+  virtual void AddToIdTable(Element* aElement, nsAtom* aId) override;
+  virtual void RemoveFromIdTable(Element* aElement, nsAtom* aId) override;
+  virtual void AddToNameTable(Element* aElement, nsAtom* aName) override;
+  virtual void RemoveFromNameTable(Element* aElement, nsAtom* aName) override;
 
   /**
    * Add a new observer of document change notifications. Whenever
@@ -701,7 +701,7 @@ public:
   virtual nsresult Init();
 
   virtual already_AddRefed<Element> CreateElem(const nsAString& aName,
-                                               nsIAtom* aPrefix,
+                                               nsAtom* aPrefix,
                                                int32_t aNamespaceID,
                                                const nsAString* aIs = nullptr) override;
 
@@ -729,7 +729,7 @@ public:
 
   virtual Element*
     GetAnonymousElementByAttribute(nsIContent* aElement,
-                                   nsIAtom* aAttrName,
+                                   nsAtom* aAttrName,
                                    const nsAString& aAttrValue) const override;
 
   virtual Element* ElementFromPointHelper(float aX, float aY,

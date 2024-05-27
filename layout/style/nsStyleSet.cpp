@@ -880,7 +880,7 @@ nsStyleSet::GetContext(nsStyleContext* aParentContext,
                        // because aParentContext has one, then aRuleNode
                        // should be used.)
                        nsRuleNode* aVisitedRuleNode,
-                       nsIAtom* aPseudoTag,
+                       nsAtom* aPseudoTag,
                        CSSPseudoElementType aPseudoType,
                        Element* aElementForAnimation,
                        uint32_t aFlags)
@@ -2019,7 +2019,7 @@ nsStyleSet::ProbePseudoElementStyle(Element* aParentElement,
                "must have pseudo element type");
   NS_ASSERTION(aParentElement, "aParentElement must not be null");
 
-  nsIAtom* pseudoTag = nsCSSPseudoElements::GetPseudoAtom(aType);
+  nsAtom* pseudoTag = nsCSSPseudoElements::GetPseudoAtom(aType);
   nsRuleWalker ruleWalker(mRuleTree, mAuthorStyleDisabled);
   aTreeMatchContext.ResetForUnvisitedMatching();
   PseudoElementRuleProcessorData data(PresContext(), aParentElement,
@@ -2085,7 +2085,7 @@ nsStyleSet::ProbePseudoElementStyle(Element* aParentElement,
 }
 
 already_AddRefed<nsStyleContext>
-nsStyleSet::ResolveInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag,
+nsStyleSet::ResolveInheritingAnonymousBoxStyle(nsAtom* aPseudoTag,
                                                nsStyleContext* aParentContext)
 {
   NS_ENSURE_FALSE(mInShutdown, nullptr);
@@ -2136,7 +2136,7 @@ nsStyleSet::ResolveInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag,
 }
 
 already_AddRefed<nsStyleContext>
-nsStyleSet::ResolveNonInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag)
+nsStyleSet::ResolveNonInheritingAnonymousBoxStyle(nsAtom* aPseudoTag)
 {
   NS_ENSURE_FALSE(mInShutdown, nullptr);
 
@@ -2179,7 +2179,7 @@ nsStyleSet::ResolveNonInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag)
 #ifdef MOZ_XUL
 already_AddRefed<nsStyleContext>
 nsStyleSet::ResolveXULTreePseudoStyle(Element* aParentElement,
-                                      nsIAtom* aPseudoTag,
+                                      nsAtom* aPseudoTag,
                                       nsStyleContext* aParentContext,
                                       nsICSSPseudoComparator* aComparator)
 {
@@ -2258,7 +2258,7 @@ nsStyleSet::KeyframesRuleForName(const nsString& aName)
 }
 
 nsCSSCounterStyleRule*
-nsStyleSet::CounterStyleRuleForName(nsIAtom* aName)
+nsStyleSet::CounterStyleRuleForName(nsAtom* aName)
 {
   NS_ENSURE_FALSE(mInShutdown, nullptr);
   NS_ASSERTION(mBatching == 0, "rule processors out of date");
@@ -2473,7 +2473,7 @@ nsStyleSet::ReparentStyleContext(nsStyleContext* aStyleContext,
     return ret.forget();
   }
 
-  nsIAtom* pseudoTag = aStyleContext->GetPseudo();
+  nsAtom* pseudoTag = aStyleContext->GetPseudo();
   CSSPseudoElementType pseudoType = aStyleContext->GetPseudoType();
   nsRuleNode* ruleNode = aStyleContext->RuleNode();
 
@@ -2625,7 +2625,7 @@ nsStyleSet::HasStateDependentStyle(Element* aElement,
 
 struct MOZ_STACK_CLASS AttributeData : public AttributeRuleProcessorData {
   AttributeData(nsPresContext* aPresContext, Element* aElement,
-                int32_t aNameSpaceID, nsIAtom* aAttribute, int32_t aModType,
+                int32_t aNameSpaceID, nsAtom* aAttribute, int32_t aModType,
                 bool aAttrHasChanged, const nsAttrValue* aOtherValue,
                 TreeMatchContext& aTreeMatchContext)
     : AttributeRuleProcessorData(aPresContext, aElement, aNameSpaceID,
@@ -2651,7 +2651,7 @@ SheetHasAttributeStyle(nsIStyleRuleProcessor* aProcessor, void *aData)
 nsRestyleHint
 nsStyleSet::HasAttributeDependentStyle(Element*       aElement,
                                        int32_t        aNameSpaceID,
-                                       nsIAtom*       aAttribute,
+                                       nsAtom*       aAttribute,
                                        int32_t        aModType,
                                        bool           aAttrHasChanged,
                                        const nsAttrValue* aOtherValue,

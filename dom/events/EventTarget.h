@@ -60,7 +60,7 @@ public:
   // Note, this takes the type in onfoo form!
   EventHandlerNonNull* GetEventHandler(const nsAString& aType)
   {
-    RefPtr<nsIAtom> type = NS_Atomize(aType);
+    RefPtr<nsAtom> type = NS_Atomize(aType);
     return GetEventHandler(type, EmptyString());
   }
 
@@ -69,10 +69,10 @@ public:
                        ErrorResult& rv);
 
   // Note, for an event 'foo' aType will be 'onfoo'.
-  virtual void EventListenerAdded(nsIAtom* aType) {}
+  virtual void EventListenerAdded(nsAtom* aType) {}
   virtual void EventListenerAdded(const nsAString& aType) {}
 
-  virtual void EventListenerRemoved(nsIAtom* aType) {}
+  virtual void EventListenerRemoved(nsAtom* aType) {}
   virtual void EventListenerRemoved(const nsAString& aType) {}
 
   // Returns an outer window that corresponds to the inner window this event
@@ -102,9 +102,9 @@ public:
   virtual bool IsApzAware() const;
 
 protected:
-  EventHandlerNonNull* GetEventHandler(nsIAtom* aType,
+  EventHandlerNonNull* GetEventHandler(nsAtom* aType,
                                        const nsAString& aTypeString);
-  void SetEventHandler(nsIAtom* aType, const nsAString& aTypeString,
+  void SetEventHandler(nsAtom* aType, const nsAString& aTypeString,
                        EventHandlerNonNull* aHandler);
 };
 

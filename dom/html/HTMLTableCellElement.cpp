@@ -385,7 +385,7 @@ HTMLTableCellElement::GetScope(DOMString& aScope)
 
 bool
 HTMLTableCellElement::ParseAttribute(int32_t aNamespaceID,
-                                     nsIAtom* aAttribute,
+                                     nsAtom* aAttribute,
                                      const nsAString& aValue,
                                      nsAttrValue& aResult)
 {
@@ -503,7 +503,7 @@ HTMLTableCellElement::MapAttributesIntoRule(const nsMappedAttributes* aAttribute
 }
 
 NS_IMETHODIMP_(bool)
-HTMLTableCellElement::IsAttributeMapped(const nsIAtom* aAttribute) const
+HTMLTableCellElement::IsAttributeMapped(const nsAtom* aAttribute) const
 {
   static const MappedAttributeEntry attributes[] = {
     { &nsGkAtoms::align },

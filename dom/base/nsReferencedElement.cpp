@@ -116,7 +116,7 @@ nsReferencedElement::Reset(nsIContent* aFromContent, nsIURI* aURI,
   }
 
   if (aWatch) {
-    RefPtr<nsIAtom> atom = NS_Atomize(ref);
+    RefPtr<nsAtom> atom = NS_Atomize(ref);
     if (!atom)
       return;
     atom.swap(mWatchID);
@@ -138,7 +138,7 @@ nsReferencedElement::ResetWithID(nsIContent* aFromContent, const nsString& aID,
   // XXX Need to take care of XBL/XBL2
 
   if (aWatch) {
-    RefPtr<nsIAtom> atom = NS_Atomize(aID);
+    RefPtr<nsAtom> atom = NS_Atomize(aID);
     if (!atom)
       return;
     atom.swap(mWatchID);

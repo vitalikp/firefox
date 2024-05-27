@@ -198,7 +198,7 @@ nsXBLContentSink::ReportError(const char16_t* aErrorText,
 }
 
 nsresult
-nsXBLContentSink::ReportUnexpectedElement(nsIAtom* aElementName,
+nsXBLContentSink::ReportUnexpectedElement(nsAtom* aElementName,
                                           uint32_t aLineNumber)
 {
   // XXX we should really somehow stop the parse and drop the binding
@@ -275,7 +275,7 @@ nsXBLContentSink::HandleEndElement(const char16_t *aName)
 
   if (mState != eXBL_InDocument) {
     int32_t nameSpaceID;
-    RefPtr<nsIAtom> prefix, localName;
+    RefPtr<nsAtom> prefix, localName;
     nsContentUtils::SplitExpatName(aName, getter_AddRefs(prefix),
                                    getter_AddRefs(localName), &nameSpaceID);
 
@@ -372,7 +372,7 @@ bool
 nsXBLContentSink::OnOpenContainer(const char16_t **aAtts,
                                   uint32_t aAttsCount,
                                   int32_t aNameSpaceID,
-                                  nsIAtom* aTagName,
+                                  nsAtom* aTagName,
                                   uint32_t aLineNumber)
 {
   if (mState == eXBL_Error) {
@@ -573,9 +573,9 @@ nsXBLContentSink::ConstructBinding(uint32_t aLineNumber)
 }
 
 static bool
-FindValue(const char16_t **aAtts, nsIAtom *aAtom, const char16_t **aResult)
+FindValue(const char16_t **aAtts, nsAtom *aAtom, const char16_t **aResult)
 {
-  RefPtr<nsIAtom> prefix, localName;
+  RefPtr<nsAtom> prefix, localName;
   for (; *aAtts; aAtts += 2) {
     int32_t nameSpaceID;
     nsContentUtils::SplitExpatName(aAtts[0], getter_AddRefs(prefix),
@@ -608,7 +608,7 @@ nsXBLContentSink::ConstructHandler(const char16_t **aAtts, uint32_t aLineNumber)
   const char16_t* preventdefault = nullptr;
   const char16_t* allowuntrusted = nullptr;
 
-  RefPtr<nsIAtom> prefix, localName;
+  RefPtr<nsAtom> prefix, localName;
   for (; *aAtts; aAtts += 2) {
     int32_t nameSpaceID;
     nsContentUtils::SplitExpatName(aAtts[0], getter_AddRefs(prefix),
@@ -683,7 +683,7 @@ nsXBLContentSink::ConstructHandler(const char16_t **aAtts, uint32_t aLineNumber)
 
 void
 nsXBLContentSink::ConstructResource(const char16_t **aAtts,
-                                    nsIAtom* aResourceType)
+                                    nsAtom* aResourceType)
 {
   if (!mBinding)
     return;
@@ -706,7 +706,7 @@ nsXBLContentSink::ConstructImplementation(const char16_t **aAtts)
 
   const char16_t* name = nullptr;
 
-  RefPtr<nsIAtom> prefix, localName;
+  RefPtr<nsAtom> prefix, localName;
   for (; *aAtts; aAtts += 2) {
     int32_t nameSpaceID;
     nsContentUtils::SplitExpatName(aAtts[0], getter_AddRefs(prefix),
@@ -738,7 +738,7 @@ nsXBLContentSink::ConstructField(const char16_t **aAtts, uint32_t aLineNumber)
   const char16_t* name     = nullptr;
   const char16_t* readonly = nullptr;
 
-  RefPtr<nsIAtom> prefix, localName;
+  RefPtr<nsAtom> prefix, localName;
   for (; *aAtts; aAtts += 2) {
     int32_t nameSpaceID;
     nsContentUtils::SplitExpatName(aAtts[0], getter_AddRefs(prefix),
@@ -775,7 +775,7 @@ nsXBLContentSink::ConstructProperty(const char16_t **aAtts, uint32_t aLineNumber
   const char16_t* onset    = nullptr;
   bool exposeToUntrustedContent = false;
 
-  RefPtr<nsIAtom> prefix, localName;
+  RefPtr<nsAtom> prefix, localName;
   for (; *aAtts; aAtts += 2) {
     int32_t nameSpaceID;
     nsContentUtils::SplitExpatName(aAtts[0], getter_AddRefs(prefix),
@@ -909,7 +909,7 @@ nsXBLContentSink::AddAttributesToXULPrototype(const char16_t **aAtts,
   aElement->mNumAttributes = aAttsCount;
 
   // Copy the attributes into the prototype
-  RefPtr<nsIAtom> prefix, localName;
+  RefPtr<nsAtom> prefix, localName;
 
   uint32_t i;
   for (i = 0; i < aAttsCount; ++i) {

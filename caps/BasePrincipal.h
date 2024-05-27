@@ -140,8 +140,8 @@ private:
   CreateCodebasePrincipal(nsIURI* aURI, const OriginAttributes& aAttrs,
                           const nsACString& aOriginNoSuffix);
 
-  RefPtr<nsIAtom> mOriginNoSuffix;
-  RefPtr<nsIAtom> mOriginSuffix;
+  RefPtr<nsAtom> mOriginNoSuffix;
+  RefPtr<nsAtom> mOriginSuffix;
 
   OriginAttributes mOriginAttributes;
   PrincipalKind mKind;

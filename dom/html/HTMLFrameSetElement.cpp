@@ -66,7 +66,7 @@ HTMLFrameSetElement::GetRows(nsAString& aRows)
 }
 
 nsresult
-HTMLFrameSetElement::BeforeSetAttr(int32_t aNamespaceID, nsIAtom* aName,
+HTMLFrameSetElement::BeforeSetAttr(int32_t aNamespaceID, nsAtom* aName,
                                    const nsAttrValueOrString* aValue,
                                    bool aNotify)
 {
@@ -170,7 +170,7 @@ HTMLFrameSetElement::GetColSpec(int32_t *aNumValues,
 
 bool
 HTMLFrameSetElement::ParseAttribute(int32_t aNamespaceID,
-                                    nsIAtom* aAttribute,
+                                    nsAtom* aAttribute,
                                     const nsAString& aValue,
                                     nsAttrValue& aResult)
 {
@@ -191,7 +191,7 @@ HTMLFrameSetElement::ParseAttribute(int32_t aNamespaceID,
 }
 
 nsChangeHint
-HTMLFrameSetElement::GetAttributeChangeHint(const nsIAtom* aAttribute,
+HTMLFrameSetElement::GetAttributeChangeHint(const nsAtom* aAttribute,
                                             int32_t aModType) const
 {
   nsChangeHint retval =
@@ -337,7 +337,7 @@ HTMLFrameSetElement::ParseRowCol(const nsAString & aValue,
 }
 
 bool
-HTMLFrameSetElement::IsEventAttributeNameInternal(nsIAtom *aName)
+HTMLFrameSetElement::IsEventAttributeNameInternal(nsAtom *aName)
 {
   return nsContentUtils::IsEventAttributeName(aName,
                                               EventNameType_HTML |

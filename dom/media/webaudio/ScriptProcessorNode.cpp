@@ -527,7 +527,7 @@ ScriptProcessorNode::SizeOfIncludingThis(MallocSizeOf aMallocSizeOf) const
 }
 
 void
-ScriptProcessorNode::EventListenerAdded(nsIAtom* aType)
+ScriptProcessorNode::EventListenerAdded(nsAtom* aType)
 {
   AudioNode::EventListenerAdded(aType);
   if (aType == nsGkAtoms::onaudioprocess) {
@@ -536,7 +536,7 @@ ScriptProcessorNode::EventListenerAdded(nsIAtom* aType)
 }
 
 void
-ScriptProcessorNode::EventListenerRemoved(nsIAtom* aType)
+ScriptProcessorNode::EventListenerRemoved(nsAtom* aType)
 {
   AudioNode::EventListenerRemoved(aType);
   if (aType == nsGkAtoms::onaudioprocess) {

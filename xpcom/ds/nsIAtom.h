@@ -12,7 +12,7 @@
 #include "nsStringBuffer.h"
 
 
-class nsIAtom
+class nsAtom
 {
 public:
   size_t SizeOfIncludingThis(mozilla::MallocSizeOf aMallocSizeOf) const;
@@ -84,10 +84,10 @@ private:
   friend class nsHtml5AtomEntry;
 
   // Construction and destruction is done entirely by |friend|s.
-  nsIAtom(AtomKind aKind, const nsAString& aString, uint32_t aHash);
-  nsIAtom(nsStringBuffer* aStringBuffer, uint32_t aLength, uint32_t aHash);
+  nsAtom(AtomKind aKind, const nsAString& aString, uint32_t aHash);
+  nsAtom(nsStringBuffer* aStringBuffer, uint32_t aLength, uint32_t aHash);
 protected:
-  ~nsIAtom();
+  ~nsAtom();
 
 private:
   mozilla::ThreadSafeAutoRefCnt mRefCnt;
@@ -99,8 +99,6 @@ private:
   // nsStringBuffer::FromData() calls above are valid.
   char16_t* mString;
 };
-
-typedef nsIAtom nsAtom;
 
 // The four forms of NS_Atomize (for use with |RefPtr<nsAtom>|) return the
 // atom for the string given. At any given time there will always be one atom

@@ -9,7 +9,7 @@
 #include "mozilla/StyleSetHandle.h"
 #include "mozilla/StyleSetHandleInlines.h"
 
-nsTreeStyleCache::Transition::Transition(DFAState aState, nsIAtom* aSymbol)
+nsTreeStyleCache::Transition::Transition(DFAState aState, nsAtom* aSymbol)
   : mState(aState), mInputSymbol(aSymbol)
 {
 }
@@ -36,7 +36,7 @@ nsTreeStyleCache::GetStyleContext(nsICSSPseudoComparator* aComparator,
                                   nsPresContext* aPresContext,
                                   nsIContent* aContent,
                                   nsStyleContext* aContext,
-                                  nsIAtom* aPseudoElement,
+                                  nsAtom* aPseudoElement,
                                   const AtomArray & aInputWord)
 {
   uint32_t count = aInputWord.Length();

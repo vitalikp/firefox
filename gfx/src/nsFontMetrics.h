@@ -21,7 +21,7 @@
 class gfxUserFontSet;
 class gfxTextPerfMetrics;
 class nsDeviceContext;
-class nsIAtom;
+class nsAtom;
 class nsRenderingContext;
 struct nsBoundingMetrics;
 
@@ -51,7 +51,7 @@ public:
 
     struct Params
     {
-      nsIAtom* language = nullptr;
+      nsAtom* language = nullptr;
       bool explicitLanguage = false;
       gfxFont::Orientation orientation = gfxFont::eHorizontal;
       gfxUserFontSet* userFontSet = nullptr;
@@ -180,7 +180,7 @@ public:
     /**
      * Returns the language associated with these metrics
      */
-    nsIAtom* Language() const { return mLanguage; }
+    nsAtom* Language() const { return mLanguage; }
 
     /**
      * Returns the orientation (horizontal/vertical) of these metrics.
@@ -249,7 +249,7 @@ private:
 
     nsFont mFont;
     RefPtr<gfxFontGroup> mFontGroup;
-    RefPtr<nsIAtom> mLanguage;
+    RefPtr<nsAtom> mLanguage;
     nsDeviceContext* mDeviceContext;
     int32_t mP2A;
 

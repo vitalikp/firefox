@@ -63,7 +63,7 @@ HTMLEditor::AddDefaultProperty(const nsAString& aProperty,
 }
 
 nsresult
-HTMLEditor::AddDefaultProperty(nsIAtom* aProperty,
+HTMLEditor::AddDefaultProperty(nsAtom* aProperty,
                                const nsAString& aAttribute,
                                const nsAString& aValue)
 {
@@ -92,7 +92,7 @@ HTMLEditor::RemoveDefaultProperty(const nsAString& aProperty,
 }
 
 nsresult
-HTMLEditor::RemoveDefaultProperty(nsIAtom* aProperty,
+HTMLEditor::RemoveDefaultProperty(nsAtom* aProperty,
                                   const nsAString& aAttribute,
                                   const nsAString& aValue)
 {
@@ -123,12 +123,12 @@ HTMLEditor::SetInlineProperty(const nsAString& aProperty,
                               const nsAString& aAttribute,
                               const nsAString& aValue)
 {
-  RefPtr<nsIAtom> property = NS_Atomize(aProperty);
+  RefPtr<nsAtom> property = NS_Atomize(aProperty);
   return SetInlineProperty(property, aAttribute, aValue);
 }
 
 nsresult
-HTMLEditor::SetInlineProperty(nsIAtom* aProperty,
+HTMLEditor::SetInlineProperty(nsAtom* aProperty,
                               const nsAString& aAttribute,
                               const nsAString& aValue)
 {
@@ -247,7 +247,7 @@ HTMLEditor::SetInlineProperty(nsIAtom* aProperty,
 // <span style="">, etc. that we can reuse instead of creating a new one?
 bool
 HTMLEditor::IsSimpleModifiableNode(nsIContent* aContent,
-                                   nsIAtom* aProperty,
+                                   nsAtom* aProperty,
                                    const nsAString* aAttribute,
                                    const nsAString* aValue)
 {
@@ -279,7 +279,7 @@ HTMLEditor::IsSimpleModifiableNode(nsIContent* aContent,
 
   // Now look for things like <font>
   if (aAttribute && !aAttribute->IsEmpty()) {
-    RefPtr<nsIAtom> atom = NS_Atomize(*aAttribute);
+    RefPtr<nsAtom> atom = NS_Atomize(*aAttribute);
     MOZ_ASSERT(atom);
 
     nsString attrValue;
@@ -322,7 +322,7 @@ nsresult
 HTMLEditor::SetInlinePropertyOnTextNode(Text& aText,
                                         int32_t aStartOffset,
                                         int32_t aEndOffset,
-                                        nsIAtom& aProperty,
+                                        nsAtom& aProperty,
                                         const nsAString* aAttribute,
                                         const nsAString& aValue)
 {
@@ -384,11 +384,11 @@ HTMLEditor::SetInlinePropertyOnTextNode(Text& aText,
 
 nsresult
 HTMLEditor::SetInlinePropertyOnNodeImpl(nsIContent& aNode,
-                                        nsIAtom& aProperty,
+                                        nsAtom& aProperty,
                                         const nsAString* aAttribute,
                                         const nsAString& aValue)
 {
-  RefPtr<nsIAtom> attrAtom = aAttribute ? NS_Atomize(*aAttribute) : nullptr;
+  RefPtr<nsAtom> attrAtom = aAttribute ? NS_Atomize(*aAttribute) : nullptr;
 
   // If this is an element that can't be contained in a span, we have to
   // recurse to its children.
@@ -486,7 +486,7 @@ HTMLEditor::SetInlinePropertyOnNodeImpl(nsIContent& aNode,
 
 nsresult
 HTMLEditor::SetInlinePropertyOnNode(nsIContent& aNode,
-                                    nsIAtom& aProperty,
+                                    nsAtom& aProperty,
                                     const nsAString* aAttribute,
                                     const nsAString& aValue)
 {
@@ -530,7 +530,7 @@ HTMLEditor::SetInlinePropertyOnNode(nsIContent& aNode,
 
 nsresult
 HTMLEditor::SplitStyleAboveRange(nsRange* inRange,
-                                 nsIAtom* aProperty,
+                                 nsAtom* aProperty,
                                  const nsAString* aAttribute)
 {
   NS_ENSURE_TRUE(inRange, NS_ERROR_NULL_POINTER);
@@ -569,7 +569,7 @@ nsresult
 HTMLEditor::SplitStyleAbovePoint(nsCOMPtr<nsINode>* aNode,
                                  int32_t* aOffset,
                                  // null here means we split all properties
-                                 nsIAtom* aProperty,
+                                 nsAtom* aProperty,
                                  const nsAString* aAttribute,
                                  nsIContent** aOutLeftNode,
                                  nsIContent** aOutRightNode)
@@ -622,7 +622,7 @@ HTMLEditor::SplitStyleAbovePoint(nsCOMPtr<nsINode>* aNode,
 nsresult
 HTMLEditor::ClearStyle(nsCOMPtr<nsINode>* aNode,
                        int32_t* aOffset,
-                       nsIAtom* aProperty,
+                       nsAtom* aProperty,
                        const nsAString* aAttribute)
 {
   nsCOMPtr<nsIContent> leftNode, rightNode;
@@ -732,7 +732,7 @@ HTMLEditor::ApplyDefaultProperties()
 
 nsresult
 HTMLEditor::RemoveStyleInside(nsIContent& aNode,
-                              nsIAtom* aProperty,
+                              nsAtom* aProperty,
                               const nsAString* aAttribute,
                               const bool aChildrenOnly /* = false */)
 {
@@ -784,7 +784,7 @@ HTMLEditor::RemoveStyleInside(nsIContent& aNode,
       NS_ENSURE_SUCCESS(rv, rv);
     } else {
       // otherwise we just want to eliminate the attribute
-      RefPtr<nsIAtom> attribute = NS_Atomize(*aAttribute);
+      RefPtr<nsAtom> attribute = NS_Atomize(*aAttribute);
       if (aNode.HasAttr(kNameSpaceID_None, attribute)) {
         // if this matching attribute is the ONLY one on the node,
         // then remove the whole node.  Otherwise just nix the attribute.
@@ -811,7 +811,7 @@ HTMLEditor::RemoveStyleInside(nsIContent& aNode,
     // this implementation for the node aNode; let's check if it carries those
     // css styles
     if (aNode.IsElement()) {
-      RefPtr<nsIAtom> attribute =
+      RefPtr<nsAtom> attribute =
         aAttribute ? NS_Atomize(*aAttribute) : nullptr;
       bool hasAttribute =
         mCSSEditUtils->HaveCSSEquivalentStyles(
@@ -992,7 +992,7 @@ HTMLEditor::IsAtEndOfNode(nsINode& aNode,
 
 
 nsresult
-HTMLEditor::GetInlinePropertyBase(nsIAtom& aProperty,
+HTMLEditor::GetInlinePropertyBase(nsAtom& aProperty,
                                   const nsAString* aAttribute,
                                   const nsAString* aValue,
                                   bool* aFirst,
@@ -1173,12 +1173,12 @@ HTMLEditor::GetInlineProperty(const nsAString& aProperty,
                               bool* aAny,
                               bool* aAll)
 {
-  RefPtr<nsIAtom> property = NS_Atomize(aProperty);
+  RefPtr<nsAtom> property = NS_Atomize(aProperty);
   return GetInlineProperty(property, aAttribute, aValue, aFirst, aAny, aAll);
 }
 
 nsresult
-HTMLEditor::GetInlineProperty(nsIAtom* aProperty,
+HTMLEditor::GetInlineProperty(nsAtom* aProperty,
                               const nsAString& aAttribute,
                               const nsAString& aValue,
                               bool* aFirst,
@@ -1204,13 +1204,13 @@ HTMLEditor::GetInlinePropertyWithAttrValue(const nsAString& aProperty,
                                            bool* aAll,
                                            nsAString& outValue)
 {
-  RefPtr<nsIAtom> property = NS_Atomize(aProperty);
+  RefPtr<nsAtom> property = NS_Atomize(aProperty);
   return GetInlinePropertyWithAttrValue(property, aAttribute, aValue, aFirst,
                                         aAny, aAll, outValue);
 }
 
 nsresult
-HTMLEditor::GetInlinePropertyWithAttrValue(nsIAtom* aProperty,
+HTMLEditor::GetInlinePropertyWithAttrValue(nsAtom* aProperty,
                                            const nsAString& aAttribute,
                                            const nsAString& aValue,
                                            bool* aFirst,
@@ -1244,19 +1244,19 @@ NS_IMETHODIMP
 HTMLEditor::RemoveInlineProperty(const nsAString& aProperty,
                                  const nsAString& aAttribute)
 {
-  RefPtr<nsIAtom> property = NS_Atomize(aProperty);
+  RefPtr<nsAtom> property = NS_Atomize(aProperty);
   return RemoveInlineProperty(property, aAttribute);
 }
 
 nsresult
-HTMLEditor::RemoveInlineProperty(nsIAtom* aProperty,
+HTMLEditor::RemoveInlineProperty(nsAtom* aProperty,
                                  const nsAString& aAttribute)
 {
   return RemoveInlinePropertyImpl(aProperty, &aAttribute);
 }
 
 nsresult
-HTMLEditor::RemoveInlinePropertyImpl(nsIAtom* aProperty,
+HTMLEditor::RemoveInlinePropertyImpl(nsAtom* aProperty,
                                      const nsAString* aAttribute)
 {
   MOZ_ASSERT_IF(aProperty, aAttribute);
@@ -1417,7 +1417,7 @@ HTMLEditor::RelativeFontChange(FontSize aDir)
   NS_ENSURE_TRUE(selection, NS_ERROR_FAILURE);
   // If selection is collapsed, set typing state
   if (selection->Collapsed()) {
-    nsIAtom& atom = aDir == FontSize::incr ? *nsGkAtoms::big :
+    nsAtom& atom = aDir == FontSize::incr ? *nsGkAtoms::big :
                                              *nsGkAtoms::small;
 
     // Let's see in what kind of element the selection is
@@ -1552,7 +1552,7 @@ HTMLEditor::RelativeFontChangeOnTextNode(FontSize aDir,
   }
 
   // Look for siblings that are correct type of node
-  nsIAtom* nodeType = aDir == FontSize::incr ? nsGkAtoms::big
+  nsAtom* nodeType = aDir == FontSize::incr ? nsGkAtoms::big
                                              : nsGkAtoms::small;
   nsCOMPtr<nsIContent> sibling = GetPriorHTMLSibling(node);
   if (sibling && sibling->IsHTMLElement(nodeType)) {
@@ -1626,7 +1626,7 @@ HTMLEditor::RelativeFontChangeOnNode(int32_t aSizeChange,
     return NS_ERROR_ILLEGAL_VALUE;
   }
 
-  nsIAtom* atom;
+  nsAtom* atom;
   if (aSizeChange == 1) {
     atom = nsGkAtoms::big;
   } else {
@@ -1769,7 +1769,7 @@ HTMLEditor::GetIsCSSEnabled(bool* aIsCSSEnabled)
 
 static bool
 HasNonEmptyAttribute(Element* aElement,
-                     nsIAtom* aName)
+                     nsAtom* aName)
 {
   MOZ_ASSERT(aElement);
 

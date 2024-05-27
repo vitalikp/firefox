@@ -449,7 +449,7 @@ protected:
    * @param aRelAttr     [in, optional] relation attribute
    */
   void AddDependentIDsFor(Accessible* aRelProvider,
-                          nsIAtom* aRelAttr = nullptr);
+                          nsAtom* aRelAttr = nullptr);
 
   /**
    * Remove dependent IDs pointed by accessible element by relation attribute
@@ -460,7 +460,7 @@ protected:
    * @param aRelAttr     [in, optional] relation attribute
    */
   void RemoveDependentIDsFor(Accessible* aRelProvider,
-                             nsIAtom* aRelAttr = nullptr);
+                             nsAtom* aRelAttr = nullptr);
 
   /**
    * Update or recreate an accessible depending on a changed attribute.
@@ -470,7 +470,7 @@ protected:
    * @return            true if an action was taken on the attribute change
    */
   bool UpdateAccessibleOnAttrChange(mozilla::dom::Element* aElement,
-                                    nsIAtom* aAttribute);
+                                    nsAtom* aAttribute);
 
   /**
    * Fire accessible events when attribute is changed.
@@ -480,7 +480,7 @@ protected:
    * @param aAttribute    [in] changed attribute
    */
   void AttributeChangedImpl(Accessible* aAccessible,
-                            int32_t aNameSpaceID, nsIAtom* aAttribute);
+                            int32_t aNameSpaceID, nsAtom* aAttribute);
 
   /**
    * Fire accessible events when ARIA attribute is changed.
@@ -488,7 +488,7 @@ protected:
    * @param aAccessible  [in] accesislbe the DOM attribute is changed for
    * @param aAttribute   [in] changed attribute
    */
-  void ARIAAttributeChanged(Accessible* aAccessible, nsIAtom* aAttribute);
+  void ARIAAttributeChanged(Accessible* aAccessible, nsAtom* aAttribute);
 
   /**
    * Process ARIA active-descendant attribute change.
@@ -637,7 +637,7 @@ protected:
    */
   union {
     // ARIA attribute value
-    nsIAtom* mARIAAttrOldValue;
+    nsAtom* mARIAAttrOldValue;
 
     // True if the accessible state bit was on
     bool mStateBitWasOn;
@@ -656,10 +656,10 @@ protected:
   class AttrRelProvider
   {
   public:
-    AttrRelProvider(nsIAtom* aRelAttr, nsIContent* aContent) :
+    AttrRelProvider(nsAtom* aRelAttr, nsIContent* aContent) :
       mRelAttr(aRelAttr), mContent(aContent) { }
 
-    nsIAtom* mRelAttr;
+    nsAtom* mRelAttr;
     nsCOMPtr<nsIContent> mContent;
 
   private:

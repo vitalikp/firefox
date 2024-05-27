@@ -30,13 +30,13 @@ public:
         return mRefCnt;
     }
 
-    nsresult mapNamespace(nsIAtom* aPrefix, const nsAString& aNamespaceURI);
-    int32_t lookupNamespace(nsIAtom* aPrefix);
+    nsresult mapNamespace(nsAtom* aPrefix, const nsAString& aNamespaceURI);
+    int32_t lookupNamespace(nsAtom* aPrefix);
     int32_t lookupNamespaceWithDefault(const nsAString& aPrefix);
 
 private:
     nsAutoRefCnt mRefCnt;
-    nsTArray<RefPtr<nsIAtom>> mPrefixes;
+    nsTArray<RefPtr<nsAtom>> mPrefixes;
     nsTArray<int32_t> mNamespaces;
 };
 

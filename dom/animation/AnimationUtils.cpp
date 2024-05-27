@@ -27,7 +27,7 @@ AnimationUtils::LogAsyncAnimationFailure(nsCString& aMessage,
     aMessage.AppendLiteral(" [");
     aMessage.Append(nsAtomCString(aContent->NodeInfo()->NameAtom()));
 
-    nsIAtom* id = aContent->GetID();
+    nsAtom* id = aContent->GetID();
     if (id) {
       aMessage.AppendLiteral(" with id '");
       aMessage.Append(nsAtomCString(aContent->GetID()));

@@ -407,7 +407,7 @@ nsContentIterator::InitInternal(nsINode* aStartContainer, uint32_t aStartOffset,
       // case in order to address bug 1215798.
       bool startIsContainer = true;
       if (aStartContainer->IsHTMLElement()) {
-        nsIAtom* name = aStartContainer->NodeInfo()->NameAtom();
+        nsAtom* name = aStartContainer->NodeInfo()->NameAtom();
         startIsContainer =
           nsHTMLElement::IsContainer(nsHTMLTags::AtomTagToId(name));
       }
@@ -470,7 +470,7 @@ nsContentIterator::InitInternal(nsINode* aStartContainer, uint32_t aStartOffset,
         // include the end node in the range).
         bool endIsContainer = true;
         if (aEndContainer->IsHTMLElement()) {
-          nsIAtom* name = aEndContainer->NodeInfo()->NameAtom();
+          nsAtom* name = aEndContainer->NodeInfo()->NameAtom();
           endIsContainer =
             nsHTMLElement::IsContainer(nsHTMLTags::AtomTagToId(name));
         }

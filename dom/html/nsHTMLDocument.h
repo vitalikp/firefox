@@ -259,7 +259,7 @@ public:
   virtual nsHTMLDocument* AsHTMLDocument() override { return this; }
 
   static bool MatchFormControls(Element* aElement, int32_t aNamespaceID,
-                                nsIAtom* aAtom, void* aData);
+                                nsAtom* aAtom, void* aData);
 
   void GetFormsAndFormControls(nsContentList** aFormList,
                                nsContentList** aFormControlList);
@@ -272,12 +272,12 @@ protected:
   nsIContent *MatchId(nsIContent *aContent, const nsAString& aId);
 
   static bool MatchLinks(mozilla::dom::Element* aElement, int32_t aNamespaceID,
-                         nsIAtom* aAtom, void* aData);
+                         nsAtom* aAtom, void* aData);
   static bool MatchAnchors(mozilla::dom::Element* aElement, int32_t aNamespaceID,
-                           nsIAtom* aAtom, void* aData);
+                           nsAtom* aAtom, void* aData);
   static bool MatchNameAttribute(mozilla::dom::Element* aElement,
                                  int32_t aNamespaceID,
-                                 nsIAtom* aAtom, void* aData);
+                                 nsAtom* aAtom, void* aData);
   static void* UseExistingNameString(nsINode* aRootNode, const nsString* aName);
 
   static void DocumentWriteTerminationFunc(nsISupports *aRef);

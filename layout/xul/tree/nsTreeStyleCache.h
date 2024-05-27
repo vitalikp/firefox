@@ -14,7 +14,7 @@
 #include "nsRefPtrHashtable.h"
 #include "nsStyleContext.h"
 
-typedef nsTArray<RefPtr<nsIAtom>> AtomArray;
+typedef nsTArray<RefPtr<nsAtom>> AtomArray;
 
 class nsTreeStyleCache
 {
@@ -40,7 +40,7 @@ public:
                                   nsPresContext* aPresContext,
                                   nsIContent* aContent,
                                   nsStyleContext* aContext,
-                                  nsIAtom* aPseudoElement,
+                                  nsAtom* aPseudoElement,
                                   const AtomArray & aInputWord);
 
 protected:
@@ -49,13 +49,13 @@ protected:
   class Transition final
   {
   public:
-    Transition(DFAState aState, nsIAtom* aSymbol);
+    Transition(DFAState aState, nsAtom* aSymbol);
     bool operator==(const Transition& aOther) const;
     uint32_t Hash() const;
 
   private:
     DFAState mState;
-    RefPtr<nsIAtom> mInputSymbol;
+    RefPtr<nsAtom> mInputSymbol;
   };
 
   typedef nsDataHashtable<nsGenericHashKey<Transition>, DFAState> TransitionTable;

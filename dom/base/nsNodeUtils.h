@@ -56,7 +56,7 @@ public:
    */
   static void AttributeWillChange(mozilla::dom::Element* aElement,
                                   int32_t aNameSpaceID,
-                                  nsIAtom* aAttribute,
+                                  nsAtom* aAttribute,
                                   int32_t aModType,
                                   const nsAttrValue* aNewValue);
 
@@ -72,7 +72,7 @@ public:
    */
   static void AttributeChanged(mozilla::dom::Element* aElement,
                                int32_t aNameSpaceID,
-                               nsIAtom* aAttribute,
+                               nsAtom* aAttribute,
                                int32_t aModType,
                                const nsAttrValue* aOldValue);
 
@@ -85,7 +85,7 @@ public:
    */
   static void AttributeSetToCurrentValue(mozilla::dom::Element* aElement,
                                          int32_t aNameSpaceID,
-                                         nsIAtom* aAttribute);
+                                         nsAtom* aAttribute);
 
   /**
    * Send ContentAppended notifications to nsIMutationObservers

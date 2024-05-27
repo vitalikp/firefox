@@ -51,7 +51,7 @@ static const nsAttrValue::EnumTable kOrderedListItemTypeTable[] = {
 
 bool
 HTMLLIElement::ParseAttribute(int32_t aNamespaceID,
-                              nsIAtom* aAttribute,
+                              nsAtom* aAttribute,
                               const nsAString& aValue,
                               nsAttrValue& aResult)
 {
@@ -87,7 +87,7 @@ HTMLLIElement::MapAttributesIntoRule(const nsMappedAttributes* aAttributes,
 }
 
 NS_IMETHODIMP_(bool)
-HTMLLIElement::IsAttributeMapped(const nsIAtom* aAttribute) const
+HTMLLIElement::IsAttributeMapped(const nsAtom* aAttribute) const
 {
   static const MappedAttributeEntry attributes[] = {
     { &nsGkAtoms::type },

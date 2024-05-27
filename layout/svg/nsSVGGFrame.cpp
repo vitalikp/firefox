@@ -76,7 +76,7 @@ nsSVGGFrame::GetCanvasTM()
 
 nsresult
 nsSVGGFrame::AttributeChanged(int32_t         aNameSpaceID,
-                              nsIAtom*        aAttribute,
+                              nsAtom*        aAttribute,
                               int32_t         aModType)
 {
   if (aNameSpaceID == kNameSpaceID_None &&

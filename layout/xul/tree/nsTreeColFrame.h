@@ -30,7 +30,7 @@ public:
                                            const nsDisplayListSet& aLists) override;
 
   virtual nsresult AttributeChanged(int32_t aNameSpaceID,
-                                    nsIAtom* aAttribute,
+                                    nsAtom* aAttribute,
                                     int32_t aModType) override;
 
   virtual void SetXULBounds(nsBoxLayoutState& aBoxLayoutState, const nsRect& aRect,

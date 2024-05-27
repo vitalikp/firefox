@@ -168,7 +168,7 @@ SVGGeometryFrame::Init(nsIContent*       aContent,
 
 nsresult
 SVGGeometryFrame::AttributeChanged(int32_t         aNameSpaceID,
-                                   nsIAtom*        aAttribute,
+                                   nsAtom*        aAttribute,
                                    int32_t         aModType)
 {
   // We don't invalidate for transform changes (the layers code does that).

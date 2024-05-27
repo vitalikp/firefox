@@ -119,7 +119,7 @@ SVGMPathElement::UnbindFromTree(bool aDeep, bool aNullParent)
 
 bool
 SVGMPathElement::ParseAttribute(int32_t aNamespaceID,
-                                nsIAtom* aAttribute,
+                                nsAtom* aAttribute,
                                 const nsAString& aValue,
                                 nsAttrValue& aResult)
 {
@@ -145,7 +145,7 @@ SVGMPathElement::ParseAttribute(int32_t aNamespaceID,
 
 nsresult
 SVGMPathElement::UnsetAttr(int32_t aNamespaceID,
-                           nsIAtom* aAttribute, bool aNotify)
+                           nsAtom* aAttribute, bool aNotify)
 {
   nsresult rv = SVGMPathElementBase::UnsetAttr(aNamespaceID, aAttribute,
                                                aNotify);
@@ -188,7 +188,7 @@ void
 SVGMPathElement::AttributeChanged(nsIDocument* aDocument,
                                   Element* aElement,
                                   int32_t aNameSpaceID,
-                                  nsIAtom* aAttribute,
+                                  nsAtom* aAttribute,
                                   int32_t aModType,
                                   const nsAttrValue* aOldValue)
 {

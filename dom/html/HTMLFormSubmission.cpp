@@ -869,7 +869,7 @@ GetSubmitCharset(nsGenericHTMLElement* aForm,
 
 void
 GetEnumAttr(nsGenericHTMLElement* aContent,
-            nsIAtom* atom, int32_t* aValue)
+            nsAtom* atom, int32_t* aValue)
 {
   const nsAttrValue* value = aContent->GetParsedAttr(atom);
   if (value && value->Type() == nsAttrValue::eEnum) {

@@ -283,14 +283,14 @@ class nsStyleSet final
   // use and must be non-null.  It must be an anon box, and must be one that
   // inherits style from the given aParentContext.
   already_AddRefed<nsStyleContext>
-  ResolveInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag,
+  ResolveInheritingAnonymousBoxStyle(nsAtom* aPseudoTag,
                                      nsStyleContext* aParentContext);
 
   // Get a style context for an anonymous box that does not inherit style from
   // anything.  aPseudoTag is the pseudo-tag to use and must be non-null.  It
   // must be an anon box, and must be a non-inheriting one.
   already_AddRefed<nsStyleContext>
-  ResolveNonInheritingAnonymousBoxStyle(nsIAtom* aPseudoTag);
+  ResolveNonInheritingAnonymousBoxStyle(nsAtom* aPseudoTag);
 
 #ifdef MOZ_XUL
   // Get a style context for a XUL tree pseudo.  aPseudoTag is the
@@ -298,7 +298,7 @@ class nsStyleSet final
   // non-null.  aComparator must be non-null.
   already_AddRefed<nsStyleContext>
   ResolveXULTreePseudoStyle(mozilla::dom::Element* aParentElement,
-                            nsIAtom* aPseudoTag,
+                            nsAtom* aPseudoTag,
                             nsStyleContext* aParentContext,
                             nsICSSPseudoComparator* aComparator);
 #endif
@@ -311,7 +311,7 @@ class nsStyleSet final
   nsCSSKeyframesRule* KeyframesRuleForName(const nsString& aName);
 
   // Return the winning (in the cascade) @counter-style rule for the given name.
-  nsCSSCounterStyleRule* CounterStyleRuleForName(nsIAtom* aName);
+  nsCSSCounterStyleRule* CounterStyleRuleForName(nsAtom* aName);
 
   // Fetch object for looking up font feature values
   already_AddRefed<gfxFontFeatureValueSet> GetFontFeatureValuesLookup();
@@ -372,7 +372,7 @@ class nsStyleSet final
   // Test if style is dependent on the presence of an attribute.
   nsRestyleHint HasAttributeDependentStyle(mozilla::dom::Element* aElement,
                                            int32_t        aNameSpaceID,
-                                           nsIAtom*       aAttribute,
+                                           nsAtom*       aAttribute,
                                            int32_t        aModType,
                                            bool           aAttrHasChanged,
                                            const nsAttrValue* aOtherValue,
@@ -569,7 +569,7 @@ private:
   GetContext(nsStyleContext* aParentContext,
              nsRuleNode* aRuleNode,
              nsRuleNode* aVisitedRuleNode,
-             nsIAtom* aPseudoTag,
+             nsAtom* aPseudoTag,
              mozilla::CSSPseudoElementType aPseudoType,
              mozilla::dom::Element* aElementForAnimation,
              uint32_t aFlags);

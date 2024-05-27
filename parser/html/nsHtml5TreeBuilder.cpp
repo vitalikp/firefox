@@ -180,7 +180,7 @@ nsHtml5TreeBuilder::startTokenization(nsHtml5Tokenizer* self)
 }
 
 void
-nsHtml5TreeBuilder::doctype(nsIAtom* name,
+nsHtml5TreeBuilder::doctype(nsAtom* name,
                             nsHtml5String publicIdentifier,
                             nsHtml5String systemIdentifier,
                             bool forceQuirks)
@@ -651,7 +651,7 @@ nsHtml5TreeBuilder::startTag(nsHtml5ElementName* elementName, nsHtml5HtmlAttribu
   needToDropLF = false;
   starttagloop: for (; ; ) {
     int32_t group = elementName->getGroup();
-    nsIAtom* name = elementName->getName();
+    nsAtom* name = elementName->getName();
     if (isInForeign()) {
       nsHtml5StackNode* currentNode = stack[currentPtr];
       int32_t currNs = currentNode->ns;
@@ -2269,7 +2269,7 @@ nsHtml5TreeBuilder::endTag(nsHtml5ElementName* elementName)
   needToDropLF = false;
   int32_t eltPos;
   int32_t group = elementName->getGroup();
-  nsIAtom* name = elementName->getName();
+  nsAtom* name = elementName->getName();
   for (; ; ) {
     if (isInForeign()) {
       if (stack[currentPtr]->name != name) {
@@ -3131,7 +3131,7 @@ nsHtml5TreeBuilder::findLastInTableScopeOrRootTemplateTbodyTheadTfoot()
 }
 
 int32_t 
-nsHtml5TreeBuilder::findLast(nsIAtom* name)
+nsHtml5TreeBuilder::findLast(nsAtom* name)
 {
   for (int32_t i = currentPtr; i > 0; i--) {
     if (stack[i]->ns == kNameSpaceID_XHTML && stack[i]->name == name) {
@@ -3142,7 +3142,7 @@ nsHtml5TreeBuilder::findLast(nsIAtom* name)
 }
 
 int32_t 
-nsHtml5TreeBuilder::findLastInTableScope(nsIAtom* name)
+nsHtml5TreeBuilder::findLastInTableScope(nsAtom* name)
 {
   for (int32_t i = currentPtr; i > 0; i--) {
     if (stack[i]->ns == kNameSpaceID_XHTML) {
@@ -3158,7 +3158,7 @@ nsHtml5TreeBuilder::findLastInTableScope(nsIAtom* name)
 }
 
 int32_t 
-nsHtml5TreeBuilder::findLastInButtonScope(nsIAtom* name)
+nsHtml5TreeBuilder::findLastInButtonScope(nsAtom* name)
 {
   for (int32_t i = currentPtr; i > 0; i--) {
     if (stack[i]->ns == kNameSpaceID_XHTML) {
@@ -3176,7 +3176,7 @@ nsHtml5TreeBuilder::findLastInButtonScope(nsIAtom* name)
 }
 
 int32_t 
-nsHtml5TreeBuilder::findLastInScope(nsIAtom* name)
+nsHtml5TreeBuilder::findLastInScope(nsAtom* name)
 {
   for (int32_t i = currentPtr; i > 0; i--) {
     if (stack[i]->ns == kNameSpaceID_XHTML && stack[i]->name == name) {
@@ -3189,7 +3189,7 @@ nsHtml5TreeBuilder::findLastInScope(nsIAtom* name)
 }
 
 int32_t 
-nsHtml5TreeBuilder::findLastInListScope(nsIAtom* name)
+nsHtml5TreeBuilder::findLastInListScope(nsAtom* name)
 {
   for (int32_t i = currentPtr; i > 0; i--) {
     if (stack[i]->ns == kNameSpaceID_XHTML) {
@@ -3222,7 +3222,7 @@ nsHtml5TreeBuilder::findLastInScopeHn()
 }
 
 void 
-nsHtml5TreeBuilder::generateImpliedEndTagsExceptFor(nsIAtom* name)
+nsHtml5TreeBuilder::generateImpliedEndTagsExceptFor(nsAtom* name)
 {
   for (; ; ) {
     nsHtml5StackNode* node = stack[currentPtr];
@@ -3313,7 +3313,7 @@ nsHtml5TreeBuilder::isAlmostStandards(nsHtml5String publicIdentifier,
 }
 
 bool
-nsHtml5TreeBuilder::isQuirky(nsIAtom* name,
+nsHtml5TreeBuilder::isQuirky(nsAtom* name,
                              nsHtml5String publicIdentifier,
                              nsHtml5String systemIdentifier,
                              bool forceQuirks)
@@ -3365,7 +3365,7 @@ int32_t
 nsHtml5TreeBuilder::findLastInTableScopeTdTh()
 {
   for (int32_t i = currentPtr; i > 0; i--) {
-    nsIAtom* name = stack[i]->name;
+    nsAtom* name = stack[i]->name;
     if (stack[i]->ns == kNameSpaceID_XHTML) {
       if (nsGkAtoms::td == name || nsGkAtoms::th == name) {
         return i;
@@ -3396,7 +3396,7 @@ void
 nsHtml5TreeBuilder::resetTheInsertionMode()
 {
   nsHtml5StackNode* node;
-  nsIAtom* name;
+  nsAtom* name;
   int32_t ns;
   for (int32_t i = currentPtr; i >= 0; i--) {
     node = stack[i];
@@ -3626,7 +3626,7 @@ nsHtml5TreeBuilder::removeFromListOfActiveFormattingElements(int32_t pos)
 }
 
 bool 
-nsHtml5TreeBuilder::adoptionAgencyEndTag(nsIAtom* name)
+nsHtml5TreeBuilder::adoptionAgencyEndTag(nsAtom* name)
 {
   if (stack[currentPtr]->ns == kNameSpaceID_XHTML && stack[currentPtr]->name == name && findInListOfActiveFormattingElements(stack[currentPtr]) == -1) {
     pop();
@@ -3820,7 +3820,7 @@ nsHtml5TreeBuilder::findInListOfActiveFormattingElements(nsHtml5StackNode* node)
 }
 
 int32_t 
-nsHtml5TreeBuilder::findInListOfActiveFormattingElementsContainsBetweenEndAndLastMarker(nsIAtom* name)
+nsHtml5TreeBuilder::findInListOfActiveFormattingElementsContainsBetweenEndAndLastMarker(nsAtom* name)
 {
   for (int32_t i = listPtr; i >= 0; i--) {
     nsHtml5StackNode* node = listOfActiveFormattingElements[i];
@@ -3834,7 +3834,7 @@ nsHtml5TreeBuilder::findInListOfActiveFormattingElementsContainsBetweenEndAndLas
 }
 
 void 
-nsHtml5TreeBuilder::maybeForgetEarlierDuplicateFormattingElement(nsIAtom* name, nsHtml5HtmlAttributes* attributes)
+nsHtml5TreeBuilder::maybeForgetEarlierDuplicateFormattingElement(nsAtom* name, nsHtml5HtmlAttributes* attributes)
 {
   int32_t candidate = -1;
   int32_t count = 0;
@@ -3854,7 +3854,7 @@ nsHtml5TreeBuilder::maybeForgetEarlierDuplicateFormattingElement(nsIAtom* name, 
 }
 
 int32_t 
-nsHtml5TreeBuilder::findLastOrRoot(nsIAtom* name)
+nsHtml5TreeBuilder::findLastOrRoot(nsAtom* name)
 {
   for (int32_t i = currentPtr; i > 0; i--) {
     if (stack[i]->ns == kNameSpaceID_XHTML && stack[i]->name == name) {
@@ -3995,9 +3995,9 @@ nsHtml5StackNode*
 nsHtml5TreeBuilder::createStackNode(
   int32_t flags,
   int32_t ns,
-  nsIAtom* name,
+  nsAtom* name,
   nsIContentHandle* node,
-  nsIAtom* popName,
+  nsAtom* popName,
   nsHtml5HtmlAttributes* attributes,
   mozilla::dom::HTMLContentCreatorFunction htmlCreator)
 {
@@ -4028,7 +4028,7 @@ nsHtml5TreeBuilder::createStackNode(nsHtml5ElementName* elementName,
 nsHtml5StackNode*
 nsHtml5TreeBuilder::createStackNode(nsHtml5ElementName* elementName,
                                     nsIContentHandle* node,
-                                    nsIAtom* popName)
+                                    nsAtom* popName)
 {
   nsHtml5StackNode* instance = getUnusedStackNode();
   instance->setValues(elementName, node, popName);
@@ -4037,7 +4037,7 @@ nsHtml5TreeBuilder::createStackNode(nsHtml5ElementName* elementName,
 
 nsHtml5StackNode*
 nsHtml5TreeBuilder::createStackNode(nsHtml5ElementName* elementName,
-                                    nsIAtom* popName,
+                                    nsAtom* popName,
                                     nsIContentHandle* node)
 {
   nsHtml5StackNode* instance = getUnusedStackNode();
@@ -4048,7 +4048,7 @@ nsHtml5TreeBuilder::createStackNode(nsHtml5ElementName* elementName,
 nsHtml5StackNode*
 nsHtml5TreeBuilder::createStackNode(nsHtml5ElementName* elementName,
                                     nsIContentHandle* node,
-                                    nsIAtom* popName,
+                                    nsAtom* popName,
                                     bool markAsIntegrationPoint)
 {
   nsHtml5StackNode* instance = getUnusedStackNode();
@@ -4072,7 +4072,7 @@ nsHtml5TreeBuilder::insertIntoFosterParent(nsIContentHandle* child)
 nsIContentHandle*
 nsHtml5TreeBuilder::createAndInsertFosterParentedElement(
   int32_t ns,
-  nsIAtom* name,
+  nsAtom* name,
   nsHtml5HtmlAttributes* attributes,
   nsHtml5ContentCreatorFunction creator)
 {
@@ -4083,7 +4083,7 @@ nsHtml5TreeBuilder::createAndInsertFosterParentedElement(
 nsIContentHandle*
 nsHtml5TreeBuilder::createAndInsertFosterParentedElement(
   int32_t ns,
-  nsIAtom* name,
+  nsAtom* name,
   nsHtml5HtmlAttributes* attributes,
   nsIContentHandle* form,
   nsHtml5ContentCreatorFunction creator)
@@ -4264,7 +4264,7 @@ nsHtml5TreeBuilder::appendToCurrentNodeAndPushElement(nsHtml5ElementName* elemen
 void 
 nsHtml5TreeBuilder::appendToCurrentNodeAndPushElementMayFoster(nsHtml5ElementName* elementName, nsHtml5HtmlAttributes* attributes)
 {
-  nsIAtom* popName = elementName->getName();
+  nsAtom* popName = elementName->getName();
   nsIContentHandle* elt;
   nsHtml5StackNode* current = stack[currentPtr];
   if (current->isFosterParenting()) {
@@ -4289,7 +4289,7 @@ nsHtml5TreeBuilder::appendToCurrentNodeAndPushElementMayFoster(nsHtml5ElementNam
 void 
 nsHtml5TreeBuilder::appendToCurrentNodeAndPushElementMayFosterMathML(nsHtml5ElementName* elementName, nsHtml5HtmlAttributes* attributes)
 {
-  nsIAtom* popName = elementName->getName();
+  nsAtom* popName = elementName->getName();
   bool markAsHtmlIntegrationPoint = false;
   if (nsHtml5ElementName::ELT_ANNOTATION_XML == elementName && annotationXmlEncodingPermitsHtml(attributes)) {
     markAsHtmlIntegrationPoint = true;
@@ -4327,7 +4327,7 @@ nsHtml5TreeBuilder::annotationXmlEncodingPermitsHtml(nsHtml5HtmlAttributes* attr
 void 
 nsHtml5TreeBuilder::appendToCurrentNodeAndPushElementMayFosterSVG(nsHtml5ElementName* elementName, nsHtml5HtmlAttributes* attributes)
 {
-  nsIAtom* popName = elementName->getCamelCaseName();
+  nsAtom* popName = elementName->getCamelCaseName();
   nsIContentHandle* elt;
   nsHtml5StackNode* current = stack[currentPtr];
   if (current->isFosterParenting()) {
@@ -4382,7 +4382,7 @@ nsHtml5TreeBuilder::appendVoidElementToCurrentMayFoster(
   nsHtml5HtmlAttributes* attributes,
   nsIContentHandle* form)
 {
-  nsIAtom* name = elementName->getName();
+  nsAtom* name = elementName->getName();
   nsIContentHandle* elt;
   nsIContentHandle* formOwner = !form || fragment || isTemplateContents() ? nullptr : form;
   nsHtml5StackNode* current = stack[currentPtr];
@@ -4410,7 +4410,7 @@ nsHtml5TreeBuilder::appendVoidElementToCurrentMayFoster(
 void 
 nsHtml5TreeBuilder::appendVoidElementToCurrentMayFoster(nsHtml5ElementName* elementName, nsHtml5HtmlAttributes* attributes)
 {
-  nsIAtom* popName = elementName->getName();
+  nsAtom* popName = elementName->getName();
   nsIContentHandle* elt;
   nsHtml5StackNode* current = stack[currentPtr];
   if (current->isFosterParenting()) {
@@ -4435,7 +4435,7 @@ nsHtml5TreeBuilder::appendVoidElementToCurrentMayFoster(nsHtml5ElementName* elem
 void 
 nsHtml5TreeBuilder::appendVoidElementToCurrentMayFosterSVG(nsHtml5ElementName* elementName, nsHtml5HtmlAttributes* attributes)
 {
-  nsIAtom* popName = elementName->getCamelCaseName();
+  nsAtom* popName = elementName->getCamelCaseName();
   nsIContentHandle* elt;
   nsHtml5StackNode* current = stack[currentPtr];
   if (current->isFosterParenting()) {
@@ -4460,7 +4460,7 @@ nsHtml5TreeBuilder::appendVoidElementToCurrentMayFosterSVG(nsHtml5ElementName* e
 void 
 nsHtml5TreeBuilder::appendVoidElementToCurrentMayFosterMathML(nsHtml5ElementName* elementName, nsHtml5HtmlAttributes* attributes)
 {
-  nsIAtom* popName = elementName->getName();
+  nsAtom* popName = elementName->getName();
   nsIContentHandle* elt;
   nsHtml5StackNode* current = stack[currentPtr];
   if (current->isFosterParenting()) {
@@ -4533,7 +4533,7 @@ nsHtml5TreeBuilder::isInForeignButNotHtmlOrMathTextIntegrationPoint()
 }
 
 void 
-nsHtml5TreeBuilder::setFragmentContext(nsIAtom* context, int32_t ns, nsIContentHandle* node, bool quirks)
+nsHtml5TreeBuilder::setFragmentContext(nsAtom* context, int32_t ns, nsIContentHandle* node, bool quirks)
 {
   this->contextName = context;
   this->contextNamespace = ns;

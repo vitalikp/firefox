@@ -50,7 +50,7 @@ public:
 
   virtual nsresult
   AttributeChanged(int32_t         aNameSpaceID,
-                   nsIAtom*        aAttribute,
+                   nsAtom*        aAttribute,
                    int32_t         aModType) override;
 
   // override the base method because we must keep separators in sync

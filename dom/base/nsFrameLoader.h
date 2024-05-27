@@ -290,7 +290,7 @@ private:
                               int32_t aParentType,
                               nsIDocShell* aParentNode);
 
-  nsIAtom* TypeAttrName() const {
+  nsAtom* TypeAttrName() const {
     return mOwnerContent->IsXULElement()
              ? nsGkAtoms::type : nsGkAtoms::mozframetype;
   }

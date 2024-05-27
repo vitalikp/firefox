@@ -231,9 +231,9 @@ nsNodeInfoManager::DropDocumentReference()
 
 
 already_AddRefed<mozilla::dom::NodeInfo>
-nsNodeInfoManager::GetNodeInfo(nsIAtom *aName, nsIAtom *aPrefix,
+nsNodeInfoManager::GetNodeInfo(nsAtom *aName, nsAtom *aPrefix,
                                int32_t aNamespaceID, uint16_t aNodeType,
-                               nsIAtom* aExtraName /* = nullptr */)
+                               nsAtom* aExtraName /* = nullptr */)
 {
   CheckValidNodeInfo(aNodeType, aName, aNamespaceID, aExtraName);
 
@@ -276,13 +276,13 @@ nsNodeInfoManager::GetNodeInfo(nsIAtom *aName, nsIAtom *aPrefix,
 
 
 nsresult
-nsNodeInfoManager::GetNodeInfo(const nsAString& aName, nsIAtom *aPrefix,
+nsNodeInfoManager::GetNodeInfo(const nsAString& aName, nsAtom *aPrefix,
                                int32_t aNamespaceID, uint16_t aNodeType,
                                NodeInfo** aNodeInfo)
 {
 #ifdef DEBUG
   {
-    RefPtr<nsIAtom> nameAtom = NS_Atomize(aName);
+    RefPtr<nsAtom> nameAtom = NS_Atomize(aName);
     CheckValidNodeInfo(aNodeType, nameAtom, aNamespaceID, nullptr);
   }
 #endif
@@ -308,7 +308,7 @@ nsNodeInfoManager::GetNodeInfo(const nsAString& aName, nsIAtom *aPrefix,
     return NS_OK;
   }
 
-  RefPtr<nsIAtom> nameAtom = NS_Atomize(aName);
+  RefPtr<nsAtom> nameAtom = NS_Atomize(aName);
   NS_ENSURE_TRUE(nameAtom, NS_ERROR_OUT_OF_MEMORY);
 
   RefPtr<NodeInfo> newNodeInfo =
@@ -332,7 +332,7 @@ nsNodeInfoManager::GetNodeInfo(const nsAString& aName, nsIAtom *aPrefix,
 
 
 nsresult
-nsNodeInfoManager::GetNodeInfo(const nsAString& aName, nsIAtom *aPrefix,
+nsNodeInfoManager::GetNodeInfo(const nsAString& aName, nsAtom *aPrefix,
                                const nsAString& aNamespaceURI,
                                uint16_t aNodeType,
                                NodeInfo** aNodeInfo)

@@ -119,7 +119,7 @@ public:
     // initialize font lists
     nsresult InitFontList();
 
-    virtual void GetFontList(nsIAtom *aLangGroup,
+    virtual void GetFontList(nsAtom *aLangGroup,
                              const nsACString& aGenericFamily,
                              nsTArray<nsString>& aListOfFonts);
 
@@ -236,7 +236,7 @@ public:
 
     virtual void
     AddGenericFonts(mozilla::FontFamilyType aGenericType,
-                    nsIAtom* aLanguage,
+                    nsAtom* aLanguage,
                     nsTArray<gfxFontFamily*>& aFamilyList);
 
     nsTArray<RefPtr<gfxFontFamily>>*
@@ -250,10 +250,10 @@ public:
     static eFontPrefLang GetFontPrefLangFor(const char* aLang);
 
     // convert a lang group atom to enum constant
-    static eFontPrefLang GetFontPrefLangFor(nsIAtom *aLang);
+    static eFontPrefLang GetFontPrefLangFor(nsAtom *aLang);
 
     // convert an enum constant to a lang group atom
-    static nsIAtom* GetLangGroupForPrefLang(eFontPrefLang aLang);
+    static nsAtom* GetLangGroupForPrefLang(eFontPrefLang aLang);
 
     // convert a enum constant to lang group string (i.e. eFontPrefLang_ChineseTW ==> "zh-TW")
     static const char* GetPrefLangName(eFontPrefLang aLang);
@@ -354,7 +354,7 @@ protected:
         }
 
         PrefNameMaker(const char* aGeneric,
-                      nsIAtom* aLangGroup)
+                      nsAtom* aLangGroup)
         {
             if (aLangGroup) {
                 Init(nsDependentCString(aGeneric), nsAtomCString(aLangGroup));
@@ -462,7 +462,7 @@ protected:
     virtual void GetFontFamilyNames(nsTArray<nsString>& aFontFamilyNames);
 
     // helper function to map lang to lang group
-    nsIAtom* GetLangGroup(nsIAtom* aLanguage);
+    nsAtom* GetLangGroup(nsAtom* aLanguage);
 
     static const char* GetGenericName(mozilla::FontFamilyType aGenericType);
 

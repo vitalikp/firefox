@@ -209,7 +209,7 @@ nsFormControlFrame::GetCurrentCheckState(bool *aState)
 }
 
 nsresult
-nsFormControlFrame::SetFormProperty(nsIAtom* aName, const nsAString& aValue)
+nsFormControlFrame::SetFormProperty(nsAtom* aName, const nsAString& aValue)
 {
   return NS_OK;
 }

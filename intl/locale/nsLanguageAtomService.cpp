@@ -32,17 +32,17 @@ nsLanguageAtomService::GetService()
   return gLangAtomService.get();
 }
 
-nsIAtom*
+nsAtom*
 nsLanguageAtomService::LookupLanguage(const nsACString &aLanguage)
 {
   nsAutoCString lowered(aLanguage);
   ToLowerCase(lowered);
 
-  RefPtr<nsIAtom> lang = NS_Atomize(lowered);
+  RefPtr<nsAtom> lang = NS_Atomize(lowered);
   return GetLanguageGroup(lang);
 }
 
-already_AddRefed<nsIAtom>
+already_AddRefed<nsAtom>
 nsLanguageAtomService::LookupCharSet(const nsACString& aCharSet)
 {
   nsAutoCString group;
@@ -50,7 +50,7 @@ nsLanguageAtomService::LookupCharSet(const nsACString& aCharSet)
   return NS_Atomize(group);
 }
 
-nsIAtom*
+nsAtom*
 nsLanguageAtomService::GetLocaleLanguage()
 {
   do {
@@ -66,17 +66,17 @@ nsLanguageAtomService::GetLocaleLanguage()
   return mLocaleLanguage;
 }
 
-nsIAtom*
-nsLanguageAtomService::GetLanguageGroup(nsIAtom *aLanguage, bool* aNeedsToCache)
+nsAtom*
+nsLanguageAtomService::GetLanguageGroup(nsAtom *aLanguage, bool* aNeedsToCache)
 {
-  nsIAtom *retVal = mLangToGroup.GetWeak(aLanguage);
+  nsAtom *retVal = mLangToGroup.GetWeak(aLanguage);
 
   if (!retVal) {
     if (aNeedsToCache) {
       *aNeedsToCache = true;
       return nullptr;
     }
-    RefPtr<nsIAtom> uncached = GetUncachedLanguageGroup(aLanguage);
+    RefPtr<nsAtom> uncached = GetUncachedLanguageGroup(aLanguage);
     retVal = uncached.get();
 
     AssertIsMainThreadOrServoLangFontPrefsCacheLocked();
@@ -87,8 +87,8 @@ nsLanguageAtomService::GetLanguageGroup(nsIAtom *aLanguage, bool* aNeedsToCache)
   return retVal;
 }
 
-already_AddRefed<nsIAtom>
-nsLanguageAtomService::GetUncachedLanguageGroup(nsIAtom* aLanguage) const
+already_AddRefed<nsAtom>
+nsLanguageAtomService::GetUncachedLanguageGroup(nsAtom* aLanguage) const
 {
   nsAutoCString langStr;
   aLanguage->ToUTF8String(langStr);
@@ -111,7 +111,7 @@ nsLanguageAtomService::GetUncachedLanguageGroup(nsIAtom* aLanguage) const
                                                      langStr, langGroupStr);
   }
 
-  RefPtr<nsIAtom> langGroup = NS_Atomize(langGroupStr);
+  RefPtr<nsAtom> langGroup = NS_Atomize(langGroupStr);
 
   return langGroup.forget();
 }

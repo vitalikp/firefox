@@ -113,7 +113,7 @@ txAttribute::execute(txExecutionState& aEs)
         return NS_OK;
     }
 
-    RefPtr<nsIAtom> prefix;
+    RefPtr<nsAtom> prefix;
     uint32_t lnameStart = 0;
     if (colon) {
         prefix = NS_Atomize(Substring(name.get(), colon));
@@ -229,7 +229,7 @@ txCopyBase::copyNode(const txXPathNode& aNode, txExecutionState& aEs)
             nsAutoString nodeValue;
             txXPathNodeUtils::appendNodeValue(aNode, nodeValue);
 
-            RefPtr<nsIAtom> localName =
+            RefPtr<nsAtom> localName =
                 txXPathNodeUtils::getLocalName(aNode);
             return aEs.mResultHandler->
                 attribute(txXPathNodeUtils::getPrefix(aNode),
@@ -257,7 +257,7 @@ txCopyBase::copyNode(const txXPathNode& aNode, txExecutionState& aEs)
         }
         case txXPathNodeType::ELEMENT_NODE:
         {
-            RefPtr<nsIAtom> localName =
+            RefPtr<nsAtom> localName =
                 txXPathNodeUtils::getLocalName(aNode);
             nsresult rv = aEs.mResultHandler->
                 startElement(txXPathNodeUtils::getPrefix(aNode),
@@ -340,7 +340,7 @@ txCopy::execute(txExecutionState& aEs)
         }
         case txXPathNodeType::ELEMENT_NODE:
         {
-            RefPtr<nsIAtom> localName =
+            RefPtr<nsAtom> localName =
                 txXPathNodeUtils::getLocalName(node);
             rv = aEs.mResultHandler->
                 startElement(txXPathNodeUtils::getPrefix(node),
@@ -487,8 +487,8 @@ txLoopNodeSet::execute(txExecutionState& aEs)
     return NS_OK;
 }
 
-txLREAttribute::txLREAttribute(int32_t aNamespaceID, nsIAtom* aLocalName,
-                               nsIAtom* aPrefix, nsAutoPtr<Expr>&& aValue)
+txLREAttribute::txLREAttribute(int32_t aNamespaceID, nsAtom* aLocalName,
+                               nsAtom* aPrefix, nsAutoPtr<Expr>&& aValue)
     : mNamespaceID(aNamespaceID),
       mLocalName(aLocalName),
       mPrefix(aPrefix),
@@ -826,7 +826,7 @@ txStartElement::execute(txExecutionState& aEs)
 
 
     int32_t nsId = kNameSpaceID_None;
-    RefPtr<nsIAtom> prefix;
+    RefPtr<nsAtom> prefix;
     uint32_t lnameStart = 0;
 
     const char16_t* colon;
@@ -881,8 +881,8 @@ txStartElement::execute(txExecutionState& aEs)
 
 
 txStartLREElement::txStartLREElement(int32_t aNamespaceID,
-                                     nsIAtom* aLocalName,
-                                     nsIAtom* aPrefix)
+                                     nsAtom* aLocalName,
+                                     nsAtom* aPrefix)
     : mNamespaceID(aNamespaceID),
       mLocalName(aLocalName),
       mPrefix(aPrefix)

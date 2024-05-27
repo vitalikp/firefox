@@ -402,7 +402,7 @@ nsXBLBinding::GenerateAnonymousContent()
     int32_t namespaceID = attrInfo.mName->NamespaceID();
     // Hold a strong reference here so that the atom doesn't go away during
     // UnsetAttr.
-    RefPtr<nsIAtom> name = attrInfo.mName->LocalName();
+    RefPtr<nsAtom> name = attrInfo.mName->LocalName();
 
     if (name != nsGkAtoms::includes) {
       if (!nsContentUtils::HasNonEmptyAttr(mBoundElement, namespaceID, name)) {
@@ -502,7 +502,7 @@ nsXBLBinding::InstallEventHandlers()
       nsXBLPrototypeHandler* curr;
       for (curr = handlerChain; curr; curr = curr->GetNextHandler()) {
         // Fetch the event type.
-        RefPtr<nsIAtom> eventAtom = curr->GetEventName();
+        RefPtr<nsAtom> eventAtom = curr->GetEventName();
         if (!eventAtom ||
             eventAtom == nsGkAtoms::keyup ||
             eventAtom == nsGkAtoms::keydown ||
@@ -590,10 +590,10 @@ nsXBLBinding::InstallImplementation()
   return NS_OK;
 }
 
-nsIAtom*
+nsAtom*
 nsXBLBinding::GetBaseTag(int32_t* aNameSpaceID)
 {
-  nsIAtom *tag = mPrototypeBinding->GetBaseTag(aNameSpaceID);
+  nsAtom *tag = mPrototypeBinding->GetBaseTag(aNameSpaceID);
   if (!tag && mNextBinding)
     return mNextBinding->GetBaseTag(aNameSpaceID);
 
@@ -601,7 +601,7 @@ nsXBLBinding::GetBaseTag(int32_t* aNameSpaceID)
 }
 
 void
-nsXBLBinding::AttributeChanged(nsIAtom* aAttribute, int32_t aNameSpaceID,
+nsXBLBinding::AttributeChanged(nsAtom* aAttribute, int32_t aNameSpaceID,
                                bool aRemoveFlag, bool aNotify)
 {
   // XXX Change if we ever allow multiple bindings in a chain to contribute anonymous content
@@ -654,7 +654,7 @@ nsXBLBinding::UnhookEventHandlers()
         continue;
       }
 
-      RefPtr<nsIAtom> eventAtom = curr->GetEventName();
+      RefPtr<nsAtom> eventAtom = curr->GetEventName();
       if (!eventAtom ||
           eventAtom == nsGkAtoms::keyup ||
           eventAtom == nsGkAtoms::keydown ||

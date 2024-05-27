@@ -44,13 +44,13 @@ public:
   /**
    * Get the name assigned to this transaction.
    */
-  NS_IMETHOD GetName(nsIAtom** aName);
+  NS_IMETHOD GetName(nsAtom** aName);
 
 protected:
   virtual ~EditAggregateTransaction();
 
   nsTArray<RefPtr<EditTransactionBase>> mChildren;
-  RefPtr<nsIAtom> mName;
+  RefPtr<nsAtom> mName;
 };
 
 } // namespace mozilla

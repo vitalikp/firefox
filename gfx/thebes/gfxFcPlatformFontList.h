@@ -216,7 +216,7 @@ public:
                          bool& aNeedsSyntheticBold,
                          bool aIgnoreSizeTolerance) override;
 
-    bool FilterForFontList(nsIAtom* aLangGroup,
+    bool FilterForFontList(nsAtom* aLangGroup,
                            const nsACString& aGeneric) const final {
         return SupportsLangGroup(aLangGroup);
     }
@@ -225,7 +225,7 @@ protected:
     virtual ~gfxFontconfigFontFamily();
 
     // helper for FilterForFontList
-    bool SupportsLangGroup(nsIAtom *aLangGroup) const;
+    bool SupportsLangGroup(nsAtom *aLangGroup) const;
 
     nsTArray<nsCountedRef<FcPattern> > mFontPatterns;
 
@@ -259,7 +259,7 @@ public:
     // initialize font lists
     virtual nsresult InitFontListForPlatform() override;
 
-    void GetFontList(nsIAtom *aLangGroup,
+    void GetFontList(nsAtom *aLangGroup,
                      const nsACString& aGenericFamily,
                      nsTArray<nsString>& aListOfFonts) override;
 
@@ -288,7 +288,7 @@ public:
 
     // override to use fontconfig lookup for generics
     void AddGenericFonts(mozilla::FontFamilyType aGenericType,
-                         nsIAtom* aLanguage,
+                         nsAtom* aLanguage,
                          nsTArray<gfxFontFamily*>& aFamilyList) override;
 
     void ClearLangGroupPrefFonts() override;
@@ -302,7 +302,7 @@ public:
     // When aForFontEnumerationThread is true, this method will avoid using
     // LanguageService::LookupLanguage, because it is not safe for off-main-
     // thread use (except by stylo traversal, which does the necessary locking)
-    void GetSampleLangForGroup(nsIAtom* aLanguage, nsACString& aLangStr,
+    void GetSampleLangForGroup(nsAtom* aLanguage, nsACString& aLangStr,
                                bool aForFontEnumerationThread = false);
 
     static FT_Library GetFTLibrary();
@@ -317,7 +317,7 @@ protected:
     // figure out which families fontconfig maps a generic to
     // (aGeneric assumed already lowercase)
     PrefFontList* FindGenericFamilies(const nsAString& aGeneric,
-                                      nsIAtom* aLanguage);
+                                      nsAtom* aLanguage);
 
     // are all pref font settings set to use fontconfig generics?
     bool PrefFontListsUseOnlyGenerics();
@@ -330,7 +330,7 @@ protected:
     gfxFontFamily* CreateFontFamily(const nsAString& aName) const override;
 
     // helper method for finding an appropriate lang string
-    bool TryLangForGroup(const nsACString& aOSLang, nsIAtom* aLangGroup,
+    bool TryLangForGroup(const nsACString& aOSLang, nsAtom* aLangGroup,
                          nsACString& aLang, bool aForFontEnumerationThread);
 
 #ifdef MOZ_BUNDLED_FONTS

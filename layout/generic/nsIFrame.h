@@ -64,7 +64,7 @@
  * 5. the view system handles moving of widgets, i.e., it's not our problem
  */
 
-class nsIAtom;
+class nsAtom;
 class nsPresContext;
 class nsIPresShell;
 class nsRenderingContext;
@@ -2004,7 +2004,7 @@ public:
    *   The constants are defined in nsIDOMMutationEvent.h.
    */
   virtual nsresult  AttributeChanged(int32_t         aNameSpaceID,
-                                     nsIAtom*        aAttribute,
+                                     nsAtom*        aAttribute,
                                      int32_t         aModType) = 0;
 
   /**

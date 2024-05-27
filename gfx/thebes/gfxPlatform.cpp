@@ -1436,7 +1436,7 @@ gfxPlatform::BackendTypeForName(const nsCString& aName)
 }
 
 nsresult
-gfxPlatform::GetFontList(nsIAtom *aLangGroup,
+gfxPlatform::GetFontList(nsAtom *aLangGroup,
                          const nsACString& aGenericFamily,
                          nsTArray<nsString>& aListOfFonts)
 {
