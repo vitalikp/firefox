@@ -59,7 +59,7 @@
 #include "nsReadableUtils.h"
 #include "nsIExpatSink.h"
 #include "nsCRT.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsStaticAtom.h"
 #include "nsIScriptError.h"
 #include "nsIDTD.h"

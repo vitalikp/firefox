@@ -10,7 +10,7 @@
 #include "SVGContentUtils.h"
 #include "nsSVGTransform.h"
 #include "nsGkAtoms.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 
 using namespace mozilla;
 

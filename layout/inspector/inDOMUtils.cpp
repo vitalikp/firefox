@@ -32,7 +32,7 @@
 #include "ChildIterator.h"
 #include "nsComputedDOMStyle.h"
 #include "mozilla/EventStateManager.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsRange.h"
 #include "nsContentList.h"
 #include "mozilla/StyleSheetInlines.h"

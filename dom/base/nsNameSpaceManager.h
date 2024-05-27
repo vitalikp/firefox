@@ -9,7 +9,7 @@
 
 #include "nsDataHashtable.h"
 #include "nsHashKeys.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIDocument.h"
 #include "nsIObserver.h"
 #include "nsTArray.h"

@@ -8,7 +8,7 @@
 
 #include "mozilla/Attributes.h"
 #include "nsAutoPtr.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsCOMArray.h"
 #include "nsICSSPseudoComparator.h"
 #include "nsRefPtrHashtable.h"

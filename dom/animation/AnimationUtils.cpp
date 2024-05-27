@@ -7,7 +7,7 @@
 #include "AnimationUtils.h"
 
 #include "nsDebug.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIContent.h"
 #include "nsIDocument.h"
 #include "nsGlobalWindow.h"

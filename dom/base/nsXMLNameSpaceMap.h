@@ -10,7 +10,7 @@
 #include "nsString.h"
 #include "nsTArray.h"
 #include "nsCOMPtr.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 
 struct nsNameSpaceEntry
 {

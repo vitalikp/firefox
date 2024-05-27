@@ -11,7 +11,7 @@
 #include "nsCOMPtr.h"                   // for nsCOMPtr
 #include "nsDebug.h"                    // for NS_ENSURE_ARG_POINTER
 #include "nsError.h"                    // for NS_OK, NS_FAILED, nsresult
-#include "nsIAtom.h"                    // for nsAtom, NS_Atomize
+#include "nsAtom.h"                     // for nsAtom, NS_Atomize
 #include "nsID.h"
 #include "nsMemory.h"                   // for nsMemory
 #include "nsString.h"               // for nsAutoCString, nsAutoString, etc

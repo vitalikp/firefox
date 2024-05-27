@@ -23,7 +23,7 @@
 #include "nsCOMPtr.h"
 #include "SVGAttrValueWrapper.h"
 #include "nsTArrayForwardDeclare.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "mozilla/MemoryReporting.h"
 #include "mozilla/dom/BindingDeclarations.h"
 #include "mozilla/EnumTypeTraits.h"

@@ -7,7 +7,7 @@
 #ifndef mozilla_dom_NodeInfoInlines_h___
 #define mozilla_dom_NodeInfoInlines_h___
 
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIDOMNode.h"
 #include "nsDOMString.h"
 #include "nsGkAtoms.h"

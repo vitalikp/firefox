@@ -5,7 +5,7 @@
 
 #include "nsHyphenationManager.h"
 #include "nsHyphenator.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIFile.h"
 #include "nsIURI.h"
 #include "nsIProperties.h"

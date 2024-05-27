@@ -6,7 +6,7 @@
 #include "mozilla/ArrayUtils.h"
 #include "mozilla/FloatingPoint.h"
 
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsGkAtoms.h"
 #include "txExecutionState.h"
 #include "txExpr.h"

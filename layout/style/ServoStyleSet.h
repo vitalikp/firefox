@@ -21,7 +21,7 @@
 #include "nsCSSPseudoElements.h"
 #include "nsCSSAnonBoxes.h"
 #include "nsChangeHint.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsTArray.h"
 
 namespace mozilla {

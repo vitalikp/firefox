@@ -6,7 +6,7 @@
 #ifndef nsRDFBinding_h__
 #define nsRDFBinding_h__
 
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIRDFResource.h"
 #include "nsISupportsImpl.h"
 

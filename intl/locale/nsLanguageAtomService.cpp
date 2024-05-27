@@ -6,7 +6,7 @@
 #include "nsLanguageAtomService.h"
 #include "nsUConvPropertySearch.h"
 #include "nsUnicharUtils.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "mozilla/ArrayUtils.h"
 #include "mozilla/intl/OSPreferences.h"
 #include "mozilla/dom/EncodingUtils.h"

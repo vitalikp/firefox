@@ -12,7 +12,7 @@
 #define nsLanguageAtomService_h_
 
 #include "nsCOMPtr.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsRefPtrHashtable.h"
 
 class nsLanguageAtomService

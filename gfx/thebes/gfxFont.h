@@ -19,7 +19,7 @@
 #include "gfxRect.h"
 #include "nsExpirationTracker.h"
 #include "gfxPlatform.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "mozilla/HashFunctions.h"
 #include "nsIMemoryReporter.h"
 #include "nsIObserver.h"

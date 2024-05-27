@@ -7,7 +7,7 @@
 #include "nsTreeUtils.h"
 #include "ChildIterator.h"
 #include "nsCRT.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsNameSpaceManager.h"
 #include "nsGkAtoms.h"
 #include "nsIContent.h"

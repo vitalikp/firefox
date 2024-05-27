@@ -7,7 +7,7 @@
 
 #include "nsRDFXMLSerializer.h"
 
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIOutputStream.h"
 #include "nsIRDFService.h"
 #include "nsIRDFContainerUtils.h"

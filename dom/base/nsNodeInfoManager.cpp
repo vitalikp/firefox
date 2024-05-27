@@ -16,7 +16,7 @@
 #include "mozilla/dom/NodeInfoInlines.h"
 #include "nsCOMPtr.h"
 #include "nsString.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIDocument.h"
 #include "nsIPrincipal.h"
 #include "nsIURI.h"

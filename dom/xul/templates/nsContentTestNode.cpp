@@ -5,7 +5,7 @@
 
 #include "nsContentTestNode.h"
 #include "nsIRDFResource.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIDOMElement.h"
 #include "nsXULContentUtils.h"
 #include "nsIXULTemplateResult.h"

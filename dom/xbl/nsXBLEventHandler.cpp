@@ -5,7 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "nsCOMPtr.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIDOMEventListener.h"
 #include "nsIDOMKeyEvent.h"
 #include "nsIDOMMouseEvent.h"

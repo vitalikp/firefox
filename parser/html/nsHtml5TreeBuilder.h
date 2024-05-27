@@ -32,7 +32,7 @@
 #define nsHtml5TreeBuilder_h
 
 #include "nsContentUtils.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsHtml5AtomTable.h"
 #include "nsITimer.h"
 #include "nsHtml5String.h"

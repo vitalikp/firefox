@@ -10,7 +10,7 @@
 #include "nsIDirectoryService.h"
 #include "nsInterfaceHashtable.h"
 #include "nsIFile.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsTArray.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/StaticPtr.h"

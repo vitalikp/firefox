@@ -9,7 +9,7 @@
 #include "mozilla/Attributes.h"
 #include "nscore.h"
 #include "nsRuleNetwork.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIDOMDocument.h"
 
 class nsXULTemplateQueryProcessorRDF;

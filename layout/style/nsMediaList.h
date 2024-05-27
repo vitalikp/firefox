@@ -14,7 +14,7 @@
 
 #include "nsAutoPtr.h"
 #include "nsTArray.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsCSSValue.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/dom/MediaList.h"

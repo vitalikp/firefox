@@ -13,7 +13,7 @@
 #include "nsAttrName.h"
 #include "nsAttrValue.h"
 #include "nsChangeHint.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 
 namespace mozilla {
 

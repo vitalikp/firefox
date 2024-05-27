@@ -9,7 +9,7 @@
 #include "mozilla/EditTransactionBase.h"
 #include "nsCOMPtr.h"
 #include "nsCycleCollectionParticipant.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsISupportsImpl.h"
 #include "nsTArray.h"
 #include "nscore.h"

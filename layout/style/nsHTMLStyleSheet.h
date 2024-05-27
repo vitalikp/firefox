@@ -14,7 +14,7 @@
 
 #include "nsColor.h"
 #include "nsCOMPtr.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIStyleRule.h"
 #include "nsIStyleRuleProcessor.h"
 #include "PLDHashTable.h"

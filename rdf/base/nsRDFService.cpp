@@ -35,7 +35,7 @@
 #include "nsCOMPtr.h"
 #include "nsAutoPtr.h"
 #include "nsMemory.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIComponentManager.h"
 #include "nsIRDFDataSource.h"
 #include "nsIRDFNode.h"

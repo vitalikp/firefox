@@ -7,7 +7,7 @@
 #include "nsError.h"
 #include "nsSVGAttrTearoffTable.h"
 #include "nsSVGEnum.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsSVGElement.h"
 #include "nsSMILValue.h"
 #include "SMILEnumType.h"

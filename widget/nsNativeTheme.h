@@ -7,7 +7,7 @@
 // code duplication.
 
 #include "nsAlgorithm.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsCOMPtr.h"
 #include "nsString.h"
 #include "nsMargin.h"

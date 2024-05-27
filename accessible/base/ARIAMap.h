@@ -12,7 +12,7 @@
 #include "mozilla/a11y/AccTypes.h"
 #include "mozilla/a11y/Role.h"
 
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIContent.h"
 
 class nsINode;

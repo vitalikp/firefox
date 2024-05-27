@@ -7,7 +7,7 @@
 #ifndef nsXBLPrototypeHandler_h__
 #define nsXBLPrototypeHandler_h__
 
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsString.h"
 #include "nsCOMPtr.h"
 #include "nsIController.h"

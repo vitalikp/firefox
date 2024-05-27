@@ -25,7 +25,7 @@
 
 #include "PLDHashTable.h"
 #include "nsError.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 
 struct PropertyListMapEntry : public PLDHashEntryHdr {
   const void  *key;

@@ -25,7 +25,7 @@
 #include "mozilla/dom/NameSpaceConstants.h"
 #include "nsString.h"
 #include "mozilla/Attributes.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 
 class nsIDocument;
 class nsNodeInfoManager;

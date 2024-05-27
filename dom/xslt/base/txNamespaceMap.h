@@ -6,7 +6,7 @@
 #ifndef TRANSFRMX_TXNAMESPACEMAP_H
 #define TRANSFRMX_TXNAMESPACEMAP_H
 
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsCOMArray.h"
 #include "nsTArray.h"
 

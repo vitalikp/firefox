@@ -18,7 +18,7 @@
 #include "mozilla/css/Declaration.h"
 #include "mozilla/dom/CSSStyleRuleBinding.h"
 #include "nsIDocument.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsString.h"
 #include "nsStyleUtil.h"
 #include "nsDOMCSSDeclaration.h"

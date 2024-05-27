@@ -10,7 +10,7 @@
 #include "nsIContent.h"
 #include "nsIDocument.h"
 #include "nsContentUtils.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "mozilla/dom/Element.h"
 
 inline bool

@@ -7,7 +7,7 @@
 #define TRANSFRMX_EXPANDEDNAME_H
 
 #include "nsCOMPtr.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "mozilla/dom/NameSpaceConstants.h"
 
 class txNamespaceMap;

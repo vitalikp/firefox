@@ -18,7 +18,7 @@
 #include "mozilla/dom/Attr.h"
 #include "mozilla/dom/Grid.h"
 #include "nsDOMAttributeMap.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIContentInlines.h"
 #include "mozilla/dom/NodeInfo.h"
 #include "nsIDocumentInlines.h"

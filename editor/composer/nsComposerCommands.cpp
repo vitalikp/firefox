@@ -16,7 +16,7 @@
 #include "nsDebug.h"                    // for NS_ENSURE_TRUE, etc
 #include "nsError.h"                    // for NS_OK, NS_ERROR_FAILURE, etc
 #include "nsGkAtoms.h"                  // for nsGkAtoms, nsGkAtoms::font, etc
-#include "nsIAtom.h"                    // for nsAtom, etc
+#include "nsAtom.h"                     // for nsAtom, etc
 #include "nsIClipboard.h"               // for nsIClipboard, etc
 #include "nsICommandParams.h"           // for nsICommandParams, etc
 #include "nsID.h"

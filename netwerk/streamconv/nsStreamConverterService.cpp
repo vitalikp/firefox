@@ -22,7 +22,7 @@
 #include "nsIComponentRegistrar.h"
 #include "nsAutoPtr.h"
 #include "nsString.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsDeque.h"
 #include "nsIInputStream.h"
 #include "nsIStreamConverter.h"

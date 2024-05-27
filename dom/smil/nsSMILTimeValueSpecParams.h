@@ -8,7 +8,7 @@
 #define NS_SMILTIMEVALUESPECPARAMS_H_
 
 #include "nsSMILTimeValue.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 
 //----------------------------------------------------------------------
 // nsSMILTimeValueSpecParams

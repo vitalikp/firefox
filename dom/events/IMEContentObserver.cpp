@@ -18,7 +18,7 @@
 #include "mozilla/dom/Element.h"
 #include "nsContentUtils.h"
 #include "nsGkAtoms.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIContent.h"
 #include "nsIDocument.h"
 #include "nsIDOMDocument.h"

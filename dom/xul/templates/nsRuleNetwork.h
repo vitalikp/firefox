@@ -31,7 +31,7 @@
 #include "mozilla/Attributes.h"
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIDOMNode.h"
 #include "plhash.h"
 #include "PLDHashTable.h"

@@ -13,7 +13,7 @@
 #include "nsContentUtils.h"
 #include "nsGlobalWindow.h"
 #include "nsIContent.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIDOMKeyEvent.h"
 #include "nsIDOMMouseEvent.h"
 #include "nsNameSpaceManager.h"

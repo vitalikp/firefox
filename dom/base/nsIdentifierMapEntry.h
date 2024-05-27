@@ -21,7 +21,7 @@
 #include "nsCOMArray.h"
 #include "nsCOMPtr.h"
 #include "nsContentList.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIDocument.h"
 #include "nsTArray.h"
 #include "nsTHashtable.h"

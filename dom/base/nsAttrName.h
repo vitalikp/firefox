@@ -14,7 +14,7 @@
 #define nsAttrName_h___
 
 #include "mozilla/dom/NodeInfo.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsDOMString.h"
 
 #define NS_ATTRNAME_NODEINFO_BIT 1

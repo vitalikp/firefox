@@ -7,7 +7,7 @@
 #define nsXMLBinding_h__
 
 #include "nsAutoPtr.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "mozilla/Attributes.h"
 #include "mozilla/dom/XPathExpression.h"
 

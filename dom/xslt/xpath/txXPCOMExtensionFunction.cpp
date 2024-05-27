@@ -6,7 +6,7 @@
 #include "nsAutoPtr.h"
 #include "nsComponentManagerUtils.h"
 #include "nsDependentString.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIInterfaceInfoManager.h"
 #include "nsServiceManagerUtils.h"
 #include "txExpr.h"

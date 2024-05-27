@@ -9,7 +9,7 @@
  */
 
 #include "nsAtomListUtils.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsStaticAtom.h"
 
 /* static */ bool

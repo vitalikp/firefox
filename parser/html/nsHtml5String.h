@@ -6,7 +6,7 @@
 #define nsHtml5String_h
 
 #include "nsString.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 
 class nsHtml5TreeBuilder;
 

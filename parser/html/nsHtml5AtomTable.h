@@ -7,7 +7,7 @@
 
 #include "nsHashKeys.h"
 #include "nsTHashtable.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsISerialEventTarget.h"
 
 #define RECENTLY_USED_PARSER_ATOMS_SIZE 31

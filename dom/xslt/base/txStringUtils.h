@@ -7,7 +7,7 @@
 #define txStringUtils_h__
 
 #include "nsAString.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsUnicharUtils.h"
 #include "nsContentUtils.h" // For ASCIIToLower().
 

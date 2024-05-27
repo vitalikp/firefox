@@ -10,7 +10,7 @@
 #include "mozilla/dom/BindingDeclarations.h"
 #include "nsIDOMEventTarget.h"
 #include "nsWrapperCache.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 
 class nsPIDOMWindowOuter;
 class nsIGlobalObject;

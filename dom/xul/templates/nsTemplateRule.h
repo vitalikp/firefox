@@ -7,7 +7,7 @@
 #define nsTemplateRule_h__
 
 #include "nsCOMPtr.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsIRDFDataSource.h"
 #include "nsIRDFResource.h"
 #include "nsIContent.h"

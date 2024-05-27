@@ -8,7 +8,7 @@
 #ifndef nsCSSAnonBoxes_h___
 #define nsCSSAnonBoxes_h___
 
-#include "nsIAtom.h"
+#include "nsAtom.h"
 
 // Empty class derived from nsAtom so that function signatures can
 // require an atom from this atom list.

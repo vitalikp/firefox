@@ -14,7 +14,7 @@
 #include "nsAutoPtr.h"
 #include "nsRuleProcessorData.h"
 #include <algorithm>
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "PLDHashTable.h"
 #include "nsICSSPseudoComparator.h"
 #include "mozilla/MemoryReporting.h"

@@ -11,7 +11,7 @@
 #include "nsCoord.h"
 #include "nsCOMPtr.h"
 #include "nsFont.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsLanguageAtomService.h"
 
 namespace mozilla {

@@ -11,7 +11,7 @@
 
 #include "nsITheme.h"
 #include "nsCOMPtr.h"
-#include "nsIAtom.h"
+#include "nsAtom.h"
 #include "nsNativeTheme.h"
 
 @class CellDrawView;
