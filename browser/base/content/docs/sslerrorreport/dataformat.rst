@@ -13,7 +13,7 @@ An example report::
     "errorCode":-16384,
     "failedCertChain":[
       ],
-    "userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:36.0) Firefox/36.0",
+    "userAgent":"Firefox/36.0 (X11; Linux x86_64; rv:36.0)",
     "version":1,
     "build":"20141022164419",
     "product":"Firefox",

@@ -203,8 +203,8 @@ nsHttpHandler::nsHttpHandler()
     , mEnforceAssocReq(false)
     , mLastUniqueID(NowInSeconds())
     , mSessionStartTime(0)
-    , mLegacyAppName("Mozilla")
-    , mLegacyAppVersion("5.0")
+    , mAppName(MOZ_APP_UA_NAME)
+    , mAppVersion(MOZILLA_UAVERSION)
     , mUserAgentIsDirty(true)
     , mAcceptLanguagesIsDirty(true)
     , mPromptTempRedirect(true)
@@ -416,17 +416,13 @@ nsHttpHandler::Init()
     nsCOMPtr<nsIXULAppInfo> appInfo =
         do_GetService("@mozilla.org/xre/app-info;1");
 
-    mAppName.AssignLiteral(MOZ_APP_UA_NAME);
     if (mAppName.Length() == 0 && appInfo) {
         // Try to get the UA name from appInfo, falling back to the name
         appInfo->GetUAName(mAppName);
         if (mAppName.Length() == 0) {
           appInfo->GetName(mAppName);
         }
-        appInfo->GetVersion(mAppVersion);
         mAppName.StripChars(R"( ()<>@,;:\"/[]?={})");
-    } else {
-        mAppVersion.AssignLiteral(MOZ_APP_UA_VERSION);
     }
 
     // Generating the spoofed userAgent for fingerprinting resistance. We will
@@ -436,8 +432,8 @@ nsHttpHandler::Init()
     if (NS_SUCCEEDED(rv)) {
         spoofedVersion = spoofedVersion - (spoofedVersion % 10);
         mSpoofedUserAgent.Assign(nsPrintfCString(
-            "Mozilla/5.0 (%s; rv:%d.0) Firefox/%d.0",
-            SPOOFED_OSCPU, spoofedVersion, spoofedVersion));
+            "Firefox/%d.0 (%s; rv:%d.0)",
+            spoofedVersion, SPOOFED_OSCPU, spoofedVersion));
     }
 
     mSessionStartTime = NowInSeconds();
@@ -457,8 +453,6 @@ nsHttpHandler::Init()
 
 #if DEBUG
     // dump user agent prefs
-    LOG(("> legacy-app-name = %s\n", mLegacyAppName.get()));
-    LOG(("> legacy-app-version = %s\n", mLegacyAppVersion.get()));
     LOG(("> platform = %s\n", mPlatform.get()));
     LOG(("> oscpu = %s\n", mOscpu.get()));
     LOG(("> misc = %s\n", mMisc.get()));
@@ -797,29 +791,27 @@ nsHttpHandler::BuildUserAgent()
 {
     LOG(("nsHttpHandler::BuildUserAgent\n"));
 
-    MOZ_ASSERT(!mLegacyAppName.IsEmpty() &&
-               !mLegacyAppVersion.IsEmpty(),
+    MOZ_ASSERT(!mAppName.IsEmpty(),
+               !mAppVersion.IsEmpty(),
                "HTTP cannot send practical requests without this much");
 
     // preallocate to worst-case size, which should always be better
     // than if we didn't preallocate at all.
-    mUserAgent.SetCapacity(mLegacyAppName.Length() +
-                           mLegacyAppVersion.Length() +
+    mUserAgent.SetCapacity(mAppName.Length() +
+                           mAppVersion.Length() +
 #ifndef UA_SPARE_PLATFORM
                            mPlatform.Length() +
 #endif
                            mOscpu.Length() +
                            mMisc.Length() +
-                           mAppName.Length() +
-                           mAppVersion.Length() +
                            mCompatDevice.Length() +
                            mDeviceModelId.Length() +
                            13);
 
     // Application portion
-    mUserAgent.Assign(mLegacyAppName);
+    mUserAgent.Assign(mAppName);
     mUserAgent += '/';
-    mUserAgent += mLegacyAppVersion;
+    mUserAgent += mAppVersion;
     mUserAgent += ' ';
 
     // Application comment
@@ -844,20 +836,6 @@ nsHttpHandler::BuildUserAgent()
     }
     mUserAgent += mMisc;
     mUserAgent += ')';
-
-    bool isFirefox = mAppName.EqualsLiteral("Firefox");
-    if (isFirefox) {
-        // "Firefox/x.y" (compatibility) app token
-        mUserAgent += ' ';
-        mUserAgent.AppendLiteral("Firefox/" MOZILLA_UAVERSION);
-    }
-    if (!isFirefox) {
-        // App portion
-        mUserAgent += ' ';
-        mUserAgent += mAppName;
-        mUserAgent += '/';
-        mUserAgent += mAppVersion;
-    }
 }
 
 #ifdef XP_WIN
@@ -2183,14 +2161,14 @@ nsHttpHandler::GetUserAgent(nsACString &value)
 NS_IMETHODIMP
 nsHttpHandler::GetAppName(nsACString &value)
 {
-    value = mLegacyAppName;
+    value = mAppName;
     return NS_OK;
 }
 
 NS_IMETHODIMP
 nsHttpHandler::GetAppVersion(nsACString &value)
 {
-    value = mLegacyAppVersion;
+    value = mAppVersion;
     return NS_OK;
 }
 

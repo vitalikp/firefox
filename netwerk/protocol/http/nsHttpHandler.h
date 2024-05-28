@@ -492,8 +492,6 @@ private:
     uint32_t                  mSessionStartTime;
 
     // useragent components
-    nsCString      mLegacyAppName;
-    nsCString      mLegacyAppVersion;
     nsCString      mPlatform;
     nsCString      mOscpu;
     nsCString      mMisc;
