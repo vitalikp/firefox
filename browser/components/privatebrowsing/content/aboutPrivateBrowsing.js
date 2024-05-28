@@ -33,11 +33,6 @@ document.addEventListener("DOMContentLoaded", function () {
  document.title = stringBundle.GetStringFromName("title.head");
  document.getElementById("favicon")
          .setAttribute("href", FAVICON_PRIVACY);
-
- let formatURLPref = Cc["@mozilla.org/toolkit/URLFormatterService;1"]
-                       .getService(Ci.nsIURLFormatter).formatURLPref;
- document.getElementById("learnMore").setAttribute("href",
-                    formatURLPref("app.support.baseURL") + "private-browsing");
 }, false);
 
 function openPrivateWindow() {
