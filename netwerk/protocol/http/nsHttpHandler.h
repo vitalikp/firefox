@@ -499,8 +499,6 @@ private:
     nsCString      mMisc;
     nsCString      mAppName;
     nsCString      mAppVersion;
-    nsCString      mCompatFirefox;
-    bool           mCompatFirefoxEnabled;
     nsCString      mCompatDevice;
     nsCString      mDeviceModelId;
 

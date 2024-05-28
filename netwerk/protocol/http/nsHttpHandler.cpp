@@ -205,7 +205,6 @@ nsHttpHandler::nsHttpHandler()
     , mSessionStartTime(0)
     , mLegacyAppName("Mozilla")
     , mLegacyAppVersion("5.0")
-    , mCompatFirefoxEnabled(false)
     , mUserAgentIsDirty(true)
     , mAcceptLanguagesIsDirty(true)
     , mPromptTempRedirect(true)
@@ -414,8 +413,6 @@ nsHttpHandler::Init()
 
     mMisc.AssignLiteral("rv:" MOZILLA_UAVERSION);
 
-    mCompatFirefox.AssignLiteral("Firefox/" MOZILLA_UAVERSION);
-
     nsCOMPtr<nsIXULAppInfo> appInfo =
         do_GetService("@mozilla.org/xre/app-info;1");
 
@@ -467,7 +464,6 @@ nsHttpHandler::Init()
     LOG(("> misc = %s\n", mMisc.get()));
     LOG(("> app-name = %s\n", mAppName.get()));
     LOG(("> app-version = %s\n", mAppVersion.get()));
-    LOG(("> compat-firefox = %s\n", mCompatFirefox.get()));
     LOG(("> user-agent = %s\n", UserAgent().get()));
 #endif
 
@@ -816,7 +812,6 @@ nsHttpHandler::BuildUserAgent()
                            mMisc.Length() +
                            mAppName.Length() +
                            mAppVersion.Length() +
-                           mCompatFirefox.Length() +
                            mCompatDevice.Length() +
                            mDeviceModelId.Length() +
                            13);
@@ -851,10 +846,10 @@ nsHttpHandler::BuildUserAgent()
     mUserAgent += ')';
 
     bool isFirefox = mAppName.EqualsLiteral("Firefox");
-    if (isFirefox || mCompatFirefoxEnabled) {
+    if (isFirefox) {
         // "Firefox/x.y" (compatibility) app token
         mUserAgent += ' ';
-        mUserAgent += mCompatFirefox;
+        mUserAgent.AppendLiteral("Firefox/" MOZILLA_UAVERSION);
     }
     if (!isFirefox) {
         // App portion
@@ -1106,12 +1101,6 @@ nsHttpHandler::PrefsChanged(nsIPrefBranch *prefs, const char *pref)
     //
 
     bool cVar = false;
-
-    if (PREF_CHANGED(UA_PREF("compatMode.firefox"))) {
-        rv = prefs->GetBoolPref(UA_PREF("compatMode.firefox"), &cVar);
-        mCompatFirefoxEnabled = (NS_SUCCEEDED(rv) && cVar);
-        mUserAgentIsDirty = true;
-    }
 
     // general.useragent.override
     if (PREF_CHANGED(UA_PREF("override"))) {

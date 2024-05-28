@@ -23,7 +23,6 @@ pref("preferences.allow.omt-write", true);
 
 pref("keyword.enabled", false);
 pref("general.useragent.locale", "chrome://global/locale/intl.properties");
-pref("general.useragent.compatMode.firefox", false);
 
 // This pref exists only for testing purposes. In order to disable all
 // overrides by default, don't initialize UserAgentOverrides.jsm.
