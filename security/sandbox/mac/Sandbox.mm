@@ -5,9 +5,7 @@
 
 // The Mac sandbox module is a static library (a Library in moz.build terms)
 // that can be linked into any binary (for example plugin-container or XUL).
-// It must not have dependencies on any other Mozilla module.  This is why,
-// for example, it has its own OS X version detection code, rather than
-// linking to nsCocoaFeatures.mm in XUL.
+// It must not have dependencies on any other Mozilla module.
 
 #include "Sandbox.h"
 

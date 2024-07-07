@@ -25,13 +25,6 @@
 #include "nsPrintfCString.h"
 #include "mozilla/DebugOnly.h"
 
-#ifdef XP_MACOSX
-#include "nsILocalFileMac.h"
-#include "nsCommandLineServiceMac.h"
-#include "MacLaunchHelper.h"
-#include "updaterfileutils_osx.h"
-#endif
-
 #if defined(XP_WIN)
 # include <direct.h>
 # include <process.h>
@@ -51,16 +44,11 @@ static LazyLogModule sUpdateLog("updatedriver");
 
 #ifdef XP_WIN
 #define UPDATER_BIN "updater.exe"
-#elif XP_MACOSX
-#define UPDATER_BIN "org.mozilla.updater"
 #else
 #define UPDATER_BIN "updater"
 #endif
 #define UPDATER_INI "updater.ini"
-#ifdef XP_MACOSX
-#define UPDATER_APP "updater.app"
-#endif
-#if defined(XP_UNIX) && !defined(XP_MACOSX)
+#if defined(XP_UNIX)
 #define UPDATER_PNG "updater.png"
 #endif
 
@@ -94,18 +82,7 @@ static nsresult
 GetInstallDirPath(nsIFile *appDir, nsACString& installDirPath)
 {
   nsresult rv;
-#ifdef XP_MACOSX
-  nsCOMPtr<nsIFile> parentDir1, parentDir2;
-  rv = appDir->GetParent(getter_AddRefs(parentDir1));
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-  rv = parentDir1->GetParent(getter_AddRefs(parentDir2));
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-  rv = parentDir2->GetNativePath(installDirPath);
-#elif XP_WIN
+#if XP_WIN
   nsAutoString installDirPathW;
   rv = appDir->GetPath(installDirPathW);
   if (NS_FAILED(rv)) {
@@ -290,16 +267,10 @@ CopyUpdaterIntoUpdateDir(nsIFile *greDir, nsIFile *appDir, nsIFile *updateDir,
                          nsCOMPtr<nsIFile> &updater)
 {
   // Copy the updater application from the GRE and the updater ini from the app.
-#if defined(XP_MACOSX)
-  if (!CopyFileIntoUpdateDir(appDir, NS_LITERAL_CSTRING(UPDATER_APP), updateDir))
-    return false;
-  CopyFileIntoUpdateDir(greDir, NS_LITERAL_CSTRING(UPDATER_INI), updateDir);
-#else
   if (!CopyFileIntoUpdateDir(greDir, NS_LITERAL_CSTRING(UPDATER_BIN), updateDir))
     return false;
   CopyFileIntoUpdateDir(appDir, NS_LITERAL_CSTRING(UPDATER_INI), updateDir);
-#endif
-#if defined(XP_UNIX) && !defined(XP_MACOSX) && !defined(ANDROID)
+#if defined(XP_UNIX) && !defined(ANDROID)
   nsCOMPtr<nsIFile> iconDir;
   appDir->Clone(getter_AddRefs(iconDir));
   iconDir->AppendNative(NS_LITERAL_CSTRING("icons"));
@@ -310,16 +281,6 @@ CopyUpdaterIntoUpdateDir(nsIFile *greDir, nsIFile *appDir, nsIFile *updateDir,
   nsresult rv = updateDir->Clone(getter_AddRefs(updater));
   if (NS_FAILED(rv))
     return false;
-#if defined(XP_MACOSX)
-  rv  = updater->AppendNative(NS_LITERAL_CSTRING(UPDATER_APP));
-  nsresult tmp = updater->AppendNative(NS_LITERAL_CSTRING("Contents"));
-  if (NS_FAILED(tmp)) {
-    rv = tmp;
-  }
-  tmp = updater->AppendNative(NS_LITERAL_CSTRING("MacOS"));
-  if (NS_FAILED(tmp) || NS_FAILED(rv))
-    return false;
-#endif
   rv = updater->AppendNative(NS_LITERAL_CSTRING(UPDATER_BIN));
   return NS_SUCCEEDED(rv);
 }
@@ -330,7 +291,7 @@ CopyUpdaterIntoUpdateDir(nsIFile *greDir, nsIFile *appDir, nsIFile *updateDir,
  *
  * @param pathToAppend A new library path to prepend to LD_LIBRARY_PATH
  */
-#if defined(MOZ_VERIFY_MAR_SIGNATURE) && !defined(XP_WIN) && !defined(XP_MACOSX)
+#if defined(MOZ_VERIFY_MAR_SIGNATURE) && !defined(XP_WIN)
 #include "prprf.h"
 #define PATH_SEPARATOR ":"
 #define LD_LIBRARY_PATH_ENVVAR_NAME "LD_LIBRARY_PATH"
@@ -505,11 +466,7 @@ ApplyUpdate(nsIFile *greDir, nsIFile *updateDir, nsIFile *appDir, int appArgc,
     applyToDirPath.Assign(installDirPath);
   } else {
     // Get the directory where the update is staged or will be staged.
-#if defined(XP_MACOSX)
-    if (!GetFile(updateDir, NS_LITERAL_CSTRING("Updated.app"), updatedDir)) {
-#else
     if (!GetFile(appDir, NS_LITERAL_CSTRING("updated"), updatedDir)) {
-#endif
       return;
     }
 #if defined(XP_WIN)
@@ -550,7 +507,7 @@ ApplyUpdate(nsIFile *greDir, nsIFile *updateDir, nsIFile *appDir, int appArgc,
   // Construct the PID argument for this process to pass to the updater.
   nsAutoCString pid;
   if (restart) {
-#if defined(XP_UNIX) & !defined(XP_MACOSX)
+#if defined(XP_UNIX)
     // When execv is used for an update that requires a restart 0 is passed
     // which is ignored by the updater.
     pid.AssignASCII("0");
@@ -595,13 +552,13 @@ ApplyUpdate(nsIFile *greDir, nsIFile *updateDir, nsIFile *appDir, int appArgc,
     PR_SetEnv("MOZ_SAFE_MODE_RESTART=1");
   }
 
-#if defined(MOZ_VERIFY_MAR_SIGNATURE) && !defined(XP_WIN) && !defined(XP_MACOSX)
+#if defined(MOZ_VERIFY_MAR_SIGNATURE) && !defined(XP_WIN)
   AppendToLibPath(installDirPath.get());
 #endif
 
   LOG(("spawning updater process [%s]\n", updaterPath.get()));
 
-#if defined(XP_UNIX) && !defined(XP_MACOSX)
+#if defined(XP_UNIX)
   // We use execv to spawn the updater process on all UNIX systems except Mac OSX
   // since it is known to cause problems on the Mac.  Windows has execv, but it
   // is a faked implementation that doesn't really replace the current process.
@@ -627,18 +584,6 @@ ApplyUpdate(nsIFile *greDir, nsIFile *updateDir, nsIFile *appDir, int appArgc,
     if (!WinLaunchChild(updaterPathW.get(), argc, argv, nullptr, outpid)) {
       return;
     }
-  }
-#elif defined(XP_MACOSX)
-  CommandLineServiceMac::SetupMacCommandLine(argc, argv, restart);
-  // LaunchChildMac uses posix_spawnp and prefers the current
-  // architecture when launching. It doesn't require a
-  // null-terminated string but it doesn't matter if we pass one.
-  if (isStaged) {
-    // Launch the updater to replace the installation with the staged updated.
-    LaunchChildMac(argc, argv);
-  } else {
-    // Launch the updater to either stage or apply an update.
-    LaunchChildMac(argc, argv, outpid);
   }
 #else
   if (isStaged) {
@@ -667,9 +612,6 @@ ProcessHasTerminated(ProcessType pt)
     return false;
   }
   CloseHandle(pt);
-  return true;
-#elif defined(XP_MACOSX)
-  // We're waiting for the process to terminate in LaunchChildMac.
   return true;
 #elif defined(XP_UNIX)
   int exitStatus;

@@ -46,9 +46,6 @@
 
 #ifdef MOZ_WIDGET_GTK
 #include <glib.h>
-#elif XP_MACOSX
-#include "PluginInterposeOSX.h"
-#include "PluginUtilsOSX.h"
 #endif
 
 using base::KillProcess;
@@ -1528,13 +1525,8 @@ PluginModuleParent::GetSettings(PluginSettings* aSettings)
     aSettings->supportsWindowless() = GetSetting(NPNVSupportsWindowless);
     aSettings->userAgent() = NullableString(mNPNIface->uagent(nullptr));
 
-#if defined(XP_MACOSX)
-    aSettings->nativeCursorsSupported() =
-      Preferences::GetBool("dom.ipc.plugins.nativeCursorSupport", false);
-#else
     // Need to initialize this to satisfy IPDL.
     aSettings->nativeCursorsSupported() = false;
-#endif
 }
 
 void
@@ -1552,7 +1544,7 @@ PluginModuleChromeParent::CachedSettingChanged(const char* aPref, void* aModule)
     module->CachedSettingChanged();
 }
 
-#if defined(XP_UNIX) && !defined(XP_MACOSX) && !defined(MOZ_WIDGET_GONK)
+#if defined(XP_UNIX) && !defined(MOZ_WIDGET_GONK)
 nsresult
 PluginModuleParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs, NPError* error)
 {
@@ -1630,7 +1622,7 @@ PluginModuleParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPError* error)
     return NS_OK;
 }
 
-#if defined(XP_WIN) || defined(XP_MACOSX)
+#if defined(XP_WIN)
 
 nsresult
 PluginModuleContentParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPError* error)
@@ -1758,7 +1750,7 @@ PluginModuleParent::NP_GetValue(void *future, NPPVariable aVariable,
     return NS_OK;
 }
 
-#if defined(XP_WIN) || defined(XP_MACOSX)
+#if defined(XP_WIN)
 nsresult
 PluginModuleParent::NP_GetEntryPoints(NPPluginFuncs* pFuncs, NPError* error)
 {
@@ -1773,13 +1765,11 @@ PluginModuleParent::NP_GetEntryPoints(NPPluginFuncs* pFuncs, NPError* error)
 nsresult
 PluginModuleChromeParent::NP_GetEntryPoints(NPPluginFuncs* pFuncs, NPError* error)
 {
-#if !defined(XP_MACOSX)
     if (!mSubprocess->IsConnected()) {
         mNPPIface = pFuncs;
         *error = NPERR_NO_ERROR;
         return NS_OK;
     }
-#endif
 
     // We need to have the plugin process update its function table here by
     // actually calling NP_GetEntryPoints. The parent's function table will
@@ -1998,15 +1988,7 @@ PluginModuleParent::NPP_GetSitesWithData(nsCOMPtr<nsIGetSitesWithDataCallback> c
     return NS_OK;
 }
 
-#if defined(XP_MACOSX)
-nsresult
-PluginModuleParent::IsRemoteDrawingCoreAnimation(NPP instance, bool *aDrawing)
-{
-    PluginInstanceParent* pip = PluginInstanceParent::Cast(instance);
-    return pip ? pip->IsRemoteDrawingCoreAnimation(aDrawing) : NS_ERROR_FAILURE;
-}
-#endif
-#if defined(XP_MACOSX) || defined(XP_WIN)
+#if defined(XP_WIN)
 nsresult
 PluginModuleParent::ContentsScaleFactorChanged(NPP instance, double aContentsScaleFactor)
 {
@@ -2014,17 +1996,9 @@ PluginModuleParent::ContentsScaleFactorChanged(NPP instance, double aContentsSca
     return pip ? pip->ContentsScaleFactorChanged(aContentsScaleFactor)
                : NS_ERROR_FAILURE;
 }
-#endif // #if defined(XP_MACOSX)
+#endif // #if defined(XP_WIN)
 
-#if defined(XP_MACOSX)
-mozilla::ipc::IPCResult
-PluginModuleParent::AnswerProcessSomeEvents()
-{
-    mozilla::plugins::PluginUtilsOSX::InvokeNativeEventLoop();
-    return IPC_OK();
-}
-
-#elif !defined(MOZ_WIDGET_GTK)
+#if !defined(MOZ_WIDGET_GTK)
 mozilla::ipc::IPCResult
 PluginModuleParent::AnswerProcessSomeEvents()
 {
@@ -2082,85 +2056,54 @@ PluginModuleParent::RecvPluginShowWindow(const uint32_t& aWindowId, const bool& 
                                          const size_t& aWidth, const size_t& aHeight)
 {
     PLUGIN_LOG_DEBUG(("%s", FULLFUNCTION));
-#if defined(XP_MACOSX)
-    CGRect windowBound = ::CGRectMake(aX, aY, aWidth, aHeight);
-    mac_plugin_interposing::parent::OnPluginShowWindow(aWindowId, windowBound, aModal);
-    return IPC_OK();
-#else
     NS_NOTREACHED(
         "PluginInstanceParent::RecvPluginShowWindow not implemented!");
     return IPC_FAIL_NO_REASON(this);
-#endif
 }
 
 mozilla::ipc::IPCResult
 PluginModuleParent::RecvPluginHideWindow(const uint32_t& aWindowId)
 {
     PLUGIN_LOG_DEBUG(("%s", FULLFUNCTION));
-#if defined(XP_MACOSX)
-    mac_plugin_interposing::parent::OnPluginHideWindow(aWindowId, OtherPid());
-    return IPC_OK();
-#else
     NS_NOTREACHED(
         "PluginInstanceParent::RecvPluginHideWindow not implemented!");
     return IPC_FAIL_NO_REASON(this);
-#endif
 }
 
 mozilla::ipc::IPCResult
 PluginModuleParent::RecvSetCursor(const NSCursorInfo& aCursorInfo)
 {
     PLUGIN_LOG_DEBUG(("%s", FULLFUNCTION));
-#if defined(XP_MACOSX)
-    mac_plugin_interposing::parent::OnSetCursor(aCursorInfo);
-    return IPC_OK();
-#else
     NS_NOTREACHED(
         "PluginInstanceParent::RecvSetCursor not implemented!");
     return IPC_FAIL_NO_REASON(this);
-#endif
 }
 
 mozilla::ipc::IPCResult
 PluginModuleParent::RecvShowCursor(const bool& aShow)
 {
     PLUGIN_LOG_DEBUG(("%s", FULLFUNCTION));
-#if defined(XP_MACOSX)
-    mac_plugin_interposing::parent::OnShowCursor(aShow);
-    return IPC_OK();
-#else
     NS_NOTREACHED(
         "PluginInstanceParent::RecvShowCursor not implemented!");
     return IPC_FAIL_NO_REASON(this);
-#endif
 }
 
 mozilla::ipc::IPCResult
 PluginModuleParent::RecvPushCursor(const NSCursorInfo& aCursorInfo)
 {
     PLUGIN_LOG_DEBUG(("%s", FULLFUNCTION));
-#if defined(XP_MACOSX)
-    mac_plugin_interposing::parent::OnPushCursor(aCursorInfo);
-    return IPC_OK();
-#else
     NS_NOTREACHED(
         "PluginInstanceParent::RecvPushCursor not implemented!");
     return IPC_FAIL_NO_REASON(this);
-#endif
 }
 
 mozilla::ipc::IPCResult
 PluginModuleParent::RecvPopCursor()
 {
     PLUGIN_LOG_DEBUG(("%s", FULLFUNCTION));
-#if defined(XP_MACOSX)
-    mac_plugin_interposing::parent::OnPopCursor();
-    return IPC_OK();
-#else
     NS_NOTREACHED(
         "PluginInstanceParent::RecvPopCursor not implemented!");
     return IPC_FAIL_NO_REASON(this);
-#endif
 }
 
 mozilla::ipc::IPCResult

@@ -33,19 +33,6 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
     LOCAL_INCLUDES += [
         '../components/printingui/win',
     ]
-elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
-    UNIFIED_SOURCES += [
-        'MacApplicationDelegate.mm',
-        'MacAutoreleasePool.mm',
-        'MacLaunchHelper.mm',
-        'nsCommandLineServiceMac.cpp',
-        'nsNativeAppSupportCocoa.mm',
-        'updaterfileutils_osx.mm',
-    ]
-    DEFINES['PROXY_PRINTING'] = 1
-    LOCAL_INCLUDES += [
-        '../components/printingui/mac',
-    ]
 elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'uikit':
     UNIFIED_SOURCES += [
         'nsNativeAppSupportDefault.cpp',
@@ -174,12 +161,6 @@ if CONFIG['MOZ_SANDBOX'] and CONFIG['OS_ARCH'] == 'WINNT':
 if CONFIG['MOZ_SANDBOX'] and CONFIG['OS_ARCH'] == 'Linux':
     USE_LIBS += [
         'mozsandbox',
-    ]
-
-if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
-    LOCAL_INCLUDES += [
-        '/widget',
-        '/widget/cocoa',
     ]
 
 if CONFIG['MOZ_ENABLE_XREMOTE']:

@@ -21,7 +21,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "Services",
                                   "resource://gre/modules/Services.jsm");
 
 const kTaskbarIDWin = "@mozilla.org/windows-taskbar;1";
-const kTaskbarIDMac = "@mozilla.org/widget/macdocksupport;1";
 
 // DownloadTaskbarProgress Object
 
@@ -122,9 +121,6 @@ var DownloadTaskbarProgressUpdater =
         DownloadTaskbarProgressUpdater = null;
         return;
       }
-    } else if (kTaskbarIDMac in Cc) {
-      this._activeTaskbarProgress = Cc[kTaskbarIDMac].
-                                      getService(Ci.nsITaskbarProgress);
     } else {
       DownloadTaskbarProgressUpdater = null;
       return;

@@ -6,9 +6,9 @@
 
 toolkit = CONFIG['MOZ_WIDGET_TOOLKIT']
 
-if toolkit in ('cocoa', 'uikit'):
+if toolkit in ('uikit'):
     DIRS += [toolkit]
-if toolkit in ('cocoa', 'gtk2', 'gtk3'):
+if toolkit in ('gtk2', 'gtk3'):
     EXPORTS += ['nsIPrintDialogService.h']
 
 if toolkit == 'windows':
@@ -27,17 +27,6 @@ if toolkit == 'windows':
         'nsITaskbarWindowPreview.idl',
         'nsIWindowsUIUtils.idl',
         'nsIWinTaskbar.idl',
-    ]
-elif toolkit == 'cocoa':
-    XPIDL_SOURCES += [
-        'nsIMacDockSupport.idl',
-        'nsIMacWebAppUtils.idl',
-        'nsIStandaloneNativeMenu.idl',
-        'nsISystemStatusBar.idl',
-        'nsITaskbarProgress.idl',
-    ]
-    EXPORTS += [
-        'nsINativeMenuService.h',
     ]
 
 DIRS += ['headless']
@@ -219,18 +208,18 @@ if CONFIG['MOZ_X11']:
         'WindowSurfaceX11SHM.cpp',
     ]
 
-if toolkit in ('cocoa', 'windows'):
+if toolkit in ('windows'):
     UNIFIED_SOURCES += [
         'nsBaseClipboard.cpp',
     ]
 
-if toolkit in {'gtk2', 'gtk3', 'cocoa', 'windows',
+if toolkit in {'gtk2', 'gtk3', 'windows',
                'uikit'}:
     UNIFIED_SOURCES += [
         'nsBaseFilePicker.cpp',
     ]
 
-if toolkit in ('gtk2', 'gtk3', 'windows', 'cocoa'):
+if toolkit in ('gtk2', 'gtk3', 'windows'):
     UNIFIED_SOURCES += [
         'nsNativeTheme.cpp',
     ]

@@ -1623,22 +1623,6 @@ if (AppConstants.platform == "macosx") {
       // also hide the window-list separator
       element = document.getElementById("sep-window-list");
       element.setAttribute("hidden", "true");
-
-      // Setup the dock menu.
-      let dockMenuElement = document.getElementById("menu_mac_dockmenu");
-      if (dockMenuElement != null) {
-        let nativeMenu = Cc["@mozilla.org/widget/standalonenativemenu;1"]
-                         .createInstance(Ci.nsIStandaloneNativeMenu);
-
-        try {
-          nativeMenu.init(dockMenuElement);
-
-          let dockSupport = Cc["@mozilla.org/widget/macdocksupport;1"]
-                            .getService(Ci.nsIMacDockSupport);
-          dockSupport.dockMenu = nativeMenu;
-        } catch (e) {
-        }
-      }
     }
 
     if (PrivateBrowsingUtils.permanentPrivateBrowsing) {
@@ -1666,10 +1650,6 @@ if (AppConstants.platform == "macosx") {
   };
 
   gBrowserInit.nonBrowserWindowShutdown = function() {
-    let dockSupport = Cc["@mozilla.org/widget/macdocksupport;1"]
-                      .getService(Ci.nsIMacDockSupport);
-    dockSupport.dockMenu = null;
-
     // If nonBrowserWindowDelayedStartup hasn't run yet, we have no work to do -
     // just cancel the pending timeout and return;
     if (this._delayedStartupTimeoutId) {

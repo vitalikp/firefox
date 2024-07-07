@@ -40,12 +40,6 @@ XPCOMUtils.defineLazyGetter(this, "gWinTaskbar", function () {
   return winTaskbar.available && winTaskbar;
 });
 
-XPCOMUtils.defineLazyGetter(this, "gMacTaskbarProgress", function () {
-  return ("@mozilla.org/widget/macdocksupport;1" in Cc) &&
-         Cc["@mozilla.org/widget/macdocksupport;1"]
-           .getService(Ci.nsITaskbarProgress);
-});
-
 ////////////////////////////////////////////////////////////////////////////////
 //// DownloadsTaskbar
 
@@ -84,15 +78,7 @@ this.DownloadsTaskbar = {
    */
   registerIndicator(aBrowserWindow) {
     if (!this._taskbarProgress) {
-      if (gMacTaskbarProgress) {
-        // On Mac OS X, we have to register the global indicator only once.
-        this._taskbarProgress = gMacTaskbarProgress;
-        // Free the XPCOM reference on shutdown, to prevent detecting a leak.
-        Services.obs.addObserver(() => {
-          this._taskbarProgress = null;
-          gMacTaskbarProgress = null;
-        }, "quit-application-granted", false);
-      } else if (gWinTaskbar) {
+      if (gWinTaskbar) {
         // On Windows, the indicator is currently hidden because we have no
         // previous browser window, thus we should attach the indicator now.
         this._attachIndicator(aBrowserWindow);

@@ -27,9 +27,8 @@ NS_IMETHODIMP nsLocalHandlerAppMac::GetName(nsAString& aName)
 }
 
 /** 
- * mostly copy/pasted from nsMacShellService.cpp (which is in browser/,
- * so we can't depend on it here).  This code probably really wants to live
- * somewhere more central (see bug 389922).
+ * This code probably really wants to live somewhere more central
+ * (see bug 389922).
  */
 NS_IMETHODIMP
 nsLocalHandlerAppMac::LaunchWithURI(nsIURI *aURI,

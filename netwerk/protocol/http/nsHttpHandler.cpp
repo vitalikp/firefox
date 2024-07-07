@@ -75,11 +75,6 @@
 #include <windows.h>
 #endif
 
-#if defined(XP_MACOSX)
-#include <CoreServices/CoreServices.h>
-#include "nsCocoaFeatures.h"
-#endif
-
 #ifdef MOZ_TASK_TRACER
 #include "GeckoTaskTracer.h"
 #endif
@@ -301,8 +296,6 @@ nsHttpHandler::SetFastOpenOSSupport()
         // set min version minus 1.
 #ifdef XP_WIN
         int min_version[] = {10, 0};
-#elif XP_MACOSX
-        int min_version[] = {15, 0};
 #elif ANDROID
         int min_version[] = {4, 4};
 #elif XP_LINUX
@@ -853,8 +846,6 @@ nsHttpHandler::InitUserAgentComponents()
     "Android"
 #elif defined(XP_WIN)
     "Windows"
-#elif defined(XP_MACOSX)
-    "Macintosh"
 #elif defined(XP_UNIX)
     // We historically have always had X11 here,
     // and there seems little a webpage can sensibly do
@@ -977,16 +968,6 @@ nsHttpHandler::InitUserAgentComponents()
             mOscpu = buf.get();
         }
     }
-#elif defined (XP_MACOSX)
-#if defined(__ppc__)
-    mOscpu.AssignLiteral("PPC Mac OS X");
-#elif defined(__i386__) || defined(__x86_64__)
-    mOscpu.AssignLiteral("Intel Mac OS X");
-#endif
-    SInt32 majorVersion = nsCocoaFeatures::OSXVersionMajor();
-    SInt32 minorVersion = nsCocoaFeatures::OSXVersionMinor();
-    mOscpu += nsPrintfCString(" %d.%d", static_cast<int>(majorVersion),
-                              static_cast<int>(minorVersion));
 #elif defined (XP_UNIX)
     struct utsname name;
 

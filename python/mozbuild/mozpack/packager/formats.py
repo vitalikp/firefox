@@ -306,7 +306,7 @@ class OmniJarSubFormatter(PiecemealFormatter):
             return path[-1].endswith(('.js', '.xpt'))
         if path[0] == 'res':
             return len(path) == 1 or \
-                (path[1] != 'cursors' and path[1] != 'MainMenu.nib')
+                (path[1] != 'cursors')
         if path[0] == 'defaults':
             return len(path) != 3 or \
                 not (path[2] == 'channel-prefs.js' and

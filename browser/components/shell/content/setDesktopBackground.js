@@ -7,8 +7,8 @@ Components.utils.import("resource://gre/modules/AppConstants.jsm");
 var Ci = Components.interfaces;
 
 var gSetBackground = {
-  _position        : AppConstants.platform == "macosx" ? "STRETCH" : "",
-  _backgroundColor : AppConstants.platform != "macosx" ? 0 : undefined,
+  _position        : "",
+  _backgroundColor : 0,
   _screenWidth     : 0,
   _screenHeight    : 0,
   _image           : null,
@@ -23,9 +23,6 @@ var gSetBackground = {
     this._canvas = document.getElementById("screen");
     this._screenWidth = screen.width;
     this._screenHeight = screen.height;
-    if (AppConstants.platform == "macosx") {
-      document.documentElement.getButton("accept").hidden = true;
-    }
     if (this._screenWidth / this._screenHeight >= 1.6)
       document.getElementById("monitor").setAttribute("aspectratio", "16:10");
 
@@ -57,36 +54,13 @@ var gSetBackground = {
     var ctx = this._canvas.getContext("2d");
     ctx.scale(this._canvas.clientWidth / this._screenWidth, this._canvas.clientHeight / this._screenHeight);
 
-    if (AppConstants.platform != "macosx") {
-      this._initColor();
-    } else {
-      // Make sure to reset the button state in case the user has already
-      // set an image as their desktop background.
-      var setDesktopBackground = document.getElementById("setDesktopBackground");
-      setDesktopBackground.hidden = false;
-      var bundle = document.getElementById("backgroundBundle");
-      setDesktopBackground.label = bundle.getString("DesktopBackgroundSet");
-      setDesktopBackground.disabled = false;
-
-      document.getElementById("showDesktopPreferences").hidden = true;
-    }
+    this._initColor();
     this.updatePosition();
   },
 
   setDesktopBackground() {
-    if (AppConstants.platform != "macosx") {
-      document.persist("menuPosition", "value");
-      this._shell.desktopBackgroundColor = this._hexStringToLong(this._backgroundColor);
-    } else {
-      Components.classes["@mozilla.org/observer-service;1"]
-                .getService(Ci.nsIObserverService)
-                .addObserver(this, "shell:desktop-background-changed", false);
-
-      var bundle = document.getElementById("backgroundBundle");
-      var setDesktopBackground = document.getElementById("setDesktopBackground");
-      setDesktopBackground.disabled = true;
-      setDesktopBackground.label = bundle.getString("DesktopBackgroundDownloading");
-    }
+    document.persist("menuPosition", "value");
+    this._shell.desktopBackgroundColor = this._hexStringToLong(this._backgroundColor);
     this._shell.setDesktopBackground(this._image,
                                      Ci.nsIShellService["BACKGROUND_" + this._position]);
   },
@@ -95,9 +69,7 @@ var gSetBackground = {
     var ctx = this._canvas.getContext("2d");
     ctx.clearRect(0, 0, this._screenWidth, this._screenHeight);
 
-    if (AppConstants.platform != "macosx") {
-      this._position = document.getElementById("menuPosition").value;
-    }
+    this._position = document.getElementById("menuPosition").value;
 
     switch (this._position) {
       case "TILE":
@@ -153,51 +125,34 @@ var gSetBackground = {
   }
 };
 
-if (AppConstants.platform != "macosx") {
-  gSetBackground["_initColor"] = function() {
-    var color = this._shell.desktopBackgroundColor;
+gSetBackground["_initColor"] = function() {
+  var color = this._shell.desktopBackgroundColor;
 
-    const rMask = 4294901760;
-    const gMask = 65280;
-    const bMask = 255;
-    var r = (color & rMask) >> 16;
-    var g = (color & gMask) >> 8;
-    var b = (color & bMask);
-    this.updateColor(this._rgbToHex(r, g, b));
+  const rMask = 4294901760;
+  const gMask = 65280;
+  const bMask = 255;
+  var r = (color & rMask) >> 16;
+  var g = (color & gMask) >> 8;
+  var b = (color & bMask);
+  this.updateColor(this._rgbToHex(r, g, b));
 
-    var colorpicker = document.getElementById("desktopColor");
-    colorpicker.color = this._backgroundColor;
-  };
+  var colorpicker = document.getElementById("desktopColor");
+  colorpicker.color = this._backgroundColor;
+};
 
-  gSetBackground["updateColor"] = function(aColor) {
-    this._backgroundColor = aColor;
-    this._canvas.style.backgroundColor = aColor;
-  };
+gSetBackground["updateColor"] = function(aColor) {
+  this._backgroundColor = aColor;
+  this._canvas.style.backgroundColor = aColor;
+};
 
-  // Converts a color string in the format "#RRGGBB" to an integer.
-  gSetBackground["_hexStringToLong"] = function(aString) {
-    return parseInt(aString.substring(1, 3), 16) << 16 |
-           parseInt(aString.substring(3, 5), 16) << 8 |
-           parseInt(aString.substring(5, 7), 16);
-  };
+// Converts a color string in the format "#RRGGBB" to an integer.
+gSetBackground["_hexStringToLong"] = function(aString) {
+  return parseInt(aString.substring(1, 3), 16) << 16 |
+         parseInt(aString.substring(3, 5), 16) << 8 |
+         parseInt(aString.substring(5, 7), 16);
+};
 
-  gSetBackground["_rgbToHex"] = function(aR, aG, aB) {
-    return "#" + [aR, aG, aB].map(aInt => aInt.toString(16).replace(/^(.)$/, "0$1"))
-                             .join("").toUpperCase();
-  };
-} else {
-  gSetBackground["observe"] = function(aSubject, aTopic, aData) {
-    if (aTopic == "shell:desktop-background-changed") {
-      document.getElementById("setDesktopBackground").hidden = true;
-      document.getElementById("showDesktopPreferences").hidden = false;
-
-      Components.classes["@mozilla.org/observer-service;1"]
-                .getService(Ci.nsIObserverService)
-                .removeObserver(this, "shell:desktop-background-changed");
-    }
-  };
-
-  gSetBackground["showDesktopPrefs"] = function() {
-    this._shell.openApplication(Ci.nsIMacShellService.APPLICATION_DESKTOP);
-  };
-}
+gSetBackground["_rgbToHex"] = function(aR, aG, aB) {
+  return "#" + [aR, aG, aB].map(aInt => aInt.toString(16).replace(/^(.)$/, "0$1"))
+                           .join("").toUpperCase();
+};

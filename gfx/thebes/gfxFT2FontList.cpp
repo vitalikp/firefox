@@ -466,7 +466,6 @@ FT2FontEntry::CairoFontFace()
     return mFontFace;
 }
 
-// Copied/modified from similar code in gfxMacPlatformFontList.mm:
 // Complex scripts will not render correctly unless Graphite or OT
 // layout tables are present.
 // For OpenType, we also check that the GSUB table supports the relevant

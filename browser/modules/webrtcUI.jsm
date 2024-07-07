@@ -161,17 +161,6 @@ this.webrtcUI = {
     }
     browserWindow.focus();
     let identityBox = browserWindow.document.getElementById("identity-box");
-    if (AppConstants.platform == "macosx" && !Services.focus.activeWindow) {
-      browserWindow.addEventListener("activate", function onActivate() {
-        browserWindow.removeEventListener("activate", onActivate);
-        Services.tm.mainThread.dispatch(function() {
-          identityBox.click();
-        }, Ci.nsIThread.DISPATCH_NORMAL);
-      });
-      Cc["@mozilla.org/widget/macdocksupport;1"].getService(Ci.nsIMacDockSupport)
-        .activateApplication(true);
-      return;
-    }
     identityBox.click();
   },
 
@@ -832,8 +821,6 @@ function getGlobalIndicator() {
     _hiddenDoc: Cc["@mozilla.org/appshell/appShellService;1"]
                   .getService(Ci.nsIAppShellService)
                   .hiddenDOMWindow.document,
-    _statusBar: Cc["@mozilla.org/widget/macsystemstatusbar;1"]
-                  .getService(Ci.nsISystemStatusBar),
 
     _command(aEvent) {
       webrtcUI.showSharingDoorhanger(aEvent.target.stream);
@@ -910,8 +897,6 @@ function getGlobalIndicator() {
         // The CSS will only be applied if the menu is actually inserted in the DOM.
         this._hiddenDoc.documentElement.appendChild(menu);
 
-        this._statusBar.addItem(menu);
-
         let menupopup = this._hiddenDoc.createElement("menupopup");
         menupopup.setAttribute("type", aName);
         menupopup.addEventListener("popupshowing", this._popupShowing);
@@ -921,7 +906,6 @@ function getGlobalIndicator() {
 
         this[field] = menu;
       } else if (this[field] && !aState) {
-        this._statusBar.removeItem(this[field]);
         this[field].remove();
         this[field] = null
       }

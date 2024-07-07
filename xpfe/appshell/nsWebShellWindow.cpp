@@ -74,11 +74,6 @@
 
 #include "gfxPlatform.h"
 
-#ifdef XP_MACOSX
-#include "nsINativeMenuService.h"
-#define USE_NATIVE_MENUS
-#endif
-
 using namespace mozilla;
 using namespace mozilla::dom;
 
@@ -487,34 +482,6 @@ nsWebShellWindow::WindowDeactivated()
     fm->WindowLowered(window);
 }
 
-#ifdef USE_NATIVE_MENUS
-static void LoadNativeMenus(nsIDOMDocument *aDOMDoc, nsIWidget *aParentWindow)
-{
-  nsCOMPtr<nsINativeMenuService> nms = do_GetService("@mozilla.org/widget/nativemenuservice;1");
-  if (!nms) {
-    return;
-  }
-
-  // Find the menubar tag (if there is more than one, we ignore all but
-  // the first).
-  nsCOMPtr<nsIDOMNodeList> menubarElements;
-  aDOMDoc->GetElementsByTagNameNS(NS_LITERAL_STRING("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"),
-                                  NS_LITERAL_STRING("menubar"),
-                                  getter_AddRefs(menubarElements));
-
-  nsCOMPtr<nsIDOMNode> menubarNode;
-  if (menubarElements)
-    menubarElements->Item(0, getter_AddRefs(menubarNode));
-
-  if (menubarNode) {
-    nsCOMPtr<nsIContent> menubarContent(do_QueryInterface(menubarNode));
-    nms->CreateNativeMenuBar(aParentWindow, menubarContent);
-  } else {
-    nms->CreateNativeMenuBar(aParentWindow, nullptr);
-  }
-}
-#endif
-
 namespace mozilla {
 
 class WebShellWindowTimerCallback final : public nsITimerCallback
@@ -617,19 +584,6 @@ nsWebShellWindow::OnStateChange(nsIWebProgress *aProgress,
 
   mChromeLoaded = true;
   mLockedUntilChromeLoad = false;
-
-#ifdef USE_NATIVE_MENUS
-  ///////////////////////////////
-  // Find the Menubar DOM  and Load the menus, hooking them up to the loaded commands
-  ///////////////////////////////
-  nsCOMPtr<nsIContentViewer> cv;
-  mDocShell->GetContentViewer(getter_AddRefs(cv));
-  if (cv) {
-    nsCOMPtr<nsIDOMDocument> menubarDOMDoc(do_QueryInterface(cv->GetDocument()));
-    if (menubarDOMDoc)
-      LoadNativeMenus(menubarDOMDoc, mWindow);
-  }
-#endif // USE_NATIVE_MENUS
 
   OnChromeLoaded();
 

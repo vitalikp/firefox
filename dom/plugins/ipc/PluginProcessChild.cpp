@@ -13,13 +13,6 @@
 #include "base/string_util.h"
 #include "nsDebugImpl.h"
 
-#if defined(XP_MACOSX)
-#include "nsCocoaFeatures.h"
-// An undocumented CoreGraphics framework method, present in the same form
-// since at least OS X 10.5.
-extern "C" CGError CGSSetDebugOptions(int options);
-#endif
-
 #ifdef XP_WIN
 bool ShouldProtectPluginCurrentDirectory(char16ptr_t pluginFilePath);
 #if defined(MOZ_SANDBOX)
@@ -43,42 +36,6 @@ bool
 PluginProcessChild::Init(int aArgc, char* aArgv[])
 {
     nsDebugImpl::SetMultiprocessMode("NPAPI");
-
-#if defined(XP_MACOSX)
-    // Remove the trigger for "dyld interposing" that we added in
-    // GeckoChildProcessHost::PerformAsyncLaunchInternal(), in the host
-    // process just before we were launched.  Dyld interposing will still
-    // happen in our process (the plugin child process).  But we don't want
-    // it to happen in any processes that the plugin might launch from our
-    // process.
-    nsCString interpose(PR_GetEnv("DYLD_INSERT_LIBRARIES"));
-    if (!interpose.IsEmpty()) {
-        // If we added the path to libplugin_child_interpose.dylib to an
-        // existing DYLD_INSERT_LIBRARIES, we appended it to the end, after a
-        // ":" path seperator.
-        int32_t lastSeparatorPos = interpose.RFind(":");
-        int32_t lastTriggerPos = interpose.RFind("libplugin_child_interpose.dylib");
-        bool needsReset = false;
-        if (lastTriggerPos != -1) {
-            if (lastSeparatorPos == -1) {
-                interpose.Truncate();
-                needsReset = true;
-            } else if (lastTriggerPos > lastSeparatorPos) {
-                interpose.SetLength(lastSeparatorPos);
-                needsReset = true;
-            }
-        }
-        if (needsReset) {
-            nsCString setInterpose("DYLD_INSERT_LIBRARIES=");
-            if (!interpose.IsEmpty()) {
-                setInterpose.Append(interpose);
-            }
-            // Values passed to PR_SetEnv() must be seperately allocated.
-            char* setInterposePtr = strdup(setInterpose.get());
-            PR_SetEnv(setInterposePtr);
-        }
-    }
-#endif
 
     // Certain plugins, such as flash, steal the unhandled exception filter
     // thus we never get crash reports when they fault. This call fixes it.
@@ -125,17 +82,6 @@ PluginProcessChild::Init(int aArgc, char* aArgv[])
     bool retval = mPlugin.InitForChrome(pluginFilename, ParentPid(),
                                         IOThreadChild::message_loop(),
                                         IOThreadChild::channel());
-#if defined(XP_MACOSX)
-    if (nsCocoaFeatures::OnYosemiteOrLater()) {
-      // Explicitly turn off CGEvent logging.  This works around bug 1092855.
-      // If there are already CGEvents in the log, turning off logging also
-      // causes those events to be written to disk.  But at this point no
-      // CGEvents have yet been processed.  CGEvents are events (usually
-      // input events) pulled from the WindowServer.  An option of 0x80000008
-      // turns on CGEvent logging.
-      CGSSetDebugOptions(0x80000007);
-    }
-#endif
     return retval;
 }
 

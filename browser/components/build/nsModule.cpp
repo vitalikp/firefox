@@ -10,8 +10,6 @@
 
 #if defined(XP_WIN)
 #include "nsWindowsShellService.h"
-#elif defined(XP_MACOSX)
-#include "nsMacShellService.h"
 #elif defined(MOZ_WIDGET_GTK)
 #include "nsGNOMEShellService.h"
 #endif
@@ -34,8 +32,6 @@ using namespace mozilla::browser;
 NS_GENERIC_FACTORY_CONSTRUCTOR(DirectoryProvider)
 #if defined(XP_WIN)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsWindowsShellService)
-#elif defined(XP_MACOSX)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsMacShellService)
 #elif defined(MOZ_WIDGET_GTK)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsGNOMEShellService, Init)
 #endif
@@ -56,8 +52,6 @@ NS_DEFINE_NAMED_CID(NS_FEEDSNIFFER_CID);
 NS_DEFINE_NAMED_CID(NS_BROWSER_ABOUT_REDIRECTOR_CID);
 #if defined(XP_WIN)
 NS_DEFINE_NAMED_CID(NS_WINIEHISTORYENUMERATOR_CID);
-#elif defined(XP_MACOSX)
-NS_DEFINE_NAMED_CID(NS_SHELLSERVICE_CID);
 #endif
 
 static const mozilla::Module::CIDEntry kBrowserCIDs[] = {
@@ -71,8 +65,6 @@ static const mozilla::Module::CIDEntry kBrowserCIDs[] = {
     { &kNS_BROWSER_ABOUT_REDIRECTOR_CID, false, nullptr, AboutRedirector::Create },
 #if defined(XP_WIN)
     { &kNS_WINIEHISTORYENUMERATOR_CID, false, nullptr, nsIEHistoryEnumeratorConstructor },
-#elif defined(XP_MACOSX)
-    { &kNS_SHELLSERVICE_CID, false, nullptr, nsMacShellServiceConstructor },
 #endif
     { nullptr }
 };
@@ -106,8 +98,6 @@ static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
     { NS_ABOUT_MODULE_CONTRACTID_PREFIX "reader", &kNS_BROWSER_ABOUT_REDIRECTOR_CID },
 #if defined(XP_WIN)
     { NS_IEHISTORYENUMERATOR_CONTRACTID, &kNS_WINIEHISTORYENUMERATOR_CID },
-#elif defined(XP_MACOSX)
-    { NS_SHELLSERVICE_CONTRACTID, &kNS_SHELLSERVICE_CID },
 #endif
     { nullptr }
 };

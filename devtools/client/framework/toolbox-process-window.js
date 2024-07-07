@@ -148,35 +148,6 @@ function evaluateTestScript(script, toolbox) {
 function bindToolboxHandlers() {
   gToolbox.once("destroyed", quitApp);
   window.addEventListener("unload", onUnload);
-
-#ifdef XP_MACOSX
-  // Badge the dock icon to differentiate this process from the main application process.
-  updateBadgeText(false);
-
-  // Once the debugger panel opens listen for thread pause / resume.
-  gToolbox.getPanelWhenReady("jsdebugger").then(panel => {
-    setupThreadListeners(panel);
-  });
-#endif
-}
-
-function setupThreadListeners(panel) {
-  updateBadgeText(panel._selectors.getPause(panel._getState()));
-
-  let onPaused = updateBadgeText.bind(null, true);
-  let onResumed = updateBadgeText.bind(null, false);
-  gToolbox.target.on("thread-paused", onPaused);
-  gToolbox.target.on("thread-resumed", onResumed);
-
-  panel.once("destroyed", () => {
-    gToolbox.target.off("thread-paused", onPaused);
-    gToolbox.target.off("thread-resumed", onResumed);
-  });
-}
-
-function updateBadgeText(paused) {
-  let dockSupport = Cc["@mozilla.org/widget/macdocksupport;1"].getService(Ci.nsIMacDockSupport);
-  dockSupport.badgeText = paused ? "▐▐ " : " ▶";
 }
 
 function onUnload() {
