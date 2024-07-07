@@ -8,8 +8,6 @@ toolkit = CONFIG['MOZ_WIDGET_TOOLKIT']
 
 if 'gtk' in toolkit:
     DIRS += ['atk']
-elif toolkit == 'cocoa':
-    DIRS += ['mac']
 else:
     DIRS += ['other']
 

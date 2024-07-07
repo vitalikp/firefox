@@ -8,10 +8,6 @@
 
 // formal protocols
 #include "mozView.h"
-#ifdef ACCESSIBILITY
-#include "mozilla/a11y/Accessible.h"
-#include "mozAccessibleProtocol.h"
-#endif
 
 #include "nsISupports.h"
 #include "nsBaseWidget.h"
@@ -108,9 +104,6 @@ class WidgetRenderingContext;
 @end
 
 @interface ChildView : NSView<
-#ifdef ACCESSIBILITY
-                              mozAccessible,
-#endif
                               mozView, NSTextInputClient,
                               NSDraggingSource, NSDraggingDestination,
                               NSPasteboardItemDataProvider>
@@ -438,10 +431,6 @@ public:
   bool PaintWindowInContext(CGContextRef aContext, const LayoutDeviceIntRegion& aRegion,
                             mozilla::gfx::IntSize aSurfaceSize);
 
-#ifdef ACCESSIBILITY
-  already_AddRefed<mozilla::a11y::Accessible> GetDocumentAccessible();
-#endif
-
   virtual void CreateCompositor() override;
   virtual void PrepareWindowEffects() override;
   virtual void CleanupWindowEffects() override;
@@ -585,12 +574,6 @@ protected:
 
   NSView<mozView>*      mParentView;
   nsIWidget*            mParentWidget;
-
-#ifdef ACCESSIBILITY
-  // weak ref to this childview's associated mozAccessible for speed reasons
-  // (we get queried for it *a lot* but don't want to own it)
-  nsWeakPtr             mAccessible;
-#endif
 
   // Protects the view from being teared down while a composition is in
   // progress on the compositor thread.
