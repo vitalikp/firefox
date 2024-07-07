@@ -41,10 +41,6 @@
 #include <CoreServices/CoreServices.h>
 #endif
 
-#if defined(MOZ_WIDGET_COCOA)
-#include "nsCocoaFeatures.h"
-#endif
-
 namespace mozilla {
 namespace gl {
 

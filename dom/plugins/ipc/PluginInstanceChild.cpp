@@ -163,15 +163,6 @@ PluginInstanceChild::PluginInstanceChild(const NPPluginFuncs* aPluginIface,
     , mWinlessHiddenMsgHWND(0)
 #endif // OS_WIN
     , mAsyncCallMutex("PluginInstanceChild::mAsyncCallMutex")
-#if defined(MOZ_WIDGET_COCOA)
-#if defined(__i386__)
-    , mEventModel(NPEventModelCarbon)
-#endif
-    , mShColorSpace(nullptr)
-    , mShContext(nullptr)
-    , mCGLayer(nullptr)
-    , mCurrentEvent(nullptr)
-#endif
     , mLayersRendering(false)
 #ifdef XP_WIN
     , mCurrentSurfaceActor(nullptr)
@@ -218,20 +209,6 @@ PluginInstanceChild::~PluginInstanceChild()
     PluginModuleChild* chromeInstance = PluginModuleChild::GetChrome();
     if (chromeInstance) {
       NPError rv = chromeInstance->PluginRequiresAudioDeviceChanges(this, false);
-    }
-#endif
-#if defined(MOZ_WIDGET_COCOA)
-    if (mShColorSpace) {
-        ::CGColorSpaceRelease(mShColorSpace);
-    }
-    if (mShContext) {
-        ::CGContextRelease(mShContext);
-    }
-    if (mCGLayer) {
-        PluginUtilsOSX::ReleaseCGLayer(mCGLayer);
-    }
-    if (mDrawingModel == NPDrawingModelCoreAnimation) {
-        UnscheduleTimer(mCARefreshTimer);
     }
 #endif
 }
@@ -560,24 +537,6 @@ PluginInstanceChild::NPN_GetValue(NPNVariable aVar,
     }
 }
 
-#ifdef MOZ_WIDGET_COCOA
-#define DEFAULT_REFRESH_MS 20 // CoreAnimation: 50 FPS
-
-void
-CAUpdate(NPP npp, uint32_t timerID) {
-    static_cast<PluginInstanceChild*>(npp->ndata)->Invalidate();
-}
-
-void
-PluginInstanceChild::Invalidate()
-{
-    NPRect windowRect = {0, 0, uint16_t(mWindow.height),
-        uint16_t(mWindow.width)};
-
-    InvalidateRect(&windowRect);
-}
-#endif
-
 NPError
 PluginInstanceChild::NPN_SetValue(NPPVariable aVar, void* aValue)
 {
@@ -640,12 +599,6 @@ PluginInstanceChild::NPN_SetValue(NPPVariable aVar, void* aValue)
             return NPERR_GENERIC_ERROR;
 
         mDrawingModel = drawingModel;
-
-#ifdef XP_MACOSX
-        if (drawingModel == NPDrawingModelCoreAnimation) {
-            mCARefreshTimer = ScheduleTimer(DEFAULT_REFRESH_MS, true, CAUpdate);
-        }
-#endif
 
         PLUGIN_LOG_DEBUG(("  Plugin requested drawing model id  #%i\n",
             mDrawingModel));
@@ -3787,62 +3740,6 @@ PluginInstanceChild::ShowPluginFrame()
         return false;
     }
 
-#ifdef MOZ_WIDGET_COCOA
-    // We can't use the thebes code with CoreAnimation so we will
-    // take a different code path.
-    if (mDrawingModel == NPDrawingModelCoreAnimation ||
-        mDrawingModel == NPDrawingModelInvalidatingCoreAnimation ||
-        mDrawingModel == NPDrawingModelCoreGraphics) {
-
-        if (!IsVisible()) {
-            return true;
-        }
-
-        if (!mDoubleBufferCARenderer.HasFrontSurface()) {
-            NS_ERROR("CARenderer not initialized for rendering");
-            return false;
-        }
-
-        // Clear accRect here to be able to pass
-        // test_invalidate_during_plugin_paint  test
-        nsIntRect rect = mAccumulatedInvalidRect;
-        mAccumulatedInvalidRect.SetEmpty();
-
-        // Fix up old invalidations that might have been made when our
-        // surface was a different size
-        rect.IntersectRect(rect,
-                          nsIntRect(0, 0,
-                          mDoubleBufferCARenderer.GetFrontSurfaceWidth(),
-                          mDoubleBufferCARenderer.GetFrontSurfaceHeight()));
-
-        if (mDrawingModel == NPDrawingModelCoreGraphics) {
-            mozilla::plugins::PluginUtilsOSX::Repaint(mCGLayer, rect);
-        }
-
-        mDoubleBufferCARenderer.Render();
-
-        NPRect r = { (uint16_t)rect.y, (uint16_t)rect.x,
-                     (uint16_t)rect.YMost(), (uint16_t)rect.XMost() };
-        SurfaceDescriptor currSurf;
-        currSurf = IOSurfaceDescriptor(mDoubleBufferCARenderer.GetFrontSurfaceID(),
-                                       mDoubleBufferCARenderer.GetContentsScaleFactor());
-
-        mHasPainted = true;
-
-        SurfaceDescriptor returnSurf;
-
-        if (!SendShow(r, currSurf, &returnSurf)) {
-            return false;
-        }
-
-        SwapSurfaces();
-        return true;
-    } else {
-        NS_ERROR("Unsupported drawing model for async layer rendering");
-        return false;
-    }
-#endif
-
     NS_ASSERTION(mWindow.width == uint32_t(mWindow.clipRect.right - mWindow.clipRect.left) &&
                  mWindow.height == uint32_t(mWindow.clipRect.bottom - mWindow.clipRect.top),
                  "Clip rect should be same size as window when using layers");
@@ -4249,40 +4146,17 @@ PluginInstanceChild::SwapSurfaces()
     mBackSurfaceActor = tmpactor;
 #endif
 
-#ifdef MOZ_WIDGET_COCOA
-    mDoubleBufferCARenderer.SwapSurfaces();
-
-    // Outdated back surface... not usable anymore due to changed plugin size.
-    // Dropping obsolete surface
-    if (mDoubleBufferCARenderer.HasFrontSurface() &&
-        mDoubleBufferCARenderer.HasBackSurface() &&
-        (mDoubleBufferCARenderer.GetFrontSurfaceWidth() !=
-            mDoubleBufferCARenderer.GetBackSurfaceWidth() ||
-        mDoubleBufferCARenderer.GetFrontSurfaceHeight() !=
-            mDoubleBufferCARenderer.GetBackSurfaceHeight() ||
-        mDoubleBufferCARenderer.GetFrontSurfaceContentsScaleFactor() !=
-            mDoubleBufferCARenderer.GetBackSurfaceContentsScaleFactor())) {
-
-        mDoubleBufferCARenderer.ClearFrontSurface();
-    }
-#else
     if (mCurrentSurface && mBackSurface &&
         (mCurrentSurface->GetSize() != mBackSurface->GetSize() ||
          mCurrentSurface->GetContentType() != mBackSurface->GetContentType())) {
         ClearCurrentSurface();
     }
-#endif
 }
 
 void
 PluginInstanceChild::ClearCurrentSurface()
 {
     mCurrentSurface = nullptr;
-#ifdef MOZ_WIDGET_COCOA
-    if (mDoubleBufferCARenderer.HasFrontSurface()) {
-        mDoubleBufferCARenderer.ClearFrontSurface();
-    }
-#endif
 #ifdef XP_WIN
     if (mCurrentSurfaceActor) {
         PPluginSurfaceChild::Send__delete__(mCurrentSurfaceActor);
@@ -4318,23 +4192,6 @@ PluginInstanceChild::ClearAllSurfaces()
         PPluginSurfaceChild::Send__delete__(mBackSurfaceActor);
         mBackSurfaceActor = nullptr;
     }
-#endif
-
-#ifdef MOZ_WIDGET_COCOA
-    if (mDoubleBufferCARenderer.HasBackSurface()) {
-        // Get last surface back, and drop it
-        SurfaceDescriptor temp = null_t();
-        NPRect r = { 0, 0, 1, 1 };
-        SendShow(r, temp, &temp);
-    }
-
-    if (mCGLayer) {
-        mozilla::plugins::PluginUtilsOSX::ReleaseCGLayer(mCGLayer);
-        mCGLayer = nullptr;
-    }
-
-    mDoubleBufferCARenderer.ClearFrontSurface();
-    mDoubleBufferCARenderer.ClearBackSurface();
 #endif
 }
 

@@ -65,10 +65,6 @@
 #include "nsIObserverService.h" // so we can be a profile change observer
 #include "nsIPropertyBag2.h" // for the 64-bit content length
 
-#ifdef XP_MACOSX
-#include "nsILocalFileMac.h"
-#endif
-
 #include "nsIPluginHost.h" // XXX needed for ext->type mapping (bug 233289)
 #include "nsPluginHost.h"
 #include "nsEscape.h"
@@ -277,49 +273,7 @@ static nsresult GetDownloadDirectory(nsIFile **_directory,
                                      bool aSkipChecks = false)
 {
   nsCOMPtr<nsIFile> dir;
-#ifdef XP_MACOSX
-  // On OS X, we first try to get the users download location, if it's set.
-  switch (Preferences::GetInt(NS_PREF_DOWNLOAD_FOLDERLIST, -1)) {
-    case NS_FOLDER_VALUE_DESKTOP:
-      (void) NS_GetSpecialDirectory(NS_OS_DESKTOP_DIR, getter_AddRefs(dir));
-      break;
-    case NS_FOLDER_VALUE_CUSTOM:
-      {
-        Preferences::GetComplex(NS_PREF_DOWNLOAD_DIR,
-                                NS_GET_IID(nsIFile),
-                                getter_AddRefs(dir));
-        if (!dir) break;
-
-        // If we're not checking for availability we're done.
-        if (aSkipChecks) {
-          dir.forget(_directory);
-          return NS_OK;
-        }
-
-        // We have the directory, and now we need to make sure it exists
-        bool dirExists = false;
-        (void) dir->Exists(&dirExists);
-        if (dirExists) break;
-
-        nsresult rv = dir->Create(nsIFile::DIRECTORY_TYPE, 0755);
-        if (NS_FAILED(rv)) {
-          dir = nullptr;
-          break;
-        }
-      }
-      break;
-    case NS_FOLDER_VALUE_DOWNLOADS:
-      // This is just the OS default location, so fall out
-      break;
-  }
-
-  if (!dir) {
-    // If not, we default to the OS X default download location.
-    nsresult rv = NS_GetSpecialDirectory(NS_OSX_DEFAULT_DOWNLOAD_DIR,
-                                         getter_AddRefs(dir));
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-#elif defined(ANDROID)
+#if defined(ANDROID)
   // We ask Java for the temporary download directory. The directory will be
   // different depending on whether we have the permission to write to the
   // public download directory or not.

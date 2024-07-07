@@ -1361,10 +1361,6 @@ nsDownloadManager::GetDefaultDownloadsDirectory(nsIFile **aResult)
      do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // OSX 10.4:
-  // Desktop
-  // OSX 10.5:
-  // User download directory
   // Vista:
   // Downloads
   // XP/2K:
@@ -1375,12 +1371,7 @@ nsDownloadManager::GetDefaultDownloadsDirectory(nsIFile **aResult)
   nsAutoString folderName;
   mBundle->GetStringFromName("downloadsFolder", folderName);
 
-#if defined (XP_MACOSX)
-  rv = dirService->Get(NS_OSX_DEFAULT_DOWNLOAD_DIR,
-                       NS_GET_IID(nsIFile),
-                       getter_AddRefs(downloadDir));
-  NS_ENSURE_SUCCESS(rv, rv);
-#elif defined(XP_WIN)
+#if defined(XP_WIN)
   rv = dirService->Get(NS_WIN_DEFAULT_DOWNLOAD_DIR,
                        NS_GET_IID(nsIFile),
                        getter_AddRefs(downloadDir));

@@ -31,9 +31,6 @@
 #include "nsReadableUtils.h"
 #include "nsIStreamConverterService.h"
 #include "nsIFile.h"
-#if defined(XP_MACOSX)
-#include "nsILocalFileMac.h"
-#endif
 #include "nsISeekableStream.h"
 #include "nsNetUtil.h"
 #include "nsIFileStreams.h"
@@ -1812,19 +1809,7 @@ int64_t GetPluginLastModifiedTime(const nsCOMPtr<nsIFile>& localfile)
 {
   PRTime fileModTime = 0;
 
-#if defined(XP_MACOSX)
-  // On OS X the date of a bundle's "contents" (i.e. of its Info.plist file)
-  // is a much better guide to when it was last modified than the date of
-  // its package directory.  See bug 313700.
-  nsCOMPtr<nsILocalFileMac> localFileMac = do_QueryInterface(localfile);
-  if (localFileMac) {
-    localFileMac->GetBundleContentsLastModifiedTime(&fileModTime);
-  } else {
-    localfile->GetLastModifiedTime(&fileModTime);
-  }
-#else
   localfile->GetLastModifiedTime(&fileModTime);
-#endif
 
   return fileModTime;
 }

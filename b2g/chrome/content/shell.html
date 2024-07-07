@@ -47,13 +47,6 @@
 </head>
   <body id="container">
 #ifndef MOZ_GRAPHENE
-#ifdef MOZ_WIDGET_COCOA
-    <!--
-     If the document is empty at startup, we don't display the window
-     at all on Mac OS...
-    -->
-    <h1 id="placeholder">wtf mac os!</h1>
-#endif
 #else
     <div id="titlebar-buttonbox"></div>
     <div id="installing">

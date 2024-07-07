@@ -95,10 +95,6 @@ extern nsresult nsStringInputStreamConstructor(nsISupports*, REFNSIID, void**);
 #include "nsWindowsRegKey.h"
 #endif
 
-#ifdef MOZ_WIDGET_COCOA
-#include "nsMacUtilsImpl.h"
-#endif
-
 #include "nsSystemInfo.h"
 #include "nsMemoryReporterManager.h"
 #include "nsMemoryInfoDumper.h"
@@ -207,10 +203,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsHashPropertyBagCC)
 NS_GENERIC_AGGREGATED_CONSTRUCTOR(nsProperties)
 
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsUUIDGenerator, Init)
-
-#ifdef MOZ_WIDGET_COCOA
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsMacUtilsImpl)
-#endif
 
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsSystemInfo, Init)
 

@@ -148,13 +148,6 @@ PluginInstanceParent::~PluginInstanceParent()
     NS_ASSERTION(!(mPluginHWND || mPluginWndProc),
         "Subclass was not reset correctly before the dtor was reached!");
 #endif
-#if defined(MOZ_WIDGET_COCOA)
-    if (mShWidth != 0 && mShHeight != 0) {
-        DeallocShmem(mShSurface);
-    }
-    if (mShColorSpace)
-        ::CGColorSpaceRelease(mShColorSpace);
-#endif
 }
 
 bool

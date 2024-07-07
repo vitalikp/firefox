@@ -38,10 +38,6 @@ class nsIPrincipal;
 #include "GpsdLocationProvider.h"
 #endif
 
-#ifdef MOZ_WIDGET_COCOA
-#include "CoreLocationLocationProvider.h"
-#endif
-
 #ifdef XP_WIN
 #include "WindowsLocationProvider.h"
 #include "mozilla/WindowsVersion.h"
@@ -700,12 +696,6 @@ nsresult nsGeolocationService::Init()
     mProvider = new GpsdLocationProvider();
   }
 #endif
-#endif
-
-#ifdef MOZ_WIDGET_COCOA
-  if (Preferences::GetBool("geo.provider.use_corelocation", true)) {
-    mProvider = new CoreLocationLocationProvider();
-  }
 #endif
 
 #ifdef XP_WIN

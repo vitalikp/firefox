@@ -135,7 +135,7 @@ nsMacShellService::SetDesktopBackground(nsIDOMElement* aElement,
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Get the current user's "Pictures" folder (That's ~/Pictures):
-  fileLocator->Get(NS_OSX_PICTURE_DOCUMENTS_DIR, NS_GET_IID(nsIFile),
+  fileLocator->Get("Pct", NS_GET_IID(nsIFile),
                    getter_AddRefs(mBackgroundFile));
   if (!mBackgroundFile)
     return NS_ERROR_OUT_OF_MEMORY;

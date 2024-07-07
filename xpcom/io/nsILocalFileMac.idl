@@ -95,16 +95,6 @@ interface nsILocalFileMac : nsILocalFile
   [noscript] FSSpec getFSSpec();
 
    /**
-    * fileSizeWithResFork
-    * 
-    * Returns the combined size of both the data fork and the resource
-    * fork (if present) rather than just the size of the data fork
-    * as returned by GetFileSize()
-    *
-    */
-   readonly attribute int64_t fileSizeWithResFork;
-
-   /**
     * fileType, creator
     *
     * File type and creator attributes
@@ -169,11 +159,3 @@ interface nsILocalFileMac : nsILocalFile
      */
     readonly attribute int64_t bundleContentsLastModifiedTime;
 };
-
-%{C++
-extern "C"
-{
-NS_EXPORT nsresult NS_NewLocalFileWithFSRef(const FSRef* aFSRef, bool aFollowSymlinks, nsILocalFileMac** result);
-NS_EXPORT nsresult NS_NewLocalFileWithCFURL(const CFURLRef aURL, bool aFollowSymlinks, nsILocalFileMac** result);
-}
-%}

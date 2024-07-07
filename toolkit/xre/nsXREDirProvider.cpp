@@ -273,12 +273,6 @@ GetSystemParentDirectory(nsIFile** aFile)
 {
   nsresult rv;
   nsCOMPtr<nsIFile> localDir;
-#if defined(XP_MACOSX)
-  rv = GetOSXFolderType(kOnSystemDisk, kApplicationSupportFolderType, getter_AddRefs(localDir));
-  if (NS_SUCCEEDED(rv)) {
-    rv = localDir->AppendNative(NS_LITERAL_CSTRING("Mozilla"));
-  }
-#else
   NS_NAMED_LITERAL_CSTRING(dirname,
 #ifdef HAVE_USR_LIB64_DIR
                            "/usr/lib64/mozilla"
@@ -289,7 +283,6 @@ GetSystemParentDirectory(nsIFile** aFile)
 #endif
                            );
   rv = NS_NewNativeLocalFile(dirname, false, getter_AddRefs(localDir));
-#endif
 
   if (NS_SUCCEEDED(rv)) {
     localDir.forget(aFile);
@@ -1652,32 +1645,7 @@ nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile, bool aLocal)
   nsresult rv;
   nsCOMPtr<nsIFile> localDir;
 
-#if defined(XP_MACOSX)
-  FSRef fsRef;
-  OSType folderType;
-  if (aLocal) {
-    folderType = kCachedDataFolderType;
-  } else {
-#ifdef MOZ_THUNDERBIRD
-    folderType = kDomainLibraryFolderType;
-#else
-    folderType = kApplicationSupportFolderType;
-#endif
-  }
-  OSErr err = ::FSFindFolder(kUserDomain, folderType, kCreateFolder, &fsRef);
-  NS_ENSURE_FALSE(err, NS_ERROR_FAILURE);
-
-  rv = NS_NewNativeLocalFile(EmptyCString(), true, getter_AddRefs(localDir));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsILocalFileMac> dirFileMac = do_QueryInterface(localDir);
-  NS_ENSURE_TRUE(dirFileMac, NS_ERROR_UNEXPECTED);
-
-  rv = dirFileMac->InitWithFSRef(&fsRef);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  localDir = do_QueryInterface(dirFileMac, &rv);
-#elif defined(XP_IOS)
+#if defined(XP_IOS)
   nsAutoCString userDir;
   if (GetUIKitDirectory(aLocal, userDir)) {
     rv = NS_NewNativeLocalFile(userDir, true, getter_AddRefs(localDir));

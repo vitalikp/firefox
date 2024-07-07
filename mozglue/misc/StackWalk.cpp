@@ -69,9 +69,6 @@ extern MOZ_EXPORT void* __libc_stack_end; // from ld-linux.so
 #if MOZ_STACKWALK_SUPPORTS_MACOSX
 #include <pthread.h>
 #include <sys/errno.h>
-#ifdef MOZ_WIDGET_COCOA
-#include <CoreServices/CoreServices.h>
-#endif
 
 typedef void
 malloc_logger_t(uint32_t aType,

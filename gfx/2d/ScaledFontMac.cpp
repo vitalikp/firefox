@@ -16,13 +16,6 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-#ifdef MOZ_WIDGET_COCOA
-// prototype for private API
-extern "C" {
-CGPathRef CGFontGetGlyphPath(CGFontRef fontRef, CGAffineTransform *textTransform, int unknown, CGGlyph glyph);
-};
-#endif
-
 #ifdef USE_CAIRO_SCALED_FONT
 #include "cairo-quartz.h"
 #endif

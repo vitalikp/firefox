@@ -15,9 +15,6 @@
 #include "prio.h"
 #if defined(XP_WIN)
 #include <windows.h>
-#elif defined(MOZ_WIDGET_COCOA)
-#include <CoreServices/CoreServices.h>
-#include "nsCocoaFeatures.h"
 #elif defined(MOZ_WIDGET_GTK)
 #include <gtk/gtk.h>
 #endif
@@ -534,12 +531,6 @@ ParseManifest(NSLocationType aType, FileLocation& aFile, char* aBuf,
                               info.dwMinorVersion);
   }
 #pragma warning(pop)
-#elif defined(MOZ_WIDGET_COCOA)
-  SInt32 majorVersion = nsCocoaFeatures::OSXVersionMajor();
-  SInt32 minorVersion = nsCocoaFeatures::OSXVersionMinor();
-  nsTextFormatter::ssprintf(osVersion, u"%ld.%ld",
-                            majorVersion,
-                            minorVersion);
 #elif defined(MOZ_WIDGET_GTK)
   nsTextFormatter::ssprintf(osVersion, u"%ld.%ld",
                             gtk_major_version,

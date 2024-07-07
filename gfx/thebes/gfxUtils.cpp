@@ -517,106 +517,6 @@ static SamplingFilter ReduceResamplingFilter(SamplingFilter aSamplingFilter,
 }
 #endif
 
-#ifdef MOZ_WIDGET_COCOA
-// Only prescale a temporary surface if we're going to repeat it often.
-// Scaling is expensive on OS X and without prescaling, we'd scale
-// every tile of the repeated rect. However, using a temp surface also potentially uses
-// more memory if the scaled image is large. So only prescale on a temp
-// surface if we know we're going to repeat the image in either the X or Y axis
-// multiple times.
-static bool
-ShouldUseTempSurface(Rect aImageRect, Rect aNeededRect)
-{
-  int repeatX = aNeededRect.width / aImageRect.width;
-  int repeatY = aNeededRect.height / aImageRect.height;
-  return (repeatX >= 5) || (repeatY >= 5);
-}
-
-static bool
-PrescaleAndTileDrawable(gfxDrawable* aDrawable,
-                        gfxContext* aContext,
-                        const ImageRegion& aRegion,
-                        Rect aImageRect,
-                        const SamplingFilter aSamplingFilter,
-                        const SurfaceFormat aFormat,
-                        gfxFloat aOpacity,
-                        ExtendMode aExtendMode)
-{
-  gfxSize scaleFactor = aContext->CurrentMatrix().ScaleFactors(true);
-  gfxMatrix scaleMatrix = gfxMatrix::Scaling(scaleFactor.width, scaleFactor.height);
-  const float fuzzFactor = 0.01;
-
-  // If we aren't scaling or translating, don't go down this path
-  if ((FuzzyEqual(scaleFactor.width, 1.0, fuzzFactor) &&
-      FuzzyEqual(scaleFactor.width, 1.0, fuzzFactor)) ||
-      aContext->CurrentMatrix().HasNonAxisAlignedTransform()) {
-    return false;
-  }
-
-  gfxRect clipExtents = aContext->GetClipExtents();
-
-  // Inflate by one pixel because bilinear filtering will sample at most
-  // one pixel beyond the computed image pixel coordinate.
-  clipExtents.Inflate(1.0);
-
-  gfxRect needed = aRegion.IntersectAndRestrict(clipExtents);
-  Rect scaledNeededRect = ToMatrix(scaleMatrix).TransformBounds(ToRect(needed));
-  scaledNeededRect.RoundOut();
-  if (scaledNeededRect.IsEmpty()) {
-    return false;
-  }
-
-  Rect scaledImageRect = ToMatrix(scaleMatrix).TransformBounds(aImageRect);
-  if (!ShouldUseTempSurface(scaledImageRect, scaledNeededRect)) {
-    return false;
-  }
-
-  IntSize scaledImageSize((int32_t)scaledImageRect.width,
-                          (int32_t)scaledImageRect.height);
-  if (scaledImageSize.width != scaledImageRect.width ||
-      scaledImageSize.height != scaledImageRect.height) {
-    // If the scaled image isn't pixel aligned, we'll get artifacts
-    // so we have to take the slow path.
-    return false;
-  }
-
-  RefPtr<DrawTarget> scaledDT =
-    gfxPlatform::GetPlatform()->CreateOffscreenContentDrawTarget(scaledImageSize, aFormat);
-  if (!scaledDT || !scaledDT->IsValid()) {
-    return false;
-  }
-
-  RefPtr<gfxContext> tmpCtx = gfxContext::CreateOrNull(scaledDT);
-  MOZ_ASSERT(tmpCtx); // already checked the target above
-
-  scaledDT->SetTransform(ToMatrix(scaleMatrix));
-  gfxRect gfxImageRect(aImageRect.x, aImageRect.y, aImageRect.width, aImageRect.height);
-
-  // Since this is just the scaled image, we don't want to repeat anything yet.
-  aDrawable->Draw(tmpCtx, gfxImageRect, ExtendMode::CLAMP, aSamplingFilter, 1.0, gfxMatrix());
-
-  RefPtr<SourceSurface> scaledImage = scaledDT->Snapshot();
-
-  {
-    gfxContextMatrixAutoSaveRestore autoSR(aContext);
-    Matrix withoutScale = ToMatrix(aContext->CurrentMatrix());
-    DrawTarget* destDrawTarget = aContext->GetDrawTarget();
-
-    // The translation still is in scaled units
-    withoutScale.PreScale(1.0 / scaleFactor.width, 1.0 / scaleFactor.height);
-    aContext->SetMatrix(ThebesMatrix(withoutScale));
-
-    DrawOptions drawOptions(aOpacity, aContext->CurrentOp(),
-                            aContext->CurrentAntialiasMode());
-
-    SurfacePattern scaledImagePattern(scaledImage, aExtendMode,
-                                      Matrix(), aSamplingFilter);
-    destDrawTarget->FillRect(scaledNeededRect, scaledImagePattern, drawOptions);
-  }
-  return true;
-}
-#endif // MOZ_WIDGET_COCOA
-
 /* static */ void
 gfxUtils::DrawPixelSnapped(gfxContext*         aContext,
                            gfxDrawable*        aDrawable,
@@ -658,14 +558,6 @@ gfxUtils::DrawPixelSnapped(gfxContext*         aContext,
                                                aOpacity)) {
               return;
             }
-
-#ifdef MOZ_WIDGET_COCOA
-            if (PrescaleAndTileDrawable(aDrawable, aContext, aRegion,
-                                        ToRect(imageRect), aSamplingFilter,
-                                        aFormat, aOpacity, extendMode)) {
-              return;
-            }
-#endif
 
             // On Mobile, we don't ever want to do this; it has the potential for
             // allocating very large temporary surfaces, especially since we'll

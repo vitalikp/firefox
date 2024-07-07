@@ -16,11 +16,6 @@
 #include "nsRefPtrHashtable.h"
 #if defined(OS_WIN)
 #include "mozilla/gfx/SharedDIBWin.h"
-#elif defined(MOZ_WIDGET_COCOA)
-#include "PluginUtilsOSX.h"
-#include "mozilla/gfx/QuartzSupport.h"
-#include "base/timer.h"
-
 #endif
 
 #include "npfunctions.h"
@@ -245,10 +240,6 @@ public:
                   NPStream** aStream);
 
     void InvalidateRect(NPRect* aInvalidRect);
-
-#ifdef MOZ_WIDGET_COCOA
-    void Invalidate();
-#endif // definied(MOZ_WIDGET_COCOA)
 
     uint32_t ScheduleTimer(uint32_t interval, bool repeat, TimerFunc func);
     void UnscheduleTimer(uint32_t id);
@@ -476,34 +467,6 @@ private:
      * hash separate from PluginModuleChild.mObjectMap.
      */
     nsAutoPtr< nsTHashtable<DeletingObjectEntry> > mDeletingHash;
-
-#if defined(MOZ_WIDGET_COCOA)
-private:
-#if defined(__i386__)
-    NPEventModel                  mEventModel;
-#endif
-    CGColorSpaceRef               mShColorSpace;
-    CGContextRef                  mShContext;
-    RefPtr<nsCARenderer> mCARenderer;
-    void                         *mCGLayer;
-
-    // Core Animation drawing model requires a refresh timer.
-    uint32_t                      mCARefreshTimer;
-
-public:
-    const NPCocoaEvent* getCurrentEvent() {
-        return mCurrentEvent;
-    }
-
-    bool CGDraw(CGContextRef ref, nsIntRect aUpdateRect);
-
-#if defined(__i386__)
-    NPEventModel EventModel() { return mEventModel; }
-#endif
-
-private:
-    const NPCocoaEvent   *mCurrentEvent;
-#endif
 
     bool CanPaintOnBackground();
 
