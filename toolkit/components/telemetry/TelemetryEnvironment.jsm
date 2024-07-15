@@ -37,8 +37,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "ProfileAge",
                                   "resource://gre/modules/ProfileAge.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "UpdateUtils",
                                   "resource://gre/modules/UpdateUtils.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "WindowsRegistry",
-                                  "resource://gre/modules/WindowsRegistry.jsm");
 
 // The maximum length of a string (e.g. description) in the addons section.
 const MAX_ADDON_STRING_LENGTH = 100;
@@ -1265,25 +1263,6 @@ EnvironmentCache.prototype = {
 
     if (["gonk", "android"].includes(AppConstants.platform)) {
       data.kernelVersion = forceToStringOrNull(getSysinfoProperty("kernel_version", null));
-    } else if (AppConstants.platform === "win") {
-      // The path to the "UBR" key, queried to get additional version details on Windows.
-      const WINDOWS_UBR_KEY_PATH = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
-
-      let versionInfo = getWindowsVersionInfo();
-      data.servicePackMajor = versionInfo.servicePackMajor;
-      data.servicePackMinor = versionInfo.servicePackMinor;
-      // We only need the build number and UBR if we're at or above Windows 10.
-      if (typeof(data.version) === "string" &&
-          Services.vc.compare(data.version, "10") >= 0) {
-        data.windowsBuildNumber = versionInfo.buildNumber;
-        // Query the UBR key and only add it to the environment if it's available.
-        // |readRegKey| doesn't throw, but rather returns 'undefined' on error.
-        let ubr = WindowsRegistry.readRegKey(Ci.nsIWindowsRegKey.ROOT_KEY_LOCAL_MACHINE,
-                                             WINDOWS_UBR_KEY_PATH, "UBR",
-                                             Ci.nsIWindowsRegKey.WOW64_64);
-        data.windowsUBR = (ubr !== undefined) ? ubr : null;
-      }
-      data.installYear = getSysinfoProperty("installYear", null);
     }
 
     return data;

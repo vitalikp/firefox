@@ -54,7 +54,6 @@ if CONFIG['OS_ARCH'] == 'WINNT':
     SOURCES += [
         'SharedMemory_windows.cpp',
         'Transport_win.cpp',
-        'WindowsMessageLoop.cpp',
     ]
 else:
     DEFINES['WEBRTC_POSIX'] = True

@@ -264,8 +264,7 @@ bool MessagePumpForUI::HandleCheck() {
 void MessagePumpForUI::HandleDispatch() {
   state_->has_work = false;
   if (state_->delegate->DoWork()) {
-    // NOTE: on Windows at this point we would call ScheduleWork (see
-    // MessagePumpForUI::HandleWorkMessage in message_pump_win.cc). But here,
+    // NOTE: on Windows at this point we would call ScheduleWork. But here,
     // instead of posting a message on the wakeup pipe, we can avoid the
     // syscalls and just signal that we have more work.
     state_->has_work = true;

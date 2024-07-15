@@ -35,17 +35,6 @@
 #include "ProtocolUtils.h"
 #include <sys/stat.h>
 
-#ifdef XP_WIN
-#include "nsIWinTaskbar.h"
-#include <stdlib.h>
-#define NS_TASKBAR_CONTRACTID "@mozilla.org/windows-taskbar;1"
-
-#if defined(MOZ_SANDBOX)
-#include "mozilla/Preferences.h"
-#include "mozilla/sandboxing/sandboxLogging.h"
-#endif
-#endif
-
 #if defined(XP_LINUX) && defined(MOZ_SANDBOX)
 #include "mozilla/SandboxReporter.h"
 #endif
@@ -96,10 +85,6 @@ GeckoChildProcessHost::GeckoChildProcessHost(GeckoProcessType aProcessType,
     mPrivileges(aPrivileges),
     mMonitor("mozilla.ipc.GeckChildProcessHost.mMonitor"),
     mProcessState(CREATING_CHANNEL),
-#if defined(MOZ_SANDBOX) && defined(XP_WIN)
-    mEnableSandboxLogging(false),
-    mSandboxLevel(0),
-#endif
     mChildProcessHandle(0)
 {
     MOZ_COUNT_CTOR(GeckoChildProcessHost);
@@ -128,13 +113,7 @@ GeckoChildProcessHost::GetPathToBinary(FilePath& exePath, GeckoProcessType proce
 {
   if (sRunSelfAsContentProc &&
       (processType == GeckoProcessType_Content || processType == GeckoProcessType_GPU)) {
-#if defined(OS_WIN)
-    wchar_t exePathBuf[MAXPATHLEN];
-    if (!::GetModuleFileNameW(nullptr, exePathBuf, MAXPATHLEN)) {
-      MOZ_CRASH("GetModuleFileNameW failed (FIXME)");
-    }
-    exePath = FilePath::FromWStringHack(exePathBuf);
-#elif defined(OS_POSIX)
+#if defined(OS_POSIX)
     exePath = FilePath(CommandLine::ForCurrentProcess()->argv()[0]);
 #else
 #  error Sorry; target OS not supported yet.
@@ -144,21 +123,13 @@ GeckoChildProcessHost::GetPathToBinary(FilePath& exePath, GeckoProcessType proce
 
   if (ShouldHaveDirectoryService()) {
     MOZ_ASSERT(gGREBinPath);
-#ifdef OS_WIN
-    exePath = FilePath(char16ptr_t(gGREBinPath));
-#else
     nsCString path;
     NS_CopyUnicodeToNative(nsDependentString(gGREBinPath), path);
     exePath = FilePath(path.get());
-#endif
   }
 
   if (exePath.empty()) {
-#ifdef OS_WIN
-    exePath = FilePath::FromWStringHack(CommandLine::ForCurrentProcess()->program());
-#else
     exePath = FilePath(CommandLine::ForCurrentProcess()->argv()[0]);
-#endif
     exePath = exePath.DirName();
   }
 
@@ -193,50 +164,7 @@ GeckoChildProcessHost::GetUniqueID()
 void
 GeckoChildProcessHost::PrepareLaunch()
 {
-#ifdef XP_WIN
-  if (mProcessType == GeckoProcessType_Plugin) {
-    InitWindowsGroupID();
-  }
-
-#if defined(MOZ_CONTENT_SANDBOX)
-  // We need to get the pref here as the process is launched off main thread.
-  if (mProcessType == GeckoProcessType_Content) {
-    mSandboxLevel = GetEffectiveContentSandboxLevel();
-    mEnableSandboxLogging =
-      Preferences::GetBool("security.sandbox.logging.enabled");
-  }
-#endif
-
-#if defined(MOZ_SANDBOX)
-  // For other process types we can't rely on them being launched on main
-  // thread and they may not have access to prefs in the child process, so allow
-  // them to turn on logging via an environment variable.
-  mEnableSandboxLogging = mEnableSandboxLogging
-                          || !!PR_GetEnv("MOZ_SANDBOX_LOGGING");
-#endif
-#endif
 }
-
-#ifdef XP_WIN
-void GeckoChildProcessHost::InitWindowsGroupID()
-{
-  // On Win7+, pass the application user model to the child, so it can
-  // register with it. This insures windows created by the container
-  // properly group with the parent app on the Win7 taskbar.
-  nsCOMPtr<nsIWinTaskbar> taskbarInfo =
-    do_GetService(NS_TASKBAR_CONTRACTID);
-  if (taskbarInfo) {
-    bool isSupported = false;
-    taskbarInfo->GetAvailable(&isSupported);
-    nsAutoString appId;
-    if (isSupported && NS_SUCCEEDED(taskbarInfo->GetDefaultGroupId(appId))) {
-      mGroupId.Append(appId);
-    } else {
-      mGroupId.Assign('-');
-    }
-  }
-}
-#endif
 
 bool
 GeckoChildProcessHost::SyncLaunch(std::vector<std::string> aExtraOpts, int aTimeoutMs, base::ProcessArchitecture arch)
@@ -382,15 +310,6 @@ GeckoChildProcessHost::SetChildLogName(const char* varName, const char* origLogN
   // startup, so it's 'safe' to play with the parent's environment this way.)
   buffer.Assign(varName);
 
-#ifdef XP_WIN
-  // On Windows we must expand relative paths because sandboxing rules
-  // bound only to full paths.  fopen fowards to NtCreateFile which checks
-  // the path against the sanboxing rules as passed to fopen (left relative).
-  char absPath[MAX_PATH + 2];
-  if (_fullpath(absPath, origLogName, sizeof(absPath))) {
-    buffer.Append(absPath);
-  } else
-#endif
   {
     buffer.Append(origLogName);
   }
@@ -474,11 +393,7 @@ GeckoChildProcessHost::RunPerformAsyncLaunch(std::vector<std::string> aExtraOpts
 }
 
 void
-#if defined(XP_WIN)
-AddAppDirToCommandLine(CommandLine& aCmdLine)
-#else
 AddAppDirToCommandLine(std::vector<std::string>& aCmdLine)
-#endif
 {
   // Content processes need access to application resources, so pass
   // the full application directory path to the child process.
@@ -493,18 +408,10 @@ AddAppDirToCommandLine(std::vector<std::string>& aCmdLine)
                                           NS_GET_IID(nsIFile),
                                           getter_AddRefs(appDir));
       if (NS_SUCCEEDED(rv)) {
-#if defined(XP_WIN)
-        nsString path;
-        MOZ_ALWAYS_SUCCEEDS(appDir->GetPath(path));
-        aCmdLine.AppendLooseValue(UTF8ToWide("-appdir"));
-        std::wstring wpath(path.get());
-        aCmdLine.AppendLooseValue(wpath);
-#else
         nsAutoCString path;
         MOZ_ALWAYS_SUCCEEDS(appDir->GetNativePath(path));
         aCmdLine.push_back("-appdir");
         aCmdLine.push_back(path.get());
-#endif
       }
 
 #if defined(XP_MACOSX) && defined(MOZ_CONTENT_SANDBOX)
@@ -704,135 +611,6 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
   GetChannel()->CloseClientFileDescriptor();
 
 //--------------------------------------------------
-#elif defined(OS_WIN)
-
-  FilePath exePath;
-  BinaryPathType pathType = GetPathToBinary(exePath, mProcessType);
-
-  CommandLine cmdLine(exePath.ToWStringHack());
-
-  if (pathType == BinaryPathType::Self) {
-    cmdLine.AppendLooseValue(UTF8ToWide("-contentproc"));
-  }
-
-  cmdLine.AppendSwitchWithValue(switches::kProcessChannelID, channel_id());
-
-  for (std::vector<std::string>::iterator it = aExtraOpts.begin();
-       it != aExtraOpts.end();
-       ++it) {
-      cmdLine.AppendLooseValue(UTF8ToWide(*it));
-  }
-
-  if (Omnijar::IsInitialized()) {
-    // Make sure the child process can find the omnijar
-    // See XRE_InitCommandLine in nsAppRunner.cpp
-    nsAutoString path;
-    nsCOMPtr<nsIFile> file = Omnijar::GetPath(Omnijar::GRE);
-    if (file && NS_SUCCEEDED(file->GetPath(path))) {
-      cmdLine.AppendLooseValue(UTF8ToWide("-greomni"));
-      cmdLine.AppendLooseValue(path.get());
-    }
-    file = Omnijar::GetPath(Omnijar::APP);
-    if (file && NS_SUCCEEDED(file->GetPath(path))) {
-      cmdLine.AppendLooseValue(UTF8ToWide("-appomni"));
-      cmdLine.AppendLooseValue(path.get());
-    }
-  }
-
-#if defined(XP_WIN) && defined(MOZ_SANDBOX)
-  bool shouldSandboxCurrentProcess = false;
-
-  // XXX: Bug 1124167: We should get rid of the process specific logic for
-  // sandboxing in this class at some point. Unfortunately it will take a bit
-  // of reorganizing so I don't think this patch is the right time.
-  switch (mProcessType) {
-    case GeckoProcessType_Content:
-#if defined(MOZ_CONTENT_SANDBOX)
-      if (mSandboxLevel > 0 &&
-          !PR_GetEnv("MOZ_DISABLE_CONTENT_SANDBOX")) {
-        // For now we treat every failure as fatal in SetSecurityLevelForContentProcess
-        // and just crash there right away. Should this change in the future then we
-        // should also handle the error here.
-        mSandboxBroker.SetSecurityLevelForContentProcess(mSandboxLevel,
-                                                         mPrivileges);
-        shouldSandboxCurrentProcess = true;
-      }
-#endif // MOZ_CONTENT_SANDBOX
-      break;
-    case GeckoProcessType_Plugin:
-      if (mSandboxLevel > 0 &&
-          !PR_GetEnv("MOZ_DISABLE_NPAPI_SANDBOX")) {
-        bool ok = mSandboxBroker.SetSecurityLevelForPluginProcess(mSandboxLevel);
-        if (!ok) {
-          return false;
-        }
-        shouldSandboxCurrentProcess = true;
-      }
-      break;
-    case GeckoProcessType_IPDLUnitTest:
-      // XXX: We don't sandbox this process type yet
-      break;
-    case GeckoProcessType_GPU:
-      break;
-    case GeckoProcessType_Default:
-    default:
-      MOZ_CRASH("Bad process type in GeckoChildProcessHost");
-      break;
-  };
-
-  if (shouldSandboxCurrentProcess) {
-    for (auto it = mAllowedFilesRead.begin();
-         it != mAllowedFilesRead.end();
-         ++it) {
-      mSandboxBroker.AllowReadFile(it->c_str());
-    }
-  }
-#endif // XP_WIN && MOZ_SANDBOX
-
-  // Add the application directory path (-appdir path)
-  AddAppDirToCommandLine(cmdLine);
-
-  // XXX Command line params past this point are expected to be at
-  // the end of the command line string, and in a specific order.
-  // See XRE_InitChildProcess in nsEmbedFunction.
-
-  // Win app model id
-  cmdLine.AppendLooseValue(mGroupId.get());
-
-  // Process id
-  cmdLine.AppendLooseValue(UTF8ToWide(pidstring));
-
-  // Process type
-  cmdLine.AppendLooseValue(UTF8ToWide(childProcessType));
-
-#if defined(XP_WIN) && defined(MOZ_SANDBOX)
-  if (shouldSandboxCurrentProcess) {
-    if (mSandboxBroker.LaunchApp(cmdLine.program().c_str(),
-                                 cmdLine.command_line_string().c_str(),
-                                 mEnableSandboxLogging,
-                                 &process)) {
-      EnvironmentLog("MOZ_PROCESS_LOG").print(
-        "==> process %d launched child process %d (%S)\n",
-        base::GetCurrentProcId(), base::GetProcId(process),
-        cmdLine.command_line_string().c_str());
-    }
-  } else
-#endif
-  {
-    base::LaunchApp(cmdLine, false, false, &process);
-
-#ifdef MOZ_SANDBOX
-    // We need to be able to duplicate handles to some types of non-sandboxed
-    // child processes.
-    if (mProcessType == GeckoProcessType_Content ||
-        mProcessType == GeckoProcessType_GPU) {
-      if (!mSandboxBroker.AddTargetPeer(process)) {
-        NS_WARNING("Failed to add content process as target peer.");
-      }
-    }
-#endif
-  }
-
 #else
 #  error Sorry
 #endif
@@ -842,16 +620,6 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
   }
 
   if (!OpenPrivilegedHandle(base::GetProcId(process))
-#ifdef XP_WIN
-      // If we failed in opening the process handle, try harder by duplicating
-      // one.
-      && !::DuplicateHandle(::GetCurrentProcess(), process,
-                            ::GetCurrentProcess(), &mChildProcessHandle,
-                            PROCESS_DUP_HANDLE | PROCESS_TERMINATE |
-                            PROCESS_QUERY_INFORMATION | PROCESS_VM_READ |
-                            SYNCHRONIZE,
-                            FALSE, 0)
-#endif
      ) {
     NS_RUNTIMEABORT("cannot open handle to child process");
   }

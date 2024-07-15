@@ -94,31 +94,15 @@
 
 #include "mozilla/Unused.h"
 
-#ifdef XP_WIN
-#include "nsIWinAppHelper.h"
-#include <windows.h>
-#include <intrin.h>
-#include <math.h>
-#include "cairo/cairo-features.h"
-#include "mozilla/widget/AudioSession.h"
-
-#ifndef PROCESS_DEP_ENABLE
-#define PROCESS_DEP_ENABLE 0x1
-#endif
-#endif
-
 #if defined(MOZ_CONTENT_SANDBOX)
 #include "mozilla/SandboxSettings.h"
-#if (defined(XP_WIN) || defined(XP_MACOSX))
+#if (defined(XP_MACOSX))
 #include "nsIUUIDGenerator.h"
 #endif
 #endif
 
 #ifdef ACCESSIBILITY
 #include "nsAccessibilityService.h"
-#if defined(XP_WIN)
-#include "mozilla/a11y/Compatibility.h"
-#endif
 #endif
 
 #include "nsCRT.h"
@@ -153,15 +137,6 @@
 #include <pwd.h>
 #endif
 
-#ifdef XP_WIN
-#include <process.h>
-#include <shlobj.h>
-#include "nsThreadUtils.h"
-#include <comdef.h>
-#include <wbemidl.h>
-#include "WinUtils.h"
-#endif
-
 #ifdef XP_MACOSX
 #include "nsILocalFileMac.h"
 #include "nsCommandLineServiceMac.h"
@@ -176,10 +151,6 @@
 #include <sched.h>
 // Time to wait for the remoting service to start
 #define MOZ_XREMOTE_START_TIMEOUT_SEC 5
-#endif
-
-#if defined(DEBUG) && defined(XP_WIN32)
-#include <malloc.h>
 #endif
 
 #if defined (XP_MACOSX)
@@ -200,9 +171,6 @@
 #if defined(MOZ_SANDBOX)
 #if defined(XP_LINUX) && !defined(ANDROID)
 #include "mozilla/SandboxInfo.h"
-#elif defined(XP_WIN)
-#include "SandboxBroker.h"
-#include "SandboxPermissions.h"
 #endif
 #endif
 
@@ -307,15 +275,9 @@ SaveWordToEnv(const char *name, const nsACString & word)
 static void
 SaveFileToEnv(const char *name, nsIFile *file)
 {
-#ifdef XP_WIN
-  nsAutoString path;
-  file->GetPath(path);
-  SetEnvironmentVariableW(NS_ConvertASCIItoUTF16(name).get(), path.get());
-#else
   nsAutoCString path;
   file->GetNativePath(path);
   SaveWordToEnv(name, path);
-#endif
 }
 
 // Load the path of a file saved with SaveFileToEnv
@@ -325,18 +287,6 @@ GetFileFromEnv(const char *name)
   nsresult rv;
   nsCOMPtr<nsIFile> file;
 
-#ifdef XP_WIN
-  WCHAR path[_MAX_PATH];
-  if (!GetEnvironmentVariableW(NS_ConvertASCIItoUTF16(name).get(),
-                               path, _MAX_PATH))
-    return nullptr;
-
-  rv = NS_NewLocalFile(nsDependentString(path), true, getter_AddRefs(file));
-  if (NS_FAILED(rv))
-    return nullptr;
-
-  return file.forget();
-#else
   const char *arg = PR_GetEnv(name);
   if (!arg || !*arg)
     return nullptr;
@@ -347,7 +297,6 @@ GetFileFromEnv(const char *name)
     return nullptr;
 
   return file.forget();
-#endif
 }
 
 // Save the path of the given word to the specified environment variable
@@ -417,29 +366,7 @@ static MOZ_FORMAT_PRINTF(2, 3) void Output(bool isError, const char *fmt, ... )
   va_list ap;
   va_start(ap, fmt);
 
-#if defined(XP_WIN) && !MOZ_WINCONSOLE
-  SmprintfPointer msg = mozilla::Vsmprintf(fmt, ap);
-  if (msg)
-  {
-    UINT flags = MB_OK;
-    if (isError)
-      flags |= MB_ICONERROR;
-    else
-      flags |= MB_ICONINFORMATION;
-
-    wchar_t wide_msg[1024];
-    MultiByteToWideChar(CP_ACP,
-                        0,
-                        msg.get(),
-                        -1,
-                        wide_msg,
-                        sizeof(wide_msg) / sizeof(wchar_t));
-
-    MessageBoxW(nullptr, wide_msg, L"XULRunner", flags);
-  }
-#else
   vfprintf(stderr, fmt, ap);
-#endif
 
   va_end(ap);
 }
@@ -490,9 +417,6 @@ CheckArg(const char* aArg, bool aCheckOSInt = false, const char **aParam = nullp
     char *arg = curarg[0];
 
     if (arg[0] == '-'
-#if defined(XP_WIN)
-        || *arg == '/'
-#endif
         ) {
       ++arg;
       if (*arg == '-')
@@ -510,9 +434,6 @@ CheckArg(const char* aArg, bool aCheckOSInt = false, const char **aParam = nullp
 
         if (*curarg) {
           if (**curarg == '-'
-#if defined(XP_WIN)
-              || **curarg == '/'
-#endif
               )
             return ARG_BAD;
 
@@ -540,75 +461,6 @@ CheckArg(const char* aArg, bool aCheckOSInt = false, const char **aParam = nullp
   return ar;
 }
 
-#if defined(XP_WIN)
-/**
- * Check for a commandline flag from the windows shell and remove it from the
- * argv used when restarting. Flags MUST be in the form -arg.
- *
- * @param aArg the parameter to check. Must be lowercase.
- */
-static ArgResult
-CheckArgShell(const char* aArg)
-{
-  char **curarg = gRestartArgv + 1; // skip argv[0]
-
-  while (*curarg) {
-    char *arg = curarg[0];
-
-    if (arg[0] == '-') {
-      ++arg;
-
-      if (strimatch(aArg, arg)) {
-        do {
-          *curarg = *(curarg + 1);
-          ++curarg;
-        } while (*curarg);
-
-        --gRestartArgc;
-
-        return ARG_FOUND;
-      }
-    }
-
-    ++curarg;
-  }
-
-  return ARG_NONE;
-}
-
-/**
- * Enabled Native App Support to process DDE messages when the app needs to
- * restart and the app has been launched by the Windows shell to open an url.
- * When aWait is false this will process the DDE events manually. This prevents
- * Windows from displaying an error message due to the DDE message not being
- * acknowledged.
- */
-static void
-ProcessDDE(nsINativeAppSupport* aNative, bool aWait)
-{
-  // When the app is launched by the windows shell the windows shell
-  // expects the app to be available for DDE messages and if it isn't
-  // windows displays an error dialog. To prevent the error the DDE server
-  // is enabled and pending events are processed when the app needs to
-  // restart after it was launched by the shell with the requestpending
-  // argument. The requestpending pending argument is removed to
-  // differentiate it from being launched when an app restart is not
-  // required.
-  ArgResult ar;
-  ar = CheckArgShell("requestpending");
-  if (ar == ARG_FOUND) {
-    aNative->Enable(); // enable win32 DDE responses
-    if (aWait) {
-      nsIThread *thread = NS_GetCurrentThread();
-      // This is just a guesstimate based on testing different values.
-      // If count is 8 or less windows will display an error dialog.
-      int32_t count = 20;
-      SpinEventLoopUntil([&]() { return --count < 0; });
-    }
-  }
-}
-#endif
-
 /**
  * Determines if there is support for showing the profile manager
  *
@@ -628,9 +480,6 @@ bool gSafeMode = false;
  */
 class nsXULAppInfo : public nsIXULAppInfo,
                      public nsIObserver,
-#ifdef XP_WIN
-                     public nsIWinAppHelper,
-#endif
                      public nsIXULRuntime
 
 {
@@ -641,18 +490,12 @@ public:
   NS_DECL_NSIXULAPPINFO
   NS_DECL_NSIXULRUNTIME
   NS_DECL_NSIOBSERVER
-#ifdef XP_WIN
-  NS_DECL_NSIWINAPPHELPER
-#endif
 };
 
 NS_INTERFACE_MAP_BEGIN(nsXULAppInfo)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIXULRuntime)
   NS_INTERFACE_MAP_ENTRY(nsIXULRuntime)
   NS_INTERFACE_MAP_ENTRY(nsIObserver)
-#ifdef XP_WIN
-  NS_INTERFACE_MAP_ENTRY(nsIWinAppHelper)
-#endif
   NS_INTERFACE_MAP_ENTRY(nsIPlatformInfo)
   NS_INTERFACE_MAP_ENTRY_CONDITIONAL(nsIXULAppInfo, gAppData ||
                                      XRE_IsContentProcess())
@@ -839,11 +682,7 @@ nsXULAppInfo::GetProcessType(uint32_t* aResult)
 NS_IMETHODIMP
 nsXULAppInfo::GetProcessID(uint32_t* aResult)
 {
-#ifdef XP_WIN
-  *aResult = GetCurrentProcessId();
-#else
   *aResult = getpid();
-#endif
   return NS_OK;
 }
 
@@ -1049,53 +888,6 @@ nsXULAppInfo::GetWindowsDLLBlocklistStatus(bool* aResult)
 #endif
   return NS_OK;
 }
-
-#ifdef XP_WIN
-// Matches the enum in WinNT.h for the Vista SDK but renamed so that we can
-// safely build with the Vista SDK and without it.
-typedef enum
-{
-  VistaTokenElevationTypeDefault = 1,
-  VistaTokenElevationTypeFull,
-  VistaTokenElevationTypeLimited
-} VISTA_TOKEN_ELEVATION_TYPE;
-
-// avoid collision with TokeElevationType enum in WinNT.h
-// of the Vista SDK
-#define VistaTokenElevationType static_cast< TOKEN_INFORMATION_CLASS >( 18 )
-
-NS_IMETHODIMP
-nsXULAppInfo::GetUserCanElevate(bool *aUserCanElevate)
-{
-  HANDLE hToken;
-
-  VISTA_TOKEN_ELEVATION_TYPE elevationType;
-  DWORD dwSize;
-
-  if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken) ||
-      !GetTokenInformation(hToken, VistaTokenElevationType, &elevationType,
-                           sizeof(elevationType), &dwSize)) {
-    *aUserCanElevate = false;
-  }
-  else {
-    // The possible values returned for elevationType and their meanings are:
-    //   TokenElevationTypeDefault: The token does not have a linked token
-    //     (e.g. UAC disabled or a standard user, so they can't be elevated)
-    //   TokenElevationTypeFull: The token is linked to an elevated token
-    //     (e.g. UAC is enabled and the user is already elevated so they can't
-    //      be elevated again)
-    //   TokenElevationTypeLimited: The token is linked to a limited token
-    //     (e.g. UAC is enabled and the user is not elevated, so they can be
-    //      elevated)
-    *aUserCanElevate = (elevationType == VistaTokenElevationTypeLimited);
-  }
-
-  if (hToken)
-    CloseHandle(hToken);
-
-  return NS_OK;
-}
-#endif
 
 static const nsXULAppInfo kAppInfo;
 static nsresult AppInfoConstructor(nsISupports* aOuter,
@@ -1373,57 +1165,11 @@ DumpHelp()
          "  --UILocale <locale> Start with <locale> resources as UI Locale.\n"
          "  --safe-mode        Disables extensions and themes for this session.\n", (const char*) gAppData->name);
 
-#if defined(XP_WIN)
-  printf("  --console          Start %s with a debugging console.\n", (const char*) gAppData->name);
-#endif
-
   // this works, but only after the components have registered.  so if you drop in a new command line handler, --help
   // won't not until the second run.
   // out of the bug, because we ship a component.reg file, it works correctly.
   DumpArbitraryHelp();
 }
-
-#if defined(DEBUG) && defined(XP_WIN)
-#ifdef DEBUG_warren
-#define _CRTDBG_MAP_ALLOC
-#endif
-// Set a CRT ReportHook function to capture and format MSCRT
-// warnings, errors and assertions.
-// See http://msdn.microsoft.com/en-US/library/74kabxyx(v=VS.80).aspx
-#include <stdio.h>
-#include <crtdbg.h>
-#include "mozilla/mozalloc_abort.h"
-static int MSCRTReportHook( int aReportType, char *aMessage, int *oReturnValue)
-{
-  *oReturnValue = 0; // continue execution
-
-  // Do not use fprintf or other functions which may allocate
-  // memory from the heap which may be corrupted. Instead,
-  // use fputs to output the leading portion of the message
-  // and use mozalloc_abort to emit the remainder of the
-  // message.
-
-  switch(aReportType) {
-  case 0:
-    fputs("\nWARNING: CRT WARNING", stderr);
-    fputs(aMessage, stderr);
-    fputs("\n", stderr);
-    break;
-  case 1:
-    fputs("\n###!!! ABORT: CRT ERROR ", stderr);
-    mozalloc_abort(aMessage);
-    break;
-  case 2:
-    fputs("\n###!!! ABORT: CRT ASSERT ", stderr);
-    mozalloc_abort(aMessage);
-    break;
-  }
-
-  // do not invoke the debugger
-  return 1;
-}
-
-#endif
 
 static inline void
 DumpVersion()
@@ -1513,13 +1259,6 @@ XRE_GetBinaryPath(const char* argv0, nsIFile* *aResult)
   return mozilla::BinaryPath::GetFile(argv0, aResult);
 }
 
-#ifdef XP_WIN
-#include "nsWindowsRestart.cpp"
-#include <shellapi.h>
-
-typedef BOOL (WINAPI* SetProcessDEPPolicyFunc)(DWORD dwFlags);
-#endif
-
 // If aBlankCommandLine is true, then the application will be launched with a
 // blank command line instead of being launched with the same command line that
 // it was initially started with.
@@ -1552,16 +1291,6 @@ static nsresult LaunchChild(nsINativeAppSupport* aNative,
   if (NS_FAILED(rv))
     return rv;
 
-#if defined(XP_WIN)
-  nsAutoString exePath;
-  rv = lf->GetPath(exePath);
-  if (NS_FAILED(rv))
-    return rv;
-
-  if (!WinLaunchChild(exePath.get(), gRestartArgc, gRestartArgv))
-    return NS_ERROR_FAILURE;
-
-#else
   nsAutoCString exePath;
   rv = lf->GetNativePath(exePath);
   if (NS_FAILED(rv))
@@ -1580,7 +1309,6 @@ static nsresult LaunchChild(nsINativeAppSupport* aNative,
   if (failed || exitCode)
     return NS_ERROR_FAILURE;
 #endif // XP_UNIX
-#endif // WP_WIN
 #endif // WP_MACOSX
 
   return NS_ERROR_LAUNCHED_CHILD_PROCESS;
@@ -1806,12 +1534,6 @@ ShowProfileManager(nsIToolkitProfileService* aProfileSvc,
 
 #ifdef XP_MACOSX
     CommandLineServiceMac::SetupMacCommandLine(gRestartArgc, gRestartArgv, true);
-#endif
-
-#ifdef XP_WIN
-    // we don't have to wait here because profile manager window will pump
-    // and DDE message will be handled
-    ProcessDDE(aNative, false);
 #endif
 
     { //extra scoping is needed so we release these components before xpcom shutdown
@@ -2478,8 +2200,6 @@ RemoveComponentRegistries(nsIFile* aProfileDir, nsIFile* aLocalProfileDir,
 
 #if defined(XP_UNIX) || defined(XP_BEOS)
 #define PLATFORM_FASL_SUFFIX ".mfasl"
-#elif defined(XP_WIN)
-#define PLATFORM_FASL_SUFFIX ".mfl"
 #endif
 
   file->AppendNative(NS_LITERAL_CSTRING("XUL" PLATFORM_FASL_SUFFIX));
@@ -2926,29 +2646,6 @@ XREMain::XRE_mainInit(bool* aExitFlag)
   if (NS_FAILED(rv))
     return 1;
 
-#if defined(MOZ_SANDBOX) && defined(XP_WIN)
-  if (mAppData->sandboxBrokerServices) {
-    SandboxBroker::Initialize(mAppData->sandboxBrokerServices);
-    Telemetry::Accumulate(Telemetry::SANDBOX_BROKER_INITIALIZED, true);
-  } else {
-    Telemetry::Accumulate(Telemetry::SANDBOX_BROKER_INITIALIZED, false);
-#if defined(MOZ_CONTENT_SANDBOX)
-    // If we're sandboxing content and we fail to initialize, then crashing here
-    // seems like the sensible option.
-    if (BrowserTabsRemoteAutostart()) {
-      MOZ_CRASH("Failed to initialize broker services, can't continue.");
-    }
-#endif
-    // Otherwise just warn for the moment, as most things will work.
-    NS_WARNING("Failed to initialize broker services, sandboxed processes will "
-               "fail to start.");
-  }
-  if (mAppData->sandboxPermissionsService) {
-    SandboxPermissions::Initialize(mAppData->sandboxPermissionsService,
-                                   nullptr);
-  }
-#endif
-
 #ifdef XP_MACOSX
   // Set up ability to respond to system (Apple) events. This must occur before
   // ProcessUpdates to ensure that links clicked in external applications aren't
@@ -3020,62 +2717,10 @@ XREMain::XRE_mainInit(bool* aExitFlag)
     gSafeMode = true;
   }
 
-#ifdef XP_WIN
-  // If the shift key is pressed and the ctrl and / or alt keys are not pressed
-  // during startup start in safe mode. GetKeyState returns a short and the high
-  // order bit will be 1 if the key is pressed. By masking the returned short
-  // with 0x8000 the result will be 0 if the key is not pressed and non-zero
-  // otherwise.
-  if ((GetKeyState(VK_SHIFT) & 0x8000) &&
-      !(GetKeyState(VK_CONTROL) & 0x8000) &&
-      !(GetKeyState(VK_MENU) & 0x8000) &&
-      !EnvHasValue("MOZ_DISABLE_SAFE_MODE_KEY")) {
-    gSafeMode = true;
-  }
-#endif
-
 #ifdef XP_MACOSX
   if ((GetCurrentEventKeyModifiers() & optionKey) &&
       !EnvHasValue("MOZ_DISABLE_SAFE_MODE_KEY"))
     gSafeMode = true;
-#endif
-
-#ifdef XP_WIN
-  {
-    // Add CPU microcode version to the crash report as "CPUMicrocodeVersion".
-    // It feels like this code may belong in nsSystemInfo instead.
-    int cpuUpdateRevision = -1;
-    HKEY key;
-    static const WCHAR keyName[] =
-      L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0";
-
-    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyName , 0, KEY_QUERY_VALUE, &key) == ERROR_SUCCESS) {
-
-      DWORD updateRevision[2];
-      DWORD len = sizeof(updateRevision);
-      DWORD vtype;
-
-      // Windows 7 uses "Update Signature", 8 uses "Update Revision".
-      // For AMD CPUs, "CurrentPatchLevel" is sometimes used.
-      // Take the first one we find.
-      LPCWSTR choices[] = {L"Update Signature", L"Update Revision", L"CurrentPatchLevel"};
-      for (size_t oneChoice=0; oneChoice<ArrayLength(choices); oneChoice++) {
-        if (RegQueryValueExW(key, choices[oneChoice],
-                             0, &vtype,
-                             reinterpret_cast<LPBYTE>(updateRevision),
-                             &len) == ERROR_SUCCESS) {
-          if (vtype == REG_BINARY && len == sizeof(updateRevision)) {
-            // The first word is unused
-            cpuUpdateRevision = static_cast<int>(updateRevision[1]);
-            break;
-          } else if (vtype == REG_DWORD && len == sizeof(updateRevision[0])) {
-            cpuUpdateRevision = static_cast<int>(updateRevision[0]);
-            break;
-          }
-        }
-      }
-    }
-  }
 #endif
 
   // Handle --no-remote and --new-instance command line arguments. Setup
@@ -3257,9 +2902,6 @@ XREMain::XRE_mainStartup(bool* aExitFlag)
 
   if (PR_GetEnv("MOZ_RUN_GTEST")) {
     int result;
-#ifdef XP_WIN
-    UseParentConsole();
-#endif
     // RunGTest will only be set if we're in xul-unit
     if (mozilla::RunGTest) {
       gIsGtest = true;
@@ -3796,17 +3438,6 @@ XREMain::XRE_mainRun()
     }
   }
 
-#ifdef XP_WIN
-  // Hack to sync up the various environment storages. XUL_APP_FILE is special
-  // in that it comes from a different CRT (firefox.exe's static-linked copy).
-  // Ugly details in http://bugzil.la/1175039#c27
-  char appFile[MAX_PATH];
-  if (GetEnvironmentVariableA("XUL_APP_FILE", appFile, sizeof(appFile))) {
-    SmprintfPointer saved = mozilla::Smprintf("XUL_APP_FILE=%s", appFile);
-    PR_SetEnv(saved.get());
-  }
-#endif
-
   SaveStateForAppInitiatedRestart();
 
   // clear out any environment variables which may have been set
@@ -4041,11 +3672,6 @@ XREMain::XRE_main(int argc, char* argv[], const BootstrapConfig& aConfig)
     mAppData->directory = mAppData->xreDirectory;
   }
 
-#if defined(XP_WIN) && defined(MOZ_SANDBOX)
-  mAppData->sandboxBrokerServices = aConfig.sandboxBrokerServices;
-  mAppData->sandboxPermissionsService = aConfig.sandboxPermissionsService;
-#endif
-
   mozilla::IOInterposerInit ioInterposerGuard;
 
 #if MOZ_WIDGET_GTK == 2
@@ -4103,10 +3729,6 @@ XREMain::XRE_main(int argc, char* argv[], const BootstrapConfig& aConfig)
   }
 
   mScopedXPCOM = nullptr;
-
-#if defined(XP_WIN)
-  mozilla::widget::StopAudioSession();
-#endif
 
   // unlock the profile after ScopedXPCOMStartup object (xpcom)
   // has gone out of scope.  see bug #386739 for more details
@@ -4300,15 +3922,6 @@ enum {
 const char* kAccessibilityLastRunDatePref = "accessibility.lastLoadDate";
 const char* kAccessibilityLoadedLastSessionPref = "accessibility.loadedInLastSession";
 
-#if defined(XP_WIN)
-static inline uint32_t
-PRTimeToSeconds(PRTime t_usec)
-{
-  PRTime usec_per_sec = PR_USEC_PER_SEC;
-  return uint32_t(t_usec /= usec_per_sec);
-}
-#endif
-
 const char* kForceEnableE10sPref = "browser.tabs.remote.force-enable";
 const char* kForceDisableE10sPref = "browser.tabs.remote.force-disable";
 
@@ -4409,46 +4022,6 @@ PlatformBuildID()
 void
 SetupErrorHandling(const char* progname)
 {
-#ifdef XP_WIN
-  /* On Windows XPSP3 and Windows Vista if DEP is configured off-by-default
-     we still want DEP protection: enable it explicitly and programmatically.
-
-     This function is not available on WinXPSP2 so we dynamically load it.
-  */
-
-  HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
-  SetProcessDEPPolicyFunc _SetProcessDEPPolicy =
-    (SetProcessDEPPolicyFunc) GetProcAddress(kernel32, "SetProcessDEPPolicy");
-  if (_SetProcessDEPPolicy)
-    _SetProcessDEPPolicy(PROCESS_DEP_ENABLE);
-#endif
-
-#ifdef XP_WIN32
-  // Suppress the "DLL Foo could not be found" dialog, such that if dependent
-  // libraries (such as GDI+) are not preset, we gracefully fail to load those
-  // XPCOM components, instead of being ungraceful.
-  UINT realMode = SetErrorMode(0);
-  realMode |= SEM_FAILCRITICALERRORS;
-
-  SetErrorMode(realMode);
-
-#endif
-
-#if defined (DEBUG) && defined(XP_WIN)
-  // Send MSCRT Warnings, Errors and Assertions to stderr.
-  // See http://msdn.microsoft.com/en-us/library/1y71x448(v=VS.80).aspx
-  // and http://msdn.microsoft.com/en-us/library/a68f826y(v=VS.80).aspx.
-
-  _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-  _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
-  _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
-  _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
-  _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
-  _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
-
-  _CrtSetReportHook(MSCRTReportHook);
-#endif
-
   InstallSignalHandlers(progname);
 
   // Unbuffer stdout, needed for tinderbox tests.

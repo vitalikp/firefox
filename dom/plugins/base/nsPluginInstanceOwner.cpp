@@ -69,12 +69,6 @@ using mozilla::DefaultXDisplay;
 static NS_DEFINE_CID(kWidgetCID, NS_CHILD_CID);
 static NS_DEFINE_CID(kAppShellCID, NS_APPSHELL_CID);
 
-#ifdef XP_WIN
-#include <wtypes.h>
-#include <winuser.h>
-#include "mozilla/widget/WinMessages.h"
-#endif // #ifdef XP_WIN
-
 #ifdef MOZ_WIDGET_GTK
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
@@ -148,16 +142,7 @@ nsPluginInstanceOwner::NotifyPaintWaiter(nsDisplayListBuilder* aBuilder)
 bool
 nsPluginInstanceOwner::NeedsScrollImageLayer()
 {
-#if defined(XP_WIN)
-  // If this is a windowed plugin and we're doing layout in the content
-  // process, force the creation of an image layer for the plugin. We'll
-  // paint to this when scrolling.
-  return XRE_IsContentProcess() &&
-         mPluginWindow &&
-         mPluginWindow->type == NPWindowTypeWindow;
-#else
   return false;
-#endif
 }
 
 already_AddRefed<ImageContainer>
@@ -170,9 +155,6 @@ nsPluginInstanceOwner::GetImageContainer()
 
   if (NeedsScrollImageLayer()) {
     // windowed plugin under e10s
-#if defined(XP_WIN)
-    mInstance->GetScrollCaptureContainer(getter_AddRefs(container));
-#endif
   } else {
     // async windowless rendering
     mInstance->GetImageContainer(getter_AddRefs(container));
@@ -261,12 +243,6 @@ nsPluginInstanceOwner::nsPluginInstanceOwner()
   mLastMouseDownButtonType = -1;
 
   mWaitingForPaint = false;
-
-#ifdef XP_WIN
-  mGotCompositionData = false;
-  mSentStartComposition = false;
-  mPluginDidNotHandleIMEComposition = false;
-#endif
 }
 
 nsPluginInstanceOwner::~nsPluginInstanceOwner()
@@ -533,76 +509,6 @@ nsPluginInstanceOwner::RedrawPlugin()
   return NS_OK;
 }
 
-#if defined(XP_WIN)
-nsIWidget*
-nsPluginInstanceOwner::GetContainingWidgetIfOffset()
-{
-  MOZ_ASSERT(mPluginFrame, "Caller should have checked for null mPluginFrame.");
-
-  // This property is provided to allow a "windowless" plugin to determine the window it is drawing
-  // in, so it can translate mouse coordinates it receives directly from the operating system
-  // to coordinates relative to itself.
-
-  // The original code returns the document's window, which is OK if the window the "windowless" plugin
-  // is drawing into has the same origin as the document's window, but this is not the case for "windowless" plugins inside of scrolling DIVs etc
-
-  // To make sure "windowless" plugins always get the right origin for translating mouse coordinates, this code
-  // determines the window handle of the mozilla window containing the "windowless" plugin.
-
-  // Given that this HWND may not be that of the document's window, there is a slight risk
-  // of confusing a plugin that is using this HWND for illicit purposes, but since the documentation
-  // does not suggest this HWND IS that of the document window, rather that of the window
-  // the plugin is drawn in, this seems like a safe fix.
-
-  // we only attempt to get the nearest window if this really is a "windowless" plugin so as not
-  // to change any behaviour for the much more common windowed plugins,
-  // though why this method would even be being called for a windowed plugin escapes me.
-  if (!XRE_IsContentProcess() &&
-      mPluginWindow && mPluginWindow->type == NPWindowTypeDrawable) {
-    // it turns out that flash also uses this window for determining focus, and is currently
-    // unable to show a caret correctly if we return the enclosing window. Therefore for
-    // now we only return the enclosing window when there is an actual offset which
-    // would otherwise cause coordinates to be offset incorrectly. (i.e.
-    // if the enclosing window if offset from the document window)
-    //
-    // fixing both the caret and ability to interact issues for a windowless control in a non document aligned windw
-    // does not seem to be possible without a change to the flash plugin
-
-    nsIWidget* win = mPluginFrame->GetNearestWidget();
-    if (win) {
-      nsView *view = nsView::GetViewFor(win);
-      NS_ASSERTION(view, "No view for widget");
-      nsPoint offset = view->GetOffsetTo(nullptr);
-
-      if (offset.x || offset.y) {
-        // in the case the two windows are offset from eachother, we do go ahead and return the correct enclosing window
-        // so that mouse co-ordinates are not messed up.
-        return win;
-      }
-    }
-  }
-
-  return nullptr;
-}
-
-static already_AddRefed<nsIWidget>
-GetRootWidgetForPluginFrame(const nsPluginFrame* aPluginFrame)
-{
-  MOZ_ASSERT(aPluginFrame);
-
-  nsViewManager* vm =
-    aPluginFrame->PresContext()->GetPresShell()->GetViewManager();
-  if (!vm) {
-    NS_WARNING("Could not find view manager for plugin frame.");
-    return nullptr;
-  }
-
-  nsCOMPtr<nsIWidget> rootWidget;
-  vm->GetRootWidget(getter_AddRefs(rootWidget));
-  return rootWidget.forget();
-}
-#endif
-
 NS_IMETHODIMP nsPluginInstanceOwner::GetNetscapeWindow(void *value)
 {
   if (!mPluginFrame) {
@@ -610,26 +516,7 @@ NS_IMETHODIMP nsPluginInstanceOwner::GetNetscapeWindow(void *value)
     return NS_ERROR_FAILURE;
   }
 
-#if defined(XP_WIN)
-  void** pvalue = (void**)value;
-  nsIWidget* offsetContainingWidget = GetContainingWidgetIfOffset();
-  if (offsetContainingWidget) {
-    *pvalue = (void*)offsetContainingWidget->GetNativeData(NS_NATIVE_WINDOW);
-    if (*pvalue) {
-      return NS_OK;
-    }
-  }
-
-  // simply return the topmost document window
-  nsCOMPtr<nsIWidget> widget = GetRootWidgetForPluginFrame(mPluginFrame);
-  if (widget) {
-    *pvalue = widget->GetNativeData(NS_NATIVE_SHAREABLE_WINDOW);
-  } else {
-    NS_ASSERTION(widget, "couldn't get doc's widget in getting doc's window handle");
-  }
-
-  return NS_OK;
-#elif defined(MOZ_WIDGET_GTK) && defined(MOZ_X11)
+#if defined(MOZ_WIDGET_GTK) && defined(MOZ_X11)
   // X11 window managers want the toplevel window for WM_TRANSIENT_FOR.
   nsIWidget* win = mPluginFrame->GetNearestWidget();
   if (!win)
@@ -640,228 +527,6 @@ NS_IMETHODIMP nsPluginInstanceOwner::GetNetscapeWindow(void *value)
   return NS_ERROR_NOT_IMPLEMENTED;
 #endif
 }
-
-#if defined(XP_WIN)
-void
-nsPluginInstanceOwner::SetWidgetWindowAsParent(HWND aWindowToAdopt)
-{
-  if (!mWidget) {
-    NS_ERROR("mWidget should exist before this gets called.");
-    return;
-  }
-
-  mWidget->SetNativeData(NS_NATIVE_CHILD_WINDOW,
-                         reinterpret_cast<uintptr_t>(aWindowToAdopt));
-}
-
-nsresult
-nsPluginInstanceOwner::SetNetscapeWindowAsParent(HWND aWindowToAdopt)
-{
-  if (!mPluginFrame) {
-    NS_WARNING("Plugin owner has no plugin frame.");
-    return NS_ERROR_FAILURE;
-  }
-
-  // If there is a containing window that is offset then ask that to adopt.
-  nsIWidget* offsetWidget = GetContainingWidgetIfOffset();
-  if (offsetWidget) {
-    offsetWidget->SetNativeData(NS_NATIVE_CHILD_WINDOW,
-                                reinterpret_cast<uintptr_t>(aWindowToAdopt));
-    return NS_OK;
-  }
-
-  // Otherwise ask the topmost document window to adopt.
-  nsCOMPtr<nsIWidget> rootWidget = GetRootWidgetForPluginFrame(mPluginFrame);
-  if (!rootWidget) {
-    NS_ASSERTION(rootWidget, "Couldn't get topmost document's widget.");
-    return NS_ERROR_FAILURE;
-  }
-
-  rootWidget->SetNativeData(NS_NATIVE_CHILD_OF_SHAREABLE_WINDOW,
-                            reinterpret_cast<uintptr_t>(aWindowToAdopt));
-  return NS_OK;
-}
-
-bool
-nsPluginInstanceOwner::GetCompositionString(uint32_t aType,
-                                            nsTArray<uint8_t>* aDist,
-                                            int32_t* aLength)
-{
-  // Mark pkugin calls ImmGetCompositionStringW correctly
-  mGotCompositionData = true;
-
-  RefPtr<TextComposition> composition = GetTextComposition();
-  if (NS_WARN_IF(!composition)) {
-    return false;
-  }
-
-  switch(aType) {
-    case GCS_COMPSTR: {
-      if (!composition->IsComposing()) {
-        *aLength = 0;
-        return true;
-      }
-
-      uint32_t len = composition->LastData().Length() * sizeof(char16_t);
-      if (len) {
-        aDist->SetLength(len);
-        memcpy(aDist->Elements(), composition->LastData().get(), len);
-      }
-      *aLength = len;
-      return true;
-    }
-
-    case GCS_RESULTSTR: {
-      if (composition->IsComposing()) {
-        *aLength = 0;
-        return true;
-      }
-
-      uint32_t len = composition->LastData().Length() * sizeof(char16_t);
-      if (len) {
-        aDist->SetLength(len);
-        memcpy(aDist->Elements(), composition->LastData().get(), len);
-      }
-      *aLength = len;
-      return true;
-    }
-
-    case GCS_CURSORPOS: {
-      *aLength = 0;
-      TextRangeArray* ranges = composition->GetLastRanges();
-      if (!ranges) {
-        return true;
-      }
-      *aLength = ranges->GetCaretPosition();
-      if (*aLength < 0) {
-        return false;
-      }
-      return true;
-    }
-
-    case GCS_COMPATTR: {
-      TextRangeArray* ranges = composition->GetLastRanges();
-      if (!ranges || ranges->IsEmpty()) {
-        *aLength = 0;
-        return true;
-      }
-
-      aDist->SetLength(composition->LastData().Length());
-      memset(aDist->Elements(), ATTR_INPUT, aDist->Length());
-
-      for (TextRange& range : *ranges) {
-        uint8_t type = ATTR_INPUT;
-        switch(range.mRangeType) {
-          case TextRangeType::eRawClause:
-            type = ATTR_INPUT;
-            break;
-          case TextRangeType::eSelectedRawClause:
-            type = ATTR_TARGET_NOTCONVERTED;
-            break;
-          case TextRangeType::eConvertedClause:
-            type = ATTR_CONVERTED;
-            break;
-          case TextRangeType::eSelectedClause:
-            type = ATTR_TARGET_CONVERTED;
-            break;
-          default:
-            continue;
-        }
-
-        size_t minLen = std::min<size_t>(range.mEndOffset, aDist->Length());
-        for (size_t i = range.mStartOffset; i < minLen; i++) {
-          (*aDist)[i] = type;
-        }
-      }
-      *aLength = aDist->Length();
-      return true;
-    }
-
-    case GCS_COMPCLAUSE: {
-      RefPtr<TextRangeArray> ranges = composition->GetLastRanges();
-      if (!ranges || ranges->IsEmpty()) {
-        aDist->SetLength(sizeof(uint32_t));
-        memset(aDist->Elements(), 0, sizeof(uint32_t));
-        *aLength = aDist->Length();
-        return true;
-      }
-      AutoTArray<uint32_t, 16> clauses;
-      clauses.AppendElement(0);
-      for (TextRange& range : *ranges) {
-        if (!range.IsClause()) {
-          continue;
-        }
-        clauses.AppendElement(range.mEndOffset);
-      }
-
-      aDist->SetLength(clauses.Length() * sizeof(uint32_t));
-      memcpy(aDist->Elements(), clauses.Elements(), aDist->Length());
-      *aLength = aDist->Length();
-      return true;
-    }
-
-    case GCS_RESULTREADSTR: {
-      // When returning error causes unexpected error, so we return 0 instead.
-      *aLength = 0;
-      return true;
-    }
-
-    case GCS_RESULTCLAUSE: {
-      // When returning error causes unexpected error, so we return 0 instead.
-      *aLength = 0;
-      return true;
-    }
-
-    default:
-      NS_WARNING(
-        nsPrintfCString("Unsupported type %x of ImmGetCompositionStringW hook",
-                        aType).get());
-      break;
-  }
-
-  return false;
-}
-
-bool
-nsPluginInstanceOwner::SetCandidateWindow(
-    const widget::CandidateWindowPosition& aPosition)
-{
-  if (NS_WARN_IF(!mPluginFrame)) {
-    return false;
-  }
-
-  nsCOMPtr<nsIWidget> widget = GetContainingWidgetIfOffset();
-  if (!widget) {
-    widget = GetRootWidgetForPluginFrame(mPluginFrame);
-    if (NS_WARN_IF(!widget)) {
-      return false;
-    }
-  }
-
-  widget->SetCandidateWindowForPlugin(aPosition);
-  return true;
-}
-
-bool
-nsPluginInstanceOwner::RequestCommitOrCancel(bool aCommitted)
-{
-  nsCOMPtr<nsIWidget> widget = GetContainingWidgetIfOffset();
-  if (!widget) {
-    widget = GetRootWidgetForPluginFrame(mPluginFrame);
-    if (NS_WARN_IF(!widget)) {
-      return false;
-    }
-  }
-
-  if (aCommitted) {
-    widget->NotifyIME(widget::REQUEST_TO_COMMIT_COMPOSITION);
-  } else {
-    widget->NotifyIME(widget::REQUEST_TO_CANCEL_COMPOSITION);
-  }
-  return true;
-}
-
-#endif // #ifdef XP_WIN
 
 void
 nsPluginInstanceOwner::HandledWindowedPluginKeyEvent(
@@ -961,16 +626,6 @@ void nsPluginInstanceOwner::GetParameters(nsTArray<MozPluginParameter>& paramete
 
   loadingContent->GetPluginParameters(parameters);
 }
-
-#if defined(XP_WIN)
-nsresult nsPluginInstanceOwner::ContentsScaleFactorChanged(double aContentsScaleFactor)
-{
-  if (!mInstance) {
-    return NS_ERROR_NULL_POINTER;
-  }
-  return mInstance->ContentsScaleFactorChanged(aContentsScaleFactor);
-}
-#endif
 
 
 // static
@@ -1109,183 +764,9 @@ nsresult nsPluginInstanceOwner::DispatchMouseToPlugin(nsIDOMEvent* aMouseEvent,
   return NS_OK;
 }
 
-#ifdef XP_WIN
-void
-nsPluginInstanceOwner::CallDefaultProc(const WidgetGUIEvent* aEvent)
-{
-  nsCOMPtr<nsIWidget> widget = GetContainingWidgetIfOffset();
-  if (!widget) {
-    widget = GetRootWidgetForPluginFrame(mPluginFrame);
-    if (NS_WARN_IF(!widget)) {
-      return;
-    }
-  }
-
-  const NPEvent* npEvent =
-    static_cast<const NPEvent*>(aEvent->mPluginEvent);
-  if (NS_WARN_IF(!npEvent)) {
-    return;
-  }
-
-  WidgetPluginEvent pluginEvent(true, ePluginInputEvent, widget);
-  pluginEvent.mPluginEvent.Copy(*npEvent);
-  widget->DefaultProcOfPluginEvent(pluginEvent);
-}
-
-already_AddRefed<TextComposition>
-nsPluginInstanceOwner::GetTextComposition()
-{
-  if (NS_WARN_IF(!mPluginFrame)) {
-    return nullptr;
-  }
-
-  nsCOMPtr<nsIWidget> widget = GetContainingWidgetIfOffset();
-  if (!widget) {
-    widget = GetRootWidgetForPluginFrame(mPluginFrame);
-    if (NS_WARN_IF(!widget)) {
-      return nullptr;
-    }
-  }
-
-  RefPtr<TextComposition> composition =
-    IMEStateManager::GetTextCompositionFor(widget);
-  if (NS_WARN_IF(!composition)) {
-    return nullptr;
-  }
-
-  return composition.forget();
-}
-
-void
-nsPluginInstanceOwner::HandleNoConsumedCompositionMessage(
-  WidgetCompositionEvent* aCompositionEvent,
-  const NPEvent* aPluginEvent)
-{
-  nsCOMPtr<nsIWidget> widget = GetContainingWidgetIfOffset();
-  if (!widget) {
-    widget = GetRootWidgetForPluginFrame(mPluginFrame);
-    if (NS_WARN_IF(!widget)) {
-      return;
-    }
-  }
-
-  NPEvent npevent;
-  if (aPluginEvent->lParam & GCS_RESULTSTR) {
-    // GCS_RESULTSTR's default proc will generate WM_CHAR. So emulate it.
-    for (size_t i = 0; i < aCompositionEvent->mData.Length(); i++) {
-      WidgetPluginEvent charEvent(true, ePluginInputEvent, widget);
-      npevent.event = WM_CHAR;
-      npevent.wParam = aCompositionEvent->mData[i];
-      npevent.lParam = 0;
-      charEvent.mPluginEvent.Copy(npevent);
-      ProcessEvent(charEvent);
-    }
-    return;
-  }
-  if (!mSentStartComposition) {
-    // We post WM_IME_COMPOSITION to default proc, but
-    // WM_IME_STARTCOMPOSITION isn't post yet.  We should post it at first.
-    WidgetPluginEvent startEvent(true, ePluginInputEvent, widget);
-    npevent.event = WM_IME_STARTCOMPOSITION;
-    npevent.wParam = 0;
-    npevent.lParam = 0;
-    startEvent.mPluginEvent.Copy(npevent);
-    CallDefaultProc(&startEvent);
-    mSentStartComposition = true;
-  }
-
-  CallDefaultProc(aCompositionEvent);
-}
-#endif
-
 nsresult
 nsPluginInstanceOwner::DispatchCompositionToPlugin(nsIDOMEvent* aEvent)
 {
-#ifdef XP_WIN
-  if (!mPluginWindow) {
-    // CompositionEvent isn't cancellable.  So it is unnecessary to call
-    // PreventDefaults() to consume event
-    return NS_OK;
-  }
-  WidgetCompositionEvent* compositionEvent =
-    aEvent->WidgetEventPtr()->AsCompositionEvent();
-  if (NS_WARN_IF(!compositionEvent)) {
-      return NS_ERROR_INVALID_ARG;
-  }
-
-  if (compositionEvent->mMessage == eCompositionChange) {
-    RefPtr<TextComposition> composition = GetTextComposition();
-    if (NS_WARN_IF(!composition)) {
-      return NS_ERROR_FAILURE;
-    }
-    TextComposition::CompositionChangeEventHandlingMarker
-      compositionChangeEventHandlingMarker(composition, compositionEvent);
-  }
-
-  const NPEvent* pPluginEvent =
-    static_cast<const NPEvent*>(compositionEvent->mPluginEvent);
-  if (pPluginEvent && pPluginEvent->event == WM_IME_COMPOSITION &&
-      mPluginDidNotHandleIMEComposition) {
-    // This is a workaround when running windowed and windowless Flash on
-    // same process.
-    // Flash with protected mode calls IMM APIs on own render process.  This
-    // is a bug of Flash's protected mode.
-    // ImmGetCompositionString with GCS_RESULTSTR returns *LAST* committed
-    // string.  So when windowed mode Flash handles IME composition,
-    // windowless plugin can get windowed mode's commited string by that API.
-    // So we never post WM_IME_COMPOSITION when plugin doesn't call
-    // ImmGetCompositionString() during WM_IME_COMPOSITION correctly.
-    HandleNoConsumedCompositionMessage(compositionEvent, pPluginEvent);
-    aEvent->StopImmediatePropagation();
-    return NS_OK;
-  }
-
-  // Protected mode Flash returns noDefault by NPP_HandleEvent, but
-  // composition information into plugin is invalid because plugin's bug.
-  // So if plugin doesn't get composition data by WM_IME_COMPOSITION, we
-  // recongnize it isn't handled
-  AutoRestore<bool> restore(mGotCompositionData);
-  mGotCompositionData = false;
-
-  nsEventStatus status = ProcessEvent(*compositionEvent);
-  aEvent->StopImmediatePropagation();
-
-  // Composition event isn't handled by plugin, so we have to call default proc.
-
-  if (NS_WARN_IF(!pPluginEvent)) {
-    return NS_OK;
-  }
-
-  if (pPluginEvent->event == WM_IME_STARTCOMPOSITION) {
-    // Flash's protected mode lies that composition event is handled, but it
-    // cannot do it well.  So even if handled, we should post this message when
-    // no IMM API calls during WM_IME_COMPOSITION.
-    if (nsEventStatus_eConsumeNoDefault != status)  {
-      CallDefaultProc(compositionEvent);
-      mSentStartComposition = true;
-    } else {
-      mSentStartComposition = false;
-    }
-    mPluginDidNotHandleIMEComposition = false;
-    return NS_OK;
-  }
-
-  if (pPluginEvent->event == WM_IME_ENDCOMPOSITION) {
-    // Always post WM_END_COMPOSITION to default proc. Because Flash may lie
-    // that it doesn't handle composition well, but event is handled.
-    // Even if posting this message, default proc do nothing if unnecessary.
-    CallDefaultProc(compositionEvent);
-    return NS_OK;
-  }
-
-  if (pPluginEvent->event == WM_IME_COMPOSITION && !mGotCompositionData) {
-    // If plugin doesn't handle WM_IME_COMPOSITION correctly, we don't send
-    // composition event until end composition.
-    mPluginDidNotHandleIMEComposition = true;
-
-    HandleNoConsumedCompositionMessage(compositionEvent, pPluginEvent);
-  }
-#endif // #ifdef XP_WIN
   return NS_OK;
 }
 
@@ -1366,203 +847,6 @@ nsEventStatus nsPluginInstanceOwner::ProcessEvent(const WidgetGUIEvent& anEvent)
   if (!mInstance || !mPluginFrame) {
     return nsEventStatus_eIgnore;
   }
-
-#ifdef XP_WIN
-  // this code supports windowless plugins
-  const NPEvent *pPluginEvent = static_cast<const NPEvent*>(anEvent.mPluginEvent);
-  // we can get synthetic events from the EventStateManager... these
-  // have no pluginEvent
-  NPEvent pluginEvent;
-  if (anEvent.mClass == eMouseEventClass ||
-      anEvent.mClass == eWheelEventClass) {
-    if (!pPluginEvent) {
-      // XXX Should extend this list to synthesize events for more event
-      // types
-      pluginEvent.event = 0;
-      bool initWParamWithCurrentState = true;
-      switch (anEvent.mMessage) {
-      case eMouseMove: {
-        pluginEvent.event = WM_MOUSEMOVE;
-        break;
-      }
-      case eMouseDown: {
-        static const int downMsgs[] =
-          { WM_LBUTTONDOWN, WM_MBUTTONDOWN, WM_RBUTTONDOWN };
-        static const int dblClickMsgs[] =
-          { WM_LBUTTONDBLCLK, WM_MBUTTONDBLCLK, WM_RBUTTONDBLCLK };
-        const WidgetMouseEvent* mouseEvent = anEvent.AsMouseEvent();
-        if (mouseEvent->mClickCount == 2) {
-          pluginEvent.event = dblClickMsgs[mouseEvent->button];
-        } else {
-          pluginEvent.event = downMsgs[mouseEvent->button];
-        }
-        break;
-      }
-      case eMouseUp: {
-        static const int upMsgs[] =
-          { WM_LBUTTONUP, WM_MBUTTONUP, WM_RBUTTONUP };
-        const WidgetMouseEvent* mouseEvent = anEvent.AsMouseEvent();
-        pluginEvent.event = upMsgs[mouseEvent->button];
-        break;
-      }
-      // For plugins which don't support high-resolution scroll, we should
-      // generate legacy resolution wheel messages.  I.e., the delta value
-      // should be WHEEL_DELTA * n.
-      case eWheel: {
-        const WidgetWheelEvent* wheelEvent = anEvent.AsWheelEvent();
-        int32_t delta = 0;
-        if (wheelEvent->mLineOrPageDeltaY) {
-          switch (wheelEvent->mDeltaMode) {
-            case nsIDOMWheelEvent::DOM_DELTA_PAGE:
-              pluginEvent.event = WM_MOUSEWHEEL;
-              delta = -WHEEL_DELTA * wheelEvent->mLineOrPageDeltaY;
-              break;
-            case nsIDOMWheelEvent::DOM_DELTA_LINE: {
-              UINT linesPerWheelDelta = 0;
-              if (NS_WARN_IF(!::SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0,
-                                                     &linesPerWheelDelta, 0))) {
-                // Use system default scroll amount, 3, when
-                // SPI_GETWHEELSCROLLLINES isn't available.
-                linesPerWheelDelta = 3;
-              }
-              if (!linesPerWheelDelta) {
-                break;
-              }
-              pluginEvent.event = WM_MOUSEWHEEL;
-              delta = -WHEEL_DELTA / linesPerWheelDelta;
-              delta *= wheelEvent->mLineOrPageDeltaY;
-              break;
-            }
-            case nsIDOMWheelEvent::DOM_DELTA_PIXEL:
-            default:
-              // We don't support WM_GESTURE with this path.
-              MOZ_ASSERT(!pluginEvent.event);
-              break;
-          }
-        } else if (wheelEvent->mLineOrPageDeltaX) {
-          switch (wheelEvent->mDeltaMode) {
-            case nsIDOMWheelEvent::DOM_DELTA_PAGE:
-              pluginEvent.event = WM_MOUSEHWHEEL;
-              delta = -WHEEL_DELTA * wheelEvent->mLineOrPageDeltaX;
-              break;
-            case nsIDOMWheelEvent::DOM_DELTA_LINE: {
-              pluginEvent.event = WM_MOUSEHWHEEL;
-              UINT charsPerWheelDelta = 0;
-              // FYI: SPI_GETWHEELSCROLLCHARS is available on Vista or later.
-              if (::SystemParametersInfo(SPI_GETWHEELSCROLLCHARS, 0,
-                                         &charsPerWheelDelta, 0)) {
-                // Use system default scroll amount, 3, when
-                // SPI_GETWHEELSCROLLCHARS isn't available.
-                charsPerWheelDelta = 3;
-              }
-              if (!charsPerWheelDelta) {
-                break;
-              }
-              delta = WHEEL_DELTA / charsPerWheelDelta;
-              delta *= wheelEvent->mLineOrPageDeltaX;
-              break;
-            }
-            case nsIDOMWheelEvent::DOM_DELTA_PIXEL:
-            default:
-              // We don't support WM_GESTURE with this path.
-              MOZ_ASSERT(!pluginEvent.event);
-              break;
-          }
-        }
-
-        if (!pluginEvent.event) {
-          break;
-        }
-
-        initWParamWithCurrentState = false;
-        int32_t modifiers =
-          (wheelEvent->IsControl() ?             MK_CONTROL  : 0) |
-          (wheelEvent->IsShift() ?               MK_SHIFT    : 0) |
-          (wheelEvent->IsLeftButtonPressed() ?   MK_LBUTTON  : 0) |
-          (wheelEvent->IsMiddleButtonPressed() ? MK_MBUTTON  : 0) |
-          (wheelEvent->IsRightButtonPressed() ?  MK_RBUTTON  : 0) |
-          (wheelEvent->Is4thButtonPressed() ?    MK_XBUTTON1 : 0) |
-          (wheelEvent->Is5thButtonPressed() ?    MK_XBUTTON2 : 0);
-        pluginEvent.wParam = MAKEWPARAM(modifiers, delta);
-        pPluginEvent = &pluginEvent;
-        break;
-      }
-      // don't synthesize anything for eMouseDoubleClick, since that
-      // is a synthetic event generated on mouse-up, and Windows WM_*DBLCLK
-      // messages are sent on mouse-down
-      default:
-        break;
-      }
-      if (pluginEvent.event && initWParamWithCurrentState) {
-        pPluginEvent = &pluginEvent;
-        pluginEvent.wParam =
-          (::GetKeyState(VK_CONTROL) ? MK_CONTROL : 0) |
-          (::GetKeyState(VK_SHIFT) ? MK_SHIFT : 0) |
-          (::GetKeyState(VK_LBUTTON) ? MK_LBUTTON : 0) |
-          (::GetKeyState(VK_MBUTTON) ? MK_MBUTTON : 0) |
-          (::GetKeyState(VK_RBUTTON) ? MK_RBUTTON : 0) |
-          (::GetKeyState(VK_XBUTTON1) ? MK_XBUTTON1 : 0) |
-          (::GetKeyState(VK_XBUTTON2) ? MK_XBUTTON2 : 0);
-      }
-    }
-    if (pPluginEvent) {
-      // Make event coordinates relative to our enclosing widget,
-      // not the widget they were received on.
-      // See use of NPEvent in widget/windows/nsWindow.cpp
-      // for why this assert should be safe
-      NS_ASSERTION(anEvent.mMessage == eMouseDown ||
-                   anEvent.mMessage == eMouseUp ||
-                   anEvent.mMessage == eMouseDoubleClick ||
-                   anEvent.mMessage == eMouseAuxClick ||
-                   anEvent.mMessage == eMouseOver ||
-                   anEvent.mMessage == eMouseOut ||
-                   anEvent.mMessage == eMouseMove ||
-                   anEvent.mMessage == eWheel,
-                   "Incorrect event type for coordinate translation");
-      nsPoint pt =
-        nsLayoutUtils::GetEventCoordinatesRelativeTo(&anEvent, mPluginFrame) -
-        mPluginFrame->GetContentRectRelativeToSelf().TopLeft();
-      nsPresContext* presContext = mPluginFrame->PresContext();
-      nsIntPoint ptPx(presContext->AppUnitsToDevPixels(pt.x),
-                      presContext->AppUnitsToDevPixels(pt.y));
-      nsIntPoint widgetPtPx = ptPx + mPluginFrame->GetWindowOriginInPixels(true);
-      const_cast<NPEvent*>(pPluginEvent)->lParam = MAKELPARAM(widgetPtPx.x, widgetPtPx.y);
-    }
-  }
-  else if (!pPluginEvent) {
-    switch (anEvent.mMessage) {
-      case eFocus:
-        pluginEvent.event = WM_SETFOCUS;
-        pluginEvent.wParam = 0;
-        pluginEvent.lParam = 0;
-        pPluginEvent = &pluginEvent;
-        break;
-      case eBlur:
-        pluginEvent.event = WM_KILLFOCUS;
-        pluginEvent.wParam = 0;
-        pluginEvent.lParam = 0;
-        pPluginEvent = &pluginEvent;
-        break;
-      default:
-        break;
-    }
-  }
-
-  if (pPluginEvent && !pPluginEvent->event) {
-    // Don't send null events to plugins.
-    NS_WARNING("nsPluginFrame ProcessEvent: trying to send null event to plugin.");
-    return rv;
-  }
-
-  if (pPluginEvent) {
-    int16_t response = kNPEventNotHandled;
-    mInstance->HandleEvent(const_cast<NPEvent*>(pPluginEvent),
-                           &response,
-                           NS_PLUGIN_CALL_SAFE_TO_REENTER_GECKO);
-    if (response == kNPEventHandled)
-      rv = nsEventStatus_eConsumeNoDefault;
-  }
-#endif
 
 #ifdef MOZ_X11
   // this code supports windowless plugins
@@ -1822,20 +1106,6 @@ nsPluginInstanceOwner::Destroy()
 }
 
 // Paints are handled differently, so we just simulate an update event.
-
-#ifdef XP_WIN
-void nsPluginInstanceOwner::Paint(const RECT& aDirty, HDC aDC)
-{
-  if (!mInstance || !mPluginFrame)
-    return;
-
-  NPEvent pluginEvent;
-  pluginEvent.event = WM_PAINT;
-  pluginEvent.wParam = WPARAM(aDC);
-  pluginEvent.lParam = LPARAM(&aDirty);
-  mInstance->HandleEvent(&pluginEvent, nullptr);
-}
-#endif
 
 #if defined(MOZ_X11)
 void nsPluginInstanceOwner::Paint(gfxContext* aContext,
@@ -2103,9 +1373,6 @@ void* nsPluginInstanceOwner::GetPluginPort()
 {
   void* result = nullptr;
   if (mWidget) {
-#ifdef XP_WIN
-    if (!mPluginWindow || mPluginWindow->type == NPWindowTypeWindow)
-#endif
       result = mWidget->GetNativeData(NS_NATIVE_PLUGIN_PORT); // HWND/gdk window
   }
 
@@ -2281,14 +1548,6 @@ nsPluginInstanceOwner::UpdateWindowVisibility(bool aVisible)
 void
 nsPluginInstanceOwner::ResolutionMayHaveChanged()
 {
-#if defined(XP_WIN)
-  double scaleFactor = 1.0;
-  GetContentsScaleFactor(&scaleFactor);
-  if (scaleFactor != mLastScaleFactor) {
-    ContentsScaleFactorChanged(scaleFactor);
-    mLastScaleFactor = scaleFactor;
-  }
-#endif
   float zoomFactor = 1.0;
   GetCSSZoomFactor(&zoomFactor);
   if (zoomFactor != mLastCSSZoomFactor) {
@@ -2347,14 +1606,6 @@ nsPluginInstanceOwner::GetContentsScaleFactor(double *result)
   // On Mac, device pixels need to be translated to (and from) "display pixels"
   // for plugins. On other platforms, plugin coordinates are always in device
   // pixels.
-#if defined(XP_WIN)
-  nsCOMPtr<nsIContent> content = do_QueryReferent(mContent);
-  nsIPresShell* presShell = nsContentUtils::FindPresShellForDocument(content->OwnerDoc());
-  if (presShell) {
-    scaleFactor = double(nsPresContext::AppUnitsPerCSSPixel())/
-      presShell->GetPresContext()->DeviceContext()->AppUnitsPerDevPixelAtUnitFullZoom();
-  }
-#endif
   *result = scaleFactor;
   return NS_OK;
 }
@@ -2458,43 +1709,6 @@ nsPluginInstanceOwner::GeneratePluginEvent(
   const WidgetCompositionEvent* aSrcCompositionEvent,
   WidgetCompositionEvent* aDistCompositionEvent)
 {
-#ifdef XP_WIN
-  NPEvent newEvent;
-  switch (aDistCompositionEvent->mMessage) {
-    case eCompositionChange: {
-      newEvent.event = WM_IME_COMPOSITION;
-      newEvent.wParam = 0;
-      if (aSrcCompositionEvent &&
-          (aSrcCompositionEvent->mMessage == eCompositionCommit ||
-           aSrcCompositionEvent->mMessage == eCompositionCommitAsIs)) {
-        newEvent.lParam = GCS_RESULTSTR;
-      } else {
-        newEvent.lParam = GCS_COMPSTR | GCS_COMPATTR | GCS_COMPCLAUSE;
-      }
-      TextRangeArray* ranges = aDistCompositionEvent->mRanges;
-      if (ranges && ranges->HasCaret()) {
-        newEvent.lParam |= GCS_CURSORPOS;
-      }
-      break;
-    }
-
-    case eCompositionStart:
-      newEvent.event = WM_IME_STARTCOMPOSITION;
-      newEvent.wParam = 0;
-      newEvent.lParam = 0;
-      break;
-
-    case eCompositionEnd:
-      newEvent.event = WM_IME_ENDCOMPOSITION;
-      newEvent.wParam = 0;
-      newEvent.lParam = 0;
-      break;
-
-    default:
-      return;
-  }
-  aDistCompositionEvent->mPluginEvent.Copy(newEvent);
-#endif
 }
 
 // nsPluginDOMContextMenuListener class implementation

@@ -33,8 +33,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "clearTimeout",
                                   "resource://gre/modules/Timer.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "setTimeout",
                                   "resource://gre/modules/Timer.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "WindowsRegistry",
-                                  "resource://gre/modules/WindowsRegistry.jsm");
 
 const HOST_MANIFEST_SCHEMA = "chrome://extensions/content/schemas/native_host_manifest.json";
 const VALID_APPLICATION = /^\w+(\.\w+)*$/;
@@ -68,9 +66,7 @@ this.HostManifestManager = {
   init() {
     if (!this._initializePromise) {
       let platform = AppConstants.platform;
-      if (platform == "win") {
-        this._lookup = this._winLookup;
-      } else if (platform == "macosx" || platform == "linux") {
+      if (platform == "macosx" || platform == "linux") {
         let dirs = [
           Services.dirsvc.get("XREUserNativeMessaging", Ci.nsIFile).path,
           Services.dirsvc.get("XRESysNativeMessaging", Ci.nsIFile).path,
@@ -82,22 +78,6 @@ this.HostManifestManager = {
       this._initializePromise = Schemas.load(HOST_MANIFEST_SCHEMA);
     }
     return this._initializePromise;
-  },
-
-  _winLookup(application, context) {
-    const REGISTRY = Ci.nsIWindowsRegKey;
-    let regPath = `${REGPATH}\\${application}`;
-    let path = WindowsRegistry.readRegKey(REGISTRY.ROOT_KEY_CURRENT_USER,
-                                          regPath, "", REGISTRY.WOW64_64);
-    if (!path) {
-      path = WindowsRegistry.readRegKey(Ci.nsIWindowsRegKey.ROOT_KEY_LOCAL_MACHINE,
-                                        regPath, "", REGISTRY.WOW64_64);
-    }
-    if (!path) {
-      return null;
-    }
-    return this._tryPath(path, application, context)
-      .then(manifest => manifest ? {path, manifest} : null);
   },
 
   _tryPath(path, application, context) {

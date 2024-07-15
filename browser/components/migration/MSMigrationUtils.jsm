@@ -18,8 +18,6 @@ Cu.importGlobalProperties(["FileReader"]);
 
 XPCOMUtils.defineLazyModuleGetter(this, "PlacesUtils",
                                   "resource://gre/modules/PlacesUtils.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "WindowsRegistry",
-                                  "resource://gre/modules/WindowsRegistry.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "ctypes",
                                   "resource://gre/modules/ctypes.jsm");
 
@@ -348,17 +346,7 @@ Bookmarks.prototype = {
   __toolbarFolderName: null,
   get _toolbarFolderName() {
     if (!this.__toolbarFolderName) {
-      if (this._migrationType == MSMigrationUtils.MIGRATION_TYPE_IE) {
-        // Retrieve the name of IE's favorites subfolder that holds the bookmarks
-        // in the toolbar. This was previously stored in the registry and changed
-        // in IE7 to always be called "Links".
-        let folderName = WindowsRegistry.readRegKey(Ci.nsIWindowsRegKey.ROOT_KEY_CURRENT_USER,
-                                                    "Software\\Microsoft\\Internet Explorer\\Toolbar",
-                                                    "LinksFolderName");
-        this.__toolbarFolderName = folderName || "Links";
-      } else {
-        this.__toolbarFolderName = "Links";
-      }
+      this.__toolbarFolderName = "Links";
     }
     return this.__toolbarFolderName;
   },

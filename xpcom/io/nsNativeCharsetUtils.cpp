@@ -978,7 +978,6 @@ NS_CopyUnicodeToNative(const nsAString&  aInput, nsACString& aOutput)
   return NS_OK;
 }
 
-// moved from widget/windows/nsToolkit.cpp
 int32_t
 NS_ConvertAtoW(const char* aStrInA, int aBufferSize, char16_t* aStrOutW)
 {

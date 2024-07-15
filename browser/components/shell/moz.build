@@ -10,22 +10,14 @@ XPIDL_SOURCES += [
     'nsIShellService.idl',
 ]
 
-if CONFIG['OS_ARCH'] == 'WINNT':
-    XPIDL_SOURCES += [
-        'nsIWindowsShellService.idl',
-    ]
-elif 'gtk' in CONFIG['MOZ_WIDGET_TOOLKIT']:
+if 'gtk' in CONFIG['MOZ_WIDGET_TOOLKIT']:
     XPIDL_SOURCES += [
         'nsIGNOMEShellService.idl',
     ]
 
 XPIDL_MODULE = 'shellservice'
 
-if CONFIG['OS_ARCH'] == 'WINNT':
-    SOURCES += [
-        'nsWindowsShellService.cpp',
-    ]
-elif 'gtk' in CONFIG['MOZ_WIDGET_TOOLKIT']:
+if 'gtk' in CONFIG['MOZ_WIDGET_TOOLKIT']:
     SOURCES += [
         'nsGNOMEShellService.cpp',
     ]

@@ -41,14 +41,6 @@
 #include <android/log.h>
 #endif
 
-#ifdef XP_WIN
-#include "mozilla/widget/AudioSession.h"
-#include <windows.h>
-#if defined(MOZ_SANDBOX)
-#include "SandboxBroker.h"
-#endif
-#endif
-
 // all this crap is needed to do the interactive shell stuff
 #include <stdlib.h>
 #include <errno.h>
@@ -97,20 +89,6 @@ private:
     nsCOMPtr<nsIFile> mAppFile;
 };
 
-#ifdef XP_WIN
-class MOZ_STACK_CLASS AutoAudioSession
-{
-public:
-    AutoAudioSession() {
-        widget::StartAudioSession();
-    }
-
-    ~AutoAudioSession() {
-        widget::StopAudioSession();
-    }
-};
-#endif
-
 #define EXITCODE_RUNTIME_ERROR 3
 #define EXITCODE_FILE_NOT_FOUND 4
 
@@ -134,35 +112,13 @@ GetLocationProperty(JSContext* cx, unsigned argc, Value* vp)
         JS_ReportErrorASCII(cx, "Unexpected this value for GetLocationProperty");
         return false;
     }
-#if !defined(XP_WIN) && !defined(XP_UNIX)
+#if !defined(XP_UNIX)
     //XXX: your platform should really implement this
     return false;
 #else
     JS::AutoFilename filename;
     if (JS::DescribeScriptedCaller(cx, &filename) && filename.get()) {
-#if defined(XP_WIN)
-        // convert from the system codepage to UTF-16
-        int bufferSize = MultiByteToWideChar(CP_ACP, 0, filename.get(),
-                                             -1, nullptr, 0);
-        nsAutoString filenameString;
-        filenameString.SetLength(bufferSize);
-        MultiByteToWideChar(CP_ACP, 0, filename.get(),
-                            -1, (LPWSTR)filenameString.BeginWriting(),
-                            filenameString.Length());
-        // remove the null terminator
-        filenameString.SetLength(bufferSize - 1);
-
-        // replace forward slashes with backslashes,
-        // since nsLocalFileWin chokes on them
-        char16_t* start = filenameString.BeginWriting();
-        char16_t* end = filenameString.EndWriting();
-
-        while (start != end) {
-            if (*start == L'/')
-                *start = L'\\';
-            start++;
-        }
-#elif defined(XP_UNIX)
+#if defined(XP_UNIX)
         NS_ConvertUTF8toUTF16 filenameString(filename.get());
 #endif
 
@@ -310,14 +266,6 @@ Dump(JSContext* cx, unsigned argc, Value* vp)
 
 #ifdef ANDROID
     __android_log_print(ANDROID_LOG_INFO, "Gecko", "%s", utf8str.ptr());
-#endif
-#ifdef XP_WIN
-    if (IsDebuggerPresent()) {
-        nsAutoJSString wstr;
-        if (!wstr.init(cx, str))
-            return false;
-        OutputDebugStringW(wstr.get());
-    }
 #endif
     fputs(utf8str.ptr(), gOutFile);
     fflush(gOutFile);
@@ -1061,17 +1009,9 @@ nsXPCFunctionThisTranslator::TranslateThis(nsISupports* aInitialThis,
 static bool
 GetCurrentWorkingDirectory(nsAString& workingDirectory)
 {
-#if !defined(XP_WIN) && !defined(XP_UNIX)
+#if !defined(XP_UNIX)
     //XXX: your platform should really implement this
     return false;
-#elif XP_WIN
-    DWORD requiredLength = GetCurrentDirectoryW(0, nullptr);
-    workingDirectory.SetLength(requiredLength);
-    GetCurrentDirectoryW(workingDirectory.Length(),
-                         (LPWSTR)workingDirectory.BeginWriting());
-    // we got a trailing null there
-    workingDirectory.SetLength(requiredLength);
-    workingDirectory.Replace(workingDirectory.Length() - 1, 1, L'\\');
 #elif defined(XP_UNIX)
     nsAutoCString cwd;
     // 1024 is just a guess at a sane starting value
@@ -1339,21 +1279,6 @@ XRE_XPCShellMain(int argc, char** argv, char** envp,
         gfxPrefs::GetSingleton();
         // Initialize e10s check on the main thread, if not already done
         BrowserTabsRemoteAutostart();
-#ifdef XP_WIN
-        // Plugin may require audio session if installed plugin can initialize
-        // asynchronized.
-        AutoAudioSession audioSession;
-
-#if defined(MOZ_SANDBOX)
-        // Required for sandboxed child processes.
-        if (aShellData->sandboxBrokerServices) {
-          SandboxBroker::Initialize(aShellData->sandboxBrokerServices);
-        } else {
-          NS_WARNING("Failed to initialize broker services, sandboxed "
-                     "processes will fail to start.");
-        }
-#endif
-#endif
 
         {
             if (!glob) {

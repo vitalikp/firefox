@@ -42,17 +42,6 @@ def Libxul(name):
             'api-ms-win-core-winrt-string-l1-1-0.dll',
         ]
 
-    if CONFIG['OS_ARCH'] == 'WINNT' and not CONFIG['GNU_CC']:
-        LOCAL_INCLUDES += [
-            '/widget/windows',
-            '/xpcom/base',
-        ]
-        # config/version.mk says $(srcdir)/$(RCINCLUDE), and this needs to
-        # be valid in both toolkit/library and toolkit/library/gtest.
-        # Eventually, the make backend would do its own path canonicalization
-        # and config/version.mk would lift the $(srcdir)
-        RCINCLUDE = '$(DEPTH)/toolkit/library/xulrunner.rc'
-
     Libxul_defines()
 
     if CONFIG['MOZ_NEEDS_LIBATOMIC']:
@@ -85,8 +74,6 @@ if CONFIG['OS_ARCH'] == 'WINNT':
 
 LOCAL_INCLUDES += [
     '/config',
-    # need widget/windows for resource.h (included from widget.rc)
-    '/widget/windows',
 ]
 
 if CONFIG['OS_ARCH'] == 'WINNT' and not CONFIG['GNU_CC']:

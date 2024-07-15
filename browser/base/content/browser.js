@@ -63,7 +63,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "ContextualIdentityService",
 // lazy service getters
 [
   ["Favicons", "@mozilla.org/browser/favicon-service;1", "mozIAsyncFavicons"],
-  ["WindowsUIUtils", "@mozilla.org/windows-ui-utils;1", "nsIWindowsUIUtils"],
   ["gAboutNewTabService", "@mozilla.org/browser/aboutnewtab-service;1", "nsIAboutNewTabService"],
   ["gDNSService", "@mozilla.org/network/dns-service;1", "nsIDNSService"],
 ].forEach(([name, cc, ci]) => XPCOMUtils.defineLazyServiceGetter(this, name, cc, ci));
@@ -127,26 +126,6 @@ XPCOMUtils.defineLazyGetter(this, "PopupNotifications", function() {
     Cu.reportError(ex);
     return null;
   }
-});
-
-XPCOMUtils.defineLazyGetter(this, "Win7Features", function() {
-  if (AppConstants.platform != "win")
-    return null;
-
-  const WINTASKBAR_CONTRACTID = "@mozilla.org/windows-taskbar;1";
-  if (WINTASKBAR_CONTRACTID in Cc &&
-      Cc[WINTASKBAR_CONTRACTID].getService(Ci.nsIWinTaskbar).available) {
-    let AeroPeek = Cu.import("resource:///modules/WindowsPreviewPerTab.jsm", {}).AeroPeek;
-    return {
-      onOpenWindow() {
-        AeroPeek.onOpenWindow(window);
-      },
-      onCloseWindow() {
-        AeroPeek.onCloseWindow(window);
-      }
-    };
-  }
-  return null;
 });
 
 const nsIWebNavigation = Ci.nsIWebNavigation;
@@ -1088,16 +1067,6 @@ var gBrowserInit = {
     CombinedStopReload.init();
     gPrivateBrowsingUI.init();
 
-    if (window.matchMedia("(-moz-os-version: windows-win8)").matches &&
-        window.matchMedia("(-moz-windows-default-theme)").matches) {
-      let windowFrameColor = new Color(...Cu.import("resource:///modules/Windows8WindowFrameColor.jsm", {})
-                                            .Windows8WindowFrameColor.get());
-      // Default to black for foreground text.
-      if (!windowFrameColor.isContrastRatioAcceptable(new Color(0, 0, 0))) {
-        document.documentElement.setAttribute("darkwindowframe", "true");
-      }
-    }
-
     ToolbarIconColor.init();
 
     // Wait until chrome is painted before executing code not critical to making the window visible
@@ -1331,8 +1300,6 @@ var gBrowserInit = {
       try {
         Cu.import("resource:///modules/DownloadsCommon.jsm", {})
           .DownloadsCommon.initializeAllDataLinks();
-        Cu.import("resource:///modules/DownloadsTaskbar.jsm", {})
-          .DownloadsTaskbar.registerIndicator(window);
       } catch (ex) {
         Cu.reportError(ex);
       }
@@ -1363,9 +1330,6 @@ var gBrowserInit = {
     }
 
     LightWeightThemeWebInstaller.init();
-
-    if (Win7Features)
-      Win7Features.onOpenWindow();
 
     PointerlockFsWarning.init();
     FullScreen.init();
@@ -1544,9 +1508,6 @@ var gBrowserInit = {
     if (this._boundDelayedStartup) {
       this._cancelDelayedStartup();
     } else {
-      if (Win7Features)
-        Win7Features.onCloseWindow();
-
       gPrefService.removeObserver(ctrlTab.prefName, ctrlTab);
       ctrlTab.uninit();
       SocialUI.uninit();
@@ -5104,10 +5065,6 @@ function setToolbarVisibility(toolbar, isVisible, persist = true) {
 
 var TabletModeUpdater = {
   init() {
-    if (AppConstants.isPlatformAndVersionAtLeast("win", "10")) {
-      this.update(WindowsUIUtils.inTabletMode);
-      Services.obs.addObserver(this, "tablet-mode-change", false);
-    }
   },
 
   uninit() {

@@ -34,8 +34,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "Sqlite",
                                   "resource://gre/modules/Sqlite.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "TelemetryStopwatch",
                                   "resource://gre/modules/TelemetryStopwatch.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "WindowsRegistry",
-                                  "resource://gre/modules/WindowsRegistry.jsm");
 
 var gMigrators = null;
 var gProfileStartup = null;
@@ -744,36 +742,6 @@ this.MigrationUtils = Object.freeze({
       Cu.reportError("Could not detect default browser: " + ex);
     }
 
-    // "firefox" is the least useful entry here, and might just be because we've set
-    // ourselves as the default (on Windows 7 and below). In that case, check if we
-    // have a registry key that tells us where to go:
-    if (key == "firefox" && AppConstants.isPlatformAndVersionAtMost("win", "6.2")) {
-      // Because we remove the registry key, reading the registry key only works once.
-      // We save the value for subsequent calls to avoid hard-to-trace bugs when multiple
-      // consumers ask for this key.
-      if (gPreviousDefaultBrowserKey) {
-        key = gPreviousDefaultBrowserKey;
-      } else {
-        // We didn't have a saved value, so check the registry.
-        const kRegPath = "Software\\Mozilla\\Firefox";
-        let oldDefault = WindowsRegistry.readRegKey(
-            Ci.nsIWindowsRegKey.ROOT_KEY_CURRENT_USER, kRegPath, "OldDefaultBrowserCommand");
-        if (oldDefault) {
-          // Remove the key:
-          WindowsRegistry.removeRegKey(
-            Ci.nsIWindowsRegKey.ROOT_KEY_CURRENT_USER, kRegPath, "OldDefaultBrowserCommand");
-          try {
-            let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFileWin);
-            file.initWithCommandLine(oldDefault);
-            key = APP_DESC_TO_KEY[file.getVersionInfoField("FileDescription")] || key;
-            // Save the value for future callers.
-            gPreviousDefaultBrowserKey = key;
-          } catch (ex) {
-            Cu.reportError("Could not convert old default browser value to description.");
-          }
-        }
-      }
-    }
     return key;
   },
 

@@ -45,7 +45,6 @@ if CONFIG['OS_ARCH'] == 'WINNT':
         'PluginSurfaceParent.h',
     ]
     UNIFIED_SOURCES += [
-        'PluginHangUIParent.cpp',
         'PluginSurfaceParent.cpp',
     ]
     SOURCES += [

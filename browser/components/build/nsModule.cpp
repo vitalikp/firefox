@@ -8,14 +8,8 @@
 #include "nsBrowserCompsCID.h"
 #include "DirectoryProvider.h"
 
-#if defined(XP_WIN)
-#include "nsWindowsShellService.h"
-#elif defined(MOZ_WIDGET_GTK)
+#if defined(MOZ_WIDGET_GTK)
 #include "nsGNOMEShellService.h"
-#endif
-
-#if defined(XP_WIN)
-#include "nsIEHistoryEnumerator.h"
 #endif
 
 #include "rdf.h"
@@ -30,50 +24,32 @@ using namespace mozilla::browser;
 /////////////////////////////////////////////////////////////////////////////
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(DirectoryProvider)
-#if defined(XP_WIN)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsWindowsShellService)
-#elif defined(MOZ_WIDGET_GTK)
+#if defined(MOZ_WIDGET_GTK)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsGNOMEShellService, Init)
-#endif
-
-#if defined(XP_WIN)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsIEHistoryEnumerator)
 #endif
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsFeedSniffer)
 
 NS_DEFINE_NAMED_CID(NS_BROWSERDIRECTORYPROVIDER_CID);
-#if defined(XP_WIN)
-NS_DEFINE_NAMED_CID(NS_SHELLSERVICE_CID);
-#elif defined(MOZ_WIDGET_GTK)
+#if defined(MOZ_WIDGET_GTK)
 NS_DEFINE_NAMED_CID(NS_SHELLSERVICE_CID);
 #endif
 NS_DEFINE_NAMED_CID(NS_FEEDSNIFFER_CID);
 NS_DEFINE_NAMED_CID(NS_BROWSER_ABOUT_REDIRECTOR_CID);
-#if defined(XP_WIN)
-NS_DEFINE_NAMED_CID(NS_WINIEHISTORYENUMERATOR_CID);
-#endif
 
 static const mozilla::Module::CIDEntry kBrowserCIDs[] = {
     { &kNS_BROWSERDIRECTORYPROVIDER_CID, false, nullptr, DirectoryProviderConstructor },
-#if defined(XP_WIN)
-    { &kNS_SHELLSERVICE_CID, false, nullptr, nsWindowsShellServiceConstructor },
-#elif defined(MOZ_WIDGET_GTK)
+#if defined(MOZ_WIDGET_GTK)
     { &kNS_SHELLSERVICE_CID, false, nullptr, nsGNOMEShellServiceConstructor },
 #endif
     { &kNS_FEEDSNIFFER_CID, false, nullptr, nsFeedSnifferConstructor },
     { &kNS_BROWSER_ABOUT_REDIRECTOR_CID, false, nullptr, AboutRedirector::Create },
-#if defined(XP_WIN)
-    { &kNS_WINIEHISTORYENUMERATOR_CID, false, nullptr, nsIEHistoryEnumeratorConstructor },
-#endif
     { nullptr }
 };
 
 static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
     { NS_BROWSERDIRECTORYPROVIDER_CONTRACTID, &kNS_BROWSERDIRECTORYPROVIDER_CID },
-#if defined(XP_WIN)
-    { NS_SHELLSERVICE_CONTRACTID, &kNS_SHELLSERVICE_CID },
-#elif defined(MOZ_WIDGET_GTK)
+#if defined(MOZ_WIDGET_GTK)
     { NS_SHELLSERVICE_CONTRACTID, &kNS_SHELLSERVICE_CID },
 #endif
     { NS_FEEDSNIFFER_CONTRACTID, &kNS_FEEDSNIFFER_CID },
@@ -96,9 +72,6 @@ static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
     { NS_ABOUT_MODULE_CONTRACTID_PREFIX "healthreport", &kNS_BROWSER_ABOUT_REDIRECTOR_CID },
 #endif
     { NS_ABOUT_MODULE_CONTRACTID_PREFIX "reader", &kNS_BROWSER_ABOUT_REDIRECTOR_CID },
-#if defined(XP_WIN)
-    { NS_IEHISTORYENUMERATOR_CONTRACTID, &kNS_WINIEHISTORYENUMERATOR_CID },
-#endif
     { nullptr }
 };
 

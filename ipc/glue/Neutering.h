@@ -10,8 +10,7 @@
 #include "mozilla/GuardObjects.h"
 
 /**
- * This header declares RAII wrappers for Window neutering. See
- * WindowsMessageLoop.cpp for more details.
+ * This header declares RAII wrappers for Window neutering.
  */
 
 namespace mozilla {

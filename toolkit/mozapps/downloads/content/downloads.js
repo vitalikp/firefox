@@ -445,10 +445,6 @@ function Startup()
       e.preventDefault();
     }
   }, false);
-
-  let DownloadTaskbarProgress =
-    Cu.import("resource://gre/modules/DownloadTaskbarProgress.jsm", {}).DownloadTaskbarProgress;
-  DownloadTaskbarProgress.onDownloadWindowLoad(window);
 }
 
 function Shutdown()

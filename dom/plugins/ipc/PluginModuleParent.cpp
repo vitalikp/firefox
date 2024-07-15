@@ -37,13 +37,6 @@
 #include "nsUnicharUtils.h"
 #include "mozilla/layers/TextureClientRecycleAllocator.h"
 
-#ifdef XP_WIN
-#include "mozilla/plugins/PluginSurfaceParent.h"
-#include "mozilla/widget/AudioSession.h"
-#include "PluginHangUIParent.h"
-#include "PluginUtilsWin.h"
-#endif
-
 #ifdef MOZ_WIDGET_GTK
 #include <glib.h>
 #endif
@@ -63,13 +56,7 @@ static const char kContentTimeoutPref[] = "dom.ipc.plugins.contentTimeoutSecs";
 static const char kChildTimeoutPref[] = "dom.ipc.plugins.timeoutSecs";
 static const char kParentTimeoutPref[] = "dom.ipc.plugins.parentTimeoutSecs";
 static const char kLaunchTimeoutPref[] = "dom.ipc.plugins.processLaunchTimeoutSecs";
-#ifdef XP_WIN
-static const char kHangUITimeoutPref[] = "dom.ipc.plugins.hangUITimeoutSecs";
-static const char kHangUIMinDisplayPref[] = "dom.ipc.plugins.hangUIMinDisplaySecs";
-#define CHILD_TIMEOUT_PREF kHangUITimeoutPref
-#else
 #define CHILD_TIMEOUT_PREF kChildTimeoutPref
-#endif
 
 bool
 mozilla::plugins::SetupBridge(uint32_t aPluginId,
@@ -441,21 +428,8 @@ PluginModuleChromeParent::OnProcessLaunched(const bool aSucceeded)
 
     Preferences::RegisterCallback(TimeoutChanged, kChildTimeoutPref, this);
     Preferences::RegisterCallback(TimeoutChanged, kParentTimeoutPref, this);
-#ifdef XP_WIN
-    Preferences::RegisterCallback(TimeoutChanged, kHangUITimeoutPref, this);
-    Preferences::RegisterCallback(TimeoutChanged, kHangUIMinDisplayPref, this);
-#endif
 
     RegisterSettingsCallbacks();
-
-#if defined(XP_WIN) && defined(_X86_)
-    // Protected mode only applies to Windows and only to x86.
-    if (mIsFlashPlugin &&
-        (Preferences::GetBool("dom.ipc.plugins.flash.disable-protected-mode", false) ||
-         mSandboxLevel >= 2)) {
-        SendDisableFlashProtectedMode();
-    }
-#endif
 
 #ifdef MOZ_GECKO_PROFILER
     Unused << SendInitProfiler(ProfilerParent::CreateForProcess(OtherPid()));
@@ -510,12 +484,6 @@ PluginModuleChromeParent::PluginModuleChromeParent(const char* aFilePath,
     , mPluginId(aPluginId)
     , mChromeTaskFactory(this)
     , mHangAnnotationFlags(0)
-#ifdef XP_WIN
-    , mPluginCpuUsageOnHang()
-    , mHangUIParent(nullptr)
-    , mHangUIEnabled(true)
-    , mIsTimerReset(true)
-#endif
 {
     NS_ASSERTION(mSubprocess, "Out of memory!");
     mSandboxLevel = aSandboxLevel;
@@ -529,16 +497,6 @@ PluginModuleChromeParent::~PluginModuleChromeParent()
     if (!OkToCleanup()) {
         MOZ_CRASH("unsafe destruction");
     }
-
-#ifdef XP_WIN
-    // If we registered for audio notifications, stop.
-    mozilla::plugins::PluginUtilsWin::RegisterForAudioDeviceChanges(this,
-                                                                    false);
-#endif
-
-#if defined(XP_WIN) && defined(MOZ_SANDBOX)
-    mSandboxPermissions.RemovePermissionsForProcess(OtherPid());
-#endif
 
     if (!mShutdown) {
         NS_WARNING("Plugin host deleted the module without shutting down.");
@@ -557,15 +515,6 @@ PluginModuleChromeParent::~PluginModuleChromeParent()
 
     Preferences::UnregisterCallback(TimeoutChanged, kChildTimeoutPref, this);
     Preferences::UnregisterCallback(TimeoutChanged, kParentTimeoutPref, this);
-#ifdef XP_WIN
-    Preferences::UnregisterCallback(TimeoutChanged, kHangUITimeoutPref, this);
-    Preferences::UnregisterCallback(TimeoutChanged, kHangUIMinDisplayPref, this);
-
-    if (mHangUIParent) {
-        delete mHangUIParent;
-        mHangUIParent = nullptr;
-    }
-#endif
 
     mozilla::HangMonitor::UnregisterAnnotator(*this);
 }
@@ -584,19 +533,11 @@ PluginModuleParent::TimeoutChanged(const char* aPref, void* aModule)
     PluginModuleParent* module = static_cast<PluginModuleParent*>(aModule);
 
     NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
-#ifndef XP_WIN
     if (!strcmp(aPref, kChildTimeoutPref)) {
       MOZ_ASSERT(module->IsChrome());
       // The timeout value used by the parent for children
       int32_t timeoutSecs = Preferences::GetInt(kChildTimeoutPref, 0);
       module->SetChildTimeout(timeoutSecs);
-#else
-    if (!strcmp(aPref, kChildTimeoutPref) ||
-        !strcmp(aPref, kHangUIMinDisplayPref) ||
-        !strcmp(aPref, kHangUITimeoutPref)) {
-      MOZ_ASSERT(module->IsChrome());
-      static_cast<PluginModuleChromeParent*>(module)->EvaluateHangUIState(true);
-#endif // XP_WIN
     } else if (!strcmp(aPref, kParentTimeoutPref)) {
       // The timeout value used by the child for its parent
       MOZ_ASSERT(module->IsChrome());
@@ -637,74 +578,6 @@ PluginModuleChromeParent::CleanupFromTimeout(const bool aFromHangUI)
         Close();
     }
 }
-
-#ifdef XP_WIN
-namespace {
-
-uint64_t
-FileTimeToUTC(const FILETIME& ftime)
-{
-  ULARGE_INTEGER li;
-  li.LowPart = ftime.dwLowDateTime;
-  li.HighPart = ftime.dwHighDateTime;
-  return li.QuadPart;
-}
-
-struct CpuUsageSamples
-{
-  uint64_t sampleTimes[2];
-  uint64_t cpuTimes[2];
-};
-
-bool
-GetProcessCpuUsage(const InfallibleTArray<base::ProcessHandle>& processHandles, InfallibleTArray<float>& cpuUsage)
-{
-  InfallibleTArray<CpuUsageSamples> samples(processHandles.Length());
-  FILETIME creationTime, exitTime, kernelTime, userTime, currentTime;
-  BOOL res;
-
-  for (uint32_t i = 0; i < processHandles.Length(); ++i) {
-    ::GetSystemTimeAsFileTime(&currentTime);
-    res = ::GetProcessTimes(processHandles[i], &creationTime, &exitTime, &kernelTime, &userTime);
-    if (!res) {
-      NS_WARNING("failed to get process times");
-      return false;
-    }
-
-    CpuUsageSamples s;
-    s.sampleTimes[0] = FileTimeToUTC(currentTime);
-    s.cpuTimes[0]    = FileTimeToUTC(kernelTime) + FileTimeToUTC(userTime);
-    samples.AppendElement(s);
-  }
-
-  // we already hung for a while, a little bit longer won't matter
-  ::Sleep(50);
-
-  const int32_t numberOfProcessors = PR_GetNumberOfProcessors();
-
-  for (uint32_t i = 0; i < processHandles.Length(); ++i) {
-    ::GetSystemTimeAsFileTime(&currentTime);
-    res = ::GetProcessTimes(processHandles[i], &creationTime, &exitTime, &kernelTime, &userTime);
-    if (!res) {
-      NS_WARNING("failed to get process times");
-      return false;
-    }
-
-    samples[i].sampleTimes[1] = FileTimeToUTC(currentTime);
-    samples[i].cpuTimes[1]    = FileTimeToUTC(kernelTime) + FileTimeToUTC(userTime);
-
-    const uint64_t deltaSampleTime = samples[i].sampleTimes[1] - samples[i].sampleTimes[0];
-    const uint64_t deltaCpuTime    = samples[i].cpuTimes[1]    - samples[i].cpuTimes[0];
-    const float usage = 100.f * (float(deltaCpuTime) / deltaSampleTime) / numberOfProcessors;
-    cpuUsage.AppendElement(usage);
-  }
-
-  return true;
-}
-
-} // namespace
-
-#endif // #ifdef XP_WIN
 
 /**
  * This function converts the topmost routing id on the call stack (as recorded
@@ -772,13 +645,6 @@ PluginModuleChromeParent::GetManagingInstance(mozilla::ipc::IProtocol* aProtocol
                 static_cast<PStreamNotifyParent*>(aProtocol);
             return static_cast<PluginInstanceParent*>(actor->Manager());
         }
-#ifdef XP_WIN
-        case PPluginSurfaceMsgStart: {
-            PPluginSurfaceParent* actor =
-                static_cast<PPluginSurfaceParent*>(aProtocol);
-            return static_cast<PluginInstanceParent*>(actor->Manager());
-        }
-#endif
         default:
             return nullptr;
     }
@@ -794,9 +660,6 @@ void
 PluginModuleChromeParent::ExitedCxxStack()
 {
     mHangAnnotationFlags = 0;
-#ifdef XP_WIN
-    FinishHangUI();
-#endif
 }
 
 /**
@@ -838,14 +701,6 @@ PluginModuleChromeParent::ShouldContinueFromReplyTimeout()
                 &PluginModuleChromeParent::NotifyFlashHang));
     }
 
-#ifdef XP_WIN
-    if (LaunchHangUI()) {
-        return true;
-    }
-    // If LaunchHangUI returned false then we should proceed with the
-    // original plugin hang behaviour and kill the plugin container.
-    FinishHangUI();
-#endif // XP_WIN
     TerminateChildProcess(MessageLoop::current(),
                           mozilla::ipc::kInvalidProcessId,
                           NS_LITERAL_CSTRING("ModalHangUI"),
@@ -888,20 +743,6 @@ PluginModuleChromeParent::TerminateChildProcess(MessageLoop* aMsgLoop,
     bool childOpened = base::OpenProcessHandle(OtherPid(),
                                                &geckoChildProcess.rwget());
 
-#ifdef XP_WIN
-    // collect cpu usage for plugin processes
-
-    InfallibleTArray<base::ProcessHandle> processHandles;
-
-    if (childOpened) {
-        processHandles.AppendElement(geckoChildProcess);
-    }
-
-    if (!GetProcessCpuUsage(processHandles, mPluginCpuUsageOnHang)) {
-      mPluginCpuUsageOnHang.Clear();
-    }
-#endif
-
     // this must run before the error notification from the channel,
     // or not at all
     bool isFromHangUI = aMsgLoop != MessageLoop::current();
@@ -942,106 +783,6 @@ PluginModuleParent::InitQuirksModes(const nsCString& aMimeType)
 
     mQuirks = GetQuirksFromMimeTypeAndFilename(aMimeType, mPluginFilename);
 }
-
-#ifdef XP_WIN
-void
-PluginModuleChromeParent::EvaluateHangUIState(const bool aReset)
-{
-    int32_t minDispSecs = Preferences::GetInt(kHangUIMinDisplayPref, 10);
-    int32_t autoStopSecs = Preferences::GetInt(kChildTimeoutPref, 0);
-    int32_t timeoutSecs = 0;
-    if (autoStopSecs > 0 && autoStopSecs < minDispSecs) {
-        /* If we're going to automatically terminate the plugin within a
-           time frame shorter than minDispSecs, there's no point in
-           showing the hang UI; it would just flash briefly on the screen. */
-        mHangUIEnabled = false;
-    } else {
-        timeoutSecs = Preferences::GetInt(kHangUITimeoutPref, 0);
-        mHangUIEnabled = timeoutSecs > 0;
-    }
-    if (mHangUIEnabled) {
-        if (aReset) {
-            mIsTimerReset = true;
-            SetChildTimeout(timeoutSecs);
-            return;
-        } else if (mIsTimerReset) {
-            /* The Hang UI is being shown, so now we're setting the
-               timeout to kChildTimeoutPref while we wait for a user
-               response. ShouldContinueFromReplyTimeout will fire
-               after (reply timeout / 2) seconds, which is not what
-               we want. Doubling the timeout value here so that we get
-               the right result. */
-            autoStopSecs *= 2;
-        }
-    }
-    mIsTimerReset = false;
-    SetChildTimeout(autoStopSecs);
-}
-
-bool
-PluginModuleChromeParent::LaunchHangUI()
-{
-    if (!mHangUIEnabled) {
-        return false;
-    }
-    if (mHangUIParent) {
-        if (mHangUIParent->IsShowing()) {
-            // We've already shown the UI but the timeout has expired again.
-            return false;
-        }
-        if (mHangUIParent->DontShowAgain()) {
-            mHangAnnotationFlags |= kHangUIDontShow;
-            bool wasLastHangStopped = mHangUIParent->WasLastHangStopped();
-            if (!wasLastHangStopped) {
-                mHangAnnotationFlags |= kHangUIContinued;
-            }
-            return !wasLastHangStopped;
-        }
-        delete mHangUIParent;
-        mHangUIParent = nullptr;
-    }
-    mHangUIParent = new PluginHangUIParent(this,
-            Preferences::GetInt(kHangUITimeoutPref, 0),
-            Preferences::GetInt(kChildTimeoutPref, 0));
-    bool retval = mHangUIParent->Init(NS_ConvertUTF8toUTF16(mPluginName));
-    if (retval) {
-        mHangAnnotationFlags |= kHangUIShown;
-        /* Once the UI is shown we switch the timeout over to use
-           kChildTimeoutPref, allowing us to terminate a hung plugin
-           after kChildTimeoutPref seconds if the user doesn't respond to
-           the hang UI. */
-        EvaluateHangUIState(false);
-    }
-    return retval;
-}
-
-void
-PluginModuleChromeParent::FinishHangUI()
-{
-    if (mHangUIEnabled && mHangUIParent) {
-        bool needsCancel = mHangUIParent->IsShowing();
-        // If we're still showing, send a Cancel notification
-        if (needsCancel) {
-            mHangUIParent->Cancel();
-        }
-        /* If we cancelled the UI or if the user issued a response,
-           we need to reset the child process timeout. */
-        if (needsCancel ||
-            (!mIsTimerReset && mHangUIParent->WasShown())) {
-            /* We changed the timeout to kChildTimeoutPref when the plugin hang
-               UI was displayed. Now that we're finishing the UI, we need to
-               switch it back to kHangUITimeoutPref. */
-            EvaluateHangUIState(true);
-        }
-    }
-}
-
-void
-PluginModuleChromeParent::OnHangUIContinue()
-{
-    mHangAnnotationFlags |= kHangUIContinued;
-}
-#endif // XP_WIN
 
 void
 PluginModuleParent::ActorDestroy(ActorDestroyReason why)
@@ -1301,20 +1042,9 @@ mozilla::ipc::IPCResult
 PluginModuleChromeParent::AnswerNPN_SetValue_NPPVpluginRequiresAudioDeviceChanges(
     const bool& shouldRegister, NPError* result)
 {
-#ifdef XP_WIN
-    *result = NPERR_NO_ERROR;
-    nsresult err =
-      mozilla::plugins::PluginUtilsWin::RegisterForAudioDeviceChanges(this,
-                                                               shouldRegister);
-    if (err != NS_OK) {
-      *result = NPERR_GENERIC_ERROR;
-    }
-    return IPC_OK();
-#else
     NS_RUNTIMEABORT("NPPVpluginRequiresAudioDeviceChanges is not valid on this platform.");
     *result = NPERR_GENERIC_ERROR;
     return IPC_OK();
-#endif
 }
 
 mozilla::ipc::IPCResult
@@ -1416,16 +1146,6 @@ PluginModuleParent::EndUpdateBackground(NPP instance, const nsIntRect& aRect)
     PluginInstanceParent* pip = PluginInstanceParent::Cast(instance);
     return pip ? pip->EndUpdateBackground(aRect) : NS_ERROR_FAILURE;
 }
-
-#if defined(XP_WIN)
-nsresult
-PluginModuleParent::GetScrollCaptureContainer(NPP aInstance,
-                                              mozilla::layers::ImageContainer** aContainer)
-{
-    PluginInstanceParent* pip = PluginInstanceParent::Cast(aInstance);
-    return pip ? pip->GetScrollCaptureContainer(aContainer) : NS_ERROR_FAILURE;
-}
-#endif
 
 nsresult
 PluginModuleParent::HandledWindowedPluginKeyEvent(
@@ -1622,17 +1342,6 @@ PluginModuleParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPError* error)
     return NS_OK;
 }
 
-#if defined(XP_WIN)
-
-nsresult
-PluginModuleContentParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPError* error)
-{
-    PLUGIN_LOG_DEBUG_METHOD;
-    return PluginModuleParent::NP_Initialize(bFuncs, error);
-}
-
-#endif
-
 nsresult
 PluginModuleChromeParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPError* error)
 {
@@ -1654,19 +1363,6 @@ PluginModuleChromeParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPError* error)
     bool ok = true;
     if (*error == NPERR_NO_ERROR) {
         // Initialization steps for (e10s && !asyncInit) || !e10s
-#if defined XP_WIN
-        // Send the info needed to join the browser process's audio session to
-        // the plugin process.
-        nsID id;
-        nsString sessionName;
-        nsString iconPath;
-
-        if (NS_SUCCEEDED(mozilla::widget::GetAudioSessionData(id, sessionName,
-                                                              iconPath))) {
-            Unused << SendSetAudioSessionData(id, sessionName, iconPath);
-        }
-#endif
-
     }
 
     if (!ok) {
@@ -1750,44 +1446,6 @@ PluginModuleParent::NP_GetValue(void *future, NPPVariable aVariable,
     return NS_OK;
 }
 
-#if defined(XP_WIN)
-nsresult
-PluginModuleParent::NP_GetEntryPoints(NPPluginFuncs* pFuncs, NPError* error)
-{
-    NS_ASSERTION(pFuncs, "Null pointer!");
-
-    *error = NPERR_NO_ERROR;
-    SetPluginFuncs(pFuncs);
-
-    return NS_OK;
-}
-
-nsresult
-PluginModuleChromeParent::NP_GetEntryPoints(NPPluginFuncs* pFuncs, NPError* error)
-{
-    if (!mSubprocess->IsConnected()) {
-        mNPPIface = pFuncs;
-        *error = NPERR_NO_ERROR;
-        return NS_OK;
-    }
-
-    // We need to have the plugin process update its function table here by
-    // actually calling NP_GetEntryPoints. The parent's function table will
-    // reflect nullptr entries in the child's table once SetPluginFuncs is
-    // called.
-
-    if (!CallNP_GetEntryPoints(error)) {
-        return NS_ERROR_FAILURE;
-    }
-    else if (*error != NPERR_NO_ERROR) {
-        return NS_OK;
-    }
-
-    return PluginModuleParent::NP_GetEntryPoints(pFuncs, error);
-}
-
-#endif
-
 nsresult
 PluginModuleParent::NPP_New(NPMIMEType pluginType, NPP instance,
                             int16_t argc, char* argn[],
@@ -1867,37 +1525,6 @@ PluginModuleParent::NPP_NewInternal(NPMIMEType pluginType, NPP instance,
 
     if (mIsFlashPlugin) {
         parentInstance->InitMetadata(strPluginType, srcAttribute);
-#ifdef XP_WIN
-        bool supportsAsyncRender =
-          Preferences::GetBool("dom.ipc.plugins.asyncdrawing.enabled", false);
-        if (supportsAsyncRender) {
-          // Prefs indicates we want async plugin rendering, make sure
-          // the flash module has support.
-          CallModuleSupportsAsyncRender(&supportsAsyncRender);
-        }
-#ifdef _WIN64
-        // For 64-bit builds force windowless if the flash library doesn't support
-        // async rendering regardless of sandbox level.
-        if (!supportsAsyncRender) {
-#else
-        // For 32-bit builds force windowless if the flash library doesn't support
-        // async rendering and the sandbox level is 2 or greater.
-        if (!supportsAsyncRender && mSandboxLevel >= 2) {
-#endif
-           NS_NAMED_LITERAL_CSTRING(wmodeAttributeName, "wmode");
-           NS_NAMED_LITERAL_CSTRING(opaqueAttributeValue, "opaque");
-           auto wmodeAttributeIndex =
-               names.IndexOf(wmodeAttributeName, 0, comparator);
-           if (wmodeAttributeIndex != names.NoIndex) {
-               if (!values[wmodeAttributeIndex].EqualsLiteral("transparent")) {
-                   values[wmodeAttributeIndex].Assign(opaqueAttributeValue);
-               }
-           } else {
-               names.AppendElement(wmodeAttributeName);
-               values.AppendElement(opaqueAttributeValue);
-           }
-        }
-#endif
     }
 
     instance->pdata = parentInstance;
@@ -1987,16 +1614,6 @@ PluginModuleParent::NPP_GetSitesWithData(nsCOMPtr<nsIGetSitesWithDataCallback> c
 
     return NS_OK;
 }
-
-#if defined(XP_WIN)
-nsresult
-PluginModuleParent::ContentsScaleFactorChanged(NPP instance, double aContentsScaleFactor)
-{
-    PluginInstanceParent* pip = PluginInstanceParent::Cast(instance);
-    return pip ? pip->ContentsScaleFactorChanged(aContentsScaleFactor)
-               : NS_ERROR_FAILURE;
-}
-#endif // #if defined(XP_WIN)
 
 #if !defined(MOZ_WIDGET_GTK)
 mozilla::ipc::IPCResult
@@ -2217,12 +1834,7 @@ mozilla::ipc::IPCResult
 PluginModuleChromeParent::AnswerGetKeyState(const int32_t& aVirtKey,
                                             int16_t* aRet)
 {
-#if defined(XP_WIN)
-    *aRet = ::GetKeyState(aVirtKey);
-    return IPC_OK();
-#else
     return PluginModuleParent::AnswerGetKeyState(aVirtKey, aRet);
-#endif
 }
 
 mozilla::ipc::IPCResult
@@ -2231,62 +1843,7 @@ PluginModuleChromeParent::AnswerGetFileName(const GetFileNameFunc& aFunc,
                                             OpenFileNameRetIPC* aOfnOut,
                                             bool* aResult)
 {
-#if defined(XP_WIN) && defined(MOZ_SANDBOX)
-    OPENFILENAMEW ofn;
-    memset(&ofn, 0, sizeof(ofn));
-    aOfnIn.AllocateOfnStrings(&ofn);
-    aOfnIn.AddToOfn(&ofn);
-    switch (aFunc) {
-    case OPEN_FUNC:
-        *aResult = GetOpenFileName(&ofn);
-        break;
-    case SAVE_FUNC:
-        *aResult = GetSaveFileName(&ofn);
-        break;
-    }
-    if (*aResult) {
-        if (ofn.Flags & OFN_ALLOWMULTISELECT) {
-            // We only support multiselect with the OFN_EXPLORER flag.
-            // This guarantees that ofn.lpstrFile follows the pattern below.
-            MOZ_ASSERT(ofn.Flags & OFN_EXPLORER);
-
-            // lpstrFile is one of two things:
-            // 1. A null terminated full path to a file, or
-            // 2. A path to a folder, followed by a NULL, followed by a
-            // list of file names, each NULL terminated, followed by an
-            // additional NULL (so it is also double-NULL terminated).
-            std::wstring path = std::wstring(ofn.lpstrFile);
-            MOZ_ASSERT(ofn.nFileOffset > 0);
-            // For condition #1, nFileOffset points to the file name in the path.
-            // It will be preceeded by a non-NULL character from the path.
-            if (ofn.lpstrFile[ofn.nFileOffset-1] != L'\0') {
-                mSandboxPermissions.GrantFileAccess(OtherPid(), path.c_str(),
-                                                          aFunc == SAVE_FUNC);
-            }
-            else {
-                // This is condition #2
-                wchar_t* nextFile = ofn.lpstrFile + path.size() + 1;
-                while (*nextFile != L'\0') {
-                    std::wstring nextFileStr(nextFile);
-                    std::wstring fullPath =
-                        path + std::wstring(L"\\") + nextFileStr;
-                    mSandboxPermissions.GrantFileAccess(OtherPid(), fullPath.c_str(),
-                                                              aFunc == SAVE_FUNC);
-                    nextFile += nextFileStr.size() + 1;
-                }
-            }
-        }
-        else {
-            mSandboxPermissions.GrantFileAccess(OtherPid(), ofn.lpstrFile,
-                                                 aFunc == SAVE_FUNC);
-        }
-        aOfnOut->CopyFromOfn(&ofn);
-    }
-    aOfnIn.FreeOfnStrings(&ofn);
-    return IPC_OK();
-#else
     MOZ_ASSERT_UNREACHABLE("GetFileName IPC message is only available on "
                            "Windows builds with sandbox.");
     return IPC_FAIL_NO_REASON(this);
-#endif
 }

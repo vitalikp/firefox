@@ -37,13 +37,6 @@
 
 #include "nsNPAPIPlugin.h"
 
-#ifdef XP_WIN
-#include "nsWindowsDllInterceptor.h"
-#include "mozilla/widget/AudioSession.h"
-#include <knownfolders.h>
-#include <shlobj.h>
-#endif
-
 #ifdef MOZ_GECKO_PROFILER
 #include "ChildProfilerController.h"
 #endif
@@ -53,54 +46,10 @@ using namespace mozilla::ipc;
 using namespace mozilla::plugins;
 using namespace mozilla::widget;
 
-#if defined(XP_WIN)
-const wchar_t * kFlashFullscreenClass = L"ShockwaveFlashFullScreen";
-const wchar_t * kMozillaWindowClass = L"MozillaWindowClass";
-#endif
-
 namespace {
 // see PluginModuleChild::GetChrome()
 PluginModuleChild* gChromeInstance = nullptr;
 } // namespace
-
-#ifdef XP_WIN
-// Hooking CreateFileW for protected-mode magic
-static WindowsDllInterceptor sKernel32Intercept;
-typedef HANDLE (WINAPI *CreateFileWPtr)(LPCWSTR fname, DWORD access,
-                                        DWORD share,
-                                        LPSECURITY_ATTRIBUTES security,
-                                        DWORD creation, DWORD flags,
-                                        HANDLE ftemplate);
-static CreateFileWPtr sCreateFileWStub = nullptr;
-typedef HANDLE (WINAPI *CreateFileAPtr)(LPCSTR fname, DWORD access,
-                                        DWORD share,
-                                        LPSECURITY_ATTRIBUTES security,
-                                        DWORD creation, DWORD flags,
-                                        HANDLE ftemplate);
-static CreateFileAPtr sCreateFileAStub = nullptr;
-
-// Used with fix for flash fullscreen window loosing focus.
-static bool gDelayFlashFocusReplyUntilEval = false;
-// Used to fix GetWindowInfo problems with internal flash settings dialogs
-static WindowsDllInterceptor sUser32Intercept;
-typedef BOOL (WINAPI *GetWindowInfoPtr)(HWND hwnd, PWINDOWINFO pwi);
-static GetWindowInfoPtr sGetWindowInfoPtrStub = nullptr;
-static HWND sBrowserHwnd = nullptr;
-// sandbox process doesn't get current key states.  So we need get it on chrome.
-typedef SHORT (WINAPI *GetKeyStatePtr)(int);
-static GetKeyStatePtr sGetKeyStatePtrStub = nullptr;
-
-static WindowsDllInterceptor sComDlg32Intercept;
-
-// proxy GetSaveFileName/GetOpenFileName on chrome so that we can know which
-// files the user has given permission to access
-// We count on GetOpenFileNameA/GetSaveFileNameA calling
-// GetOpenFileNameW/GetSaveFileNameW so we don't proxy them explicitly.
-typedef BOOL (WINAPI *GetOpenFileNameWPtr)(LPOPENFILENAMEW lpofn);
-static GetOpenFileNameWPtr sGetOpenFileNameWPtrStub = nullptr;
-typedef BOOL (WINAPI *GetSaveFileNameWPtr)(LPOPENFILENAMEW lpofn);
-static GetSaveFileNameWPtr sGetSaveFileNameWPtrStub = nullptr;
-#endif
 
 /* static */
 bool
@@ -212,11 +161,7 @@ mozilla::ipc::IPCResult
 PluginModuleChild::RecvDisableFlashProtectedMode()
 {
     MOZ_ASSERT(mIsChrome);
-#ifdef XP_WIN
-    HookProtectedMode();
-#else
     MOZ_ASSERT(false, "Should not be called");
-#endif
     return IPC_OK();
 }
 
@@ -251,10 +196,6 @@ PluginModuleChild::InitForChrome(const std::string& aPluginFilename,
         return false;
     }
 
-#if defined(XP_WIN)
-    // XXX quirks isn't initialized yet
-    mAsyncRenderSupport = info.fSupportsAsyncRender;
-#endif
 #if defined(MOZ_X11)
     NS_NAMED_LITERAL_CSTRING(flash10Head, "Shockwave Flash 10.");
     if (StringBeginsWith(nsDependentCString(info.fDescription), flash10Head)) {
@@ -549,18 +490,12 @@ PluginModuleChild::ExitedCxxStack()
 mozilla::ipc::IPCResult
 PluginModuleChild::RecvSetParentHangTimeout(const uint32_t& aSeconds)
 {
-#ifdef XP_WIN
-    SetReplyTimeoutMs(((aSeconds > 0) ? (1000 * aSeconds) : 0));
-#endif
     return IPC_OK();
 }
 
 bool
 PluginModuleChild::ShouldContinueFromReplyTimeout()
 {
-#ifdef XP_WIN
-    NS_RUNTIMEABORT("terminating child process");
-#endif
     return true;
 }
 
@@ -633,10 +568,6 @@ PluginModuleChild::NP_Shutdown()
     if (mHasShutdown) {
         return NPERR_NO_ERROR;
     }
-
-#if defined XP_WIN
-    mozilla::widget::StopAudioSession();
-#endif
 
     // the PluginModuleParent shuts down this process after this interrupt
     // call pops off its stack
@@ -712,17 +643,8 @@ PluginModuleChild::RecvSetAudioSessionData(const nsID& aId,
                                            const nsString& aDisplayName,
                                            const nsString& aIconPath)
 {
-#if !defined XP_WIN
     NS_RUNTIMEABORT("Not Reached!");
     return IPC_FAIL_NO_REASON(this);
-#else
-    nsresult rv = mozilla::widget::RecvAudioSessionData(aId, aDisplayName, aIconPath);
-    NS_ENSURE_SUCCESS(rv, IPC_OK()); // Bail early if this fails
-
-    // Ignore failures here; we can't really do anything about them
-    mozilla::widget::StartAudioSession();
-    return IPC_OK();
-#endif
 }
 
 mozilla::ipc::IPCResult
@@ -1404,13 +1326,6 @@ _evaluate(NPP aNPP,
         return false;
     }
 
-#ifdef XP_WIN
-    if (gDelayFlashFocusReplyUntilEval) {
-        ReplyMessage(0);
-        gDelayFlashFocusReplyUntilEval = false;
-    }
-#endif
-
     return actor->Evaluate(aScript, aResult);
 }
 
@@ -1835,361 +1750,6 @@ PluginModuleChild::DoNP_Initialize(const PluginSettings& aSettings)
     return result;
 }
 
-#if defined(XP_WIN)
-
-// Windows 8 RTM (kernelbase's version is 6.2.9200.16384) doesn't call
-// CreateFileW from CreateFileA.
-// So we hook CreateFileA too to use CreateFileW hook.
-
-static HANDLE WINAPI
-CreateFileAHookFn(LPCSTR fname, DWORD access, DWORD share,
-                  LPSECURITY_ATTRIBUTES security, DWORD creation, DWORD flags,
-                  HANDLE ftemplate)
-{
-    while (true) { // goto out
-        // Our hook is for mms.cfg into \Windows\System32\Macromed\Flash
-        // We don't requrie supporting too long path.
-        WCHAR unicodeName[MAX_PATH];
-        size_t len = strlen(fname);
-
-        if (len >= MAX_PATH) {
-            break;
-        }
-
-        // We call to CreateFileW for workaround of Windows 8 RTM
-        int newLen = MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, fname,
-                                         len, unicodeName, MAX_PATH);
-        if (newLen == 0 || newLen >= MAX_PATH) {
-            break;
-        }
-        unicodeName[newLen] = '\0';
-
-        return CreateFileW(unicodeName, access, share, security, creation, flags, ftemplate);
-    }
-
-    return sCreateFileAStub(fname, access, share, security, creation, flags,
-                            ftemplate);
-}
-
-static bool
-GetLocalLowTempPath(size_t aLen, LPWSTR aPath)
-{
-    NS_NAMED_LITERAL_STRING(tempname, "\\Temp");
-    LPWSTR path;
-    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppDataLow, 0,
-                                       nullptr, &path))) {
-        if (wcslen(path) + tempname.Length() < aLen) {
-            wcscpy(aPath, path);
-            wcscat(aPath, tempname.get());
-            ::CoTaskMemFree(path);
-            return true;
-        }
-        ::CoTaskMemFree(path);
-    }
-
-    // XP doesn't support SHGetKnownFolderPath and LocalLow
-    if (!GetTempPathW(aLen, aPath)) {
-        return false;
-    }
-    return true;
-}
-
-HANDLE WINAPI
-CreateFileWHookFn(LPCWSTR fname, DWORD access, DWORD share,
-                  LPSECURITY_ATTRIBUTES security, DWORD creation, DWORD flags,
-                  HANDLE ftemplate)
-{
-    static const WCHAR kConfigFile[] = L"mms.cfg";
-    static const size_t kConfigLength = ArrayLength(kConfigFile) - 1;
-
-    while (true) { // goto out, in sheep's clothing
-        size_t len = wcslen(fname);
-        if (len < kConfigLength) {
-            break;
-        }
-        if (wcscmp(fname + len - kConfigLength, kConfigFile) != 0) {
-            break;
-        }
-
-        // This is the config file we want to rewrite
-        WCHAR tempPath[MAX_PATH+1];
-        if (GetLocalLowTempPath(MAX_PATH, tempPath) == 0) {
-            break;
-        }
-        WCHAR tempFile[MAX_PATH+1];
-        if (GetTempFileNameW(tempPath, L"fx", 0, tempFile) == 0) {
-            break;
-        }
-        HANDLE replacement =
-            sCreateFileWStub(tempFile, GENERIC_READ | GENERIC_WRITE, share,
-                             security, TRUNCATE_EXISTING,
-                             FILE_ATTRIBUTE_TEMPORARY |
-                               FILE_FLAG_DELETE_ON_CLOSE,
-                             NULL);
-        if (replacement == INVALID_HANDLE_VALUE) {
-            break;
-        }
-
-        HANDLE original = sCreateFileWStub(fname, access, share, security,
-                                           creation, flags, ftemplate);
-        if (original != INVALID_HANDLE_VALUE) {
-            // copy original to replacement
-            static const size_t kBufferSize = 1024;
-            char buffer[kBufferSize];
-            DWORD bytes;
-            while (ReadFile(original, buffer, kBufferSize, &bytes, NULL)) {
-                if (bytes == 0) {
-                    break;
-                }
-                DWORD wbytes;
-                WriteFile(replacement, buffer, bytes, &wbytes, NULL);
-                if (bytes < kBufferSize) {
-                    break;
-                }
-            }
-            CloseHandle(original);
-        }
-        static const char kSettingString[] = "\nProtectedMode=0\n";
-        DWORD wbytes;
-        WriteFile(replacement, static_cast<const void*>(kSettingString),
-                  sizeof(kSettingString) - 1, &wbytes, NULL);
-        SetFilePointer(replacement, 0, NULL, FILE_BEGIN);
-        return replacement;
-    }
-    return sCreateFileWStub(fname, access, share, security, creation, flags,
-                            ftemplate);
-}
-
-void
-PluginModuleChild::HookProtectedMode()
-{
-    sKernel32Intercept.Init("kernel32.dll");
-    sKernel32Intercept.AddHook("CreateFileW",
-                               reinterpret_cast<intptr_t>(CreateFileWHookFn),
-                               (void**) &sCreateFileWStub);
-    sKernel32Intercept.AddHook("CreateFileA",
-                               reinterpret_cast<intptr_t>(CreateFileAHookFn),
-                               (void**) &sCreateFileAStub);
-}
-
-BOOL WINAPI
-PMCGetWindowInfoHook(HWND hWnd, PWINDOWINFO pwi)
-{
-  if (!pwi)
-      return FALSE;
-
-  if (!sGetWindowInfoPtrStub) {
-     NS_ASSERTION(FALSE, "Something is horribly wrong in PMCGetWindowInfoHook!");
-     return FALSE;
-  }
-
-  if (!sBrowserHwnd) {
-      wchar_t szClass[20];
-      if (GetClassNameW(hWnd, szClass, ArrayLength(szClass)) &&
-          !wcscmp(szClass, kMozillaWindowClass)) {
-          sBrowserHwnd = hWnd;
-      }
-  }
-  // Oddity: flash does strange rect comparisons for mouse input destined for
-  // it's internal settings window. Post removing sub widgets for tabs, touch
-  // this up so they get the rect they expect.
-  // XXX potentially tie this to a specific major version?
-  BOOL result = sGetWindowInfoPtrStub(hWnd, pwi);
-  if (sBrowserHwnd && sBrowserHwnd == hWnd)
-      pwi->rcWindow = pwi->rcClient;
-  return result;
-}
-
-SHORT WINAPI PMCGetKeyState(int aVirtKey);
-
-// Runnable that performs GetKeyState on the main thread so that it can be
-// synchronously run on the PluginModuleParent via IPC.
-// The task alerts the given semaphore when it is finished.
-class GetKeyStateTask : public Runnable
-{
-    SHORT* mKeyState;
-    int mVirtKey;
-    HANDLE mSemaphore;
-
-public:
-    explicit GetKeyStateTask(int aVirtKey, HANDLE aSemaphore, SHORT* aKeyState) :
-        Runnable("GetKeyStateTask"),
-        mVirtKey(aVirtKey),
-        mSemaphore(aSemaphore),
-        mKeyState(aKeyState)
-    {}
-
-    NS_IMETHOD Run() override
-    {
-        PLUGIN_LOG_DEBUG_METHOD;
-        AssertPluginThread();
-        *mKeyState = PMCGetKeyState(mVirtKey);
-        if (!ReleaseSemaphore(mSemaphore, 1, nullptr)) {
-            return NS_ERROR_FAILURE;
-        }
-        return NS_OK;
-    }
-};
-
-// static
-SHORT WINAPI
-PMCGetKeyState(int aVirtKey)
-{
-    if (!IsPluginThread()) {
-        // synchronously request the key state from the main thread
-
-        // Start a semaphore at 0.  We Release the semaphore (bringing its count to 1)
-        // when the synchronous call is done.
-        HANDLE semaphore = CreateSemaphore(NULL, 0, 1, NULL);
-        if (semaphore == nullptr) {
-            MOZ_ASSERT(semaphore != nullptr);
-            return 0;
-        }
-
-        SHORT keyState;
-        RefPtr<GetKeyStateTask> task = new GetKeyStateTask(aVirtKey, semaphore, &keyState);
-        ProcessChild::message_loop()->PostTask(task.forget());
-        DWORD err = WaitForSingleObject(semaphore, INFINITE);
-        if (err != WAIT_FAILED) {
-            CloseHandle(semaphore);
-            return keyState;
-        }
-        PLUGIN_LOG_DEBUG(("Error while waiting for GetKeyState semaphore: %d",
-                          GetLastError()));
-        MOZ_ASSERT(err != WAIT_FAILED);
-        CloseHandle(semaphore);
-        return 0;
-    }
-    PluginModuleChild* chromeInstance = PluginModuleChild::GetChrome();
-    if (chromeInstance) {
-        int16_t ret = 0;
-        if (chromeInstance->CallGetKeyState(aVirtKey, &ret)) {
-          return ret;
-        }
-    }
-    return sGetKeyStatePtrStub(aVirtKey);
-}
-
-BOOL WINAPI PMCGetSaveFileNameW(LPOPENFILENAMEW lpofn);
-BOOL WINAPI PMCGetOpenFileNameW(LPOPENFILENAMEW lpofn);
-
-// Runnable that performs GetOpenFileNameW and GetSaveFileNameW
-// on the main thread so that the call can be
-// synchronously run on the PluginModuleParent via IPC.
-// The task alerts the given semaphore when it is finished.
-class GetFileNameTask : public Runnable
-{
-    BOOL* mReturnValue;
-    void* mLpOpenFileName;
-    HANDLE mSemaphore;
-    GetFileNameFunc mFunc;
-
-public:
-    explicit GetFileNameTask(GetFileNameFunc func, void* aLpOpenFileName,
-                             HANDLE aSemaphore, BOOL* aReturnValue) :
-        Runnable("GetFileNameTask"), mLpOpenFileName(aLpOpenFileName),
-        mSemaphore(aSemaphore), mReturnValue(aReturnValue),
-        mFunc(func)
-    {}
-
-    NS_IMETHOD Run() override
-    {
-        PLUGIN_LOG_DEBUG_METHOD;
-        AssertPluginThread();
-        switch (mFunc) {
-        case OPEN_FUNC:
-            *mReturnValue =
-                PMCGetOpenFileNameW(static_cast<LPOPENFILENAMEW>(mLpOpenFileName));
-            break;
-        case SAVE_FUNC:
-            *mReturnValue =
-                PMCGetSaveFileNameW(static_cast<LPOPENFILENAMEW>(mLpOpenFileName));
-            break;
-        }
-        if (!ReleaseSemaphore(mSemaphore, 1, nullptr)) {
-            return NS_ERROR_FAILURE;
-        }
-        return NS_OK;
-    }
-};
-
-// static
-BOOL
-PostToPluginThread(GetFileNameFunc aFunc, void* aLpofn)
-{
-    MOZ_ASSERT(!IsPluginThread());
-
-    // Synchronously run GetFileNameTask from the main thread.
-    // Start a semaphore at 0.  We release the semaphore (bringing its
-    // count to 1) when the synchronous call is done.
-    nsAutoHandle semaphore(CreateSemaphore(NULL, 0, 1, NULL));
-    if (semaphore == nullptr) {
-        MOZ_ASSERT(semaphore != nullptr);
-        return FALSE;
-    }
-
-    BOOL returnValue = FALSE;
-    RefPtr<GetFileNameTask> task =
-        new GetFileNameTask(aFunc, aLpofn, semaphore, &returnValue);
-    ProcessChild::message_loop()->PostTask(task.forget());
-    DWORD err = WaitForSingleObject(semaphore, INFINITE);
-    if (err != WAIT_FAILED) {
-        return returnValue;
-    }
-    PLUGIN_LOG_DEBUG(("Error while waiting for semaphore: %d",
-                      GetLastError()));
-    MOZ_ASSERT(err != WAIT_FAILED);
-    return FALSE;
-}
-
-// static
-BOOL WINAPI
-PMCGetFileNameW(GetFileNameFunc aFunc, LPOPENFILENAMEW aLpofn)
-{
-    if (!IsPluginThread()) {
-        return PostToPluginThread(aFunc, aLpofn);
-    }
-
-    PluginModuleChild* chromeInstance = PluginModuleChild::GetChrome();
-    if (chromeInstance) {
-        bool ret = FALSE;
-        OpenFileNameIPC inputOfn;
-        inputOfn.CopyFromOfn(aLpofn);
-        OpenFileNameRetIPC outputOfn;
-        if (chromeInstance->CallGetFileName(aFunc, inputOfn,
-                                            &outputOfn, &ret)) {
-            if (ret) {
-                outputOfn.AddToOfn(aLpofn);
-            }
-        }
-        return ret;
-    }
-
-    switch (aFunc) {
-    case OPEN_FUNC:
-        return sGetOpenFileNameWPtrStub(aLpofn);
-    case SAVE_FUNC:
-        return sGetSaveFileNameWPtrStub(aLpofn);
-    }
-
-    MOZ_ASSERT_UNREACHABLE("Illegal GetFileNameFunc value");
-    return FALSE;
-}
-
-// static
-BOOL WINAPI
-PMCGetSaveFileNameW(LPOPENFILENAMEW aLpofn)
-{
-    return PMCGetFileNameW(SAVE_FUNC, aLpofn);
-}
-// static
-BOOL WINAPI
-PMCGetOpenFileNameW(LPOPENFILENAMEW aLpofn)
-{
-    return PMCGetFileNameW(OPEN_FUNC, aLpofn);
-}
-#endif
-
 PPluginInstanceChild*
 PluginModuleChild::AllocPPluginInstanceChild(const nsCString& aMimeType,
                                              const InfallibleTArray<nsCString>& aNames,
@@ -2205,32 +1765,6 @@ PluginModuleChild::AllocPPluginInstanceChild(const nsCString& aMimeType,
     // initialize this once in gChromeInstance, which is a singleton.
     GetChrome()->InitQuirksModes(aMimeType);
     mQuirks = GetChrome()->mQuirks;
-
-#ifdef XP_WIN
-    sUser32Intercept.Init("user32.dll");
-    if ((mQuirks & QUIRK_FLASH_HOOK_GETWINDOWINFO) &&
-        !sGetWindowInfoPtrStub) {
-        sUser32Intercept.AddHook("GetWindowInfo", reinterpret_cast<intptr_t>(PMCGetWindowInfoHook),
-                                 (void**) &sGetWindowInfoPtrStub);
-    }
-
-    if ((mQuirks & QUIRK_FLASH_HOOK_GETKEYSTATE) &&
-        !sGetKeyStatePtrStub) {
-        sUser32Intercept.AddHook("GetKeyState", reinterpret_cast<intptr_t>(PMCGetKeyState),
-                                 (void**) &sGetKeyStatePtrStub);
-    }
-
-    sComDlg32Intercept.Init("comdlg32.dll");
-    if (!sGetSaveFileNameWPtrStub) {
-        sComDlg32Intercept.AddHook("GetSaveFileNameW", reinterpret_cast<intptr_t>(PMCGetSaveFileNameW),
-                                 (void**) &sGetSaveFileNameWPtrStub);
-    }
-
-    if (!sGetOpenFileNameWPtrStub) {
-        sComDlg32Intercept.AddHook("GetOpenFileNameW", reinterpret_cast<intptr_t>(PMCGetOpenFileNameW),
-                                 (void**) &sGetOpenFileNameWPtrStub);
-    }
-#endif
 
     return new PluginInstanceChild(&mFunctions, aMimeType, aNames,
                                    aValues);
@@ -2249,13 +1783,8 @@ PluginModuleChild::InitQuirksModes(const nsCString& aMimeType)
 mozilla::ipc::IPCResult
 PluginModuleChild::AnswerModuleSupportsAsyncRender(bool* aResult)
 {
-#if defined(XP_WIN)
-    *aResult = gChromeInstance->mAsyncRenderSupport;
-    return IPC_OK();
-#else
     NS_NOTREACHED("Shouldn't get here!");
     return IPC_FAIL_NO_REASON(this);
-#endif
 }
 
 mozilla::ipc::IPCResult
@@ -2591,56 +2120,14 @@ PluginModuleChild::PluginRequiresAudioDeviceChanges(
                           PluginInstanceChild* aInstance,
                           NPBool aShouldRegister)
 {
-#ifdef XP_WIN
-    // Maintain a set of PluginInstanceChildren that we need to tell when the
-    // default audio device has changed.
-    NPError rv = NPERR_NO_ERROR;
-    if (aShouldRegister) {
-        if (mAudioNotificationSet.IsEmpty()) {
-            // We are registering the first plugin.  Notify the PluginModuleParent
-            // that it needs to start sending us audio device notifications.
-            if (!CallNPN_SetValue_NPPVpluginRequiresAudioDeviceChanges(
-                                                      aShouldRegister, &rv)) {
-                return NPERR_GENERIC_ERROR;
-            }
-        }
-        if (rv == NPERR_NO_ERROR) {
-            mAudioNotificationSet.PutEntry(aInstance);
-        }
-    }
-    else if (!mAudioNotificationSet.IsEmpty()) {
-        mAudioNotificationSet.RemoveEntry(aInstance);
-        if (mAudioNotificationSet.IsEmpty()) {
-            // We released the last plugin.  Unregister from the PluginModuleParent.
-            if (!CallNPN_SetValue_NPPVpluginRequiresAudioDeviceChanges(
-    	      	                                        aShouldRegister, &rv)) {
-                return NPERR_GENERIC_ERROR;
-            }
-        }
-    }
-    return rv;
-#else
     NS_RUNTIMEABORT("PluginRequiresAudioDeviceChanges is not available on this platform.");
     return NPERR_GENERIC_ERROR;
-#endif // XP_WIN
 }
 
 mozilla::ipc::IPCResult
 PluginModuleChild::RecvNPP_SetValue_NPNVaudioDeviceChangeDetails(
                               const NPAudioDeviceChangeDetailsIPC& detailsIPC)
 {
-#if defined(XP_WIN)
-    NPAudioDeviceChangeDetails details;
-    details.flow = detailsIPC.flow;
-    details.role = detailsIPC.role;
-    details.defaultDevice = detailsIPC.defaultDevice.c_str();
-    for (auto iter = mAudioNotificationSet.ConstIter(); !iter.Done(); iter.Next()) {
-      PluginInstanceChild* pluginInst = iter.Get()->GetKey();
-      pluginInst->DefaultAudioDeviceChanged(details);
-    }
-    return IPC_OK();
-#else
     NS_RUNTIMEABORT("NPP_SetValue_NPNVaudioDeviceChangeDetails is a Windows-only message");
     return IPC_FAIL_NO_REASON(this);
-#endif
 }

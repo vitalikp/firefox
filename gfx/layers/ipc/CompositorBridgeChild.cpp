@@ -37,9 +37,6 @@
 #include "mozilla/dom/ContentChild.h"
 #include "mozilla/Unused.h"
 #include "mozilla/DebugOnly.h"
-#if defined(XP_WIN)
-#include "WinUtils.h"
-#endif
 #include "mozilla/widget/CompositorWidget.h"
 #ifdef MOZ_WIDGET_SUPPORTS_OOP_COMPOSITING
 # include "mozilla/widget/CompositorWidgetChild.h"
@@ -370,7 +367,7 @@ CompositorBridgeChild::RecvCompositorUpdated(const uint64_t& aLayersId,
   return IPC_OK();
 }
 
-#if defined(XP_WIN) || defined(MOZ_WIDGET_GTK)
+#if defined(MOZ_WIDGET_GTK)
 static void CalculatePluginClip(const LayoutDeviceIntRect& aBounds,
                                 const nsTArray<LayoutDeviceIntRect>& aPluginClipRects,
                                 const LayoutDeviceIntPoint& aContentOffset,
@@ -412,7 +409,7 @@ CompositorBridgeChild::RecvUpdatePluginConfigurations(const LayoutDeviceIntPoint
                                                       const LayoutDeviceIntRegion& aParentLayerVisibleRegion,
                                                       nsTArray<PluginWindowData>&& aPlugins)
 {
-#if !defined(XP_WIN) && !defined(MOZ_WIDGET_GTK)
+#if !defined(MOZ_WIDGET_GTK)
   NS_NOTREACHED("CompositorBridgeChild::RecvUpdatePluginConfigurations calls "
                 "unexpected on this platform.");
   return IPC_FAIL_NO_REASON(this);
@@ -470,15 +467,7 @@ CompositorBridgeChild::RecvUpdatePluginConfigurations(const LayoutDeviceIntPoint
       // Handle invalidation, this can be costly, avoid if it is not needed.
       if (isVisible) {
         // invalidate region (widget origin)
-#if defined(XP_WIN)
-        // Work around for flash's crummy sandbox. See bug 762948. This call
-        // digs down into the window hirearchy, invalidating regions on
-        // windows owned by other processes.
-        mozilla::widget::WinUtils::InvalidatePluginAsWorkaround(
-          widget, visibleBounds);
-#else
         widget->Invalidate(visibleBounds);
-#endif
         visiblePluginIds.AppendElement(aPlugins[pluginsIdx].windowId());
       }
     }
@@ -491,42 +480,21 @@ CompositorBridgeChild::RecvUpdatePluginConfigurations(const LayoutDeviceIntPoint
   }
   SendRemotePluginsReady();
   return IPC_OK();
-#endif // !defined(XP_WIN) && !defined(MOZ_WIDGET_GTK)
+#endif // !defined(MOZ_WIDGET_GTK)
 }
-
-#if defined(XP_WIN)
-static void
-ScheduleSendAllPluginsCaptured(CompositorBridgeChild* aThis, MessageLoop* aLoop)
-{
-  aLoop->PostTask(NewNonOwningRunnableMethod(
-    aThis, &CompositorBridgeChild::SendAllPluginsCaptured));
-}
-#endif
 
 mozilla::ipc::IPCResult
 CompositorBridgeChild::RecvCaptureAllPlugins(const uintptr_t& aParentWidget)
 {
-#if defined(XP_WIN)
-  MOZ_ASSERT(NS_IsMainThread());
-  nsIWidget::CaptureRegisteredPlugins(aParentWidget);
-
-  // Bounce the call to SendAllPluginsCaptured off the ImageBridgeChild loop,
-  // to make sure that the image updates on that thread have been processed.
-  ImageBridgeChild::GetSingleton()->GetMessageLoop()->PostTask(
-    NewRunnableFunction(&ScheduleSendAllPluginsCaptured, this,
-                        MessageLoop::current()));
-  return IPC_OK();
-#else
   MOZ_ASSERT_UNREACHABLE(
     "CompositorBridgeChild::RecvCaptureAllPlugins calls unexpected.");
   return IPC_FAIL_NO_REASON(this);
-#endif
 }
 
 mozilla::ipc::IPCResult
 CompositorBridgeChild::RecvHideAllPlugins(const uintptr_t& aParentWidget)
 {
-#if !defined(XP_WIN) && !defined(MOZ_WIDGET_GTK)
+#if !defined(MOZ_WIDGET_GTK)
   NS_NOTREACHED("CompositorBridgeChild::RecvHideAllPlugins calls "
                 "unexpected on this platform.");
   return IPC_FAIL_NO_REASON(this);
@@ -539,7 +507,7 @@ CompositorBridgeChild::RecvHideAllPlugins(const uintptr_t& aParentWidget)
   }
   SendRemotePluginsReady();
   return IPC_OK();
-#endif // !defined(XP_WIN) && !defined(MOZ_WIDGET_GTK)
+#endif // !defined(MOZ_WIDGET_GTK)
 }
 
 mozilla::ipc::IPCResult

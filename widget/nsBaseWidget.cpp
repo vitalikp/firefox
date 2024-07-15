@@ -3015,9 +3015,8 @@ IMENotification::TextChangeDataBase::Test()
 // Convert a GUI event message code to a string.
 // Makes it a lot easier to debug events.
 //
-// See gtk/nsWidget.cpp and windows/nsWindow.cpp
-// for a DebugPrintEvent() function that uses
-// this.
+// See gtk/nsWidget.cpp for a DebugPrintEvent() function
+// that uses this.
 //
 //////////////////////////////////////////////////////////////
 /* static */ nsAutoString

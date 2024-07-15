@@ -274,9 +274,6 @@ private:
 };
 
 
-// winspool.h header has AddMonitor macro, it conflicts with AddMonitor member
-// function in TaskbarPreview.cpp and TaskbarTabPreview.cpp. Beside, we only
-// need ClosePrinter here for Release function, so having its prototype is enough.
 extern "C" BOOL WINAPI ClosePrinter(HANDLE hPrinter);
 
 
