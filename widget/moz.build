@@ -6,8 +6,6 @@
 
 toolkit = CONFIG['MOZ_WIDGET_TOOLKIT']
 
-if toolkit in ('uikit'):
-    DIRS += [toolkit]
 if toolkit in ('gtk2', 'gtk3'):
     EXPORTS += ['nsIPrintDialogService.h']
 
@@ -191,7 +189,7 @@ if CONFIG['MOZ_X11']:
         'WindowSurfaceX11SHM.cpp',
     ]
 
-if toolkit in {'gtk2', 'gtk3', 'uikit'}:
+if toolkit in {'gtk2', 'gtk3'}:
     UNIFIED_SOURCES += [
         'nsBaseFilePicker.cpp',
     ]
