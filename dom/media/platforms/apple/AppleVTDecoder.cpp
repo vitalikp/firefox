@@ -35,11 +35,7 @@ AppleVTDecoder::AppleVTDecoder(const VideoInfo& aConfig,
   , mTaskQueue(aTaskQueue)
   , mMaxRefFrames(mp4_demuxer::H264::ComputeMaxRefFrames(aConfig.mExtraData))
   , mImageContainer(aImageContainer)
-#ifdef MOZ_WIDGET_UIKIT
-  , mUseSoftwareImages(true)
-#else
   , mUseSoftwareImages(false)
-#endif
   , mIsFlushing(false)
   , mMonitor("AppleVTDecoder")
   , mFormat(nullptr)
@@ -420,7 +416,6 @@ AppleVTDecoder::OutputFrame(CVPixelBufferRef aImage,
     // Unlock the returned image data.
     CVPixelBufferUnlockBaseAddress(aImage, kCVPixelBufferLock_ReadOnly);
   } else {
-#ifndef MOZ_WIDGET_UIKIT
     IOSurfacePtr surface = MacIOSurfaceLib::CVPixelBufferGetIOSurface(aImage);
     MOZ_ASSERT(surface, "Decoder didn't return an IOSurface backed buffer");
 
@@ -436,9 +431,6 @@ AppleVTDecoder::OutputFrame(CVPixelBufferRef aImage,
                                  image.forget(),
                                  aFrameRef.is_sync_point,
                                  aFrameRef.decode_timestamp.ToMicroseconds());
-#else
-    MOZ_ASSERT_UNREACHABLE("No MacIOSurface on iOS");
-#endif
   }
 
   if (!data) {
@@ -620,7 +612,6 @@ AppleVTDecoder::CreateOutputConfiguration()
                               &kCFTypeDictionaryValueCallBacks);
   }
 
-#ifndef MOZ_WIDGET_UIKIT
   // Output format type:
   SInt32 PixelFormatTypeValue = kCVPixelFormatType_422YpCbCr8;
   AutoCFRelease<CFNumberRef> PixelFormatTypeNumber =
@@ -657,9 +648,6 @@ AppleVTDecoder::CreateOutputConfiguration()
                             ArrayLength(outputKeys),
                             &kCFTypeDictionaryKeyCallBacks,
                             &kCFTypeDictionaryValueCallBacks);
-#else
-  MOZ_ASSERT_UNREACHABLE("No MacIOSurface on iOS");
-#endif
 }
 
 } // namespace mozilla

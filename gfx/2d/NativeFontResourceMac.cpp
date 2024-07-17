@@ -9,10 +9,6 @@
 
 #include "mozilla/RefPtr.h"
 
-#ifdef MOZ_WIDGET_UIKIT
-#include <CoreFoundation/CoreFoundation.h>
-#endif
-
 // Simple helper class to automatically release a CFObject when it goes out
 // of scope.
 template<class T>

@@ -12,9 +12,6 @@
 #endif
 #include <vector>
 #include <dlfcn.h>
-#ifdef MOZ_WIDGET_UIKIT
-#include <CoreFoundation/CoreFoundation.h>
-#endif
 
 #ifdef USE_CAIRO_SCALED_FONT
 #include "cairo-quartz.h"

@@ -1710,7 +1710,7 @@ CompositorOGL::Pause()
 bool
 CompositorOGL::Resume()
 {
-#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_UIKIT)
+#if defined(MOZ_WIDGET_ANDROID)
   if (!gl() || gl()->IsDestroyed())
     return false;
 

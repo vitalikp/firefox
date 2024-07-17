@@ -267,14 +267,6 @@ ClientLayerManager::BeginTransactionWithTarget(gfxContext* aTarget)
   // composited (including resampling) asynchronously before we get
   // a chance to repaint, so we have to ensure that it's all valid
   // and not rotated.
-  //
-  // Desktop does not support async zoom yet, so we ignore this for those
-  // platforms.
-#if defined(MOZ_WIDGET_UIKIT)
-  if (mWidget && mWidget->GetOwningTabChild()) {
-    mCompositorMightResample = AsyncPanZoomEnabled();
-  }
-#endif
 
   // If we have a non-default target, we need to let our shadow manager draw
   // to it. This will happen at the end of the transaction.
