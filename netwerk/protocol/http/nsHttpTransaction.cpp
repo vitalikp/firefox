@@ -42,10 +42,6 @@
 #include "nsIHttpAuthenticator.h"
 #include <algorithm>
 
-#ifdef MOZ_WIDGET_GONK
-#include "NetStatistics.h"
-#endif
-
 //-----------------------------------------------------------------------------
 
 static NS_DEFINE_CID(kMultiplexInputStream, NS_MULTIPLEXINPUTSTREAM_CID);

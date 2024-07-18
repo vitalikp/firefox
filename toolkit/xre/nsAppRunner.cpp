@@ -3079,7 +3079,7 @@ XREMain::XRE_mainStartup(bool* aExitFlag)
   }
 #endif
 
-#if defined(MOZ_UPDATER) && !defined(MOZ_WIDGET_GONK)
+#if defined(MOZ_UPDATER)
   // Check for and process any available updates
   nsCOMPtr<nsIFile> updRoot;
   bool persistent;
@@ -3514,7 +3514,7 @@ XREMain::XRE_mainRun()
   }
 #endif /* MOZ_INSTRUMENT_EVENT_LOOP */
 
-#if defined(MOZ_SANDBOX) && defined(XP_LINUX) && !defined(MOZ_WIDGET_GONK)
+#if defined(MOZ_SANDBOX) && defined(XP_LINUX)
   // If we're on Linux, we now have information about the OS capabilities
   // available to us.
   SandboxInfo sandboxInfo = SandboxInfo::Get();
@@ -3530,7 +3530,7 @@ XREMain::XRE_mainRun()
                         sandboxInfo.Test(SandboxInfo::kEnabledForContent));
   Telemetry::Accumulate(Telemetry::SANDBOX_MEDIA_ENABLED,
                         sandboxInfo.Test(SandboxInfo::kEnabledForMedia));
-#endif /* MOZ_SANDBOX && XP_LINUX && !MOZ_WIDGET_GONK */
+#endif /* MOZ_SANDBOX && XP_LINUX */
 
   {
     rv = appStartup->Run();

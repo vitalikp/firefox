@@ -415,20 +415,6 @@ pref("media.webrtc.debug.aec_log_dir", "");
 pref("media.webrtc.debug.log_file", "");
 pref("media.webrtc.debug.aec_dump_max_size", 4194304); // 4MB
 
-#ifdef MOZ_WIDGET_GONK
-pref("media.navigator.video.default_width", 320);
-pref("media.navigator.video.default_height", 240);
-pref("media.peerconnection.enabled", true);
-pref("media.peerconnection.video.enabled", true);
-pref("media.navigator.video.max_fs", 1200); // 640x480 == 1200mb
-pref("media.navigator.video.max_fr", 30);
-pref("media.navigator.video.h264.level", 12); // 0x42E00C - level 1.2
-pref("media.navigator.video.h264.max_br", 700); // 8x10
-pref("media.navigator.video.h264.max_mbps", 11880); // CIF@30fps
-pref("media.peerconnection.video.h264_enabled", false);
-pref("media.peerconnection.video.vp9_enabled", false);
-pref("media.getusermedia.aec", 4);
-#else
 pref("media.navigator.video.default_width",0);  // adaptive default
 pref("media.navigator.video.default_height",0); // adaptive default
 pref("media.peerconnection.enabled", true);
@@ -442,7 +428,6 @@ pref("media.peerconnection.video.h264_enabled", false);
 pref("media.peerconnection.video.vp9_enabled", true);
 pref("media.getusermedia.aec", 1);
 pref("media.getusermedia.browser.enabled", true);
-#endif
 // Gonk typically captures at QVGA, and so min resolution is QQVGA or
 // 160x120; 100Kbps is plenty for that.
 // Desktop is typically VGA capture or more; and qm_select will not drop resolution
@@ -547,7 +532,7 @@ pref("media.mediasource.enabled", true);
 
 pref("media.mediasource.mp4.enabled", true);
 
-#if defined(XP_WIN) || defined(XP_MACOSX) || defined(MOZ_WIDGET_GONK) || defined(MOZ_WIDGET_ANDROID)
+#if defined(XP_WIN) || defined(XP_MACOSX) || defined(MOZ_WIDGET_ANDROID)
 pref("media.mediasource.webm.enabled", false);
 #else
 pref("media.mediasource.webm.enabled", true);
@@ -680,7 +665,7 @@ pref("apz.y_stationary_size_multiplier", "3.5");
 pref("apz.zoom_animation_duration_ms", 250);
 pref("apz.scale_repaint_delay_ms", 500);
 
-#if defined(MOZ_WIDGET_GONK) || defined(MOZ_WIDGET_ANDROID)
+#if defined(MOZ_WIDGET_ANDROID)
 // Mobile prefs
 pref("apz.allow_zooming", true);
 pref("apz.enlarge_displayport_when_clipped", true);
@@ -696,7 +681,7 @@ pref("apz.y_stationary_size_multiplier", "1.5");
 pref("gfx.hidpi.enabled", 2);
 #endif
 
-#if !defined(MOZ_WIDGET_GONK) && !defined(MOZ_WIDGET_ANDROID)
+#if !defined(MOZ_WIDGET_ANDROID)
 // Use containerless scrolling for now on desktop.
 pref("layout.scroll.root-frame-containers", false);
 #endif
@@ -4537,10 +4522,6 @@ pref("webgl.dxgl.needs-finish", false);
 
 pref("gfx.offscreencanvas.enabled", false);
 
-#ifdef MOZ_WIDGET_GONK
-pref("gfx.gralloc.fence-with-readpixels", false);
-#endif
-
 // Stagefright prefs
 pref("stagefright.force-enabled", false);
 pref("stagefright.disabled", false);
@@ -4596,7 +4577,7 @@ pref("layers.acceleration.force-enabled", false);
 pref("layers.acceleration.draw-fps", false);
 
 // Enable DEAA antialiasing for transformed layers in the compositor
-#if !defined(MOZ_WIDGET_GONK) && !defined(MOZ_WIDGET_ANDROID)
+#if !defined(MOZ_WIDGET_ANDROID)
 // Desktop prefs
 pref("layers.deaa.enabled", true);
 #else
@@ -4900,7 +4881,7 @@ pref("layout.css.expensive-style-struct-assertions.enabled", false);
 // enable JS dump() function.
 pref("browser.dom.window.dump.enabled", false);
 
-#if defined(MOZ_WIDGET_GONK) || defined(MOZ_WIDGET_ANDROID)
+#if defined(MOZ_WIDGET_ANDROID)
 // Network Information API
 pref("dom.netinfo.enabled", true);
 #else
@@ -5112,15 +5093,6 @@ pref("camera.control.face_detection.enabled", true);
 // SW Cache API
 pref("dom.caches.enabled", true);
 
-#ifdef MOZ_WIDGET_GONK
-// Empirically, this is the value returned by hal::GetTotalSystemMemory()
-// when Flame's memory is limited to 512MiB. If the camera stack determines
-// it is running on a low memory platform, features that can be reliably
-// supported will be disabled. This threshold can be adjusted to suit other
-// platforms; and set to 0 to disable the low-memory check altogether.
-pref("camera.control.low_memory_thresholdMB", 404);
-#endif
-
 // SystemUpdate API
 pref("dom.system_update.enabled", false);
 pref("dom.system_update.debug", false);
@@ -5249,15 +5221,8 @@ pref("dom.secureelement.enabled", false);
 // and compositionend events.
 pref("dom.compositionevent.allow_control_characters", false);
 
-#ifdef MOZ_WIDGET_GONK
-// Bug 1154053: Serialize B2G memory reports; smaller devices are
-// usually overcommitted on memory by using zRAM, so memory reporting
-// causes memory pressure from uncompressing cold heap memory.
-pref("memory.report_concurrency", 1);
-#else
 // Desktop probably doesn't have swapped-out children like that.
 pref("memory.report_concurrency", 10);
-#endif
 
 // Add Mozilla AudioChannel APIs.
 pref("media.useAudioChannelAPI", false);
@@ -5319,7 +5284,7 @@ pref("dom.maxHardwareConcurrency", 16);
 pref("osfile.reset_worker_delay", 30000);
 #endif
 
-#if !defined(MOZ_WIDGET_GONK) && !defined(MOZ_WIDGET_ANDROID)
+#if !defined(MOZ_WIDGET_ANDROID)
 pref("dom.webkitBlink.dirPicker.enabled", true);
 pref("dom.webkitBlink.filesystem.enabled", true);
 #endif

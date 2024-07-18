@@ -17,19 +17,14 @@ chrome.jar:
 * content/shell.css                     (content/shell.css)
   content/blank.html                    (content/blank.html)
   content/blank.css                     (content/blank.css)
-#ifdef MOZ_WIDGET_GONK
-  content/devtools/adb.js               (content/devtools/adb.js)
-#endif
   content/devtools/debugger.js          (content/devtools/debugger.js)
   content/devtools/hud.js               (content/devtools/hud.js)
-#ifndef MOZ_WIDGET_GONK
   content/desktop.css                   (content/desktop.css)
   content/images/desktop/home-black.png (content/images/desktop/home-black.png)
   content/images/desktop/home-white.png (content/images/desktop/home-white.png)
   content/images/desktop/rotate.png     (content/images/desktop/rotate.png)
   content/desktop.js                    (content/desktop.js)
   content/screen.js                     (content/screen.js)
-#endif
 * content/content.css                   (content/content.css)
   content/touchcontrols.css             (content/touchcontrols.css)
 

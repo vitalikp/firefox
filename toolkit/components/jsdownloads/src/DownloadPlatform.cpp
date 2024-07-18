@@ -98,7 +98,7 @@ nsresult DownloadPlatform::DownloadDone(nsIURI* aSource, nsIURI* aReferrer, nsIF
                                         const nsACString& aContentType, bool aIsPrivate)
 {
 #if defined(XP_WIN) || defined(XP_MACOSX) \
- || defined(MOZ_WIDGET_GTK) || defined(MOZ_WIDGET_GONK)
+ || defined(MOZ_WIDGET_GTK)
 
   nsAutoString path;
   if (aTarget && NS_SUCCEEDED(aTarget->GetPath(path))) {

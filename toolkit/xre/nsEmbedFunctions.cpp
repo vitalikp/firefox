@@ -81,9 +81,7 @@
 
 #if defined(MOZ_CONTENT_SANDBOX)
 #include "mozilla/SandboxSettings.h"
-#if !defined(MOZ_WIDGET_GONK)
 #include "mozilla/Preferences.h"
-#endif
 #endif
 
 #ifdef MOZ_IPDL_TESTS

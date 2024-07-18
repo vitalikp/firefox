@@ -45,11 +45,6 @@ pref("browser.viewport.scaleRatio", -1);
 pref("browser.ignoreNativeFrameTextSelection", true);
 
 /* cache prefs */
-#ifdef MOZ_WIDGET_GONK
-pref("browser.cache.disk.enable", true);
-pref("browser.cache.disk.capacity", 55000); // kilobytes
-pref("browser.cache.disk.parent_directory", "/cache");
-#endif
 pref("browser.cache.disk.smart_size.enabled", false);
 pref("browser.cache.disk.smart_size.first_run", false);
 
@@ -293,14 +288,8 @@ pref("ui.dragThresholdY", 25);
 
 // Layers Acceleration.  We can only have nice things on gonk, because
 // they're not maintained anywhere else.
-#ifndef MOZ_WIDGET_GONK
 pref("dom.ipc.tabs.disabled", true);
 pref("layers.async-pan-zoom.enabled", false);
-#else
-pref("dom.ipc.tabs.disabled", false);
-pref("layers.acceleration.disabled", false);
-pref("gfx.content.azure.backends", "cairo");
-#endif
 
 // Web Notifications
 pref("notification.feature.enabled", true);
@@ -395,10 +384,6 @@ pref("dom.phonenumber.substringmatching.VE", 7);
 pref("dom.phonenumber.substringmatching.CL", 8);
 pref("dom.phonenumber.substringmatching.PE", 7);
 
-#ifdef MOZ_WIDGET_GONK
-pref("dom.webapps.firstRunWithSIM", true);
-#endif
-
 #ifdef MOZ_B2G_RIL
 // SingleVariant
 pref("dom.mozApps.single_variant_sourcedir", "/persist/svoperapps");
@@ -431,7 +416,6 @@ pref("power.screen.timeout", 60);
 
 pref("full-screen-api.enabled", true);
 
-#ifndef MOZ_WIDGET_GONK
 // If we're not actually on physical hardware, don't make the top level widget
 // fullscreen when transitioning to fullscreen. This means in emulated
 // environments (like the b2g desktop client) we won't make the client window
@@ -439,7 +423,6 @@ pref("full-screen-api.enabled", true);
 // i.e. it won't give the impression to content that the number of device
 // screen pixels changes!
 pref("full-screen-api.ignore-widgets", true);
-#endif
 
 pref("media.volume.steps", 10);
 
@@ -780,11 +763,6 @@ pref("b2g.osName", @MOZ_B2G_OS_NAME@);
 // Disable console buffering to save memory.
 pref("consoleservice.buffered", false);
 
-#ifdef MOZ_WIDGET_GONK
-// Performance testing suggests 2k is a better page size for SQLite.
-pref("toolkit.storage.pageSize", 2048);
-#endif
-
 // The url of the manifest we use for ADU pings.
 pref("ping.manifestURL", "https://marketplace.firefox.com/packaged.webapp");
 
@@ -806,13 +784,6 @@ pref("b2g.adb.timeout-hours", 12);
 // Absolute path to the devtool unix domain socket file used
 // to communicate with a usb cable via adb forward
 pref("devtools.debugger.unix-domain-socket", "/data/local/debugger-socket");
-
-// enable Skia/GL (OpenGL-accelerated 2D drawing) for large enough 2d canvases,
-// falling back to Skia/software for smaller canvases
-#ifdef MOZ_WIDGET_GONK
-pref("gfx.canvas.azure.backends", "skia");
-pref("gfx.canvas.azure.accelerated", true);
-#endif
 
 // Turn on dynamic cache size for Skia
 pref("gfx.canvas.skiagl.dynamic-cache", true);

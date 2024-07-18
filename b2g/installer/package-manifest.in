@@ -128,10 +128,6 @@
 @RESPATH@/components/dom_file.xpt
 @RESPATH@/components/dom_system.xpt
 @RESPATH@/components/dom_workers.xpt
-#ifdef MOZ_WIDGET_GONK
-@RESPATH@/components/dom_wifi.xpt
-@RESPATH@/components/dom_system_gonk.xpt
-#endif
 @RESPATH@/components/dom_canvas.xpt
 @RESPATH@/components/dom_core.xpt
 @RESPATH@/components/dom_css.xpt
@@ -360,68 +356,12 @@
 @RESPATH@/components/UiccConnector.manifest
 #endif
 
-; WiFi, NetworkManager
-#ifdef MOZ_WIDGET_GONK
-@RESPATH@/components/DOMWifiManager.js
-@RESPATH@/components/DOMWifiManager.manifest
-@RESPATH@/components/DOMWifiP2pManager.js
-@RESPATH@/components/DOMWifiP2pManager.manifest
-@RESPATH@/components/EthernetManager.js
-@RESPATH@/components/EthernetManager.manifest
-@RESPATH@/components/NetworkInterfaceListService.js
-@RESPATH@/components/NetworkInterfaceListService.manifest
-@RESPATH@/components/NetworkManager.js
-@RESPATH@/components/NetworkManager.manifest
-@RESPATH@/components/NetworkService.js
-@RESPATH@/components/NetworkService.manifest
-@RESPATH@/components/TetheringService.js
-@RESPATH@/components/TetheringService.manifest
-@RESPATH@/components/WifiWorker.js
-@RESPATH@/components/WifiWorker.manifest
-#endif // MOZ_WIDGET_GONK
-
-; Tethering
-#ifdef MOZ_WIDGET_GONK
-@RESPATH@/components/TetheringManager.js
-@RESPATH@/components/TetheringManager.manifest
-#endif
-
-; RIL
-#if defined(MOZ_WIDGET_GONK) && defined(MOZ_B2G_RIL)
-@RESPATH@/components/CellBroadcastService.js
-@RESPATH@/components/CellBroadcastService.manifest
-@RESPATH@/components/DataCallManager.js
-@RESPATH@/components/DataCallManager.manifest
-@RESPATH@/components/IccService.js
-@RESPATH@/components/IccService.manifest
-@RESPATH@/components/MmsService.js
-@RESPATH@/components/MmsService.manifest
-@RESPATH@/components/MobileMessageDatabaseService.js
-@RESPATH@/components/MobileMessageDatabaseService.manifest
-#ifndef DISABLE_MOZ_RIL_GEOLOC
-@RESPATH@/components/DataCallInterfaceService.js
-@RESPATH@/components/DataCallInterfaceService.manifest
-@RESPATH@/components/RadioInterfaceLayer.js
-@RESPATH@/components/RadioInterfaceLayer.manifest
-@RESPATH@/components/SmsService.js
-@RESPATH@/components/SmsService.manifest
-#endif
-@RESPATH@/components/StkCmdFactory.js
-@RESPATH@/components/StkCmdFactory.manifest
-@RESPATH@/components/RILSystemMessengerHelper.js
-@RESPATH@/components/RILSystemMessengerHelper.manifest
-#ifndef DISABLE_MOZ_RIL_GEOLOC
-#endif
-#endif // MOZ_WIDGET_GONK && MOZ_B2G_RIL
-
-#ifndef MOZ_WIDGET_GONK
 @RESPATH@/components/addonManager.js
 @RESPATH@/components/amContentHandler.js
 @RESPATH@/components/amInstallTrigger.js
 
 @RESPATH@/components/OopCommandLine.js
 @RESPATH@/components/CommandLine.js
-#endif
 @RESPATH@/components/extensions.manifest
 @RESPATH@/components/BootstrapCommandLine.js
 
@@ -668,14 +608,12 @@ bin/libfreebl_32int64_3.so
 #endif
 
 [b2g]
-#ifndef MOZ_WIDGET_GONK
 #ifdef XP_WIN32
 @BINPATH@/xpcshell.exe
 @BINPATH@/ssltunnel.exe
 #else
 @BINPATH@/xpcshell
 @BINPATH@/ssltunnel
-#endif
 #endif
 @RESPATH@/chrome/icons/
 @RESPATH@/chrome/chrome@JAREXT@
@@ -702,9 +640,7 @@ bin/libfreebl_32int64_3.so
 @RESPATH@/components/B2GPresentationDevicePrompt.js
 @RESPATH@/components/PresentationRequestUIGlue.js
 
-#ifndef MOZ_WIDGET_GONK
 @RESPATH@/components/SimulatorScreen.js
-#endif
 
 @RESPATH@/components/FxAccountsUIGlue.js
 @RESPATH@/components/services_fxaccounts.xpt

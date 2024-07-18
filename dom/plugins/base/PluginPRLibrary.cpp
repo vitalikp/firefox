@@ -24,13 +24,7 @@ static int gNotOptimized;
 using namespace mozilla::layers;
 
 namespace mozilla {
-#if defined(MOZ_WIDGET_GONK)
-nsresult
-PluginPRLibrary::NP_Initialize(NPNetscapeFuncs* bFuncs, NPError* error)
-{
-  return NS_OK;
-}
-#elif defined(XP_UNIX) && !defined(XP_MACOSX)
+#if defined(XP_UNIX) && !defined(XP_MACOSX)
 nsresult
 PluginPRLibrary::NP_Initialize(NPNetscapeFuncs* bFuncs,
                                NPPluginFuncs* pFuncs, NPError* error)

@@ -60,22 +60,6 @@ GaiaChrome::ComputeAppsPath(nsIFile* aPath)
 {
 #if defined(MOZ_MULET)
   aPath->InitWithFile(mProfDir);
-#elif defined(MOZ_WIDGET_GONK)
-  nsCOMPtr<nsIFile> locationDetection = new nsLocalFile();
-  locationDetection->InitWithPath(mSystemRoot);
-  locationDetection->Append(mAppsDir);
-  bool appsInSystem = EnsureIsDirectory(locationDetection);
-  locationDetection->InitWithPath(mDataRoot);
-  locationDetection->Append(mAppsDir);
-  bool appsInData = EnsureIsDirectory(locationDetection);
-
-  if (!appsInData && !appsInSystem) {
-    printf_stderr("!!! NO root directory with apps found\n");
-    MOZ_ASSERT(false);
-    return NS_ERROR_UNEXPECTED;
-  }
-
-  aPath->InitWithPath(appsInData ? mDataRoot : mSystemRoot);
 #else
   return NS_ERROR_UNEXPECTED;
 #endif

@@ -242,15 +242,6 @@ private:
   nsTArray<nsCOMPtr<nsIInputStream>> mPendingDataWhileCopierActive;
 
   bool mObserversActive;
-
-#ifdef MOZ_WIDGET_GONK
-  // The app that owns this socket.
-  uint32_t mAppId;
-  // Was this socket created inside of an isolated browser frame?
-  bool mInIsolatedMozBrowser;
-  // The name of the active network used by this socket.
-  nsCOMPtr<nsINetworkInfo> mActiveNetworkInfo;
-#endif
 };
 
 } // namespace dom

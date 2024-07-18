@@ -1,4 +1,3 @@
-#ifndef MOZ_WIDGET_GONK
 component {4399533d-08d1-458c-a87a-235f74451cfa} addonManager.js
 contract @mozilla.org/addons/integration;1 {4399533d-08d1-458c-a87a-235f74451cfa}
 #ifndef MOZ_WIDGET_ANDROID
@@ -11,7 +10,6 @@ contract @mozilla.org/addons/installtrigger;1 {9df8ef2b-94da-45c9-ab9f-132eb55fd
 category JavaScript-global-property InstallTrigger @mozilla.org/addons/installtrigger;1
 #ifndef MOZ_WIDGET_ANDROID
 category addon-provider-module PluginProvider resource://gre/modules/addons/PluginProvider.jsm
-#endif
 #endif
 component {8866d8e3-4ea5-48b7-a891-13ba0ac15235} amWebAPI.js
 contract @mozilla.org/addon-web-api/manager;1 {8866d8e3-4ea5-48b7-a891-13ba0ac15235}

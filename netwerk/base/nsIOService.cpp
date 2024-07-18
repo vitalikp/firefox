@@ -58,11 +58,6 @@
 #include "nsContentUtils.h"
 #include "xpcpublic.h"
 
-#ifdef MOZ_WIDGET_GONK
-#include "nsINetworkManager.h"
-#include "nsINetworkInterface.h"
-#endif
-
 namespace mozilla {
 namespace net {
 

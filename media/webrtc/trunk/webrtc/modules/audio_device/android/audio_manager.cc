@@ -9,9 +9,7 @@
  */
 
 #include "webrtc/modules/audio_device/android/audio_manager.h"
-#if !defined(MOZ_WIDGET_GONK)
 #include "AndroidJNIWrapper.h"
-#endif
 
 #include <utility>
 
@@ -21,9 +19,7 @@
 #include "webrtc/base/checks.h"
 #include "webrtc/base/scoped_ptr.h"
 #include "webrtc/modules/audio_device/android/audio_common.h"
-#if !defined(MOZ_WIDGET_GONK)
 #include "webrtc/modules/utility/include/helpers_android.h"
-#endif
 
 #define TAG "AudioManager"
 #define ALOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, TAG, __VA_ARGS__)
@@ -97,9 +93,7 @@ AudioManager::AudioManager()
 }
 
 AudioManager::~AudioManager() {
-#if !defined(MOZ_WIDGET_GONK)
   ALOGD("~dtor%s", GetThreadInfo().c_str());
-#endif
   RTC_DCHECK(thread_checker_.CalledOnValidThread());
   Close();
 }
@@ -123,7 +117,6 @@ void AudioManager::SetActiveAudioLayer(
 }
 
 bool AudioManager::Init() {
-#if !defined(MOZ_WIDGET_GONK)
   ALOGD("Init%s", GetThreadInfo().c_str());
   RTC_DCHECK(thread_checker_.CalledOnValidThread());
   RTC_DCHECK(!initialized_);
@@ -132,19 +125,16 @@ bool AudioManager::Init() {
     ALOGE("init failed!");
     return false;
   }
-#endif
   initialized_ = true;
   return true;
 }
 
 bool AudioManager::Close() {
-#if !defined(MOZ_WIDGET_GONK)
   ALOGD("Close%s", GetThreadInfo().c_str());
   RTC_DCHECK(thread_checker_.CalledOnValidThread());
   if (!initialized_)
     return true;
   j_audio_manager_->Close();
-#endif
   initialized_ = false;
   return true;
 }
@@ -183,7 +173,6 @@ int AudioManager::GetDelayEstimateInMilliseconds() const {
   return delay_estimate_in_milliseconds_;
 }
 
-#if !defined(MOZ_WIDGET_GONK)
 void JNICALL AudioManager::CacheAudioParameters(JNIEnv* env,
                                                 jobject obj,
                                                 jint sample_rate,
@@ -231,7 +220,6 @@ void AudioManager::OnCacheAudioParameters(JNIEnv* env,
   record_parameters_.reset(sample_rate, static_cast<size_t>(channels),
                            static_cast<size_t>(input_buffer_size));
 }
-#endif
   
 const AudioParameters& AudioManager::GetPlayoutAudioParameters() {
   RTC_CHECK(playout_parameters_.is_valid());

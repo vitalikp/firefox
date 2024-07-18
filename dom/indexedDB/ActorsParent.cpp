@@ -123,7 +123,7 @@
          LogLevel::Debug,                                                         \
          _args )
 
-#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_WIDGET_GONK)
+#if defined(MOZ_WIDGET_ANDROID)
 #define IDB_MOBILE
 #endif
 

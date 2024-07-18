@@ -29,17 +29,9 @@
 #define strcasecmp _stricmp
 #endif
 
-#ifdef MOZ_WIDGET_GONK
-#include "BootAnimation.h"
-#endif
-
 #include "BinaryPath.h"
 
 #include "nsXPCOMPrivate.h" // for MAXPATHLEN and XPCOM_DLL
-
-#ifdef MOZ_WIDGET_GONK
-# include <binder/ProcessState.h>
-#endif
 
 #include "mozilla/Sprintf.h"
 #include "mozilla/Telemetry.h"
@@ -133,11 +125,6 @@ static int do_main(int argc, char* argv[])
     argc -= 2;
   }
 
-#ifdef MOZ_WIDGET_GONK
-  /* Start boot animation */
-  mozilla::StartBootAnimation();
-#endif
-
   if (appini) {
     nsXREAppData *appData;
     rv = XRE_CreateAppData(appini, &appData);
@@ -156,14 +143,6 @@ static int do_main(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
   char exePath[MAXPATHLEN];
-
-#ifdef MOZ_WIDGET_GONK
-  // This creates a ThreadPool for binder ipc. A ThreadPool is necessary to
-  // receive binder calls, though not necessary to send binder calls.
-  // ProcessState::Self() also needs to be called once on the main thread to
-  // register the main thread with the binder driver.
-  android::ProcessState::self()->startThreadPool();
-#endif
 
   nsresult rv;
   rv = mozilla::BinaryPath::Get(argv[0], exePath);
