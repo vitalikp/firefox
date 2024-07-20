@@ -41,7 +41,6 @@
 
 #define DEFAULTS_DIR_NAME           NS_LITERAL_CSTRING("defaults")
 #define DEFAULTS_PREF_DIR_NAME      NS_LITERAL_CSTRING("pref")
-#define RES_DIR_NAME                NS_LITERAL_CSTRING("res")
 #define CHROME_DIR_NAME             NS_LITERAL_CSTRING("chrome")
 #define PLUGINS_DIR_NAME            NS_LITERAL_CSTRING("plugins")
 #define SEARCH_DIR_NAME             NS_LITERAL_CSTRING("searchplugins")
@@ -95,11 +94,6 @@ nsAppFileLocationProvider::GetFile(const char* aProp, bool* aPersistent,
     }
   } else if (nsCRT::strcmp(aProp, NS_APP_USER_PROFILES_ROOT_DIR) == 0) {
     rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile));
-  } else if (nsCRT::strcmp(aProp, NS_APP_RES_DIR) == 0) {
-    rv = CloneMozBinDirectory(getter_AddRefs(localFile));
-    if (NS_SUCCEEDED(rv)) {
-      rv = localFile->AppendRelativeNativePath(RES_DIR_NAME);
-    }
   } else if (nsCRT::strcmp(aProp, NS_APP_CHROME_DIR) == 0) {
     rv = CloneMozBinDirectory(getter_AddRefs(localFile));
     if (NS_SUCCEEDED(rv)) {
