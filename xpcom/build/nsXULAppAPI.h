@@ -110,12 +110,11 @@
 
 #if defined(XP_UNIX) || defined(XP_MACOSX)
 /**
- * Directory service keys for the system-wide and user-specific
- * directories where host manifests used by the WebExtensions
- * native messaging feature are found.
+ * Directory service keys for the system-wide directory where
+ * host manifests used by the WebExtensions native messaging
+ * feature are found.
  */
 #define XRE_SYS_NATIVE_MESSAGING_MANIFESTS "XRESysNativeMessaging"
-#define XRE_USER_NATIVE_MESSAGING_MANIFESTS "XREUserNativeMessaging"
 #endif
 
 /**

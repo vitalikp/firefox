@@ -482,26 +482,6 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
       }
     }
   }
-  else if (!strcmp(aProperty, XRE_USER_NATIVE_MESSAGING_MANIFESTS)) {
-    nsCOMPtr<nsIFile> localDir;
-    rv = GetUserDataDirectoryHome(getter_AddRefs(localDir), false);
-    if (NS_SUCCEEDED(rv)) {
-#if defined(XP_MACOSX)
-      rv = localDir->AppendNative(NS_LITERAL_CSTRING("Mozilla"));
-      if (NS_SUCCEEDED(rv)) {
-        rv = localDir->AppendNative(NS_LITERAL_CSTRING("NativeMessagingHosts"));
-      }
-#else
-      rv = localDir->AppendNative(NS_LITERAL_CSTRING(".mozilla"));
-      if (NS_SUCCEEDED(rv)) {
-        rv = localDir->AppendNative(NS_LITERAL_CSTRING("native-messaging-hosts"));
-      }
-#endif
-    }
-    if (NS_SUCCEEDED(rv)) {
-      localDir.swap(file);
-    }
-  }
 #endif
   else if (!strcmp(aProperty, XRE_UPDATE_ROOT_DIR)) {
     rv = GetUpdateRootDir(getter_AddRefs(file));

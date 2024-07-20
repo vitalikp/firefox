@@ -68,7 +68,6 @@ this.HostManifestManager = {
       let platform = AppConstants.platform;
       if (platform == "macosx" || platform == "linux") {
         let dirs = [
-          Services.dirsvc.get("XREUserNativeMessaging", Ci.nsIFile).path,
           Services.dirsvc.get("XRESysNativeMessaging", Ci.nsIFile).path,
         ];
         this._lookup = (application, context) => this._tryPaths(application, dirs, context);
