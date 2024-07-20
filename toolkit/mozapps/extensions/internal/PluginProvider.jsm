@@ -468,10 +468,7 @@ PluginWrapper.prototype = {
   get scope() {
     let { tags: [tag] } = pluginFor(this);
     let path = tag.fullpath;
-    // Plugins inside the application directory are in the application scope
-    let dir = Services.dirsvc.get("APlugns", Ci.nsIFile);
-    if (path.startsWith(dir.path))
-      return AddonManager.SCOPE_APPLICATION;
+    let dir;
 
     // Plugins inside the profile directory are in the profile scope
     dir = Services.dirsvc.get("ProfD", Ci.nsIFile);

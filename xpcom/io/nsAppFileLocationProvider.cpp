@@ -42,7 +42,6 @@
 #define DEFAULTS_DIR_NAME           NS_LITERAL_CSTRING("defaults")
 #define DEFAULTS_PREF_DIR_NAME      NS_LITERAL_CSTRING("pref")
 #define CHROME_DIR_NAME             NS_LITERAL_CSTRING("chrome")
-#define PLUGINS_DIR_NAME            NS_LITERAL_CSTRING("plugins")
 #define SEARCH_DIR_NAME             NS_LITERAL_CSTRING("searchplugins")
 
 //*****************************************************************************
@@ -98,11 +97,6 @@ nsAppFileLocationProvider::GetFile(const char* aProp, bool* aPersistent,
     rv = CloneMozBinDirectory(getter_AddRefs(localFile));
     if (NS_SUCCEEDED(rv)) {
       rv = localFile->AppendRelativeNativePath(CHROME_DIR_NAME);
-    }
-  } else if (nsCRT::strcmp(aProp, NS_APP_PLUGINS_DIR) == 0) {
-    rv = CloneMozBinDirectory(getter_AddRefs(localFile));
-    if (NS_SUCCEEDED(rv)) {
-      rv = localFile->AppendRelativeNativePath(PLUGINS_DIR_NAME);
     }
   }
   else if (nsCRT::strcmp(aProp, NS_ENV_PLUGINS_DIR) == 0) {
@@ -454,11 +448,8 @@ nsAppFileLocationProvider::GetFiles(const char* aProp,
   nsresult rv = NS_ERROR_FAILURE;
 
   if (!nsCRT::strcmp(aProp, NS_APP_PLUGINS_DIR_LIST)) {
-#ifdef XP_UNIX
-    static const char* keys[] = { nullptr, NS_APP_PLUGINS_DIR, NS_SYSTEM_PLUGINS_DIR, nullptr };
-#else
-    static const char* keys[] = { nullptr, NS_APP_PLUGINS_DIR, nullptr };
-#endif
+    static const char* keys[] = { nullptr, NS_SYSTEM_PLUGINS_DIR, nullptr };
+
     if (!keys[0] && !(keys[0] = PR_GetEnv("MOZ_PLUGIN_PATH"))) {
       static const char nullstr = 0;
       keys[0] = &nullstr;

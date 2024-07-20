@@ -32,7 +32,6 @@
 #define NS_APP_USER_PROFILES_ROOT_DIR           "DefProfRt"     // The dir where user profile dirs live.
 
 #define NS_APP_CHROME_DIR                       "AChrom"
-#define NS_APP_PLUGINS_DIR                      "APlugns"       // Deprecated - use NS_APP_PLUGINS_DIR_LIST
 #define NS_APP_SEARCH_DIR                       "SrchPlugns"
 
 #define NS_APP_CHROME_DIR_LIST                  "AChromDL"
