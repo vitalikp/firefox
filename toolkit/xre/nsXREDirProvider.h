@@ -41,10 +41,6 @@ public:
                                   const nsACString* aProfileName,
                                   const nsACString* aAppName,
                                   const nsACString* aVendorName);
-  nsresult GetUserProfilesLocalDir(nsIFile** aResult,
-                                   const nsACString* aProfileName,
-                                   const nsACString* aAppName,
-                                   const nsACString* aVendorName);
 
   // We only set the profile dir, we don't ensure that it exists;
   // that is the responsibility of the toolkit profile service.

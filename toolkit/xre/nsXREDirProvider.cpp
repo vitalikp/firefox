@@ -226,31 +226,6 @@ nsXREDirProvider::GetUserProfilesRootDir(nsIFile** aResult,
   return rv;
 }
 
-nsresult
-nsXREDirProvider::GetUserProfilesLocalDir(nsIFile** aResult,
-                                          const nsACString* aProfileName,
-                                          const nsACString* aAppName,
-                                          const nsACString* aVendorName)
-{
-  nsCOMPtr<nsIFile> file;
-  nsresult rv = GetUserDataDirectory(getter_AddRefs(file),
-                                     true,
-                                     aProfileName, aAppName, aVendorName);
-
-  if (NS_SUCCEEDED(rv)) {
-#if !defined(XP_UNIX) || defined(XP_MACOSX)
-    rv = file->AppendNative(NS_LITERAL_CSTRING("Profiles"));
-#endif
-    // We must create the profile directory here if it does not exist.
-    nsresult tmp = EnsureDirectoryExists(file);
-    if (NS_FAILED(tmp)) {
-      rv = tmp;
-    }
-  }
-  file.swap(*aResult);
-  return NS_OK;
-}
-
 #if defined(XP_UNIX) || defined(XP_MACOSX)
 /**
  * Get the directory that is the parent of the system-wide directories
