@@ -95,8 +95,6 @@ nsAppFileLocationProvider::GetFile(const char* aProp, bool* aPersistent,
     }
   } else if (nsCRT::strcmp(aProp, NS_APP_USER_PROFILES_ROOT_DIR) == 0) {
     rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile));
-  } else if (nsCRT::strcmp(aProp, NS_APP_USER_PROFILES_LOCAL_ROOT_DIR) == 0) {
-    rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile), true);
   } else if (nsCRT::strcmp(aProp, NS_APP_RES_DIR) == 0) {
     rv = CloneMozBinDirectory(getter_AddRefs(localFile));
     if (NS_SUCCEEDED(rv)) {

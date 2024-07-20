@@ -30,7 +30,6 @@
 #define NS_APP_PREF_DEFAULTS_50_DIR             "PrfDef"
                                                                                                                        
 #define NS_APP_USER_PROFILES_ROOT_DIR           "DefProfRt"     // The dir where user profile dirs live.
-#define NS_APP_USER_PROFILES_LOCAL_ROOT_DIR     "DefProfLRt"  // The dir where user profile temp dirs live.
 
 #define NS_APP_RES_DIR                          "ARes"
 #define NS_APP_CHROME_DIR                       "AChrom"
