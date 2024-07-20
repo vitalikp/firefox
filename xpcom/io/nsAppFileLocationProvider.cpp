@@ -28,11 +28,6 @@
 // WARNING: These hard coded names need to go away. They need to
 // come from localizable resources
 
-#if defined(XP_WIN)
-#define APP_REGISTRY_NAME NS_LITERAL_CSTRING("registry.dat")
-#else
-#define APP_REGISTRY_NAME NS_LITERAL_CSTRING("appreg")
-#endif
 
 // define default product directory
 #define DEFAULT_PRODUCT_DIR NS_LITERAL_CSTRING(MOZ_USER_DIR)
@@ -87,11 +82,6 @@ nsAppFileLocationProvider::GetFile(const char* aProp, bool* aPersistent,
 
   if (nsCRT::strcmp(aProp, NS_APP_APPLICATION_REGISTRY_DIR) == 0) {
     rv = GetProductDirectory(getter_AddRefs(localFile));
-  } else if (nsCRT::strcmp(aProp, NS_APP_APPLICATION_REGISTRY_FILE) == 0) {
-    rv = GetProductDirectory(getter_AddRefs(localFile));
-    if (NS_SUCCEEDED(rv)) {
-      rv = localFile->AppendNative(APP_REGISTRY_NAME);
-    }
   } else if (nsCRT::strcmp(aProp, NS_APP_DEFAULTS_50_DIR) == 0) {
     rv = CloneMozBinDirectory(getter_AddRefs(localFile));
     if (NS_SUCCEEDED(rv)) {

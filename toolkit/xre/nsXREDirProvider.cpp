@@ -69,14 +69,6 @@
 #endif
 #endif
 
-#if defined(XP_MACOSX)
-#define APP_REGISTRY_NAME "Application Registry"
-#elif defined(XP_WIN)
-#define APP_REGISTRY_NAME "registry.dat"
-#else
-#define APP_REGISTRY_NAME "appreg"
-#endif
-
 #define PREF_OVERRIDE_DIRNAME "preferences"
 
 #if (defined(XP_WIN) || defined(XP_MACOSX)) && defined(MOZ_CONTENT_SANDBOX)
@@ -485,11 +477,6 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
 #endif
   else if (!strcmp(aProperty, XRE_UPDATE_ROOT_DIR)) {
     rv = GetUpdateRootDir(getter_AddRefs(file));
-  }
-  else if (!strcmp(aProperty, NS_APP_APPLICATION_REGISTRY_FILE)) {
-    rv = GetUserAppDataDirectory(getter_AddRefs(file));
-    if (NS_SUCCEEDED(rv))
-      rv = file->AppendNative(NS_LITERAL_CSTRING(APP_REGISTRY_NAME));
   }
   else if (!strcmp(aProperty, NS_APP_USER_PROFILES_ROOT_DIR)) {
     rv = GetUserProfilesRootDir(getter_AddRefs(file), nullptr, nullptr, nullptr);

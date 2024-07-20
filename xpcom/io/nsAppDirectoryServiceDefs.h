@@ -26,7 +26,6 @@
 // Files and directories which exist on a per-product basis
 // --------------------------------------------------------------------------------------
 
-#define NS_APP_APPLICATION_REGISTRY_FILE        "AppRegF"
 #define NS_APP_APPLICATION_REGISTRY_DIR         "AppRegD"
 
 #define NS_APP_DEFAULTS_50_DIR                  "DefRt"         // The root dir of all defaults dirs
