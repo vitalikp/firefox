@@ -80,9 +80,7 @@ nsAppFileLocationProvider::GetFile(const char* aProp, bool* aPersistent,
   *aResult = nullptr;
   *aPersistent = true;
 
-  if (nsCRT::strcmp(aProp, NS_APP_APPLICATION_REGISTRY_DIR) == 0) {
-    rv = GetProductDirectory(getter_AddRefs(localFile));
-  } else if (nsCRT::strcmp(aProp, NS_APP_DEFAULTS_50_DIR) == 0) {
+  if (nsCRT::strcmp(aProp, NS_APP_DEFAULTS_50_DIR) == 0) {
     rv = CloneMozBinDirectory(getter_AddRefs(localFile));
     if (NS_SUCCEEDED(rv)) {
       rv = localFile->AppendRelativeNativePath(DEFAULTS_DIR_NAME);

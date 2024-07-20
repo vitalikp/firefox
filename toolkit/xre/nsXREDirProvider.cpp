@@ -451,8 +451,7 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
         rv = file->AppendNative(NS_LITERAL_CSTRING("pref"));
     }
   }
-  else if (!strcmp(aProperty, NS_APP_APPLICATION_REGISTRY_DIR) ||
-           !strcmp(aProperty, XRE_USER_APP_DATA_DIR)) {
+  else if (!strcmp(aProperty, XRE_USER_APP_DATA_DIR)) {
     rv = GetUserAppDataDirectory(getter_AddRefs(file));
   }
 #if defined(XP_UNIX) || defined(XP_MACOSX)
