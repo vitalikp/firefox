@@ -2637,17 +2637,6 @@ this.XPIProvider = {
       addDirectoryInstallLocation(KEY_APP_SYSTEM_DEFAULTS, KEY_APP_FEATURES,
                                   [], AddonManager.SCOPE_PROFILE, true);
 
-      if (enabledScopes & AddonManager.SCOPE_USER) {
-        addDirectoryInstallLocation(KEY_APP_SYSTEM_USER, "XREUSysExt",
-                                    [Services.appinfo.ID],
-                                    AddonManager.SCOPE_USER, true);
-        if (hasRegistry) {
-          addRegistryInstallLocation("winreg-app-user",
-                                     Ci.nsIWindowsRegKey.ROOT_KEY_CURRENT_USER,
-                                     AddonManager.SCOPE_USER);
-        }
-      }
-
       addDirectoryInstallLocation(KEY_APP_GLOBAL, KEY_ADDON_APP_DIR,
                                   [DIR_EXTENSIONS],
                                   AddonManager.SCOPE_APPLICATION, true);

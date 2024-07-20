@@ -542,13 +542,6 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
 #endif
   }
 #endif
-  else if (!strcmp(aProperty, XRE_USER_SYS_EXTENSION_DIR)) {
-#ifdef ENABLE_SYSTEM_EXTENSION_DIRS
-    return GetSysUserExtensionsDirectory(aFile);
-#else
-    return NS_ERROR_FAILURE;
-#endif
-  }
   else if (!strcmp(aProperty, XRE_APP_DISTRIBUTION_DIR)) {
     bool persistent = false;
     rv = GetFile(NS_GRE_DIR, &persistent, getter_AddRefs(file));
@@ -1674,23 +1667,6 @@ nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile, bool aLocal)
   return rv;
 }
 
-nsresult
-nsXREDirProvider::GetSysUserExtensionsDirectory(nsIFile** aFile)
-{
-  nsCOMPtr<nsIFile> localDir;
-  nsresult rv = GetUserDataDirectoryHome(getter_AddRefs(localDir), false);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = AppendSysUserExtensionPath(localDir);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = EnsureDirectoryExists(localDir);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  localDir.forget(aFile);
-  return NS_OK;
-}
-
 #if defined(XP_UNIX) || defined(XP_MACOSX)
 nsresult
 nsXREDirProvider::GetSystemExtensionsDirectory(nsIFile** aFile)
@@ -1763,39 +1739,6 @@ nsXREDirProvider::EnsureDirectoryExists(nsIFile* aDirectory)
 #endif
 
   return rv;
-}
-
-nsresult
-nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile)
-{
-  NS_ASSERTION(aFile, "Null pointer!");
-
-  nsresult rv;
-
-#if defined (XP_MACOSX) || defined(XP_WIN)
-
-  static const char* const sXR = "Mozilla";
-  rv = aFile->AppendNative(nsDependentCString(sXR));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  static const char* const sExtensions = "Extensions";
-  rv = aFile->AppendNative(nsDependentCString(sExtensions));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-#elif defined(XP_UNIX)
-
-  static const char* const sXR = ".mozilla";
-  rv = aFile->AppendNative(nsDependentCString(sXR));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  static const char* const sExtensions = "extensions";
-  rv = aFile->AppendNative(nsDependentCString(sExtensions));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-#else
-#error "Don't know how to get XRE user extension path on your platform"
-#endif
-  return NS_OK;
 }
 
 

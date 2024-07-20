@@ -118,12 +118,6 @@
 #endif
 
 /**
- * A directory service key which specifies the user system extension
- * parent directory.
- */
-#define XRE_USER_SYS_EXTENSION_DIR "XREUSysExt"
-
-/**
  * A directory service key which specifies the distribution specific files for
  * the application.
  */

@@ -101,7 +101,6 @@ public:
 protected:
   nsresult GetFilesInternal(const char* aProperty, nsISimpleEnumerator** aResult);
   static nsresult GetUserDataDirectoryHome(nsIFile* *aFile, bool aLocal);
-  static nsresult GetSysUserExtensionsDirectory(nsIFile* *aFile);
 #if defined(XP_UNIX) || defined(XP_MACOSX)
   static nsresult GetSystemExtensionsDirectory(nsIFile** aFile);
 #endif
@@ -114,8 +113,6 @@ protected:
                                     const nsACString* aAppName,
                                     const nsACString* aVendorName,
                                     bool aLocal);
-
-  static nsresult AppendSysUserExtensionPath(nsIFile* aFile);
 
   // Internal helper that splits a path into components using the '/' and '\\'
   // delimiters.
