@@ -39,7 +39,6 @@
 
 // Locally defined keys used by nsAppDirectoryEnumerator
 #define NS_ENV_PLUGINS_DIR          "EnvPlugins"    // env var MOZ_PLUGIN_PATH
-#define NS_USER_PLUGINS_DIR         "UserPlugins"
 
 #if XP_UNIX
 #define NS_SYSTEM_PLUGINS_DIR       "SysPlugins"
@@ -133,15 +132,6 @@ nsAppFileLocationProvider::GetFile(const char* aProp, bool* aPersistent,
     if (pathVar && *pathVar)
       rv = NS_NewNativeLocalFile(nsDependentCString(pathVar), true,
                                  getter_AddRefs(localFile));
-  } else if (nsCRT::strcmp(aProp, NS_USER_PLUGINS_DIR) == 0) {
-#ifdef ENABLE_SYSTEM_EXTENSION_DIRS
-    rv = GetProductDirectory(getter_AddRefs(localFile));
-    if (NS_SUCCEEDED(rv)) {
-      rv = localFile->AppendRelativeNativePath(PLUGINS_DIR_NAME);
-    }
-#else
-    rv = NS_ERROR_FAILURE;
-#endif
   }
 #ifdef XP_UNIX
   else if (nsCRT::strcmp(aProp, NS_SYSTEM_PLUGINS_DIR) == 0) {
@@ -485,9 +475,9 @@ nsAppFileLocationProvider::GetFiles(const char* aProp,
 
   if (!nsCRT::strcmp(aProp, NS_APP_PLUGINS_DIR_LIST)) {
 #ifdef XP_UNIX
-    static const char* keys[] = { nullptr, NS_USER_PLUGINS_DIR, NS_APP_PLUGINS_DIR, NS_SYSTEM_PLUGINS_DIR, nullptr };
+    static const char* keys[] = { nullptr, NS_APP_PLUGINS_DIR, NS_SYSTEM_PLUGINS_DIR, nullptr };
 #else
-    static const char* keys[] = { nullptr, NS_USER_PLUGINS_DIR, NS_APP_PLUGINS_DIR, nullptr };
+    static const char* keys[] = { nullptr, NS_APP_PLUGINS_DIR, nullptr };
 #endif
     if (!keys[0] && !(keys[0] = PR_GetEnv("MOZ_PLUGIN_PATH"))) {
       static const char nullstr = 0;
