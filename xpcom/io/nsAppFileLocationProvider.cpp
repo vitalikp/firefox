@@ -29,9 +29,6 @@
 // come from localizable resources
 
 
-// define default product directory
-#define DEFAULT_PRODUCT_DIR NS_LITERAL_CSTRING(MOZ_USER_DIR)
-
 // Locally defined keys used by nsAppDirectoryEnumerator
 #define NS_ENV_PLUGINS_DIR          "EnvPlugins"    // env var MOZ_PLUGIN_PATH
 
@@ -91,8 +88,6 @@ nsAppFileLocationProvider::GetFile(const char* aProp, bool* aPersistent,
         rv = localFile->AppendRelativeNativePath(DEFAULTS_PREF_DIR_NAME);
       }
     }
-  } else if (nsCRT::strcmp(aProp, NS_APP_USER_PROFILES_ROOT_DIR) == 0) {
-    rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile));
   } else if (nsCRT::strcmp(aProp, NS_APP_CHROME_DIR) == 0) {
     rv = CloneMozBinDirectory(getter_AddRefs(localFile));
     if (NS_SUCCEEDED(rv)) {
@@ -190,111 +185,6 @@ nsAppFileLocationProvider::CloneMozBinDirectory(nsIFile** aLocalFile)
   return NS_OK;
 }
 
-
-//----------------------------------------------------------------------------------------
-// GetProductDirectory - Gets the directory which contains the application data folder
-//
-// UNIX   : ~/.mozilla/
-// WIN    : <Application Data folder on user's machine>\Mozilla
-// Mac    : :Documents:Mozilla:
-//----------------------------------------------------------------------------------------
-nsresult
-nsAppFileLocationProvider::GetProductDirectory(nsIFile** aLocalFile,
-                                               bool aLocal)
-{
-  if (NS_WARN_IF(!aLocalFile)) {
-    return NS_ERROR_INVALID_ARG;
-  }
-
-  nsresult rv;
-  bool exists;
-  nsCOMPtr<nsIFile> localDir;
-
-#if defined(XP_WIN)
-  nsCOMPtr<nsIProperties> directoryService =
-    do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-  const char* prop = aLocal ? NS_WIN_LOCAL_APPDATA_DIR : NS_WIN_APPDATA_DIR;
-  rv = directoryService->Get(prop, NS_GET_IID(nsIFile), getter_AddRefs(localDir));
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-#elif defined(XP_UNIX)
-  rv = NS_NewNativeLocalFile(nsDependentCString(PR_GetEnv("HOME")), true,
-                             getter_AddRefs(localDir));
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-#else
-#error dont_know_how_to_get_product_dir_on_your_platform
-#endif
-
-  rv = localDir->AppendRelativeNativePath(DEFAULT_PRODUCT_DIR);
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-  rv = localDir->Exists(&exists);
-
-  if (NS_SUCCEEDED(rv) && !exists) {
-    rv = localDir->Create(nsIFile::DIRECTORY_TYPE, 0700);
-  }
-
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-
-  localDir.forget(aLocalFile);
-
-  return rv;
-}
-
-
-//----------------------------------------------------------------------------------------
-// GetDefaultUserProfileRoot - Gets the directory which contains each user profile dir
-//
-// UNIX   : ~/.mozilla/
-// WIN    : <Application Data folder on user's machine>\Mozilla\Profiles
-// Mac    : :Documents:Mozilla:Profiles:
-//----------------------------------------------------------------------------------------
-nsresult
-nsAppFileLocationProvider::GetDefaultUserProfileRoot(nsIFile** aLocalFile,
-                                                     bool aLocal)
-{
-  if (NS_WARN_IF(!aLocalFile)) {
-    return NS_ERROR_INVALID_ARG;
-  }
-
-  nsresult rv;
-  nsCOMPtr<nsIFile> localDir;
-
-  rv = GetProductDirectory(getter_AddRefs(localDir), aLocal);
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-
-#if defined(XP_WIN)
-  // These 3 platforms share this part of the path - do them as one
-  rv = localDir->AppendRelativeNativePath(NS_LITERAL_CSTRING("Profiles"));
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-
-  bool exists;
-  rv = localDir->Exists(&exists);
-  if (NS_SUCCEEDED(rv) && !exists) {
-    rv = localDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
-  }
-  if (NS_FAILED(rv)) {
-    return rv;
-  }
-#endif
-
-  localDir.forget(aLocalFile);
-
-  return rv;
-}
 
 //*****************************************************************************
 // nsAppFileLocationProvider::nsIDirectoryServiceProvider2
