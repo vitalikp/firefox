@@ -1715,19 +1715,14 @@ nsXREDirProvider::AppendProfilePath(nsIFile* aFile,
 
   nsAutoCString profile;
   nsAutoCString appName;
-  nsAutoCString vendor;
   if (aProfileName && !aProfileName->IsEmpty()) {
     profile = *aProfileName;
   } else if (aAppName) {
     appName = *aAppName;
-    if (aVendorName) {
-      vendor = *aVendorName;
-    }
   } else if (gAppData->profile) {
     profile = gAppData->profile;
   } else {
     appName = gAppData->name;
-    vendor = gAppData->vendor;
   }
 
   nsresult rv;
@@ -1737,9 +1732,6 @@ nsXREDirProvider::AppendProfilePath(nsIFile* aFile,
     rv = AppendProfileString(aFile, profile.get());
   }
   else {
-    // Note that MacOS ignores the vendor when creating the profile hierarchy -
-    // all application preferences directories live alongside one another in
-    // ~/Library/Application Support/
     rv = aFile->AppendNative(appName);
   }
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1749,23 +1741,10 @@ nsXREDirProvider::AppendProfilePath(nsIFile* aFile,
     rv = AppendProfileString(aFile, profile.get());
   }
   else {
-    if (!vendor.IsEmpty()) {
-      rv = aFile->AppendNative(vendor);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
     rv = aFile->AppendNative(appName);
   }
   NS_ENSURE_SUCCESS(rv, rv);
 
-#elif defined(ANDROID)
-  // The directory used for storing profiles
-  // The parent of this directory is set in GetUserDataDirectoryHome
-  // XXX: handle gAppData->profile properly
-  // XXXsmaug ...and the rest of the profile creation!
-  MOZ_ASSERT(!aAppName,
-             "Profile creation for external applications is not implemented!");
-  rv = aFile->AppendNative(nsDependentCString("mozilla"));
-  NS_ENSURE_SUCCESS(rv, rv);
 #elif defined(XP_UNIX)
   nsAutoCString folder;
   // Make it hidden (by starting with "."), except when local (the
@@ -1790,16 +1769,6 @@ nsXREDirProvider::AppendProfilePath(nsIFile* aFile,
     rv = AppendProfileString(aFile, folder.BeginReading());
   }
   else {
-    if (!vendor.IsEmpty()) {
-      folder.Append(vendor);
-      ToLowerCase(folder);
-
-      rv = aFile->AppendNative(folder);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      folder.Truncate();
-    }
-
     folder.Append(appName);
     ToLowerCase(folder);
 
