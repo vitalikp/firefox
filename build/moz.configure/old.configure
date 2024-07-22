@@ -269,7 +269,6 @@ def old_configure_options(*options):
     '--with-thumb',
     '--with-thumb-interwork',
     '--with-unify-dist',
-    '--with-user-appdir',
     '--x-includes',
     '--x-libraries',
 
