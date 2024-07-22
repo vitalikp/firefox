@@ -1174,8 +1174,6 @@ DumpHelp()
 static inline void
 DumpVersion()
 {
-  if (gAppData->vendor)
-    printf("%s ", (const char*) gAppData->vendor);
   printf("%s %s", (const char*) gAppData->name, (const char*) gAppData->version);
   if (gAppData->copyright)
       printf(", %s", (const char*) gAppData->copyright);
