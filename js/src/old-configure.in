@@ -434,7 +434,6 @@ OBJ_SUFFIX=o
 LIB_SUFFIX=a
 IMPORT_LIB_SUFFIX=
 DIRENT_INO=d_ino
-MOZ_USER_DIR=".mozilla"
 
 MOZ_FIX_LINK_PATHS="-Wl,-rpath-link,${DIST}/bin -Wl,-rpath-link,${prefix}/lib"
 
@@ -861,7 +860,6 @@ case "$target" in
     AC_DEFINE(HAVE__MSIZE)
     AC_DEFINE(WIN32_LEAN_AND_MEAN)
     BIN_SUFFIX='.exe'
-    MOZ_USER_DIR="Mozilla"
 
     case "$host_os" in
     cygwin*|msvc*|mks*)

@@ -538,7 +538,6 @@ OBJ_SUFFIX=o
 LIB_SUFFIX=a
 IMPORT_LIB_SUFFIX=
 DIRENT_INO=d_ino
-MOZ_USER_DIR=".mozilla"
 
 MOZ_FIX_LINK_PATHS="-Wl,-rpath-link,${DIST}/bin -Wl,-rpath-link,${prefix}/lib"
 
@@ -1168,7 +1167,6 @@ case "$target" in
     dnl See http://support.microsoft.com/kb/143208 to use STL
     AC_DEFINE(NOMINMAX)
     BIN_SUFFIX='.exe'
-    MOZ_USER_DIR="Mozilla"
 
     case "$host_os" in
     cygwin*|msvc*|mks*)
@@ -2297,7 +2295,6 @@ cocoa)
     TK_CFLAGS=""
     CFLAGS="$CFLAGS $TK_CFLAGS"
     CXXFLAGS="$CXXFLAGS $TK_CFLAGS"
-    MOZ_USER_DIR="Mozilla"
     MOZ_FS_LAYOUT=bundle
     ;;
 
@@ -2307,7 +2304,6 @@ uikit)
     TK_LIBS='-Wl,-framework,Foundation -Wl,-framework,CoreFoundation -Wl,-framework,CoreGraphics -Wl,-framework,CoreText -Wl,-framework,AVFoundation -Wl,-framework,AudioToolbox -Wl,-framework,CoreMedia -Wl,-framework,CoreVideo -Wl,-framework,OpenGLES -Wl,-framework,QuartzCore'
     CFLAGS="$CFLAGS $TK_CFLAGS"
     CXXFLAGS="$CXXFLAGS $TK_CFLAGS"
-    MOZ_USER_DIR="Mozilla"
     MOZ_FS_LAYOUT=bundle
     ;;
 
@@ -3720,8 +3716,6 @@ MOZ_ARG_WITH_STRING(default-mozilla-five-home,
                           Set the default value for MOZILLA_FIVE_HOME],
 [ val=`echo $withval`
   AC_DEFINE_UNQUOTED(MOZ_DEFAULT_MOZILLA_FIVE_HOME,"$val") ])
-
-AC_DEFINE_UNQUOTED(MOZ_USER_DIR,"$MOZ_USER_DIR")
 
 dnl ========================================================
 dnl = Doxygen configuration
