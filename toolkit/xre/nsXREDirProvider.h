@@ -105,7 +105,6 @@ protected:
   static nsresult AppendProfilePath(nsIFile* aFile,
                                     const nsACString* aProfileName,
                                     const nsACString* aAppName,
-                                    const nsACString* aVendorName,
                                     bool aLocal);
 
   // Internal helper that splits a path into components using the '/' and '\\'
