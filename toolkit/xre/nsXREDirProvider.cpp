@@ -204,13 +204,12 @@ nsXREDirProvider::Release()
 nsresult
 nsXREDirProvider::GetUserProfilesRootDir(nsIFile** aResult,
                                          const nsACString* aProfileName,
-                                         const nsACString* aAppName,
-                                         const nsACString* aVendorName)
+                                         const nsACString* aAppName)
 {
   nsCOMPtr<nsIFile> file;
   nsresult rv = GetUserDataDirectory(getter_AddRefs(file),
                                      false,
-                                     aProfileName, aAppName, aVendorName);
+                                     aProfileName, aAppName, nullptr);
 
   if (NS_SUCCEEDED(rv)) {
 #if !defined(XP_UNIX) || defined(XP_MACOSX)
@@ -453,7 +452,7 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
     rv = GetUpdateRootDir(getter_AddRefs(file));
   }
   else if (!strcmp(aProperty, NS_APP_USER_PROFILES_ROOT_DIR)) {
-    rv = GetUserProfilesRootDir(getter_AddRefs(file), nullptr, nullptr, nullptr);
+    rv = GetUserProfilesRootDir(getter_AddRefs(file), nullptr, nullptr);
   }
   else if (!strcmp(aProperty, XRE_EXECUTABLE_FILE) && gArgv[0]) {
     nsCOMPtr<nsIFile> lf;

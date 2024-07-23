@@ -39,8 +39,7 @@ public:
 
   nsresult GetUserProfilesRootDir(nsIFile** aResult,
                                   const nsACString* aProfileName,
-                                  const nsACString* aAppName,
-                                  const nsACString* aVendorName);
+                                  const nsACString* aAppName);
 
   // We only set the profile dir, we don't ensure that it exists;
   // that is the responsibility of the toolkit profile service.
