@@ -99,7 +99,6 @@ protected:
   // Determine the profile path within the UAppData directory. This is different
   // on every major platform.
   static nsresult AppendProfilePath(nsIFile* aFile,
-                                    const nsACString* aProfileName,
                                     const nsACString* aAppName,
                                     bool aLocal);
 
