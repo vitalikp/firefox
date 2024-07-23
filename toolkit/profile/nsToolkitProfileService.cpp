@@ -125,14 +125,6 @@ private:
 
     nsresult CreateTimesInternal(nsIFile *profileDir);
 
-    nsresult CreateProfileInternal(nsIFile* aRootDir,
-                                   const nsACString& aName,
-                                   const nsACString* aProfileName,
-                                   const nsACString* aAppName,
-                                   const nsACString* aVendorName,
-                                   bool aForExternalApp,
-                                   nsIToolkitProfile** aResult);
-
     RefPtr<nsToolkitProfile>  mFirst;
     nsCOMPtr<nsIToolkitProfile> mChosen;
     nsCOMPtr<nsIToolkitProfile> mDefault;
@@ -700,26 +692,9 @@ nsToolkitProfileService::CreateProfile(nsIFile* aRootDir,
                                        const nsACString& aName,
                                        nsIToolkitProfile** aResult)
 {
-    return CreateProfileInternal(aRootDir, aName,
-                                 nullptr, nullptr, nullptr, false, aResult);
-}
-
-nsresult
-nsToolkitProfileService::CreateProfileInternal(nsIFile* aRootDir,
-                                               const nsACString& aName,
-                                               const nsACString* aProfileName,
-                                               const nsACString* aAppName,
-                                               const nsACString* aVendorName,
-                                               bool aForExternalApp,
-                                               nsIToolkitProfile** aResult)
-{
-    nsresult rv = NS_ERROR_FAILURE;
-
-    if (!aForExternalApp) {
-        rv = GetProfileByName(aName, aResult);
-        if (NS_SUCCEEDED(rv)) {
-            return rv;
-        }
+    nsresult rv = GetProfileByName(aName, aResult);
+    if (NS_SUCCEEDED(rv)) {
+        return rv;
     }
 
     nsCOMPtr<nsIFile> rootDir (aRootDir);
@@ -727,8 +702,8 @@ nsToolkitProfileService::CreateProfileInternal(nsIFile* aRootDir,
     nsAutoCString dirName;
     if (!rootDir) {
         rv = gDirServiceProvider->GetUserProfilesRootDir(getter_AddRefs(rootDir),
-                                                         aProfileName, aAppName,
-                                                         aVendorName);
+                                                         nullptr, nullptr,
+                                                         nullptr);
         NS_ENSURE_SUCCESS(rv, rv);
 
         dirName = aName;
@@ -804,14 +779,14 @@ nsToolkitProfileService::CreateProfileInternal(nsIFile* aRootDir,
     rv = CreateTimesInternal(rootDir);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsToolkitProfile* last = aForExternalApp ? nullptr : mFirst.get();
+    nsToolkitProfile* last = mFirst.get();
     if (last) {
         while (last->mNext)
             last = last->mNext;
     }
 
     nsCOMPtr<nsIToolkitProfile> profile =
-        new nsToolkitProfile(aName, rootDir, localDir, last, aForExternalApp);
+        new nsToolkitProfile(aName, rootDir, localDir, last, false);
     if (!profile) return NS_ERROR_OUT_OF_MEMORY;
 
     profile.forget(aResult);
