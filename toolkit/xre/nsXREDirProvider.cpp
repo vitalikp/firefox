@@ -1653,7 +1653,7 @@ nsXREDirProvider::GetUserDataDirectory(nsIFile** aFile, bool aLocal)
   nsresult rv = GetUserDataDirectoryHome(getter_AddRefs(localDir), aLocal);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = AppendProfilePath(localDir, nullptr, aLocal);
+  rv = AppendProfilePath(localDir, aLocal);
   NS_ENSURE_SUCCESS(rv, rv);
 
 #ifdef DEBUG_jungshik
@@ -1693,9 +1693,7 @@ nsXREDirProvider::EnsureDirectoryExists(nsIFile* aDirectory)
 
 
 nsresult
-nsXREDirProvider::AppendProfilePath(nsIFile* aFile,
-                                    const nsACString* aAppName,
-                                    bool aLocal)
+nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal)
 {
   NS_ASSERTION(aFile, "Null pointer!");
 
@@ -1705,9 +1703,7 @@ nsXREDirProvider::AppendProfilePath(nsIFile* aFile,
 
   nsAutoCString profile;
   nsAutoCString appName;
-  if (aAppName) {
-    appName = *aAppName;
-  } else if (gAppData->profile) {
+  if (gAppData->profile) {
     profile = gAppData->profile;
   } else {
     appName = gAppData->name;

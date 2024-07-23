@@ -98,9 +98,7 @@ protected:
 
   // Determine the profile path within the UAppData directory. This is different
   // on every major platform.
-  static nsresult AppendProfilePath(nsIFile* aFile,
-                                    const nsACString* aAppName,
-                                    bool aLocal);
+  static nsresult AppendProfilePath(nsIFile* aFile, bool aLocal);
 
   // Internal helper that splits a path into components using the '/' and '\\'
   // delimiters.
