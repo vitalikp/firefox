@@ -692,8 +692,7 @@ nsToolkitProfileService::CreateProfile(nsIFile* aRootDir,
 
     nsAutoCString dirName;
     if (!rootDir) {
-        rv = gDirServiceProvider->GetUserProfilesRootDir(getter_AddRefs(rootDir),
-                                                         nullptr);
+        rv = gDirServiceProvider->GetUserProfilesRootDir(getter_AddRefs(rootDir));
         NS_ENSURE_SUCCESS(rv, rv);
 
         dirName = aName;

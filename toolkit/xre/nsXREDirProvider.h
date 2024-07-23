@@ -37,8 +37,7 @@ public:
 
   static nsXREDirProvider* GetSingleton();
 
-  nsresult GetUserProfilesRootDir(nsIFile** aResult,
-                                  const nsACString* aAppName);
+  nsresult GetUserProfilesRootDir(nsIFile** aResult);
 
   // We only set the profile dir, we don't ensure that it exists;
   // that is the responsibility of the toolkit profile service.
