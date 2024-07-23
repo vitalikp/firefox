@@ -56,8 +56,7 @@ private:
     nsToolkitProfile(const nsACString& aName,
                      nsIFile* aRootDir,
                      nsIFile* aLocalDir,
-                     nsToolkitProfile* aPrev,
-                     bool aForExternalApp);
+                     nsToolkitProfile* aPrev);
 
     friend class nsToolkitProfileLock;
 
@@ -65,7 +64,6 @@ private:
     nsCOMPtr<nsIFile>          mRootDir;
     nsCOMPtr<nsIFile>          mLocalDir;
     nsIProfileLock*            mLock;
-    bool                       mForExternalApp;
 };
 
 class nsToolkitProfileLock final : public nsIProfileLock
@@ -154,23 +152,19 @@ private:
 nsToolkitProfile::nsToolkitProfile(const nsACString& aName,
                                    nsIFile* aRootDir,
                                    nsIFile* aLocalDir,
-                                   nsToolkitProfile* aPrev,
-                                   bool aForExternalApp) :
+                                   nsToolkitProfile* aPrev) :
     mPrev(aPrev),
     mName(aName),
     mRootDir(aRootDir),
     mLocalDir(aLocalDir),
-    mLock(nullptr),
-    mForExternalApp(aForExternalApp)
+    mLock(nullptr)
 {
     NS_ASSERTION(aRootDir, "No file!");
 
-    if (!aForExternalApp) {
-        if (aPrev) {
-            aPrev->mNext = this;
-        } else {
-            nsToolkitProfileService::gService->mFirst = this;
-        }
+    if (aPrev) {
+        aPrev->mNext = this;
+    } else {
+        nsToolkitProfileService::gService->mFirst = this;
     }
 }
 
@@ -202,7 +196,6 @@ nsToolkitProfile::SetName(const nsACString& aName)
 {
     NS_ASSERTION(nsToolkitProfileService::gService,
                  "Where did my service go?");
-    NS_ENSURE_TRUE(!mForExternalApp, NS_ERROR_NOT_IMPLEMENTED);
 
     mName = aName;
     nsToolkitProfileService::gService->mDirty = true;
@@ -215,8 +208,6 @@ nsToolkitProfile::Remove(bool removeFiles)
 {
     NS_ASSERTION(nsToolkitProfileService::gService,
                  "Whoa, my service is gone.");
-
-    NS_ENSURE_TRUE(!mForExternalApp, NS_ERROR_NOT_IMPLEMENTED);
 
     if (mLock)
         return NS_ERROR_FILE_IS_LOCKED;
@@ -480,7 +471,7 @@ nsToolkitProfileService::Init()
 
         currentProfile = new nsToolkitProfile(name,
                                               rootDir, localDir,
-                                              currentProfile, false);
+                                              currentProfile);
         NS_ENSURE_TRUE(currentProfile, NS_ERROR_OUT_OF_MEMORY);
 
         rv = parser.GetString(profileID.get(), "Default", buffer);
@@ -786,7 +777,7 @@ nsToolkitProfileService::CreateProfile(nsIFile* aRootDir,
     }
 
     nsCOMPtr<nsIToolkitProfile> profile =
-        new nsToolkitProfile(aName, rootDir, localDir, last, false);
+        new nsToolkitProfile(aName, rootDir, localDir, last);
     if (!profile) return NS_ERROR_OUT_OF_MEMORY;
 
     profile.forget(aResult);
