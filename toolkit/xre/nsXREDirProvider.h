@@ -38,7 +38,6 @@ public:
   static nsXREDirProvider* GetSingleton();
 
   nsresult GetUserProfilesRootDir(nsIFile** aResult,
-                                  const nsACString* aProfileName,
                                   const nsACString* aAppName);
 
   // We only set the profile dir, we don't ensure that it exists;
