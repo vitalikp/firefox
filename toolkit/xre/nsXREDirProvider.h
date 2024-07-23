@@ -48,16 +48,15 @@ public:
   void DoShutdown();
 
   static nsresult GetUserAppDataDirectory(nsIFile* *aFile) {
-    return GetUserDataDirectory(aFile, false, nullptr);
+    return GetUserDataDirectory(aFile, false);
   }
   static nsresult GetUserLocalDataDirectory(nsIFile* *aFile) {
-    return GetUserDataDirectory(aFile, true, nullptr);
+    return GetUserDataDirectory(aFile, true);
   }
 
   // By default GetUserDataDirectory gets profile path from gAppData,
   // but that can be overridden by using aProfileName/aAppName/aVendorName.
-  static nsresult GetUserDataDirectory(nsIFile** aFile, bool aLocal,
-                                       const nsACString* aAppName);
+  static nsresult GetUserDataDirectory(nsIFile** aFile, bool aLocal);
 
   /* make sure you clone it, if you need to do stuff to it */
   nsIFile* GetGREDir() { return mGREDir; }
