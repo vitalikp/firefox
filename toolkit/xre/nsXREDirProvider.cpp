@@ -206,8 +206,7 @@ nsXREDirProvider::GetUserProfilesRootDir(nsIFile** aResult)
 {
   nsCOMPtr<nsIFile> file;
   nsresult rv = GetUserDataDirectory(getter_AddRefs(file),
-                                     false,
-                                     nullptr, nullptr);
+                                     false, nullptr);
 
   if (NS_SUCCEEDED(rv)) {
 #if !defined(XP_UNIX) || defined(XP_MACOSX)
@@ -1650,14 +1649,13 @@ nsXREDirProvider::GetSystemExtensionsDirectory(nsIFile** aFile)
 
 nsresult
 nsXREDirProvider::GetUserDataDirectory(nsIFile** aFile, bool aLocal,
-                                       const nsACString* aProfileName,
                                        const nsACString* aAppName)
 {
   nsCOMPtr<nsIFile> localDir;
   nsresult rv = GetUserDataDirectoryHome(getter_AddRefs(localDir), aLocal);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = AppendProfilePath(localDir, aProfileName, aAppName, aLocal);
+  rv = AppendProfilePath(localDir, nullptr, aAppName, aLocal);
   NS_ENSURE_SUCCESS(rv, rv);
 
 #ifdef DEBUG_jungshik
