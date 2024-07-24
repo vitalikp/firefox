@@ -30,9 +30,8 @@ def main():
     important_substitutions = [
         'target_alias', 'target_cpu', 'target_os', 'target_vendor',
         'host_alias', 'host_cpu', 'host_os', 'host_vendor',
-        'MOZ_UPDATE_CHANNEL', 'MOZ_APP_VENDOR', 'MOZ_APP_NAME',
-        'MOZ_APP_VERSION', 'MOZ_APP_MAXVERSION', 'MOZ_APP_ID',
-        'CC', 'CXX', 'LD', 'AS']
+        'MOZ_UPDATE_CHANNEL', 'MOZ_APP_NAME', 'MOZ_APP_VERSION',
+        'MOZ_APP_MAXVERSION', 'MOZ_APP_ID', 'CC', 'CXX', 'LD', 'AS']
 
     all_key_value_pairs = dict([(x.lower(), buildconfig.substs[x]) for x in important_substitutions])
     all_key_value_pairs.update(parse_cmdline(sys.argv[2:]))

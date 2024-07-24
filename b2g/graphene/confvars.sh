@@ -8,7 +8,6 @@ else
 MOZ_APP_BASENAME=Graphene
 fi
 
-MOZ_APP_VENDOR=Mozilla
 MOZ_UPDATER=1
 
 MOZ_B2G=1

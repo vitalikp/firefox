@@ -405,7 +405,6 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
                 extras.putString("ProductID", AppConstants.MOZ_APP_ID);
                 extras.putString("Version", AppConstants.MOZ_APP_VERSION);
                 extras.putString("BuildID", AppConstants.MOZ_APP_BUILDID);
-                extras.putString("Vendor", AppConstants.MOZ_APP_VENDOR);
                 extras.putString("ReleaseChannel", AppConstants.MOZ_UPDATE_CHANNEL);
                 return extras;
             }

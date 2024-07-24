@@ -4,7 +4,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 MOZ_APP_BASENAME=Firefox
-MOZ_APP_VENDOR=Mozilla
 MOZ_UPDATER=1
 MOZ_PHOENIX=1
 
