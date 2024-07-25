@@ -31,8 +31,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "AsyncShutdown",
                                   "resource://gre/modules/AsyncShutdown.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "TelemetryStorage",
                                   "resource://gre/modules/TelemetryStorage.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "TelemetryReportingPolicy",
-                                  "resource://gre/modules/TelemetryReportingPolicy.jsm");
 XPCOMUtils.defineLazyServiceGetter(this, "Telemetry",
                                    "@mozilla.org/base/telemetry;1",
                                    "nsITelemetry");
@@ -1015,12 +1013,7 @@ var TelemetrySendImpl = {
    *         sending is temporarily disabled.
    */
   get canSendNow() {
-    // If the reporting policy was not accepted yet, don't send pings.
-    if (!TelemetryReportingPolicy.canUpload()) {
-      return false;
-    }
-
-    return this._sendingEnabled;
+    return false;
   },
 
   /**

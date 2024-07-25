@@ -28,43 +28,20 @@ public class DataReportingNotification {
 
     public static final String ALERT_NAME_DATAREPORTING_NOTIFICATION = "datareporting-notification";
 
-    private static final String PREFS_POLICY_NOTIFIED_TIME = "datareporting.policy.dataSubmissionPolicyNotifiedTime";
-    private static final String PREFS_POLICY_VERSION = "datareporting.policy.dataSubmissionPolicyVersion";
     private static final int DATA_REPORTING_VERSION = 2;
 
     public static void checkAndNotifyPolicy(Context context) {
         SharedPreferences dataPrefs = GeckoSharedPrefs.forApp(context);
-        final int currentVersion = dataPrefs.getInt(PREFS_POLICY_VERSION, -1);
+        final int currentVersion = -1;
 
-        if (currentVersion < 1) {
-            // This is a first run, so notify user about data policy.
-            notifyDataPolicy(context, dataPrefs);
+        // This is a first run, so notify user about data policy.
+        notifyDataPolicy(context, dataPrefs);
 
-            // If healthreport is enabled, set default preference value.
-            if (AppConstants.MOZ_SERVICES_HEALTHREPORT) {
-                SharedPreferences.Editor editor = dataPrefs.edit();
-                editor.putBoolean(GeckoPreferences.PREFS_HEALTHREPORT_UPLOAD_ENABLED, true);
-                editor.apply();
-            }
-            return;
-        }
-
-        if (currentVersion == 1) {
-            // Redisplay notification only for Beta because version 2 updates Beta policy and update version.
-            if (TextUtils.equals("beta", AppConstants.MOZ_UPDATE_CHANNEL)) {
-                notifyDataPolicy(context, dataPrefs);
-            } else {
-                // Silently update the version.
-                SharedPreferences.Editor editor = dataPrefs.edit();
-                editor.putInt(PREFS_POLICY_VERSION, DATA_REPORTING_VERSION);
-                editor.apply();
-            }
-            return;
-        }
-
-        if (currentVersion >= DATA_REPORTING_VERSION) {
-            // Do nothing, we're at a current (or future) version.
-            return;
+        // If healthreport is enabled, set default preference value.
+        if (AppConstants.MOZ_SERVICES_HEALTHREPORT) {
+            SharedPreferences.Editor editor = dataPrefs.edit();
+            editor.putBoolean(GeckoPreferences.PREFS_HEALTHREPORT_UPLOAD_ENABLED, true);
+            editor.apply();
         }
     }
 
@@ -120,9 +97,6 @@ public class DataReportingNotification {
 
             // Record version and notification time.
             SharedPreferences.Editor editor = sharedPrefs.edit();
-            long now = System.currentTimeMillis();
-            editor.putLong(PREFS_POLICY_NOTIFIED_TIME, now);
-            editor.putInt(PREFS_POLICY_VERSION, DATA_REPORTING_VERSION);
             editor.apply();
             result = true;
         } finally {

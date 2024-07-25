@@ -82,8 +82,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "TelemetrySession",
                                   "resource://gre/modules/TelemetrySession.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "TelemetrySend",
                                   "resource://gre/modules/TelemetrySend.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "TelemetryReportingPolicy",
-                                  "resource://gre/modules/TelemetryReportingPolicy.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "TelemetryModules",
                                   "resource://gre/modules/TelemetryModules.jsm");
 
@@ -674,9 +672,6 @@ var Impl = {
       return Promise.resolve();
     }
 
-    // This will trigger displaying the datachoices infobar.
-    TelemetryReportingPolicy.setup();
-
     if (!this.enableTelemetryRecording()) {
       this._log.config("setupChromeProcess - Telemetry recording is disabled, skipping Chrome process setup.");
       return Promise.resolve();
@@ -774,8 +769,6 @@ var Impl = {
 
     // Now do an orderly shutdown.
     try {
-      // Stop the datachoices infobar display.
-      TelemetryReportingPolicy.shutdown();
       TelemetryEnvironment.shutdown();
 
       // Stop any ping sending.

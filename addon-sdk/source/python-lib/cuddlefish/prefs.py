@@ -179,7 +179,6 @@ DEFAULT_TEST_PREFS = {
     'network.http.prompt-temp-redirect': False,
     'security.warn_viewing_mixed': False,
     'extensions.defaultProviders.enabled': True,
-    'datareporting.policy.dataSubmissionPolicyBypassNotification': True,
     'layout.css.report_errors': True,
     'layout.css.grid.enabled': True,
     'layout.spammy_warnings.enabled': False,
