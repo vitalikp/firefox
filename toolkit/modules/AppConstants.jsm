@@ -67,13 +67,6 @@ this.AppConstants = Object.freeze({
   false,
 #endif
 
-  MOZ_DATA_REPORTING:
-#ifdef MOZ_DATA_REPORTING
-  true,
-#else
-  false,
-#endif
-
   MOZ_SANDBOX:
 #ifdef MOZ_SANDBOX
   true,

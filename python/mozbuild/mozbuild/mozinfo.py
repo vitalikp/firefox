@@ -82,7 +82,7 @@ def build_dict(config, env=os.environ):
     d['nightly_build'] = substs.get('NIGHTLY_BUILD') == '1'
     d['release_or_beta'] = substs.get('RELEASE_OR_BETA') == '1'
     d['pgo'] = substs.get('MOZ_PGO') == '1'
-    d['datareporting'] = bool(substs.get('MOZ_DATA_REPORTING'))
+    d['datareporting'] = False
     d['healthreport'] = substs.get('MOZ_SERVICES_HEALTHREPORT') == '1'
     d['sync'] = substs.get('MOZ_SERVICES_SYNC') == '1'
     d['asan'] = substs.get('MOZ_ASAN') == '1'

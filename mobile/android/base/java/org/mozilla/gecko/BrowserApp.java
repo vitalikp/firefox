@@ -2031,11 +2031,6 @@ public class BrowserApp extends GeckoApp
                             }
                         }
                     });
-
-                    // Display notification for Mozilla data reporting, if data should be collected.
-                    if (AppConstants.MOZ_DATA_REPORTING && Restrictions.isAllowed(this, Restrictable.DATA_CHOICES)) {
-                        DataReportingNotification.checkAndNotifyPolicy(GeckoAppShell.getContext());
-                    }
                     break;
 
                 case "Search:Keyword":

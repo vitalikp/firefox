@@ -28,18 +28,6 @@
 <!ENTITY checkSpelling.label             "Check my spelling as I type">
 <!ENTITY checkSpelling.accesskey         "t">
 
-<!ENTITY dataChoicesTab.label            "Data Choices">
-
-<!ENTITY healthReportDesc.label          "Helps you understand your browser performance and shares data with &vendorShortName; about your browser health">
-<!ENTITY enableHealthReport.label        "Enable &brandShortName; Health Report">
-<!ENTITY enableHealthReport.accesskey    "R">
-<!ENTITY healthReportLearnMore.label     "Learn More">
-
-<!ENTITY telemetryDesc.label             "Shares performance, usage, hardware and customization data about your browser with &vendorShortName; to help us make &brandShortName; better">
-<!ENTITY enableTelemetryData.label       "Share additional data (i.e., Telemetry)">
-<!ENTITY enableTelemetryData.accesskey   "T">
-<!ENTITY telemetryLearnMore.label        "Learn More">
-
 <!ENTITY alwaysSubmitCrashReports.label   "Allow &brandShortName; to send backlogged crash reports on your behalf">
 <!ENTITY alwaysSubmitCrashReports.accesskey "c">
 

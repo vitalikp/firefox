@@ -666,7 +666,7 @@ OnSharedPreferenceChangeListener
             if (pref instanceof PreferenceGroup) {
                 // If datareporting is disabled, remove UI.
                 if (PREFS_DATA_REPORTING_PREFERENCES.equals(key)) {
-                    if (!AppConstants.MOZ_DATA_REPORTING || !Restrictions.isAllowed(this, Restrictable.DATA_CHOICES)) {
+                    if (!Restrictions.isAllowed(this, Restrictable.DATA_CHOICES)) {
                         preferences.removePreference(pref);
                         i--;
                         continue;

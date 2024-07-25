@@ -1425,10 +1425,7 @@ var gViewController = {
       isEnabled() {
         return !!getMainWindowWithPreferencesPane();
       },
-      doCommand() {
-        let mainWindow = getMainWindowWithPreferencesPane();
-        mainWindow.openAdvancedPreferences("dataChoicesTab");
-      },
+      doCommand() {},
     },
 
     cmd_showUnsignedExtensions: {

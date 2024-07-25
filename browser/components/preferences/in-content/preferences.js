@@ -138,8 +138,6 @@ function telemetryBucketForCategory(category) {
       switch (advancedPaneTabs.selectedTab.id) {
         case "generalTab":
           return "advancedGeneral";
-        case "dataChoicesTab":
-          return "advancedDataChoices";
         case "networkTab":
           return "advancedNetwork";
         case "updateTab":

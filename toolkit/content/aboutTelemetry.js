@@ -238,10 +238,6 @@ var Settings = {
             type: "Settings:Show",
             resource: "preferences_privacy",
           });
-        } else {
-          // Show the data choices preferences on desktop.
-          let mainWindow = getMainWindowWithPreferencesPane();
-          mainWindow.openAdvancedPreferences("dataChoicesTab");
         }
       }, false);
     }

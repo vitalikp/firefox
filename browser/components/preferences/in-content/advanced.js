@@ -63,10 +63,6 @@ var gAdvancedPane = {
                      gAdvancedPane.updateHardwareAcceleration);
     setEventListener("advancedPrefs", "select",
                      gAdvancedPane.tabSelectionChanged);
-    if (AppConstants.MOZ_TELEMETRY_REPORTING) {
-      setEventListener("submitHealthReportBox", "command",
-                       gAdvancedPane.updateSubmitHealthReport);
-    }
 
     setEventListener("connectionSettings", "command",
                      gAdvancedPane.showConnections);
@@ -250,9 +246,6 @@ var gAdvancedPane = {
    * In all cases, set up the Learn More link sanely.
    */
   initTelemetry() {
-    if (AppConstants.MOZ_TELEMETRY_REPORTING) {
-      this._setupLearnMoreLink("toolkit.telemetry.infoURL", "telemetryLearnMore");
-    }
   },
 
   /**
@@ -263,12 +256,10 @@ var gAdvancedPane = {
     if (AppConstants.MOZ_TELEMETRY_REPORTING) {
       // If FHR is disabled, additional data sharing should be disabled as well.
       let disabled = !aEnabled;
-      document.getElementById("submitTelemetryBox").disabled = disabled;
       if (disabled) {
         // If we disable FHR, untick the telemetry checkbox.
         Services.prefs.setBoolPref("toolkit.telemetry.enabled", false);
       }
-      document.getElementById("telemetryDataDesc").disabled = disabled;
     }
   },
 
@@ -276,30 +267,12 @@ var gAdvancedPane = {
    * Initialize the health report service reference and checkbox.
    */
   initSubmitHealthReport() {
-    if (AppConstants.MOZ_TELEMETRY_REPORTING) {
-      this._setupLearnMoreLink("datareporting.healthreport.infoURL", "FHRLearnMore");
-
-      let checkbox = document.getElementById("submitHealthReportBox");
-
-      if (Services.prefs.prefIsLocked(PREF_UPLOAD_ENABLED)) {
-        checkbox.setAttribute("disabled", "true");
-        return;
-      }
-
-      checkbox.checked = Services.prefs.getBoolPref(PREF_UPLOAD_ENABLED);
-      this.setTelemetrySectionEnabled(checkbox.checked);
-    }
   },
 
   /**
    * Update the health report preference with state from checkbox.
    */
   updateSubmitHealthReport() {
-    if (AppConstants.MOZ_TELEMETRY_REPORTING) {
-      let checkbox = document.getElementById("submitHealthReportBox");
-      Services.prefs.setBoolPref(PREF_UPLOAD_ENABLED, checkbox.checked);
-      this.setTelemetrySectionEnabled(checkbox.checked);
-    }
   },
 
   updateOnScreenKeyboardVisibility() {

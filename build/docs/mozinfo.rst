@@ -65,13 +65,6 @@ buildapp
    For desktop Firefox, this is ``browser``. For Fennec, it's
    ``mobile/android``. For B2G, it's ``b2g``.
 
-datareporting
-   Whether data reporting (MOZ_DATA_REPORTING) is enabled for this build.
-
-   Values are ``true`` and ``false``.
-
-   Always defined.
-
 debug
    Whether this is a debug build.
 
