@@ -1339,9 +1339,6 @@ var gBrowserInit = {
     gSyncUI.init();
     gFxAccounts.init();
 
-    if (AppConstants.MOZ_DATA_REPORTING)
-      gDataNotificationInfoBar.init();
-
     gBrowserThumbnails.init();
 
     gMenuButtonBadgeManager.init();
