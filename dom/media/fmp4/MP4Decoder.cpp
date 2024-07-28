@@ -16,9 +16,6 @@
 #include "nsMimeTypes.h"
 #include "VideoUtils.h"
 
-#ifdef MOZ_WIDGET_ANDROID
-#include "nsIGfxInfo.h"
-#endif
 #include "mozilla/layers/LayersTypes.h"
 
 #include "PDMFactory.h"

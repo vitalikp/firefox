@@ -413,10 +413,8 @@ void InitLibrary()
   // logging can be enabled via environment variables (MOZ_LOG="module:5"),
   // calling this callback on init would immediately re-disble the logging.
   Preferences::RegisterCallback(PrefChanged, PREF_CUBEB_LOGGING_LEVEL);
-#ifndef MOZ_WIDGET_ANDROID
   NS_DispatchToMainThread(
     NS_NewRunnableFunction("CubebUtils::InitLibrary", &InitBrandName));
-#endif
 }
 
 void ShutdownLibrary()

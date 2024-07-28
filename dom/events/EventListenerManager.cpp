@@ -344,10 +344,6 @@ EventListenerManager::AddEventListenerInternal(
     EnableDevice(eDeviceLight);
   } else if (aTypeAtom == nsGkAtoms::ondevicemotion) {
     EnableDevice(eDeviceMotion);
-#if defined(MOZ_WIDGET_ANDROID)
-  } else if (aTypeAtom == nsGkAtoms::onorientationchange) {
-    EnableDevice(eOrientationChange);
-#endif
 #ifdef MOZ_B2G
   } else if (aTypeAtom == nsGkAtoms::onmoztimechange) {
     EnableDevice(eTimeChange);
@@ -478,9 +474,6 @@ EventListenerManager::IsDeviceType(EventMessage aEventMessage)
     case eDeviceLight:
     case eDeviceProximity:
     case eUserProximity:
-#if defined(MOZ_WIDGET_ANDROID)
-    case eOrientationChange:
-#endif
 #ifdef MOZ_B2G
     case eTimeChange:
     case eNetworkUpload:
@@ -503,21 +496,10 @@ EventListenerManager::EnableDevice(EventMessage aEventMessage)
 
   switch (aEventMessage) {
     case eDeviceOrientation:
-#ifdef MOZ_WIDGET_ANDROID
-      // Falls back to SENSOR_ROTATION_VECTOR and SENSOR_ORIENTATION if
-      // unavailable on device.
-      window->EnableDeviceSensor(SENSOR_GAME_ROTATION_VECTOR);
-#else
       window->EnableDeviceSensor(SENSOR_ORIENTATION);
-#endif
       break;
     case eAbsoluteDeviceOrientation:
-#ifdef MOZ_WIDGET_ANDROID
-      // Falls back to SENSOR_ORIENTATION if unavailable on device.
-      window->EnableDeviceSensor(SENSOR_ROTATION_VECTOR);
-#else
       window->EnableDeviceSensor(SENSOR_ORIENTATION);
-#endif
       break;
     case eDeviceProximity:
     case eUserProximity:
@@ -531,11 +513,6 @@ EventListenerManager::EnableDevice(EventMessage aEventMessage)
       window->EnableDeviceSensor(SENSOR_LINEAR_ACCELERATION);
       window->EnableDeviceSensor(SENSOR_GYROSCOPE);
       break;
-#if defined(MOZ_WIDGET_ANDROID)
-    case eOrientationChange:
-      window->EnableOrientationChangeListener();
-      break;
-#endif
 #ifdef MOZ_B2G
     case eTimeChange:
       window->EnableTimeChangeNotifications();
@@ -561,17 +538,9 @@ EventListenerManager::DisableDevice(EventMessage aEventMessage)
 
   switch (aEventMessage) {
     case eDeviceOrientation:
-#ifdef MOZ_WIDGET_ANDROID
-      // Disable all potential fallback sensors.
-      window->DisableDeviceSensor(SENSOR_GAME_ROTATION_VECTOR);
-      window->DisableDeviceSensor(SENSOR_ROTATION_VECTOR);
-#endif
       window->DisableDeviceSensor(SENSOR_ORIENTATION);
       break;
     case eAbsoluteDeviceOrientation:
-#ifdef MOZ_WIDGET_ANDROID
-      window->DisableDeviceSensor(SENSOR_ROTATION_VECTOR);
-#endif
       window->DisableDeviceSensor(SENSOR_ORIENTATION);
       break;
     case eDeviceMotion:
@@ -586,11 +555,6 @@ EventListenerManager::DisableDevice(EventMessage aEventMessage)
     case eDeviceLight:
       window->DisableDeviceSensor(SENSOR_LIGHT);
       break;
-#if defined(MOZ_WIDGET_ANDROID)
-    case eOrientationChange:
-      window->DisableOrientationChangeListener();
-      break;
-#endif
 #ifdef MOZ_B2G
     case eTimeChange:
       window->DisableTimeChangeNotifications();

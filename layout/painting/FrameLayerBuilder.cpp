@@ -2442,8 +2442,6 @@ ContainerState::PreparePaintedLayerForUse(PaintedLayer* aLayer,
     return;
   }
 
-  // FIXME: Temporary workaround for bug 681192 and bug 724786.
-#ifndef MOZ_WIDGET_ANDROID
   // If it has changed, then we need to invalidate the entire layer since the
   // pixels in the layer buffer have the content at a (subpixel) offset
   // from what we need.
@@ -2453,9 +2451,6 @@ ContainerState::PreparePaintedLayerForUse(PaintedLayer* aLayer,
   } else if (didResetScrollPositionForLayerPixelAlignment) {
     aData->mAnimatedGeometryRootPosition = animatedGeometryRootTopLeft;
   }
-#else
-  Unused << didResetScrollPositionForLayerPixelAlignment;
-#endif
 }
 
 #if defined(DEBUG) || defined(MOZ_DUMP_PAINTING)

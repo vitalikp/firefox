@@ -1234,13 +1234,7 @@ ClientMultiTiledLayerBuffer::ComputeProgressiveUpdateRegion(const nsIntRegion& a
   // we use a coherent update rect that is intersected with the screen at the
   // time of issuing the draw command. This will paint faster but also potentially
   // make the progressive paint more visible to the user while scrolling.
-  IntRect coherentUpdateRect(RoundedOut(
-#ifdef MOZ_WIDGET_ANDROID
-    transformedCompositionBounds->Intersect(aPaintData->mCompositionBounds)
-#else
-    *transformedCompositionBounds
-#endif
-  ).ToUnknownRect());
+  IntRect coherentUpdateRect(RoundedOut(*transformedCompositionBounds).ToUnknownRect());
 
   TILING_LOG("TILING %p: Progressive update final coherency rect %s\n", &mPaintedLayer, Stringify(coherentUpdateRect).c_str());
 

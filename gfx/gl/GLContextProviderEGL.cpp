@@ -11,16 +11,7 @@
     #define GET_NATIVE_WINDOW(aWidget) ((EGLNativeWindowType)aWidget->GetNativeData(NS_NATIVE_WINDOW))
 #endif
 
-#ifdef MOZ_WIDGET_ANDROID
-    #define GET_JAVA_SURFACE(aWidget) (aWidget->GetNativeData(NS_JAVA_SURFACE))
-#endif
-
 #if defined(XP_UNIX)
-    #ifdef MOZ_WIDGET_ANDROID
-        #include <android/native_window.h>
-        #include <android/native_window_jni.h>
-    #endif
-
     #ifdef ANDROID
         #include <android/log.h>
         #define LOG(args...)  __android_log_print(ANDROID_LOG_INFO, "Gonk" , ## args)
@@ -164,22 +155,8 @@ CreateSurfaceForWindow(nsIWidget* widget, const EGLConfig& config) {
     EGLSurface newSurface = nullptr;
 
     MOZ_ASSERT(widget);
-#ifdef MOZ_WIDGET_ANDROID
-    void* javaSurface = GET_JAVA_SURFACE(widget);
-    if (!javaSurface) {
-        MOZ_CRASH("GFX: Failed to get Java surface.\n");
-    }
-    JNIEnv* const env = jni::GetEnvForThread();
-    ANativeWindow* const nativeWindow = ANativeWindow_fromSurface(
-            env, reinterpret_cast<jobject>(javaSurface));
-    newSurface = sEGLLibrary.fCreateWindowSurface(
-            sEGLLibrary.fGetDisplay(EGL_DEFAULT_DISPLAY),
-            config, nativeWindow, 0);
-    ANativeWindow_release(nativeWindow);
-#else
     newSurface = sEGLLibrary.fCreateWindowSurface(EGL_DISPLAY(), config,
                                                   GET_NATIVE_WINDOW(widget), 0);
-#endif
     return newSurface;
 }
 
@@ -665,18 +642,6 @@ CreateConfig(EGLConfig* aConfig, nsIWidget* aWidget)
 {
     int32_t depth = gfxPlatform::GetPlatform()->GetScreenDepth();
     if (!CreateConfig(aConfig, depth, aWidget)) {
-#ifdef MOZ_WIDGET_ANDROID
-        // Bug 736005
-        // Android doesn't always support 16 bit so also try 24 bit
-        if (depth == 16) {
-            return CreateConfig(aConfig, 24, aWidget);
-        }
-        // Bug 970096
-        // Some devices that have 24 bit screens only support 16 bit OpenGL?
-        if (depth == 24) {
-            return CreateConfig(aConfig, 16, aWidget);
-        }
-#endif
         return false;
     } else {
         return true;

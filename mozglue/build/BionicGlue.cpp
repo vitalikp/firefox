@@ -17,7 +17,7 @@
 
 #define NS_EXPORT __attribute__ ((visibility("default")))
 
-#if ANDROID_VERSION < 17 || defined(MOZ_WIDGET_ANDROID)
+#if ANDROID_VERSION < 17
 /* Android doesn't have pthread_atfork(), so we need to use our own. */
 struct AtForkFuncs {
   void (*prepare)(void);
@@ -66,7 +66,7 @@ static std::vector<AtForkFuncs, SpecialAllocator<AtForkFuncs> > atfork;
 
 #define cpuacct_add(x)
 
-#if ANDROID_VERSION < 17 || defined(MOZ_WIDGET_ANDROID)
+#if ANDROID_VERSION < 17
 extern "C" NS_EXPORT int
 pthread_atfork(void (*prepare)(void), void (*parent)(void), void (*child)(void))
 {

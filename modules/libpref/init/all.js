@@ -532,7 +532,7 @@ pref("media.mediasource.enabled", true);
 
 pref("media.mediasource.mp4.enabled", true);
 
-#if defined(XP_WIN) || defined(XP_MACOSX) || defined(MOZ_WIDGET_ANDROID)
+#if defined(XP_WIN) || defined(XP_MACOSX)
 pref("media.mediasource.webm.enabled", false);
 #else
 pref("media.mediasource.webm.enabled", true);
@@ -665,14 +665,6 @@ pref("apz.y_stationary_size_multiplier", "3.5");
 pref("apz.zoom_animation_duration_ms", 250);
 pref("apz.scale_repaint_delay_ms", 500);
 
-#if defined(MOZ_WIDGET_ANDROID)
-// Mobile prefs
-pref("apz.allow_zooming", true);
-pref("apz.enlarge_displayport_when_clipped", true);
-pref("apz.y_skate_size_multiplier", "1.5");
-pref("apz.y_stationary_size_multiplier", "1.5");
-#endif
-
 #ifdef XP_MACOSX
 // Whether to run in native HiDPI mode on machines with "Retina"/HiDPI display;
 //   <= 0 : hidpi mode disabled, display will just use pixel-based upscaling
@@ -681,10 +673,8 @@ pref("apz.y_stationary_size_multiplier", "1.5");
 pref("gfx.hidpi.enabled", 2);
 #endif
 
-#if !defined(MOZ_WIDGET_ANDROID)
 // Use containerless scrolling for now on desktop.
 pref("layout.scroll.root-frame-containers", false);
-#endif
 
 // Whether to enable LayerScope tool and default listening port
 pref("gfx.layerscope.enabled", false);
@@ -2094,12 +2084,7 @@ pref("intl.locale.matchOS",                 false);
 pref("intl.fallbackCharsetList.ISO-8859-1", "windows-1252");
 pref("font.language.group",                 "chrome://global/locale/intl.properties");
 
-// Android-specific pref to use key-events-only mode for IME-unaware webapps.
-#ifdef MOZ_WIDGET_ANDROID
-pref("intl.ime.hack.on_ime_unaware_apps.fire_key_events_for_composition", true);
-#else
 pref("intl.ime.hack.on_ime_unaware_apps.fire_key_events_for_composition", false);
-#endif
 
 // If you use legacy Chinese IME which puts an ideographic space to composition
 // string as placeholder, this pref might be useful.  If this is true and when
@@ -4577,13 +4562,8 @@ pref("layers.acceleration.force-enabled", false);
 pref("layers.acceleration.draw-fps", false);
 
 // Enable DEAA antialiasing for transformed layers in the compositor
-#if !defined(MOZ_WIDGET_ANDROID)
 // Desktop prefs
 pref("layers.deaa.enabled", true);
-#else
-// Mobile prefs
-pref("layers.deaa.enabled", false);
-#endif
 
 pref("layers.dump", false);
 #ifdef MOZ_DUMP_PAINTING
@@ -4623,10 +4603,6 @@ pref("layers.enable-tiles", true);
 pref("layers.tile-width", 512);
 pref("layers.tile-height", 512);
 pref("layers.tiles.edge-padding", false);
-#endif
-
-#ifdef MOZ_WIDGET_ANDROID
-pref("layers.tiles.edge-padding", true);
 #endif
 
 // Whether to animate simple opacity and transforms on the compositor
@@ -4881,12 +4857,7 @@ pref("layout.css.expensive-style-struct-assertions.enabled", false);
 // enable JS dump() function.
 pref("browser.dom.window.dump.enabled", false);
 
-#if defined(MOZ_WIDGET_ANDROID)
-// Network Information API
-pref("dom.netinfo.enabled", true);
-#else
 pref("dom.netinfo.enabled", false);
-#endif
 
 #ifdef XP_WIN
 // On 32-bit Windows, fire a low-memory notification if we have less than this
@@ -5284,10 +5255,8 @@ pref("dom.maxHardwareConcurrency", 16);
 pref("osfile.reset_worker_delay", 30000);
 #endif
 
-#if !defined(MOZ_WIDGET_ANDROID)
 pref("dom.webkitBlink.dirPicker.enabled", true);
 pref("dom.webkitBlink.filesystem.enabled", true);
-#endif
 
 #ifdef NIGHTLY_BUILD
 pref("media.block-autoplay-until-in-foreground", true);

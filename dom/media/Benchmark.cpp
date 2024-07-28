@@ -17,9 +17,7 @@
 #include "mozilla/dom/ContentChild.h"
 #include "mozilla/gfx/gfxVars.h"
 
-#ifndef MOZ_WIDGET_ANDROID
 #include "WebMSample.h"
-#endif
 
 namespace mozilla {
 
@@ -37,9 +35,6 @@ VP9Benchmark::IsVP9DecodeFast()
 {
   MOZ_ASSERT(NS_IsMainThread());
 
-#ifdef MOZ_WIDGET_ANDROID
-  return false;
-#else
   bool hasPref = Preferences::HasUserValue(sBenchmarkFpsPref);
   uint32_t hadRecentUpdate = Preferences::GetUint(sBenchmarkFpsVersionCheck, 0U);
 
@@ -87,7 +82,6 @@ VP9Benchmark::IsVP9DecodeFast()
     Preferences::GetUint("media.benchmark.vp9.threshold", 150);
 
   return decodeFps >= threshold;
-#endif
 }
 
 Benchmark::Benchmark(MediaDataDemuxer* aDemuxer, const Parameters& aParameters)

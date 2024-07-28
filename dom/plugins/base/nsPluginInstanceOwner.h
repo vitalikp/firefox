@@ -254,21 +254,6 @@ public:
 
   already_AddRefed<nsIURI> GetBaseURI() const;
 
-#ifdef MOZ_WIDGET_ANDROID
-  // Returns the image container for the specified VideoInfo
-  void GetVideos(nsTArray<nsNPAPIPluginInstance::VideoInfo*>& aVideos);
-  already_AddRefed<mozilla::layers::ImageContainer> GetImageContainerForVideo(nsNPAPIPluginInstance::VideoInfo* aVideoInfo);
-
-  void Invalidate();
-  void Recomposite();
-
-  void RequestFullScreen();
-  void ExitFullScreen();
-
-  // Called from nsAppShell when we removed the fullscreen view.
-  static void ExitFullScreen(jobject view);
-#endif
-
   bool GetCompositionString(uint32_t aIndex, nsTArray<uint8_t>* aString,
                             int32_t* aLength);
   bool SetCandidateWindow(
@@ -301,15 +286,6 @@ private:
     return NS_SUCCEEDED(mInstance->GetImageSize(&size)) &&
     size == nsIntSize(mPluginWindow->width, mPluginWindow->height);
   }
-
-#ifdef MOZ_WIDGET_ANDROID
-  mozilla::LayoutDeviceRect GetPluginRect();
-  bool AddPluginView(const mozilla::LayoutDeviceRect& aRect = mozilla::LayoutDeviceRect(0, 0, 0, 0));
-  void RemovePluginView();
-
-  bool mFullScreen;
-  void* mJavaView;
-#endif
 
 #if defined(XP_WIN)
   nsIWidget* GetContainingWidgetIfOffset();

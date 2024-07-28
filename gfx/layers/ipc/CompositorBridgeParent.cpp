@@ -669,11 +669,6 @@ CompositorBridgeParent::ResumeComposition()
   MonitorAutoLock lock(mResumeCompositionMonitor);
 
   if (!mCompositor->Resume()) {
-#ifdef MOZ_WIDGET_ANDROID
-    // We can't get a surface. This could be because the activity changed between
-    // the time resume was scheduled and now.
-    __android_log_print(ANDROID_LOG_INFO, "CompositorBridgeParent", "Unable to renew compositor surface; remaining in paused state");
-#endif
     lock.NotifyAll();
     return;
   }

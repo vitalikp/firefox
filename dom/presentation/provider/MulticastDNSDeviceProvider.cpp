@@ -19,10 +19,6 @@
 #include "nsTCPDeviceInfo.h"
 #include "nsThreadUtils.h"
 
-#ifdef MOZ_WIDGET_ANDROID
-#include "nsIPropertyBag2.h"
-#endif // MOZ_WIDGET_ANDROID
-
 #define PREF_PRESENTATION_DISCOVERY "dom.presentation.discovery.enabled"
 #define PREF_PRESENTATION_DISCOVERY_TIMEOUT_MS "dom.presentation.discovery.timeout_ms"
 #define PREF_PRESENTATION_DISCOVERABLE "dom.presentation.discoverable"
@@ -54,18 +50,6 @@ static const char* kObservedPrefs[] = {
 };
 
 namespace {
-
-#ifdef MOZ_WIDGET_ANDROID
-static void
-GetAndroidDeviceName(nsACString& aRetVal)
-{
-  nsCOMPtr<nsIPropertyBag2> infoService = do_GetService("@mozilla.org/system-info;1");
-  MOZ_ASSERT(infoService, "Could not find a system info service");
-
-  Unused << NS_WARN_IF(NS_FAILED(infoService->GetPropertyAsACString(
-                                   NS_LITERAL_STRING("device"), aRetVal)));
-}
-#endif // MOZ_WIDGET_ANDROID
 
 } //anonymous namespace
 
@@ -162,14 +146,6 @@ MulticastDNSDeviceProvider::Init()
   mServerRetryMs = Preferences::GetUint(PREF_PRESENTATION_DISCOVERABLE_RETRY_MS);
   mServiceName.Truncate();
   Preferences::GetCString(PREF_PRESENTATION_DEVICE_NAME, mServiceName);
-
-#ifdef MOZ_WIDGET_ANDROID
-  // FIXME: Bug 1185806 - Provide a common device name setting.
-  if (mServiceName.IsEmpty()) {
-    GetAndroidDeviceName(mServiceName);
-    Unused << Preferences::SetCString(PREF_PRESENTATION_DEVICE_NAME, mServiceName);
-  }
-#endif // MOZ_WIDGET_ANDROID
 
   Unused << mPresentationService->SetId(mServiceName);
 

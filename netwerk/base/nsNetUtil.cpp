@@ -2113,9 +2113,7 @@ NS_RelaxStrictFileOriginPolicy(nsIURI *aTargetURI,
       NS_FAILED(sourceFileURL->GetFile(getter_AddRefs(sourceFile))) ||
       !targetFile || !sourceFile ||
       NS_FAILED(targetFile->Normalize()) ||
-#ifndef MOZ_WIDGET_ANDROID
       NS_FAILED(sourceFile->Normalize()) ||
-#endif
       (!aAllowDirectoryTarget &&
        (NS_FAILED(targetFile->IsDirectory(&targetIsDir)) || targetIsDir))) {
     return false;

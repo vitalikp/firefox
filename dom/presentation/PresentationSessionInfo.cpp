@@ -26,10 +26,6 @@
 #include "PresentationService.h"
 #include "PresentationSessionInfo.h"
 
-#ifdef MOZ_WIDGET_ANDROID
-#include "nsIPresentationNetworkHelper.h"
-#endif // MOZ_WIDGET_ANDROID
-
 using namespace mozilla;
 using namespace mozilla::dom;
 using namespace mozilla::services;
@@ -40,81 +36,6 @@ using namespace mozilla::services;
 
 namespace mozilla {
 namespace dom {
-
-#ifdef MOZ_WIDGET_ANDROID
-
-namespace {
-
-class PresentationNetworkHelper final : public nsIPresentationNetworkHelperListener
-{
-public:
-  NS_DECL_ISUPPORTS
-  NS_DECL_NSIPRESENTATIONNETWORKHELPERLISTENER
-
-  using Function = nsresult(PresentationControllingInfo::*)(const nsACString&);
-
-  explicit PresentationNetworkHelper(PresentationControllingInfo* aInfo,
-                                     const Function& aFunc);
-
-  nsresult GetWifiIPAddress();
-
-private:
-  ~PresentationNetworkHelper() = default;
-
-  RefPtr<PresentationControllingInfo> mInfo;
-  Function mFunc;
-};
-
-NS_IMPL_ISUPPORTS(PresentationNetworkHelper,
-                  nsIPresentationNetworkHelperListener)
-
-PresentationNetworkHelper::PresentationNetworkHelper(PresentationControllingInfo* aInfo,
-                                                     const Function& aFunc)
-  : mInfo(aInfo)
-  , mFunc(aFunc)
-{
-  MOZ_ASSERT(aInfo);
-  MOZ_ASSERT(aFunc);
-}
-
-nsresult
-PresentationNetworkHelper::GetWifiIPAddress()
-{
-  nsresult rv;
-
-  nsCOMPtr<nsIPresentationNetworkHelper> networkHelper =
-    do_GetService(PRESENTATION_NETWORK_HELPER_CONTRACTID, &rv);
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-  return networkHelper->GetWifiIPAddress(this);
-}
-
-NS_IMETHODIMP
-PresentationNetworkHelper::OnError(const nsACString & aReason)
-{
-  PRES_ERROR("PresentationNetworkHelper::OnError: %s",
-    nsPromiseFlatCString(aReason).get());
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-PresentationNetworkHelper::OnGetWifiIPAddress(const nsACString& aIPAddress)
-{
-  MOZ_ASSERT(mInfo);
-  MOZ_ASSERT(mFunc);
-
-  NS_DispatchToMainThread(
-    NewRunnableMethod<nsCString>(mInfo,
-                                 mFunc,
-                                 aIPAddress));
-  return NS_OK;
-}
-
-} // anonymous namespace
-
-#endif // MOZ_WIDGET_ANDROID
 
 class TCPPresentationChannelDescription final : public nsIPresentationChannelDescription
 {
@@ -644,16 +565,6 @@ PresentationControllingInfo::Shutdown(nsresult aReason)
 nsresult
 PresentationControllingInfo::GetAddress()
 {
-#if defined(MOZ_WIDGET_ANDROID)
-  RefPtr<PresentationNetworkHelper> networkHelper =
-    new PresentationNetworkHelper(this,
-                                  &PresentationControllingInfo::OnGetAddress);
-  nsresult rv = networkHelper->GetWifiIPAddress();
-  if (NS_WARN_IF(NS_FAILED(rv))) {
-    return rv;
-  }
-
-#else
   nsCOMPtr<nsINetworkInfoService> networkInfo = do_GetService(NETWORKINFOSERVICE_CONTRACT_ID);
   MOZ_ASSERT(networkInfo);
 
@@ -662,7 +573,6 @@ PresentationControllingInfo::GetAddress()
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
   }
-#endif
 
   return NS_OK;
 }

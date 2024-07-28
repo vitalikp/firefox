@@ -16,13 +16,6 @@
 #include "nscore.h"
 #include "nsXULAppAPI.h"
 
-#ifdef MOZ_WIDGET_ANDROID
-#include "jni.h"
-
-extern "C" NS_EXPORT
-void GeckoStart(JNIEnv* aEnv, char** argv, int argc, const mozilla::StaticXREAppData& aAppData);
-#endif
-
 #if defined(XP_WIN) && defined(MOZ_SANDBOX)
 namespace sandbox {
 class BrokerServices;
@@ -109,12 +102,6 @@ public:
   virtual nsresult XRE_InitChildProcess(int argc, char* argv[], const XREChildData* aChildData) = 0;
 
   virtual void XRE_EnableSameExecutableForContentProc() = 0;
-
-#ifdef MOZ_WIDGET_ANDROID
-  virtual void GeckoStart(JNIEnv* aEnv, char** argv, int argc, const StaticXREAppData& aAppData) = 0;
-
-  virtual void XRE_SetAndroidChildFds(int aCrashFd, int aIPCFd) = 0;
-#endif
 
 #ifdef LIBFUZZER
   virtual void XRE_LibFuzzerSetMain(int argc, char** argv, LibFuzzerMain aMain) = 0;

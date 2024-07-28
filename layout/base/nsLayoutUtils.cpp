@@ -947,11 +947,6 @@ ApplyRectMultiplier(nsRect aRect, float aMultiplier)
 bool
 nsLayoutUtils::UsesAsyncScrolling(nsIFrame* aFrame)
 {
-#ifdef MOZ_WIDGET_ANDROID
-  // We always have async scrolling for android
-  return true;
-#endif
-
   return AsyncPanZoomEnabled(aFrame);
 }
 
@@ -8208,12 +8203,8 @@ UpdateCompositionBoundsForRCDRSF(ParentLayerRect& aCompBounds,
     return false;
   }
 
-#if defined(MOZ_WIDGET_ANDROID)
-  nsIWidget* widget = rootFrame->GetNearestWidget();
-#else
   nsView* view = rootFrame->GetView();
   nsIWidget* widget = view ? view->GetWidget() : nullptr;
-#endif
 
   if (widget) {
     LayoutDeviceIntRect widgetBounds = widget->GetBounds();

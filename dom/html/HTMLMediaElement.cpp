@@ -1313,28 +1313,6 @@ private:
 
   bool CanOwnerPlayUnsupportedTypeMedia() const
   {
-#if defined(MOZ_WIDGET_ANDROID)
-    // On Fennec, we will user an external app to open unsupported media types.
-    if (!Preferences::GetBool("media.openUnsupportedTypeWithExternalApp")) {
-      return false;
-    }
-
-    if (!mError) {
-      return false;
-    }
-
-    uint16_t errorCode = mError->Code();
-    if (errorCode != MEDIA_ERR_SRC_NOT_SUPPORTED) {
-      return false;
-    }
-
-    // If media doesn't start playing, we don't need to open it.
-    if (mOwner->Paused()) {
-      return false;
-    }
-
-    return true;
-#endif
     return false;
   }
 
@@ -6688,13 +6666,6 @@ HTMLMediaElement::IsAllowedToPlay()
   if (!mHasUserInteraction &&
       !IsAutoplayEnabled() &&
       !EventStateManager::IsHandlingUserInput()) {
-#if defined(MOZ_WIDGET_ANDROID)
-    nsContentUtils::DispatchTrustedEvent(OwnerDoc(),
-                                         static_cast<nsIContent*>(this),
-                                         NS_LITERAL_STRING("MozAutoplayMediaBlocked"),
-                                         false,
-                                         false);
-#endif
     return false;
   }
 

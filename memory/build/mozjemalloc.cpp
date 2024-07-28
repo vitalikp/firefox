@@ -5201,7 +5201,7 @@ _malloc_postfork_child(void)
  */
 #ifdef XP_DARWIN
 #  define MOZ_REPLACE_WEAK __attribute__((weak_import))
-#elif defined(XP_WIN) || defined(MOZ_WIDGET_ANDROID)
+#elif defined(XP_WIN)
 #  define MOZ_NO_REPLACE_FUNC_DECL
 #elif defined(__GNUC__)
 #  define MOZ_REPLACE_WEAK __attribute__((weak))

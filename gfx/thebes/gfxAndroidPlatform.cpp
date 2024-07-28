@@ -282,16 +282,6 @@ gfxAndroidPlatform::FontHintingEnabled()
     // In "mobile" builds, we sometimes use non-reflow-zoom, so we
     // might not want hinting.  Let's see.
 
-#ifdef MOZ_WIDGET_ANDROID
-    // On Android, we currently only use gecko to render web
-    // content that can always be be non-reflow-zoomed.  So turn off
-    // hinting.
-    // 
-    // XXX when gecko-android-java is used as an "app runtime", we may
-    // want to re-enable hinting for non-browser processes there.
-    return false;
-#endif //  MOZ_WIDGET_ANDROID
-
     // Currently, we don't have any other targets, but if/when we do,
     // decide how to handle them here.
 
@@ -302,15 +292,6 @@ gfxAndroidPlatform::FontHintingEnabled()
 bool
 gfxAndroidPlatform::RequiresLinearZoom()
 {
-#ifdef MOZ_WIDGET_ANDROID
-    // On Android, we currently only use gecko to render web
-    // content that can always be be non-reflow-zoomed.
-    //
-    // XXX when gecko-android-java is used as an "app runtime", we may
-    // want to use linear zoom only for the web browser process, not other apps.
-    return true;
-#endif
-
     NS_NOTREACHED("oops, what platform is this?");
     return gfxPlatform::RequiresLinearZoom();
 }

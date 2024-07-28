@@ -41,8 +41,7 @@
 #include "mozilla/Sprintf.h"
 #include "mozilla/StartupTimeline.h"
 
-#if !defined(MOZ_WIDGET_ANDROID) \
-  && !(defined(XP_LINUX) && defined(MOZ_SANDBOX))
+#if !(defined(XP_LINUX) && defined(MOZ_SANDBOX))
 #define MOZ_BROWSER_CAN_BE_CONTENTPROC
 #include "../../ipc/contentproc/plugin-container.cpp"
 #endif

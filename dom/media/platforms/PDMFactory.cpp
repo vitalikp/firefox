@@ -324,13 +324,6 @@ PDMFactory::CreatePDMs()
     return;
   }
 
-#ifdef MOZ_WIDGET_ANDROID
-  if(MediaPrefs::PDMAndroidMediaCodecPreferred() &&
-     MediaPrefs::PDMAndroidMediaCodecEnabled()) {
-    m = new AndroidDecoderModule();
-    StartupPDM(m);
-  }
-#endif
 #ifdef XP_WIN
   if (MediaPrefs::PDMWMFEnabled() && IsVistaOrLater()) {
     // *Only* use WMF on Vista and later, as if Firefox is run in Windows 95
@@ -363,12 +356,6 @@ PDMFactory::CreatePDMs()
 #ifdef MOZ_GONK_MEDIACODEC
   if (MediaPrefs::PDMGonkDecoderEnabled()) {
     m = new GonkDecoderModule();
-    StartupPDM(m);
-  }
-#endif
-#ifdef MOZ_WIDGET_ANDROID
-  if(MediaPrefs::PDMAndroidMediaCodecEnabled()){
-    m = new AndroidDecoderModule();
     StartupPDM(m);
   }
 #endif

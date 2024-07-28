@@ -303,10 +303,7 @@ nsLayoutStatics::Initialize()
   InitializeServo();
 #endif
 
-#ifndef MOZ_WIDGET_ANDROID
-  // On Android, we instantiate it when constructing AndroidBridge.
   MediaPrefs::GetSingleton();
-#endif
 
   // This must be initialized on the main-thread.
   mozilla::dom::IPCBlobInputStreamStorage::Initialize();

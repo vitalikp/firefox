@@ -8,7 +8,7 @@
 #include "nsUserInfo.h"
 #include "nsToolkitCompsCID.h"
 #include "nsFindService.h"
-#if defined(MOZ_UPDATER) && !defined(MOZ_WIDGET_ANDROID)
+#if defined(MOZ_UPDATER)
 #include "nsUpdateDriver.h"
 #endif
 
@@ -40,9 +40,7 @@
 
 #include "nsWebRequestListener.h"
 
-#if !defined(MOZ_WIDGET_ANDROID)
 #define MOZ_HAS_TERMINATOR
-#endif
 
 #if defined(MOZ_HAS_TERMINATOR)
 #include "nsTerminator.h"
@@ -86,7 +84,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsDownloadProxy)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsTypeAheadFind)
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsBrowserStatusFilter)
-#if defined(MOZ_UPDATER) && !defined(MOZ_WIDGET_ANDROID)
+#if defined(MOZ_UPDATER)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsUpdateProcessor)
 #endif
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(FinalizationWitnessService, Init)
@@ -118,7 +116,7 @@ NS_DEFINE_NAMED_CID(NS_DOWNLOAD_CID);
 NS_DEFINE_NAMED_CID(NS_FIND_SERVICE_CID);
 NS_DEFINE_NAMED_CID(NS_TYPEAHEADFIND_CID);
 NS_DEFINE_NAMED_CID(NS_BROWSERSTATUSFILTER_CID);
-#if defined(MOZ_UPDATER) && !defined(MOZ_WIDGET_ANDROID)
+#if defined(MOZ_UPDATER)
 NS_DEFINE_NAMED_CID(NS_UPDATEPROCESSOR_CID);
 #endif
 NS_DEFINE_NAMED_CID(FINALIZATIONWITNESSSERVICE_CID);
@@ -148,7 +146,7 @@ static const Module::CIDEntry kToolkitCIDs[] = {
   { &kNS_FIND_SERVICE_CID, false, nullptr, nsFindServiceConstructor },
   { &kNS_TYPEAHEADFIND_CID, false, nullptr, nsTypeAheadFindConstructor },
   { &kNS_BROWSERSTATUSFILTER_CID, false, nullptr, nsBrowserStatusFilterConstructor },
-#if defined(MOZ_UPDATER) && !defined(MOZ_WIDGET_ANDROID)
+#if defined(MOZ_UPDATER)
   { &kNS_UPDATEPROCESSOR_CID, false, nullptr, nsUpdateProcessorConstructor },
 #endif
   { &kFINALIZATIONWITNESSSERVICE_CID, false, nullptr, FinalizationWitnessServiceConstructor },
@@ -179,7 +177,7 @@ static const Module::ContractIDEntry kToolkitContracts[] = {
   { NS_FIND_SERVICE_CONTRACTID, &kNS_FIND_SERVICE_CID },
   { NS_TYPEAHEADFIND_CONTRACTID, &kNS_TYPEAHEADFIND_CID },
   { NS_BROWSERSTATUSFILTER_CONTRACTID, &kNS_BROWSERSTATUSFILTER_CID },
-#if defined(MOZ_UPDATER) && !defined(MOZ_WIDGET_ANDROID)
+#if defined(MOZ_UPDATER)
   { NS_UPDATEPROCESSOR_CONTRACTID, &kNS_UPDATEPROCESSOR_CID },
 #endif
   { FINALIZATIONWITNESSSERVICE_CONTRACTID, &kFINALIZATIONWITNESSSERVICE_CID },

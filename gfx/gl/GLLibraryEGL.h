@@ -79,28 +79,15 @@ namespace gl {
 # endif
 #endif
 
-#ifdef MOZ_WIDGET_ANDROID
-// Record the name of the GL call for better hang stacks on Android.
-#define BEFORE_GL_CALL                      \
-    PROFILER_LABEL_FUNC(                    \
-      js::ProfileEntry::Category::GRAPHICS);\
-    BeforeGLCall(MOZ_FUNCTION_NAME)
-#else
 #define BEFORE_GL_CALL do {          \
     BeforeGLCall(MOZ_FUNCTION_NAME); \
 } while (0)
-#endif
 
 #define AFTER_GL_CALL do {           \
     AfterGLCall(MOZ_FUNCTION_NAME);  \
 } while (0)
 #else
-#ifdef MOZ_WIDGET_ANDROID
-// Record the name of the GL call for better hang stacks on Android.
-#define BEFORE_GL_CALL PROFILER_LABEL_FUNC(js::ProfileEntry::Category::GRAPHICS)
-#else
 #define BEFORE_GL_CALL
-#endif
 #define AFTER_GL_CALL
 #endif
 

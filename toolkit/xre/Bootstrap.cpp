@@ -73,16 +73,6 @@ public:
     ::XRE_EnableSameExecutableForContentProc();
   }
 
-#ifdef MOZ_WIDGET_ANDROID
-  virtual void GeckoStart(JNIEnv* aEnv, char** argv, int argc, const StaticXREAppData& aAppData) override {
-    ::GeckoStart(aEnv, argv, argc, aAppData);
-  }
-
-  virtual void XRE_SetAndroidChildFds(int aCrashFd, int aIPCFd) override {
-    ::XRE_SetAndroidChildFds(aCrashFd, aIPCFd);
-  }
-#endif
-
 #ifdef LIBFUZZER
   virtual void XRE_LibFuzzerSetMain(int argc, char** argv, LibFuzzerMain aMain) override {
     ::XRE_LibFuzzerSetMain(argc, argv, aMain);

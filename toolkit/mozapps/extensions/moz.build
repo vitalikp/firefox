@@ -24,9 +24,6 @@ EXTRA_COMPONENTS += [
     'amContentHandler.js',
     'amInstallTrigger.js',
     'amWebAPI.js',
-]
-
-EXTRA_PP_COMPONENTS += [
     'extensions.manifest',
 ]
 

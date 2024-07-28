@@ -407,16 +407,6 @@ static sp<MediaSource> CreateVideoSource(PluginHost* aPluginHost,
 
 bool OmxDecoder::Init()
 {
-#if defined(MOZ_WIDGET_ANDROID)
-  // OMXClient::connect() always returns OK and aborts fatally if
-  // it can't connect. We may need to implement the connect functionality
-  // ourselves if this proves to be an issue.
-  if (!sClientInstance.IsValid()) {
-    LOG("OMXClient failed to connect");
-    return false;
-  }
-#endif
-
   //register sniffers, if they are not registered in this process.
   DataSource::RegisterDefaultSniffers();
 
