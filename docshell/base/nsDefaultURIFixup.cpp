@@ -735,7 +735,7 @@ nsDefaultURIFixup::FixupURIProtocol(const nsACString& aURIString,
     uriString.Left(hostSpec, hostPos);
 
     // insert url spec corresponding to host name
-    uriString.InsertLiteral("http://", 0);
+    uriString.InsertLiteral("https://", 0);
     aFixupInfo->mFixupChangedProtocol = true;
   } // end if checkprotocol
 
