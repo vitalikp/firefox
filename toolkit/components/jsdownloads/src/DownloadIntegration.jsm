@@ -54,8 +54,6 @@ XPCOMUtils.defineLazyModuleGetter(this, "Promise",
                                   "resource://gre/modules/Promise.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "Services",
                                   "resource://gre/modules/Services.jsm");
-XPCOMUtils.defineLazyModuleGetter(this, "Task",
-                                  "resource://gre/modules/Task.jsm");
 XPCOMUtils.defineLazyModuleGetter(this, "NetUtil",
                                   "resource://gre/modules/NetUtil.jsm");
 
@@ -174,9 +172,9 @@ this.DownloadIntegration = {
    * @resolves When the list has been initialized.
    * @rejects JavaScript exception.
    */
-  initializePublicDownloadList: Task.async(function* (list) {
+  async initializePublicDownloadList(list) {
     try {
-      yield this.loadPublicDownloadListFromStore(list);
+      await this.loadPublicDownloadListFromStore(list);
     } catch (ex) {
       Cu.reportError(ex);
     }
@@ -185,7 +183,7 @@ this.DownloadIntegration = {
     // history observers, even if the load operation failed. This object is kept
     // alive by the history service.
     new DownloadHistoryObserver(list);
-  }),
+  },
 
   /**
    * Called by initializePublicDownloadList to load the list of persistent
@@ -201,7 +199,7 @@ this.DownloadIntegration = {
    * @resolves When the list has been populated.
    * @rejects JavaScript exception.
    */
-  loadPublicDownloadListFromStore: Task.async(function* (list) {
+  async loadPublicDownloadListFromStore(list) {
     if (this._store) {
       throw new Error("Initialization may be performed only once.");
     }
@@ -213,19 +211,19 @@ this.DownloadIntegration = {
 
     try {
       if (this._importedFromSqlite) {
-        yield this._store.load();
+        await this._store.load();
       } else {
         let sqliteDBpath = OS.Path.join(OS.Constants.Path.profileDir,
                                         "downloads.sqlite");
 
-        if (yield OS.File.exists(sqliteDBpath)) {
+        if (await OS.File.exists(sqliteDBpath)) {
           let sqliteImport = new DownloadImport(list, sqliteDBpath);
-          yield sqliteImport.import();
+          await sqliteImport.import();
 
-          let importCount = (yield list.getAll()).length;
+          let importCount = (await list.getAll()).length;
           if (importCount > 0) {
             try {
-              yield this._store.save();
+              await this._store.save();
             } catch (ex) { }
           }
 
@@ -250,8 +248,8 @@ this.DownloadIntegration = {
     // even if the load operation failed. We wait for a complete initialization
     // so other callers cannot modify the list without being detected. The
     // DownloadAutoSaveView is kept alive by the underlying DownloadList.
-    yield new DownloadAutoSaveView(list, this._store).initialize();
-  }),
+    await new DownloadAutoSaveView(list, this._store).initialize();
+  },
 
   /**
    * Determines if a Download object from the list of persistent downloads
@@ -296,7 +294,7 @@ this.DownloadIntegration = {
    * @return {Promise}
    * @resolves The downloads directory string path.
    */
-  getSystemDownloadsDirectory: Task.async(function* () {
+  async getSystemDownloadsDirectory() {
     if (this._downloadsDirectory) {
       return this._downloadsDirectory;
     }
@@ -309,7 +307,7 @@ this.DownloadIntegration = {
     // the default Downloads directory.
     let version = parseFloat(Services.sysinfo.getProperty("version"));
     if (version < 6) {
-      directoryPath = yield this._createDownloadsDirectory("Pers");
+      directoryPath = await this._createDownloadsDirectory("Pers");
     } else {
       directoryPath = this._getDirectory("DfltDwnld");
     }
@@ -319,15 +317,15 @@ this.DownloadIntegration = {
     try {
       directoryPath = this._getDirectory("DfltDwnld");
     } catch(e) {
-      directoryPath = yield this._createDownloadsDirectory("Home");
+      directoryPath = await this._createDownloadsDirectory("Home");
     }
 #else
-    directoryPath = yield this._createDownloadsDirectory("Home");
+    directoryPath = await this._createDownloadsDirectory("Home");
 #endif
 
     this._downloadsDirectory = directoryPath;
     return this._downloadsDirectory;
-  }),
+  },
   _downloadsDirectory: null,
 
   /**
@@ -336,7 +334,7 @@ this.DownloadIntegration = {
    * @return {Promise}
    * @resolves The downloads directory string path.
    */
-  getPreferredDownloadsDirectory: Task.async(function* () {
+  async getPreferredDownloadsDirectory() {
     let directoryPath = null;
     let prefValue = 1;
 
@@ -349,24 +347,24 @@ this.DownloadIntegration = {
         directoryPath = this._getDirectory("Desk");
         break;
       case 1: // Downloads
-        directoryPath = yield this.getSystemDownloadsDirectory();
+        directoryPath = await this.getSystemDownloadsDirectory();
         break;
       case 2: // Custom
         try {
           let directory = Services.prefs.getComplexValue("browser.download.dir",
                                                          Ci.nsIFile);
           directoryPath = directory.path;
-          yield OS.File.makeDir(directoryPath, { ignoreExisting: true });
+          await OS.File.makeDir(directoryPath, { ignoreExisting: true });
         } catch(ex) {
           // Either the preference isn't set or the directory cannot be created.
-          directoryPath = yield this.getSystemDownloadsDirectory();
+          directoryPath = await this.getSystemDownloadsDirectory();
         }
         break;
       default:
-        directoryPath = yield this.getSystemDownloadsDirectory();
+        directoryPath = await this.getSystemDownloadsDirectory();
     }
     return directoryPath;
-  }),
+  },
 
   /**
    * Returns the temporary downloads directory asynchronously.
@@ -374,15 +372,15 @@ this.DownloadIntegration = {
    * @return {Promise}
    * @resolves The downloads directory string path.
    */
-  getTemporaryDownloadsDirectory: Task.async(function* () {
+  async getTemporaryDownloadsDirectory() {
     let directoryPath = null;
 #ifdef XP_MACOSX
-    directoryPath = yield this.getPreferredDownloadsDirectory();
+    directoryPath = await this.getPreferredDownloadsDirectory();
 #else
     directoryPath = this._getDirectory("TmpD");
 #endif
     return directoryPath;
-  }),
+  },
 
   /**
    * Checks to determine whether to block downloads for parental controls.
@@ -478,7 +476,7 @@ this.DownloadIntegration = {
    * @resolves When all the operations completed successfully.
    * @rejects JavaScript exception if any of the operations failed.
    */
-  downloadDone: Task.async(function* (aDownload) {
+  async downloadDone(aDownload) {
 #ifdef XP_WIN
     // On Windows, we mark any file saved to the NTFS file system as coming
     // from the Internet security zone unless Group Policy disables the
@@ -502,15 +500,15 @@ this.DownloadIntegration = {
         // to match Windows behavior.
         if (zone >= Ci.mozIDownloadPlatform.ZONE_INTERNET) {
           let streamPath = aDownload.target.path + ":Zone.Identifier";
-          let stream = yield OS.File.open(
+          let stream = await OS.File.open(
             streamPath,
             { create: true },
             { winAllowLengthBeyondMaxPathWithCaveats: true }
           );
           try {
-            yield stream.write(new TextEncoder().encode("[ZoneTransfer]\r\nZoneId=" + zone + "\r\n"));
+            await stream.write(new TextEncoder().encode("[ZoneTransfer]\r\nZoneId=" + zone + "\r\n"));
           } finally {
-            yield stream.close();
+            await stream.close();
           }
         }
       } catch (ex) {
@@ -549,7 +547,7 @@ this.DownloadIntegration = {
         options.unixMode = 0o666;
       }
       // On Unix, the umask of the process is respected.
-      yield OS.File.setPermissions(aDownload.target.path, options);
+      await OS.File.setPermissions(aDownload.target.path, options);
     } catch (ex) {
       // We should report errors with making the permissions less restrictive
       // or marking the file as read-only on Unix and Mac, but this should not
@@ -572,7 +570,7 @@ this.DownloadIntegration = {
                                    new FileUtils.File(aDownload.target.path),
                                    aDownload.contentType,
                                    aDownload.source.isPrivate);
-  }),
+  },
 
   /**
    * Launches a file represented by the target of a download. This can
@@ -594,7 +592,7 @@ this.DownloadIntegration = {
    * @rejects  JavaScript exception if there was an error trying to launch
    *           the file.
    */
-  launchDownload: Task.async(function* (aDownload) {
+  async launchDownload(aDownload) {
     let file = new FileUtils.File(aDownload.target.path);
 
     // In case of a double extension, like ".tar.gz", we only
@@ -617,7 +615,7 @@ this.DownloadIntegration = {
     // this check.  The second is that the system-level security prompt would
     // be displayed at launch time in any case.
     if (file.isExecutable() && !isWindowsExe &&
-        !(yield this.confirmLaunchExecutable(file.path))) {
+        !(await this.confirmLaunchExecutable(file.path))) {
       return;
     }
 
@@ -671,19 +669,19 @@ this.DownloadIntegration = {
     // If our previous attempts failed, try sending it through
     // the system's external "file:" URL handler.
     gExternalProtocolService.loadUrl(NetUtil.newURI(file));
-  }),
+  },
 
   /**
    * Asks for confirmation for launching the specified executable file. This
    * can be overridden by regression tests to avoid the interactive prompt.
    */
-  confirmLaunchExecutable: Task.async(function* (path) {
+  async confirmLaunchExecutable(path) {
     // We don't anchor the prompt to a specific window intentionally, not
     // only because this is the same behavior as the system-level prompt,
     // but also because the most recently active window is the right choice
     // in basically all cases.
-    return yield DownloadUIHelper.getPrompter().confirmLaunchExecutable(path);
-  }),
+    return await DownloadUIHelper.getPrompter().confirmLaunchExecutable(path);
+  },
 
   /**
    * Launches the specified file, unless overridden by regression tests.
@@ -710,7 +708,7 @@ this.DownloadIntegration = {
    * @rejects  JavaScript exception if there was an error trying to open
    *           the containing folder.
    */
-  showContainingDirectory: Task.async(function* (aFilePath) {
+  async showContainingDirectory(aFilePath) {
     let file = new FileUtils.File(aFilePath);
 
     try {
@@ -736,7 +734,7 @@ this.DownloadIntegration = {
     // If launch also fails (probably because it's not implemented), let
     // the OS handler try to open the parent.
     gExternalProtocolService.loadUrl(NetUtil.newURI(parent));
-  }),
+  },
 
   /**
    * Calls the directory service, create a downloads directory and returns an
@@ -955,16 +953,16 @@ this.DownloadObserver = {
                                      p.ON_LEAVE_PRIVATE_BROWSING);
         break;
       case "last-pb-context-exited":
-        let promise = Task.spawn(function*() {
-          let list = yield Downloads.getList(Downloads.PRIVATE);
-          let downloads = yield list.getAll();
+        let promise = (async function() {
+          let list = await Downloads.getList(Downloads.PRIVATE);
+          let downloads = await list.getAll();
 
           // We can remove the downloads and finalize them in parallel.
           for (let download of downloads) {
             list.remove(download).then(null, Cu.reportError);
             download.finalize(true).then(null, Cu.reportError);
           }
-        });
+        })();
         // Handle test mode
         if (gCombinedDownloadIntegration._testResolveClearPrivateList) {
           gCombinedDownloadIntegration._testResolveClearPrivateList(promise);
