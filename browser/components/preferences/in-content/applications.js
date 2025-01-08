@@ -13,9 +13,6 @@ const TYPE_MAYBE_VIDEO_FEED = "application/vnd.mozilla.maybe.video.feed";
 const TYPE_MAYBE_AUDIO_FEED = "application/vnd.mozilla.maybe.audio.feed";
 const TYPE_PDF = "application/pdf";
 
-const PREF_PDFJS_DISABLED = "pdfjs.disabled";
-const TOPIC_PDFJS_HANDLER_CHANGED = "pdfjs:handlerChanged";
-
 const PREF_DISABLED_PLUGIN_TYPES = "plugin.disable_full_page_plugin_for_types";
 
 // Preferences that affect which entries to show in the list.
@@ -809,15 +806,6 @@ InternalHandlerInfoWrapper.prototype = {
   }
 };
 
-var pdfHandlerInfo = {
-  __proto__: new InternalHandlerInfoWrapper(TYPE_PDF),
-  _handlerChanged: TOPIC_PDFJS_HANDLER_CHANGED,
-  _appPrefLabel: "portableDocumentFormat",
-  get enabled() {
-    return !Services.prefs.getBoolPref(PREF_PDFJS_DISABLED);
-  },
-};
-
 
 // Prefpane Controller
 
@@ -1033,7 +1021,7 @@ var gApplicationsPane = {
    * applications menu.
    */
   _loadInternalHandlers() {
-    var internalHandlers = [pdfHandlerInfo];
+    var internalHandlers = [];
     for (let internalHandler of internalHandlers) {
       if (internalHandler.enabled) {
         this._handledTypes[internalHandler.type] = internalHandler;
