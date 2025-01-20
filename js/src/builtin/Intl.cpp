@@ -3987,36 +3987,6 @@ CreateRelativeTimeFormatPrototype(JSContext* cx, HandleObject Intl, Handle<Globa
     return proto;
 }
 
-/* static */ bool
-js::GlobalObject::addRelativeTimeFormatConstructor(JSContext* cx, HandleObject intl)
-{
-    Handle<GlobalObject*> global = cx->global();
-
-    {
-        const HeapSlot& slot = global->getReservedSlotRef(RELATIVE_TIME_FORMAT_PROTO);
-        if (!slot.isUndefined()) {
-            MOZ_ASSERT(slot.isObject());
-            JS_ReportErrorASCII(cx,
-                                "the RelativeTimeFormat constructor can't be added "
-                                "multiple times in the same global");
-            return false;
-        }
-    }
-
-    JSObject* relativeTimeFormatProto = CreateRelativeTimeFormatPrototype(cx, intl, global);
-    if (!relativeTimeFormatProto)
-        return false;
-
-    global->setReservedSlot(RELATIVE_TIME_FORMAT_PROTO, ObjectValue(*relativeTimeFormatProto));
-    return true;
-}
-
-bool
-js::AddRelativeTimeFormatConstructor(JSContext* cx, JS::Handle<JSObject*> intl)
-{
-    return GlobalObject::addRelativeTimeFormatConstructor(cx, intl);
-}
-
 
 bool
 js::intl_RelativeTimeFormat_availableLocales(JSContext* cx, unsigned argc, Value* vp)
@@ -4787,6 +4757,9 @@ GlobalObject::initIntlObject(JSContext* cx, Handle<GlobalObject*> global)
     RootedObject pluralRulesProto(cx, CreatePluralRulesPrototype(cx, intl, global));
     if (!pluralRulesProto)
         return false;
+    RootedObject relativeTimeFmtProto(cx, CreateRelativeTimeFormatPrototype(cx, intl, global));
+    if (!relativeTimeFmtProto)
+        return false;
 
     // The |Intl| object is fully set up now, so define the global property.
     RootedValue intlValue(cx, ObjectValue(*intl));
@@ -4808,6 +4781,7 @@ GlobalObject::initIntlObject(JSContext* cx, Handle<GlobalObject*> global)
     global->setReservedSlot(NUMBER_FORMAT, ObjectValue(*numberFormat));
     global->setReservedSlot(NUMBER_FORMAT_PROTO, ObjectValue(*numberFormatProto));
     global->setReservedSlot(PLURAL_RULES_PROTO, ObjectValue(*pluralRulesProto));
+    global->setReservedSlot(RELATIVE_TIME_FORMAT_PROTO, ObjectValue(*relativeTimeFmtProto));
 
     // Also cache |Intl| to implement spec language that conditions behavior
     // based on values being equal to "the standard built-in |Intl| object".
