@@ -94,16 +94,16 @@ struct ZoneGCStats
 };
 
 #define FOR_EACH_GC_PROFILE_TIME(_)                                           \
-    _(BeginCallback, "bgnCB",  PhaseKind::GC_BEGIN)                                \
-    _(WaitBgThread,  "waitBG", PhaseKind::WAIT_BACKGROUND_THREAD)                  \
-    _(DiscardCode,   "discrd", PhaseKind::MARK_DISCARD_CODE)                       \
-    _(RelazifyFunc,  "relzfy", PhaseKind::RELAZIFY_FUNCTIONS)                      \
-    _(PurgeTables,   "prgTbl", PhaseKind::PURGE_SHAPE_TABLES)                      \
-    _(Purge,         "purge",  PhaseKind::PURGE)                                   \
-    _(Mark,          "mark",   PhaseKind::MARK)                                    \
-    _(Sweep,         "sweep",  PhaseKind::SWEEP)                                   \
-    _(Compact,       "cmpct",  PhaseKind::COMPACT)                                 \
-    _(EndCallback,   "endCB",  PhaseKind::GC_END)                                  \
+    _(BeginCallback, "bgnCB",  PhaseKind::GC_BEGIN)                           \
+    _(WaitBgThread,  "waitBG", PhaseKind::WAIT_BACKGROUND_THREAD)             \
+    _(DiscardCode,   "discrd", PhaseKind::MARK_DISCARD_CODE)                  \
+    _(RelazifyFunc,  "relzfy", PhaseKind::RELAZIFY_FUNCTIONS)                 \
+    _(PurgeTables,   "prgTbl", PhaseKind::PURGE_SHAPE_TABLES)                 \
+    _(Purge,         "purge",  PhaseKind::PURGE)                              \
+    _(Mark,          "mark",   PhaseKind::MARK)                               \
+    _(Sweep,         "sweep",  PhaseKind::SWEEP)                              \
+    _(Compact,       "cmpct",  PhaseKind::COMPACT)                            \
+    _(EndCallback,   "endCB",  PhaseKind::GC_END)                             \
     _(Barriers,      "brrier", PhaseKind::BARRIER)
 
 const char* ExplainAbortReason(gc::AbortReason reason);

@@ -1323,7 +1323,7 @@ Statistics::printSliceProfile()
     totalTimes_[ProfileKey::Total] += times[ProfileKey::Total];
 
 #define GET_PROFILE_TIME(name, text, phase)                                   \
-    times[ProfileKey::name] = slice.phaseTimes[PHASE_DAG_NONE][phase];                     \
+    times[ProfileKey::name] = slice.phaseTimes[PHASE_DAG_NONE][phase];        \
     totalTimes_[ProfileKey::name] += times[ProfileKey::name];
 FOR_EACH_GC_PROFILE_TIME(GET_PROFILE_TIME)
 #undef GET_PROFILE_TIME
