@@ -24,9 +24,8 @@
 #include "prenv.h"
 
 /*
- * On platforms that are not gonk based, we fall back to an arbitrary
- * UID. This is generally the UID for user `nobody', albeit it is not
- * always the case.
+ * We fall back to an arbitrary UID. This is generally the UID for user
+ * `nobody', albeit it is not always the case.
  */
 # define CHILD_UNPRIVILEGED_UID 65534
 # define CHILD_UNPRIVILEGED_GID 65534

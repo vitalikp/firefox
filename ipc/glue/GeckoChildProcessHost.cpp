@@ -55,11 +55,9 @@ using mozilla::ipc::GeckoChildProcessHost;
 static const int kMagicAndroidSystemPropFd = 5;
 #endif
 
-static const bool kLowRightsSubprocesses =
-  // We currently only attempt to drop privileges on gonk, because we
-  // have no plugins or extensions to worry about breaking.
-  false
-  ;
+// We currently don't drop privileges on any platform, because we have to worry
+// about plugins and extensions breaking.
+static const bool kLowRightsSubprocesses = false;
 
 static bool
 ShouldHaveDirectoryService()
