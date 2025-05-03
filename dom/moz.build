@@ -50,7 +50,6 @@ DIRS += [
     'file',
     'filehandle',
     'filesystem',
-    'flyweb',
     'geolocation',
     'grid',
     'html',

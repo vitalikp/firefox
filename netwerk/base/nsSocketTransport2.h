@@ -135,8 +135,7 @@ public:
                   nsIProxyInfo *proxyInfo);
 
     // Alternative Init method for when the IP-address of the host
-    // has been pre-resolved using a alternative means (e.g. FlyWeb service
-    // info).
+    // has been pre-resolved using a alternative means.
     nsresult InitPreResolved(const char **socketTypes, uint32_t typeCount,
                              const nsACString &host, uint16_t port,
                              const nsACString &hostRoute, uint16_t portRoute,

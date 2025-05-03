@@ -872,12 +872,6 @@ private:
 
   virtual mozilla::ipc::IPCResult RecvPPresentationConstructor(PPresentationParent* aActor) override;
 
-  virtual PFlyWebPublishedServerParent*
-    AllocPFlyWebPublishedServerParent(const nsString& name,
-                                      const FlyWebPublishOptions& params) override;
-
-  virtual bool DeallocPFlyWebPublishedServerParent(PFlyWebPublishedServerParent* aActor) override;
-
   virtual PSpeechSynthesisParent* AllocPSpeechSynthesisParent() override;
 
   virtual bool

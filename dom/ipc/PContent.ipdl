@@ -36,7 +36,6 @@ include protocol PWebBrowserPersistDocument;
 include protocol PWebrtcGlobal;
 include protocol PPresentation;
 include protocol PVideoDecoderManager;
-include protocol PFlyWebPublishedServer;
 include protocol PProfiler;
 include protocol PScriptCache;
 include DOMTypes;
@@ -82,7 +81,6 @@ using mozilla::DataStorageType from "ipc/DataStorageIPCUtils.h";
 using mozilla::OriginAttributes from "mozilla/ipc/BackgroundUtils.h";
 using struct mozilla::layers::TextureFactoryIdentifier from "mozilla/layers/CompositorTypes.h";
 using mozilla::layers::CompositorOptions from "mozilla/layers/CompositorOptions.h";
-using struct mozilla::dom::FlyWebPublishOptions from "mozilla/dom/FlyWebPublishOptionsIPCSerializer.h";
 using mozilla::Telemetry::Accumulation from "mozilla/TelemetryComms.h";
 using mozilla::Telemetry::KeyedAccumulation from "mozilla/TelemetryComms.h";
 using mozilla::Telemetry::ScalarAction from "mozilla/TelemetryComms.h";
@@ -271,7 +269,6 @@ nested(upto inside_cpow) sync protocol PContent
     manages PWebBrowserPersistDocument;
     manages PWebrtcGlobal;
     manages PPresentation;
-    manages PFlyWebPublishedServer;
     manages PScriptCache;
 
 both:
@@ -663,8 +660,6 @@ parent:
     async PWebrtcGlobal();
 
     async PPresentation();
-
-    async PFlyWebPublishedServer(nsString name, FlyWebPublishOptions params);
 
     // Services remoting
 

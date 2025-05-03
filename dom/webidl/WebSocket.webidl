@@ -64,8 +64,8 @@ interface WebSocket : EventTarget {
   void send(ArrayBufferView data);
 };
 
-// Support for creating server-side chrome-only WebSocket. Used in FlyWeb and in
-// devtools remote debugging server.
+// Support for creating server-side chrome-only WebSocket. Used in devtools
+// remote debugging server.
 interface nsITransportProvider;
 
 partial interface WebSocket {
