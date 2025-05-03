@@ -501,11 +501,6 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
     if (NS_SUCCEEDED(rv))
       rv = file->AppendNative(NS_LITERAL_CSTRING("distribution"));
   }
-  else if (!strcmp(aProperty, XRE_APP_FEATURES_DIR)) {
-    rv = GetAppDir()->Clone(getter_AddRefs(file));
-    if (NS_SUCCEEDED(rv))
-      rv = file->AppendNative(NS_LITERAL_CSTRING("features"));
-  }
   else if (!strcmp(aProperty, XRE_ADDON_APP_DIR)) {
     nsCOMPtr<nsIDirectoryServiceProvider> dirsvc(do_GetService("@mozilla.org/file/directory_service;1", &rv));
     if (NS_FAILED(rv))
