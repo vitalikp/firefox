@@ -58,8 +58,6 @@ const PREF_E10S_BLOCKED_BY_ADDONS     = "extensions.e10sBlockedByAddons";
 const PREF_E10S_HAS_NONEXEMPT_ADDON   = "extensions.e10s.rollout.hasAddon";
 
 const KEY_APP_PROFILE                 = "app-profile";
-const KEY_APP_SYSTEM_ADDONS           = "app-system-addons";
-const KEY_APP_SYSTEM_DEFAULTS         = "app-system-defaults";
 const KEY_APP_GLOBAL                  = "app-global";
 
 // Properties that only exist in the database
@@ -1613,12 +1611,7 @@ this.XPIDatabaseReconcile = {
     // Update the AddonInternal properties.
     aNewAddon.installDate = aAddonState.mtime;
     aNewAddon.updateDate = aAddonState.mtime;
-
-    // Assume that add-ons in the system add-ons install location aren't
-    // foreign and should default to enabled.
-    aNewAddon.foreignInstall = isDetectedInstall &&
-                               aInstallLocation.name != KEY_APP_SYSTEM_ADDONS &&
-                               aInstallLocation.name != KEY_APP_SYSTEM_DEFAULTS;
+    aNewAddon.foreignInstall = isDetectedInstall;
 
     // appDisabled depends on whether the add-on is a foreignInstall so update
     aNewAddon.appDisabled = !isUsableAddon(aNewAddon);
@@ -1930,8 +1923,7 @@ this.XPIDatabaseReconcile = {
             // when the application version has changed.
             let newAddon = loadedManifest(installLocation, id);
             if (newAddon || oldAddon.updateDate != xpiState.mtime ||
-                (aUpdateCompatibility && (installLocation.name == KEY_APP_GLOBAL ||
-                                          installLocation.name == KEY_APP_SYSTEM_DEFAULTS))) {
+                (aUpdateCompatibility && installLocation.name == KEY_APP_GLOBAL)) {
               newAddon = this.updateMetadata(installLocation, oldAddon, xpiState, newAddon);
             } else if (oldAddon.descriptor != xpiState.descriptor) {
               newAddon = this.updateDescriptor(installLocation, oldAddon, xpiState);
@@ -1988,20 +1980,8 @@ this.XPIDatabaseReconcile = {
       }
     }
 
-    // Validate the updated system add-ons
-    let systemAddonLocation = XPIProvider.installLocationsByName[KEY_APP_SYSTEM_ADDONS];
-    let addons = currentAddons.get(KEY_APP_SYSTEM_ADDONS) || new Map();
-
-    let hideLocation;
-
-    if (!systemAddonLocation.isValid(addons)) {
-      // Hide the system add-on updates if any are invalid.
-      logger.info("One or more updated system add-ons invalid, falling back to defaults.");
-      hideLocation = KEY_APP_SYSTEM_ADDONS;
-    }
-
     let previousVisible = this.getVisibleAddons(previousAddons);
-    let currentVisible = this.flattenByID(currentAddons, hideLocation);
+    let currentVisible = this.flattenByID(currentAddons);
     let sawActiveTheme = false;
     XPIProvider.bootstrappedAddons = {};
 
@@ -2133,15 +2113,6 @@ this.XPIDatabaseReconcile = {
 
       // Make sure to flush the cache when an old add-on has gone away
       flushChromeCaches();
-    }
-
-    // Make sure add-ons from hidden locations are marked invisible and inactive
-    let locationAddonMap = currentAddons.get(hideLocation);
-    if (locationAddonMap) {
-      for (let addon of locationAddonMap.values()) {
-        addon.visible = false;
-        addon.active = false;
-      }
     }
 
     // If a custom theme is selected and it wasn't seen in the new list of

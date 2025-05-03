@@ -1669,14 +1669,6 @@ var AddonManagerInternal = {
         }
       }
 
-      if (appUpdateEnabled) {
-        try {
-          yield AddonManagerInternal._getProviderByName("XPIProvider").updateSystemAddons();
-        } catch (e) {
-          logger.warn("Failed to update system addons", e);
-        }
-      }
-
       logger.debug("Background update check complete");
       Services.obs.notifyObservers(null,
                                    "addons-background-update-complete",

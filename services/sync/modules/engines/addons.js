@@ -804,7 +804,6 @@ class AddonValidator extends CollectionValidator {
 
   syncedByClient(item) {
     return !item.original.hidden &&
-           !item.original.isSystem &&
            !(item.original.pendingOperations & AddonManager.PENDING_UNINSTALL) &&
            this.engine.isAddonSyncable(item.original, true);
   }

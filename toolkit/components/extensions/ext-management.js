@@ -26,8 +26,6 @@ function installType(addon) {
     return "development";
   } else if (addon.foreignInstall) {
     return "sideload";
-  } else if (addon.isSystem) {
-    return "other";
   }
   return "normal";
 }

@@ -122,8 +122,6 @@ const PREF_INSTALL_REQUIRESECUREORIGIN = "extensions.install.requireSecureOrigin
 const PREF_INSTALL_DISTRO_ADDONS      = "extensions.installDistroAddons";
 const PREF_BRANCH_INSTALLED_ADDON     = "extensions.installedDistroAddon.";
 const PREF_INTERPOSITION_ENABLED      = "extensions.interposition.enabled";
-const PREF_SYSTEM_ADDON_SET           = "extensions.systemAddonSet";
-const PREF_SYSTEM_ADDON_UPDATE_URL    = "extensions.systemAddon.update.url";
 const PREF_E10S_BLOCK_ENABLE          = "extensions.e10sBlocksEnabling";
 const PREF_E10S_ADDON_BLOCKLIST       = "extensions.e10s.rollout.blocklist";
 const PREF_E10S_ADDON_POLICY          = "extensions.e10s.rollout.policy";
@@ -144,7 +142,6 @@ const URI_EXTENSION_STRINGS           = "chrome://mozapps/locale/extensions/exte
 const STRING_TYPE_NAME                = "type.%ID%.name";
 
 const DIR_EXTENSIONS                  = "extensions";
-const DIR_SYSTEM_ADDONS               = "features";
 const DIR_STAGE                       = "staged";
 const DIR_TRASH                       = "trash";
 
@@ -158,11 +155,8 @@ const KEY_PROFILEDIR                  = "ProfD";
 const KEY_ADDON_APP_DIR               = "XREAddonAppDir";
 const KEY_TEMPDIR                     = "TmpD";
 const KEY_APP_DISTRIBUTION            = "XREAppDist";
-const KEY_APP_FEATURES                = "XREAppFeat";
 
 const KEY_APP_PROFILE                 = "app-profile";
-const KEY_APP_SYSTEM_ADDONS           = "app-system-addons";
-const KEY_APP_SYSTEM_DEFAULTS         = "app-system-defaults";
 const KEY_APP_GLOBAL                  = "app-global";
 const KEY_APP_SYSTEM_LOCAL            = "app-system-local";
 const KEY_APP_SYSTEM_SHARE            = "app-system-share";
@@ -631,8 +625,7 @@ function canRunInSafeMode(aAddon) {
   if (aAddon._installLocation.name == KEY_APP_TEMPORARY)
     return true;
 
-  return aAddon._installLocation.name == KEY_APP_SYSTEM_DEFAULTS ||
-         aAddon._installLocation.name == KEY_APP_SYSTEM_ADDONS;
+  return false;
 }
 
 /**
@@ -1678,14 +1671,6 @@ function getSignedStatus(aRv, aCert, aAddonID) {
 }
 
 function shouldVerifySignedState(aAddon) {
-  // Updated system add-ons should always have their signature checked
-  if (aAddon._installLocation.name == KEY_APP_SYSTEM_ADDONS)
-    return true;
-
-  // We don't care about signatures for default system add-ons
-  if (aAddon._installLocation.name == KEY_APP_SYSTEM_DEFAULTS)
-    return false;
-
   // Hotfixes should always have their signature checked
   let hotfixID = Preferences.get(PREF_EM_HOTFIX_ID, undefined);
   if (hotfixID && aAddon.id == hotfixID)
@@ -2566,26 +2551,6 @@ this.XPIProvider = {
       XPIProvider.installLocationsByName[location.name] = location;
     }
 
-    function addSystemAddonInstallLocation(aName, aKey, aPaths, aScope) {
-      try {
-        var dir = FileUtils.getDir(aKey, aPaths);
-      } catch (e) {
-        // Some directories aren't defined on some platforms, ignore them
-        logger.debug("Skipping unavailable install location " + aName);
-        return;
-      }
-
-      try {
-        var location = new SystemAddonInstallLocation(aName, dir, aScope, aAppChanged !== false);
-      } catch (e) {
-        logger.warn("Failed to add system add-on install location " + aName, e);
-        return;
-      }
-
-      XPIProvider.installLocations.push(location);
-      XPIProvider.installLocationsByName[location.name] = location;
-    }
-
     function addRegistryInstallLocation(aName, aRootkey, aScope) {
       try {
         var location = new WinRegInstallLocation(aName, aRootkey, aScope);
@@ -2629,13 +2594,6 @@ this.XPIProvider = {
       addDirectoryInstallLocation(KEY_APP_PROFILE, KEY_PROFILEDIR,
                                   [DIR_EXTENSIONS],
                                   AddonManager.SCOPE_PROFILE, false);
-
-      addSystemAddonInstallLocation(KEY_APP_SYSTEM_ADDONS, KEY_PROFILEDIR,
-                                    [DIR_SYSTEM_ADDONS],
-                                    AddonManager.SCOPE_PROFILE);
-
-      addDirectoryInstallLocation(KEY_APP_SYSTEM_DEFAULTS, KEY_APP_FEATURES,
-                                  [], AddonManager.SCOPE_PROFILE, true);
 
       addDirectoryInstallLocation(KEY_APP_GLOBAL, KEY_ADDON_APP_DIR,
                                   [DIR_EXTENSIONS],
@@ -2937,139 +2895,6 @@ this.XPIProvider = {
     // Ensure any changes to the add-ons list are flushed to disk
     Services.prefs.setBoolPref(PREF_PENDING_OPERATIONS,
                                !XPIDatabase.writeAddonsList());
-  },
-
-  async updateSystemAddons() {
-    let systemAddonLocation = XPIProvider.installLocationsByName[KEY_APP_SYSTEM_ADDONS];
-    if (!systemAddonLocation)
-      return;
-
-    // Don't do anything in safe mode
-    if (Services.appinfo.inSafeMode)
-      return;
-
-    // Download the list of system add-ons
-    let url = Preferences.get(PREF_SYSTEM_ADDON_UPDATE_URL, null);
-    if (!url) {
-      await systemAddonLocation.cleanDirectories();
-      return;
-    }
-
-    url = UpdateUtils.formatUpdateURL(url);
-
-    logger.info(`Starting system add-on update check from ${url}.`);
-    let res = await ProductAddonChecker.getProductAddonList(url);
-
-    // If there was no list then do nothing.
-    if (!res || !res.gmpAddons) {
-      logger.info("No system add-ons list was returned.");
-      await systemAddonLocation.cleanDirectories();
-      return;
-    }
-
-    let addonList = new Map(
-      res.gmpAddons.map(spec => [spec.id, { spec, path: null, addon: null }]));
-
-    let getAddonsInLocation = (location) => {
-      return new Promise(resolve => {
-        XPIDatabase.getAddonsInLocation(location, resolve);
-      });
-    };
-
-    let setMatches = (wanted, existing) => {
-      if (wanted.size != existing.size)
-        return false;
-
-      for (let [id, addon] of existing) {
-        let wantedInfo = wanted.get(id);
-
-        if (!wantedInfo)
-          return false;
-        if (wantedInfo.spec.version != addon.version)
-          return false;
-      }
-
-      return true;
-    };
-
-    // If this matches the current set in the profile location then do nothing.
-    let updatedAddons = addonMap(await getAddonsInLocation(KEY_APP_SYSTEM_ADDONS));
-    if (setMatches(addonList, updatedAddons)) {
-      logger.info("Retaining existing updated system add-ons.");
-      await systemAddonLocation.cleanDirectories();
-      return;
-    }
-
-    // If this matches the current set in the default location then reset the
-    // updated set.
-    let defaultAddons = addonMap(await getAddonsInLocation(KEY_APP_SYSTEM_DEFAULTS));
-    if (setMatches(addonList, defaultAddons)) {
-      logger.info("Resetting system add-ons.");
-      systemAddonLocation.resetAddonSet();
-      await systemAddonLocation.cleanDirectories();
-      return;
-    }
-
-    // Download all the add-ons
-    async function downloadAddon(item) {
-      try {
-        let sourceAddon = updatedAddons.get(item.spec.id);
-        if (sourceAddon && sourceAddon.version == item.spec.version) {
-          // Copying the file to a temporary location has some benefits. If the
-          // file is locked and cannot be read then we'll fall back to
-          // downloading a fresh copy. It also means we don't have to remember
-          // whether to delete the temporary copy later.
-          try {
-            let path = OS.Path.join(OS.Constants.Path.tmpDir, "tmpaddon");
-            let unique = await OS.File.openUnique(path);
-            unique.file.close();
-            await OS.File.copy(sourceAddon._sourceBundle.path, unique.path);
-            // Make sure to update file modification times so this is detected
-            // as a new add-on.
-            await OS.File.setDates(unique.path);
-            item.path = unique.path;
-          } catch (e) {
-            logger.warn(`Failed make temporary copy of ${sourceAddon._sourceBundle.path}.`, e);
-          }
-        }
-        if (!item.path) {
-          item.path = await ProductAddonChecker.downloadAddon(item.spec);
-        }
-        item.addon = await loadManifestFromFile(nsIFile(item.path), systemAddonLocation);
-      } catch (e) {
-        logger.error(`Failed to download system add-on ${item.spec.id}`, e);
-      }
-    }
-    await Promise.all(Array.from(addonList.values()).map(downloadAddon));
-
-    // The download promises all resolve regardless, now check if they all
-    // succeeded
-    let validateAddon = (item) => {
-      if (item.spec.id != item.addon.id) {
-        logger.warn(`Downloaded system add-on expected to be ${item.spec.id} but was ${item.addon.id}.`);
-        return false;
-      }
-
-      if (item.spec.version != item.addon.version) {
-        logger.warn(`Expected system add-on ${item.spec.id} to be version ${item.spec.version} but was ${item.addon.version}.`);
-        return false;
-      }
-
-      if (!systemAddonLocation.isValidAddon(item.addon))
-        return false;
-
-      return true;
-    }
-
-    if (!Array.from(addonList.values()).every(item => item.path && item.addon && validateAddon(item))) {
-      throw new Error("Rejecting updated system add-on set that either could not " +
-                      "be downloaded or contained unusable add-ons.");
-    }
-
-    // Install into the install location
-    logger.info("Installing new system add-on set");
-    await systemAddonLocation.installAddonSet(Array.from(addonList.values())
-      .map(a => a.addon));
   },
 
   /**
@@ -4253,13 +4078,6 @@ this.XPIProvider = {
     // The default theme is exempt
     if (aAddon.type == "theme" &&
         aAddon.internalName == XPIProvider.defaultSkin)
-      return false;
-
-    // System add-ons are exempt
-    let locName = aAddon._installLocation ? aAddon._installLocation.name
-                                          : undefined;
-    if (locName == KEY_APP_SYSTEM_DEFAULTS ||
-        locName == KEY_APP_SYSTEM_ADDONS)
       return false;
 
     if (isAddonPartOfE10SRollout(aAddon)) {
@@ -6723,11 +6541,6 @@ AddonInternal.prototype = {
 
   get isCorrectlySigned() {
     switch (this._installLocation.name) {
-      case KEY_APP_SYSTEM_ADDONS:
-        // System add-ons must be signed by the system key.
-        return this.signedState == AddonManager.SIGNEDSTATE_SYSTEM
-
-      case KEY_APP_SYSTEM_DEFAULTS:
       case KEY_APP_TEMPORARY:
         // Temporary and built-in system add-ons do not require signing.
         return true;
@@ -6973,13 +6786,9 @@ AddonInternal.prototype = {
     // Add-ons that are in locked install locations, or are pending uninstall
     // cannot be upgraded or uninstalled
     if (!this._installLocation.locked && !this.pendingUninstall) {
-      // Experiments cannot be upgraded.
-      // System add-on upgrades are triggered through a different mechanism (see updateSystemAddons())
-      let isSystem = (this._installLocation.name == KEY_APP_SYSTEM_DEFAULTS ||
-                      this._installLocation.name == KEY_APP_SYSTEM_ADDONS);
       // Add-ons that are installed by a file link cannot be upgraded.
       if (this.type != "experiment" &&
-          !this._installLocation.isLinkedAddon(this.id) && !isSystem) {
+          !this._installLocation.isLinkedAddon(this.id)) {
         permissions |= AddonManager.PERM_CAN_UPGRADE;
       }
 
@@ -7337,14 +7146,7 @@ AddonWrapper.prototype = {
     if (addon._installLocation.name == KEY_APP_TEMPORARY)
       return false;
 
-    return (addon._installLocation.name == KEY_APP_SYSTEM_DEFAULTS ||
-            addon._installLocation.name == KEY_APP_SYSTEM_ADDONS);
-  },
-
-  get isSystem() {
-    let addon = addonFor(this);
-    return (addon._installLocation.name == KEY_APP_SYSTEM_DEFAULTS ||
-            addon._installLocation.name == KEY_APP_SYSTEM_ADDONS);
+    return false;
   },
 
   // Returns true if Firefox Sync should sync this addon. Only non-hotfixes
@@ -8169,472 +7971,6 @@ class MutableDirectoryInstallLocation extends DirectoryInstallLocation {
 
     delete this._IDToFileMap[aId];
   }
-}
-
-/**
- * An object which identifies a directory install location for system add-ons
- * updates.
- */
-class SystemAddonInstallLocation extends MutableDirectoryInstallLocation {
-  /**
-    * The location consists of a directory which contains the add-ons installed.
-    *
-    * @param  aName
-    *         The string identifier for the install location
-    * @param  aDirectory
-    *         The nsIFile directory for the install location
-    * @param  aScope
-    *         The scope of add-ons installed in this location
-    * @param  aResetSet
-    *         True to throw away the current add-on set
-    */
-  constructor(aName, aDirectory, aScope, aResetSet) {
-    let addonSet = SystemAddonInstallLocation._loadAddonSet();
-    let directory = null;
-
-    // The system add-on update directory is stored in a pref.
-    // Therefore, this is looked up before calling the
-    // constructor on the superclass.
-    if (addonSet.directory) {
-      directory = aDirectory.clone();
-      directory.append(addonSet.directory);
-      logger.info("SystemAddonInstallLocation scanning directory " + directory.path);
-    } else {
-      logger.info("SystemAddonInstallLocation directory is missing");
-    }
-
-    super(aName, directory, aScope);
-
-    this._addonSet = addonSet;
-    this._baseDir = aDirectory;
-    this._nextDir = null;
-    this._directory = directory;
-
-    this._stagingDirLock = 0;
-
-    if (aResetSet) {
-      this.resetAddonSet();
-    }
-
-    this.locked = false;
-  }
-
-  /**
-   * Gets the staging directory to put add-ons that are pending install and
-   * uninstall into.
-   *
-   * @return {nsIFile} - staging directory for system add-on upgrades.
-   */
-  getStagingDir() {
-    this._addonSet = SystemAddonInstallLocation._loadAddonSet();
-    let dir = null;
-    if (this._addonSet.directory) {
-      this._directory = this._baseDir.clone();
-      this._directory.append(this._addonSet.directory);
-      dir = this._directory.clone();
-      dir.append(DIR_STAGE);
-    } else {
-      logger.info("SystemAddonInstallLocation directory is missing");
-    }
-
-    return dir;
-  }
-
-  requestStagingDir() {
-    this._addonSet = SystemAddonInstallLocation._loadAddonSet();
-    if (this._addonSet.directory) {
-      this._directory = this._baseDir.clone();
-      this._directory.append(this._addonSet.directory);
-    }
-    return super.requestStagingDir();
-  }
-
-  /**
-   * Reads the current set of system add-ons
-   */
-  static _loadAddonSet() {
-    try {
-      let setStr = Preferences.get(PREF_SYSTEM_ADDON_SET, null);
-      if (setStr) {
-        let addonSet = JSON.parse(setStr);
-        if ((typeof addonSet == "object") && addonSet.schema == 1) {
-          return addonSet;
-        }
-      }
-    } catch (e) {
-      logger.error("Malformed system add-on set, resetting.");
-    }
-
-    return { schema: 1, addons: {} };
-  }
-
-  /**
-   * Saves the current set of system add-ons
-   *
-   * @param {Object} aAddonSet - object containing schema, directory and set
-   *                 of system add-on IDs and versions.
-   */
-  static _saveAddonSet(aAddonSet) {
-    Preferences.set(PREF_SYSTEM_ADDON_SET, JSON.stringify(aAddonSet));
-  }
-
-  getAddonLocations() {
-    // Updated system add-ons are ignored in safe mode
-    if (Services.appinfo.inSafeMode) {
-      return new Map();
-    }
-
-    let addons = super.getAddonLocations();
-
-    // Strip out any unexpected add-ons from the list
-    for (let id of addons.keys()) {
-      if (!(id in this._addonSet.addons)) {
-        addons.delete(id);
-      }
-    }
-
-    return addons;
-  }
-
-  /**
-   * Tests whether updated system add-ons are expected.
-   */
-  isActive() {
-    return this._directory != null;
-  }
-
-  isValidAddon(aAddon) {
-    if (aAddon.appDisabled) {
-      logger.warn(`System add-on ${aAddon.id} isn't compatible with the application.`);
-      return false;
-    }
-
-    if (aAddon.unpack) {
-      logger.warn(`System add-on ${aAddon.id} isn't a packed add-on.`);
-      return false;
-    }
-
-    if (!aAddon.bootstrap) {
-      logger.warn(`System add-on ${aAddon.id} isn't restartless.`);
-      return false;
-    }
-
-    if (!aAddon.multiprocessCompatible) {
-      logger.warn(`System add-on ${aAddon.id} isn't multiprocess compatible.`);
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Tests whether the loaded add-on information matches what is expected.
-   */
-  isValid(aAddons) {
-    for (let id of Object.keys(this._addonSet.addons)) {
-      if (!aAddons.has(id)) {
-        logger.warn(`Expected add-on ${id} is missing from the system add-on location.`);
-        return false;
-      }
-
-      let addon = aAddons.get(id);
-      if (addon.version != this._addonSet.addons[id].version) {
-        logger.warn(`Expected system add-on ${id} to be version ${this._addonSet.addons[id].version} but was ${addon.version}.`);
-        return false;
-      }
-
-      if (!this.isValidAddon(addon))
-        return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Resets the add-on set so on the next startup the default set will be used.
-   */
-  resetAddonSet() {
-    logger.info("Removing all system add-on upgrades.");
-
-    // remove everything from the pref first, if uninstall
-    // fails then at least they will not be re-activated on
-    // next restart.
-    SystemAddonInstallLocation._saveAddonSet({ schema: 1, addons: {} });
-
-    // If this is running at app startup, the pref being cleared
-    // will cause later stages of startup to notice that the
-    // old updates are now gone.
-    //
-    // Updates will only be explicitly uninstalled if they are
-    // removed restartlessly, for instance if they are no longer
-    // part of the latest update set.
-    if (this._addonSet) {
-      for (let id of Object.keys(this._addonSet.addons)) {
-        AddonManager.getAddonByID(id, addon => {
-          if (addon) {
-            addon.uninstall();
-          }
-        });
-      }
-    }
-  }
-
-    /**
-   * Removes any directories not currently in use or pending use after a
-   * restart. Any errors that happen here don't really matter as we'll attempt
-   * to cleanup again next time.
-   */
-  async cleanDirectories() {
-    // System add-ons directory does not exist
-    if (!(await OS.File.exists(this._baseDir.path))) {
-      return;
-    }
-
-    let iterator;
-    try {
-      iterator = new OS.File.DirectoryIterator(this._baseDir.path);
-    } catch (e) {
-      logger.error("Failed to clean updated system add-ons directories.", e);
-      return;
-    }
-
-    try {
-      for (;;) {
-        let {value: entry, done} = await iterator.next();
-        if (done) {
-          break;
-        }
-
-        // Skip the directory currently in use
-        if (this._directory && this._directory.path == entry.path) {
-          continue;
-        }
-
-        // Skip the next directory
-        if (this._nextDir && this._nextDir.path == entry.path) {
-          continue;
-        }
-
-        if (entry.isDir) {
-          await OS.File.removeDir(entry.path, {
-            ignoreAbsent: true,
-            ignorePermissions: true,
-          });
-        } else {
-          await OS.File.remove(entry.path, {
-            ignoreAbsent: true,
-          });
-        }
-      }
-
-    } catch (e) {
-      logger.error("Failed to clean updated system add-ons directories.", e);
-    } finally {
-      iterator.close();
-    }
-  }
-
-  /**
-   * Installs a new set of system add-ons into the location and updates the
-   * add-on set in prefs.
-   *
-   * @param {Array} aAddons - An array of addons to install.
-   */
-  async installAddonSet(aAddons) {
-    // Make sure the base dir exists
-    await OS.File.makeDir(this._baseDir.path, { ignoreExisting: true });
-
-    let addonSet = SystemAddonInstallLocation._loadAddonSet();
-
-    // Remove any add-ons that are no longer part of the set.
-    for (let addonID of Object.keys(addonSet.addons)) {
-      if (!aAddons.includes(addonID)) {
-        AddonManager.getAddonByID(addonID, a => a.uninstall());
-      }
-    }
-
-    let newDir = this._baseDir.clone();
-
-    let uuidGen = Cc["@mozilla.org/uuid-generator;1"].
-                  getService(Ci.nsIUUIDGenerator);
-    newDir.append("blank");
-
-    while (true) {
-      newDir.leafName = uuidGen.generateUUID().toString();
-
-      try {
-        await OS.File.makeDir(newDir.path, { ignoreExisting: false });
-        break;
-      } catch (e) {
-        logger.debug("Could not create new system add-on updates dir, retrying", e);
-      }
-    }
-
-    // Record the new upgrade directory.
-    let state = { schema: 1, directory: newDir.leafName, addons: {} };
-    SystemAddonInstallLocation._saveAddonSet(state);
-
-    this._nextDir = newDir;
-    let location = this;
-
-    let installs = [];
-    for (let addon of aAddons) {
-      let install = await createLocalInstall(addon._sourceBundle, location);
-      installs.push(install);
-    }
-
-    async function installAddon(install) {
-      // Make the new install own its temporary file.
-      install.ownsTempFile = true;
-      install.install();
-    }
-
-    async function postponeAddon(install) {
-      let resumeFn;
-      if (AddonManagerPrivate.hasUpgradeListener(install.addon.id)) {
-        logger.info(`system add-on ${install.addon.id} has an upgrade listener, postponing upgrade set until restart`);
-        resumeFn = () => {
-          logger.info(`${install.addon.id} has resumed a previously postponed addon set`);
-          install.installLocation.resumeAddonSet(installs);
-        }
-      }
-      await install.postpone(resumeFn);
-    }
-
-    let previousState;
-
-    try {
-      // All add-ons in position, create the new state and store it in prefs
-      state = { schema: 1, directory: newDir.leafName, addons: {} };
-      for (let addon of aAddons) {
-        state.addons[addon.id] = {
-          version: addon.version
-        }
-      }
-
-      previousState = SystemAddonInstallLocation._loadAddonSet();
-      SystemAddonInstallLocation._saveAddonSet(state);
-
-      let blockers = aAddons.filter(
-        addon => AddonManagerPrivate.hasUpgradeListener(addon.id)
-      );
-
-      if (blockers.length > 0) {
-        await waitForAllPromises(installs.map(postponeAddon));
-      } else {
-        await waitForAllPromises(installs.map(installAddon));
-      }
-    } catch (e) {
-      // Roll back to previous upgrade set (if present) on restart.
-      if (previousState) {
-        SystemAddonInstallLocation._saveAddonSet(previousState);
-      }
-      // Otherwise, roll back to built-in set on restart.
-      // TODO try to do these restartlessly
-      this.resetAddonSet();
-
-      try {
-        await OS.File.removeDir(newDir.path, { ignorePermissions: true });
-      } catch (e) {
-        logger.warn(`Failed to remove failed system add-on directory ${newDir.path}.`, e);
-      }
-      throw e;
-    }
-  }
-
- /**
-  * Resumes upgrade of a previously-delayed add-on set.
-  */
-  async resumeAddonSet(installs) {
-    async function resumeAddon(install) {
-      install.state = AddonManager.STATE_DOWNLOADED;
-      install.installLocation.releaseStagingDir();
-      install.install();
-    }
-
-    let blockers = installs.filter(
-      install => AddonManagerPrivate.hasUpgradeListener(install.addon.id)
-    );
-
-    if (blockers.length > 1) {
-      logger.warn("Attempted to resume system add-on install but upgrade blockers are still present");
-    } else {
-      await waitForAllPromises(installs.map(resumeAddon));
-    }
-  }
-
-  /**
-   * Returns a directory that is normally on the same filesystem as the rest of
-   * the install location and can be used for temporarily storing files during
-   * safe move operations. Calling this method will delete the existing trash
-   * directory and its contents.
-   *
-   * @return an nsIFile
-   */
-  getTrashDir() {
-    let trashDir = this._directory.clone();
-    trashDir.append(DIR_TRASH);
-    let trashDirExists = trashDir.exists();
-    try {
-      if (trashDirExists)
-        recursiveRemove(trashDir);
-      trashDirExists = false;
-    } catch (e) {
-      logger.warn("Failed to remove trash directory", e);
-    }
-    if (!trashDirExists)
-      trashDir.create(Ci.nsIFile.DIRECTORY_TYPE, FileUtils.PERMS_DIRECTORY);
-
-    return trashDir;
-  }
-
-  /**
-   * Installs an add-on into the install location.
-   *
-   * @param  id
-   *         The ID of the add-on to install
-   * @param  source
-   *         The source nsIFile to install from
-   * @return an nsIFile indicating where the add-on was installed to
-   */
-  installAddon({id, source}) {
-    let trashDir = this.getTrashDir();
-    let transaction = new SafeInstallOperation();
-
-    // If any of these operations fails the finally block will clean up the
-    // temporary directory
-    try {
-      if (source.isFile()) {
-        flushJarCache(source);
-      }
-
-      transaction.moveUnder(source, this._directory);
-    } finally {
-      // It isn't ideal if this cleanup fails but it isn't worth rolling back
-      // the install because of it.
-      try {
-        recursiveRemove(trashDir);
-      } catch (e) {
-        logger.warn("Failed to remove trash directory when installing " + id, e);
-      }
-    }
-
-    let newFile = this._directory.clone();
-    newFile.append(source.leafName);
-
-    try {
-      newFile.lastModifiedTime = Date.now();
-    } catch (e) {
-      logger.warn("failed to set lastModifiedTime on " + newFile.path, e);
-    }
-    this._IDToFileMap[id] = newFile;
-    XPIProvider._addURIMapping(id, newFile);
-
-    return newFile;
-  }
-
-  // old system add-on upgrade dirs get automatically removed
-  uninstallAddon(aAddon) {}
 }
 
 /**
