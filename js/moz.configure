@@ -262,3 +262,7 @@ def enable_pipeline_operator(value):
 
 set_config('ENABLE_PIPELINE_OPERATOR', enable_pipeline_operator)
 set_define('ENABLE_PIPELINE_OPERATOR', enable_pipeline_operator)
+
+# Configure only Javascript engine
+# ==============================================================
+include('js.configure', when=building_js)
