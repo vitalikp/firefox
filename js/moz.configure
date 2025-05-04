@@ -102,6 +102,11 @@ def disable_export_js(value):
 # =======================================================
 js_option('--disable-ion', help='Disable use of the IonMonkey JIT')
 
+# JIT code simulator for cross compiles
+# =======================================================
+js_option('--enable-simulator', nargs=1,
+          help='Enable a JIT code simulator for the specified architecture')
+
 # Profiling
 # =======================================================
 js_option('--enable-instruments', env='MOZ_INSTRUMENTS',

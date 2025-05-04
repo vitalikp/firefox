@@ -1,4 +1,10 @@
 
+@imports('__sandbox__', _as='sandbox')
+def cdef(name, value):
+    val = sandbox._resolve(value)
+    sandbox.set_config_impl(name, val)
+    sandbox.set_define_impl(name, val)
+
 set_define('JS_PUNBOX64', depends(target)(lambda t: t.bitness == 64 or None))
 set_define('JS_NUNBOX32', depends(target)(lambda t: t.bitness == 32 or None))
 
@@ -14,3 +20,40 @@ def enable_ion(value, target):
 
 set_config('ENABLE_ION', enable_ion)
 add_old_configure_assignment('ENABLE_ION', enable_ion)
+
+# JIT code simulator for cross compiles
+# =======================================================
+@depends(enable_ion, '--enable-simulator', target)
+@imports('sys')
+def simulator(ion, sim, target):
+    if not ion or not sim:
+        return
+    sim = sim[0]
+
+    sim_arch32 = ['arm', 'mips32']
+    sim_arch64 = ['arm64', 'mips64']
+    sim_arch = sim_arch32 + sim_arch64
+    sim_arch.sort()
+
+    if not sim in sim_arch:
+        log.error("Invalid %s simulator. Valid simulators are: %s." % (sim, ', '.join(sim_arch)))
+        sys.exit(1)
+
+    if sim in sim_arch32:
+        if target.cpu != 'x86':
+            log.error("The %s simulator only works on x86." % (sim.upper()))
+            sys.exit(1)
+    elif sim in sim_arch64:
+        if target.cpu != 'x86_64':
+            log.error("The %s simulator only works on x86_64." % (sim.upper()))
+            sys.exit(1)
+
+    return sim
+
+@depends(simulator)
+def enable_simulator(sim):
+    if sim:
+        return True
+
+cdef('JS_SIMULATOR', enable_simulator)
+add_old_configure_assignment('JS_SIMULATOR', simulator)

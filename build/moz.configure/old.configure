@@ -207,7 +207,6 @@ def old_configure_options(*options):
     '--enable-require-all-d3dc-versions',
     '--enable-sandbox',
     '--enable-signmar',
-    '--enable-simulator',
     '--enable-small-chunk-size',
     '--enable-startup-notification',
     '--enable-startupcache',
