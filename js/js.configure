@@ -19,19 +19,13 @@ def enable_ion(value, target):
         return True
 
 set_config('ENABLE_ION', enable_ion)
-add_old_configure_assignment('ENABLE_ION', enable_ion)
 
 # JIT code simulator for cross compiles
 # =======================================================
-@depends(enable_ion, '--enable-simulator', target, moz_debug)
+@depends(enable_ion, '--enable-simulator', target)
 @imports('sys')
-def simulator(ion, sim, target, debug):
-    if not ion:
-        return
-    if not sim:
-        cpu = target.cpu
-        if cpu == 'arm' and debug:
-            cdef('JS_DISASM_ARM', True)
+def simulator(ion, sim, target):
+    if not ion or not sim:
         return
     sim = sim[0]
 
@@ -55,15 +49,30 @@ def simulator(ion, sim, target, debug):
             sys.exit(1)
 
     cdef('JS_SIMULATOR_%s' % arch, True)
+    cdef('JS_CODEGEN_%s' % arch, True)
     if sim == 'arm':
         cdef('JS_DISASM_ARM', True)
 
-    return sim
+    return True
 
-@depends(simulator)
-def enable_simulator(sim):
-    if sim:
+cdef('JS_SIMULATOR', simulator)
+
+@depends(enable_ion, simulator, target, moz_debug)
+def codegen(ion, sim, target, debug):
+    if not ion:
         return True
 
-cdef('JS_SIMULATOR', enable_simulator)
-add_old_configure_assignment('JS_SIMULATOR', simulator)
+    if sim:
+        return
+
+    cpu = target.cpu
+    if cpu == 'x86_64':
+        cpu = 'x64'
+    elif cpu == 'aarch64':
+        cpu = 'arm64'
+
+    cdef('JS_CODEGEN_%s' % cpu.upper(), True)
+    if cpu == 'arm' and debug:
+        cdef('JS_DISASM_ARM', True)
+
+cdef('JS_CODEGEN_NONE', codegen)

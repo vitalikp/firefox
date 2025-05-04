@@ -1619,52 +1619,6 @@ fi
 AC_SUBST(MOZ_VALGRIND)
 
 dnl ========================================================
-dnl = Use a JIT code simulator for a foreign architecture.
-dnl ========================================================
-if test -z "$ENABLE_ION"; then
-    AC_DEFINE(JS_CODEGEN_NONE)
-    JS_CODEGEN_NONE=1
-elif test "$JS_SIMULATOR" = arm; then
-    AC_DEFINE(JS_CODEGEN_ARM)
-    JS_CODEGEN_ARM=1
-elif test "$JS_SIMULATOR" = arm64; then
-    AC_DEFINE(JS_CODEGEN_ARM64)
-    JS_CODEGEN_ARM64=1
-elif test "$JS_SIMULATOR" = mips32; then
-    AC_DEFINE(JS_CODEGEN_MIPS32)
-    JS_CODEGEN_MIPS32=1
-elif test "$JS_SIMULATOR" = mips64; then
-    AC_DEFINE(JS_CODEGEN_MIPS64)
-    JS_CODEGEN_MIPS64=1
-elif test "$CPU_ARCH" = "x86"; then
-    AC_DEFINE(JS_CODEGEN_X86)
-    JS_CODEGEN_X86=1
-elif test "$CPU_ARCH" = "x86_64"; then
-    AC_DEFINE(JS_CODEGEN_X64)
-    JS_CODEGEN_X64=1
-elif test "$CPU_ARCH" = "arm"; then
-    AC_DEFINE(JS_CODEGEN_ARM)
-    JS_CODEGEN_ARM=1
-elif test "$CPU_ARCH" = "aarch64"; then
-    AC_DEFINE(JS_CODEGEN_ARM64)
-    JS_CODEGEN_ARM64=1
-elif test "$CPU_ARCH" = "mips32"; then
-    AC_DEFINE(JS_CODEGEN_MIPS32)
-    JS_CODEGEN_MIPS32=1
-elif test "$CPU_ARCH" = "mips64"; then
-    AC_DEFINE(JS_CODEGEN_MIPS64)
-    JS_CODEGEN_MIPS64=1
-fi
-
-AC_SUBST(JS_CODEGEN_ARM)
-AC_SUBST(JS_CODEGEN_ARM64)
-AC_SUBST(JS_CODEGEN_MIPS32)
-AC_SUBST(JS_CODEGEN_MIPS64)
-AC_SUBST(JS_CODEGEN_X86)
-AC_SUBST(JS_CODEGEN_X64)
-AC_SUBST(JS_CODEGEN_NONE)
-
-dnl ========================================================
 dnl instruments
 dnl ========================================================
 if test -n "$MOZ_INSTRUMENTS"; then
