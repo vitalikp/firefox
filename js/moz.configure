@@ -100,7 +100,7 @@ def disable_export_js(value):
 
 # JIT support
 # =======================================================
-js_option('--disable-ion', help='Disable use of the IonMonkey JIT')
+js_option('--enable-jit', default=True, help='Enable use of the JITs')
 
 # JIT code simulator for cross compiles
 # =======================================================

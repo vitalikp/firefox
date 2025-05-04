@@ -10,8 +10,8 @@ set_define('JS_NUNBOX32', depends(target)(lambda t: t.bitness == 32 or None))
 
 # JIT support
 # =======================================================
-@depends('--disable-ion', target)
-def enable_ion(value, target):
+@depends('--enable-jit', target)
+def enable_jit(value, target):
     if not value:
         return
 
@@ -20,10 +20,10 @@ def enable_ion(value, target):
 
 # JIT code simulator for cross compiles
 # =======================================================
-@depends(enable_ion, '--enable-simulator', target)
+@depends(enable_jit, '--enable-simulator', target)
 @imports('sys')
-def simulator(ion, sim, target):
-    if not ion or not sim:
+def simulator(jit, sim, target):
+    if not jit or not sim:
         return
     sim = sim[0]
 
@@ -55,9 +55,9 @@ def simulator(ion, sim, target):
 
 cdef('JS_SIMULATOR', simulator)
 
-@depends(enable_ion, simulator, target, moz_debug)
-def codegen(ion, sim, target, debug):
-    if not ion:
+@depends(enable_jit, simulator, target, moz_debug)
+def codegen(jit, sim, target, debug):
+    if not jit:
         return True
 
     if sim:

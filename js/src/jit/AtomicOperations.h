@@ -331,7 +331,7 @@ AtomicOperations::isLockfree(int32_t size)
 #elif defined(__sparc__)
 # include "jit/none/AtomicOperations-sparc.h"
 #elif defined(JS_CODEGEN_NONE)
-  // You can disable the JIT with --disable-ion but you must still
+  // You can disable the JIT with --disable-jit but you must still
   // provide the atomic operations that will be used by the JS engine.
   // When the JIT is disabled the operations are simply safe-for-races
   // C++ realizations of atomics.  These operations cannot be written
