@@ -49,20 +49,6 @@ public:
     { }
 };
 
-template <>
-inline bool
-ParseContext::Statement::is<ParseContext::LabelStatement>() const
-{
-    return kind_ == StatementKind::Label;
-}
-
-template <>
-inline bool
-ParseContext::Statement::is<ParseContext::ClassStatement>() const
-{
-    return kind_ == StatementKind::Class;
-}
-
 template <typename T>
 inline T&
 ParseContext::Statement::as()

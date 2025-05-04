@@ -599,6 +599,7 @@ class ParseNode
     appendOrCreateList(ParseNodeKind kind, ParseNode* left, ParseNode* right,
                        FullParseHandler* handler, ParseContext* pc);
 
+    // include "ParseNode-inl.h" for these methods.
     inline PropertyName* name() const;
     inline JSAtom* atom() const;
 
