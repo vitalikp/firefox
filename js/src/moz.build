@@ -401,7 +401,7 @@ if CONFIG['ENABLE_TRACE_LOGGING']:
         'vm/TraceLoggingTypes.cpp',
     ]
 
-if not CONFIG['ENABLE_ION']:
+if CONFIG['JS_CODEGEN_NONE']:
     UNIFIED_SOURCES += [
         'jit/none/Trampoline-none.cpp'
     ]
