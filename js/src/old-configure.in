@@ -1705,9 +1705,6 @@ elif test "$CPU_ARCH" = "arm"; then
         AC_DEFINE(JS_DISASM_ARM)
         JS_DISASM_ARM=1
     fi
-
-    dnl ARM platforms may trap on unaligned accesses; catch the signal and
-    dnl recover.
 elif test "$CPU_ARCH" = "aarch64"; then
     AC_DEFINE(JS_CODEGEN_ARM64)
     JS_CODEGEN_ARM64=1
