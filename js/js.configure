@@ -1,0 +1,3 @@
+
+set_define('JS_PUNBOX64', depends(target)(lambda t: t.bitness == 64 or None))
+set_define('JS_NUNBOX32', depends(target)(lambda t: t.bitness == 32 or None))
