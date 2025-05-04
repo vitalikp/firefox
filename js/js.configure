@@ -1,3 +1,16 @@
 
 set_define('JS_PUNBOX64', depends(target)(lambda t: t.bitness == 64 or None))
 set_define('JS_NUNBOX32', depends(target)(lambda t: t.bitness == 32 or None))
+
+# JIT support
+# =======================================================
+@depends('--disable-ion', target)
+def enable_ion(value, target):
+    if not value:
+        return
+
+    if target.cpu in ('x86', 'x86_64', 'arm', 'aarch64', 'mips32', 'mips64'):
+        return True
+
+set_config('ENABLE_ION', enable_ion)
+add_old_configure_assignment('ENABLE_ION', enable_ion)

@@ -935,20 +935,6 @@ if test -z "$COMPILE_ENVIRONMENT"; then
     SKIP_LIBRARY_CHECKS=1
 fi
 
-dnl Configure JIT support
-
-case "$CPU_ARCH" in
-x86|x86_64|arm|aarch64|mips*)
-    ENABLE_ION=1
-    ;;
-esac
-
-MOZ_ARG_DISABLE_BOOL(ion,
-[  --disable-ion      Disable use of the IonMonkey JIT],
-  ENABLE_ION= )
-
-AC_SUBST(ENABLE_ION)
-
 if test -n "$COMPILE_ENVIRONMENT"; then
     MOZ_COMPILER_OPTS
 fi

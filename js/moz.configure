@@ -98,6 +98,10 @@ def disable_export_js(value):
         value.format('DISABLE_EXPORT_JS'), suggestion)
 
 
+# JIT support
+# =======================================================
+js_option('--disable-ion', help='Disable use of the IonMonkey JIT')
+
 # Profiling
 # =======================================================
 js_option('--enable-instruments', env='MOZ_INSTRUMENTS',
