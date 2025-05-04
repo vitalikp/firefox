@@ -23,10 +23,15 @@ add_old_configure_assignment('ENABLE_ION', enable_ion)
 
 # JIT code simulator for cross compiles
 # =======================================================
-@depends(enable_ion, '--enable-simulator', target)
+@depends(enable_ion, '--enable-simulator', target, moz_debug)
 @imports('sys')
-def simulator(ion, sim, target):
-    if not ion or not sim:
+def simulator(ion, sim, target, debug):
+    if not ion:
+        return
+    if not sim:
+        cpu = target.cpu
+        if cpu == 'arm' and debug:
+            cdef('JS_DISASM_ARM', True)
         return
     sim = sim[0]
 
@@ -50,6 +55,8 @@ def simulator(ion, sim, target):
             sys.exit(1)
 
     cdef('JS_SIMULATOR_%s' % arch, True)
+    if sim == 'arm':
+        cdef('JS_DISASM_ARM', True)
 
     return sim
 
