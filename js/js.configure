@@ -39,14 +39,17 @@ def simulator(ion, sim, target):
         log.error("Invalid %s simulator. Valid simulators are: %s." % (sim, ', '.join(sim_arch)))
         sys.exit(1)
 
+    arch = sim.upper()
     if sim in sim_arch32:
         if target.cpu != 'x86':
-            log.error("The %s simulator only works on x86." % (sim.upper()))
+            log.error("The %s simulator only works on x86." % (arch))
             sys.exit(1)
     elif sim in sim_arch64:
         if target.cpu != 'x86_64':
-            log.error("The %s simulator only works on x86_64." % (sim.upper()))
+            log.error("The %s simulator only works on x86_64." % (arch))
             sys.exit(1)
+
+    cdef('JS_SIMULATOR_%s' % arch, True)
 
     return sim
 
