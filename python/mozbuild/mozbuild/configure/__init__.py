@@ -622,12 +622,16 @@ class ConfigureSandbox(dict):
         the result of the function is the file name to include. This latter
         feature is only really meant for --enable-application/--enable-project.
         '''
-        with self.only_when_impl(when):
-            what = self._resolve(what)
-            if what:
-                if not isinstance(what, types.StringTypes):
-                    raise TypeError("Unexpected type: '%s'" % type(what).__name__)
-                self.include_file(what)
+
+        when = self._normalize_when(when, 'include')
+        if when and not self._value_for(when):
+            return
+
+        what = self._resolve(what)
+        if what:
+            if not isinstance(what, types.StringTypes):
+                raise TypeError("Unexpected type: '%s'" % type(what).__name__)
+            self.include_file(what)
 
     def template_impl(self, func):
         '''Implementation of @template.
