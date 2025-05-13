@@ -54,10 +54,8 @@ class TimeStamp;
 // that will be optimized away during compilation.
 #ifdef MOZ_GECKO_PROFILER
 # define PROFILER_FUNC(decl, rv)  decl;
-# define PROFILER_FUNC_VOID(decl) void decl;
 #else
 # define PROFILER_FUNC(decl, rv)  static inline decl { return rv; }
-# define PROFILER_FUNC_VOID(decl) static inline void decl {}
 #endif
 
 // Macros used by the AUTO_PROFILER_* macros below.
@@ -143,12 +141,12 @@ struct ProfilerFeature
 // also be started. This call must happen before any other profiler calls
 // (except profiler_start(), which will call profiler_init() if it hasn't
 // already run).
-PROFILER_FUNC_VOID(profiler_init(void* stackTop))
+void profiler_init(void* stackTop);
 
 // Clean up the profiler module, stopping it if required. This function may
 // also save a shutdown profile if requested. No profiler calls should happen
 // after this point and all pseudo labels should have been popped.
-PROFILER_FUNC_VOID(profiler_shutdown())
+void profiler_shutdown();
 
 // Start the profiler -- initializing it first if necessary -- with the
 // selected options. Stops and restarts the profiler if it is already active.
@@ -158,23 +156,21 @@ PROFILER_FUNC_VOID(profiler_shutdown())
 //   "aInterval" the sampling interval, measured in millseconds.
 //   "aFeatures" is the feature set. Features unsupported by this
 //               platform/configuration are ignored.
-PROFILER_FUNC_VOID(profiler_start(int aEntries, double aInterval,
-                                  uint32_t aFeatures,
-                                  const char** aFilters, uint32_t aFilterCount))
+void profiler_start(int aEntries, double aInterval, uint32_t aFeatures,
+                    const char** aFilters, uint32_t aFilterCount);
 
 // Stop the profiler and discard the profile without saving it. A no-op if the
 // profiler is inactive. After stopping the profiler is "inactive".
-PROFILER_FUNC_VOID(profiler_stop())
+void profiler_stop();
 
 // If the profiler is inactive, start it. If it's already active, restart it if
 // the requested settings differ from the current settings. Both the check and
 // the state change are performed while the profiler state is locked.
 // The only difference to profiler_start is that the current buffer contents are
 // not discarded if the profiler is already running with the requested settings.
-PROFILER_FUNC_VOID(profiler_ensure_started(int aEntries, double aInterval,
-                                           uint32_t aFeatures,
-                                           const char** aFilters,
-                                           uint32_t aFilterCount))
+void profiler_ensure_started(int aEntries, double aInterval,
+                             uint32_t aFeatures, const char** aFilters,
+                             uint32_t aFilterCount);
 
 //---------------------------------------------------------------------------
 // Control the profiler
@@ -182,9 +178,8 @@ PROFILER_FUNC_VOID(profiler_ensure_started(int aEntries, double aInterval,
 
 // Register/unregister threads with the profiler. Both functions operate the
 // same whether the profiler is active or inactive.
-PROFILER_FUNC_VOID(profiler_register_thread(const char* name,
-                                            void* guessStackTop))
-PROFILER_FUNC_VOID(profiler_unregister_thread())
+void profiler_register_thread(const char* name, void* guessStackTop);
+void profiler_unregister_thread();
 
 // Pause and resume the profiler. No-ops if the profiler is inactive. While
 // paused the profile will not take any samples and will not record any data
@@ -192,24 +187,24 @@ PROFILER_FUNC_VOID(profiler_unregister_thread())
 // Timeline markers will still be stored. This feature will keep JavaScript
 // profiling enabled, thus allowing toggling the profiler without invalidating
 // the JIT.
-PROFILER_FUNC_VOID(profiler_pause())
-PROFILER_FUNC_VOID(profiler_resume())
+void profiler_pause();
+void profiler_resume();
 
 // These functions tell the profiler that a thread went to sleep so that we can
 // avoid sampling it while it's sleeping. Calling profiler_thread_sleep()
 // twice without an intervening profiler_thread_wake() is an error. All three
 // functions operate the same whether the profiler is active or inactive.
-PROFILER_FUNC_VOID(profiler_thread_sleep())
-PROFILER_FUNC_VOID(profiler_thread_wake())
+void profiler_thread_sleep();
+void profiler_thread_wake();
 
 // Called by the JSRuntime's operation callback. This is used to start profiling
 // on auxiliary threads. Operates the same whether the profiler is active or
 // not.
-PROFILER_FUNC_VOID(profiler_js_interrupt_callback())
+void profiler_js_interrupt_callback();
 
 // Set and clear the current thread's JSContext.
-PROFILER_FUNC_VOID(profiler_set_js_context(JSContext* aCx))
-PROFILER_FUNC_VOID(profiler_clear_js_context())
+void profiler_set_js_context(JSContext* aCx);
+void profiler_clear_js_context();
 
 //---------------------------------------------------------------------------
 // Get information from the profiler
@@ -254,12 +249,11 @@ PROFILER_FUNC(bool profiler_feature_active(uint32_t aFeature), false)
 // (via outparams) if the profile is inactive. It's possible that the features
 // returned may be slightly different to those requested due to required
 // adjustments.
-PROFILER_FUNC_VOID(
-  profiler_get_start_params(int* aEntrySize, double* aInterval,
-                            uint32_t* aFeatures,
-                            mozilla::Vector<const char*, 0,
-                                            mozilla::MallocAllocPolicy>*
-                              aFilters))
+void profiler_get_start_params(int* aEntrySize, double* aInterval,
+                               uint32_t* aFeatures,
+                               mozilla::Vector<const char*, 0,
+                                               mozilla::MallocAllocPolicy>*
+                                 aFilters);
 
 // The number of milliseconds since the process started. Operates the same
 // whether the profiler is active or inactive.
@@ -284,10 +278,9 @@ typedef void ProfilerStackCallback(void** aPCs, size_t aCount, bool aIsMainThrea
 // have resumed by the time this function returns.
 //
 // XXX: this function is in the process of being replaced with the other profiler_suspend_and_sample_thread() function.
-PROFILER_FUNC_VOID(
-  profiler_suspend_and_sample_thread(int aThreadId,
-                                     const std::function<ProfilerStackCallback>& aCallback,
-                                     bool aSampleNative = true))
+void profiler_suspend_and_sample_thread(int aThreadId,
+                                        const std::function<ProfilerStackCallback>& aCallback,
+                                        bool aSampleNative = true);
 
 // An object of this class is passed to profiler_suspend_and_sample_thread().
 // For each stack frame, one of the Collect methods will be called.
@@ -321,11 +314,9 @@ public:
 // pseudo-stack, JS stack, and (optionally) native stack, passing the collected
 // frames into aCollector. aFeatures dictates which compiler features are used.
 // |Privacy| and |Leaf| are the only relevant ones.
-PROFILER_FUNC_VOID(
-  profiler_suspend_and_sample_thread(int aThreadId,
-                                     uint32_t aFeatures,
-                                     ProfilerStackCollector& aCollector,
-                                     bool aSampleNative = true))
+void profiler_suspend_and_sample_thread(int aThreadId, uint32_t aFeatures,
+                                        ProfilerStackCollector& aCollector,
+                                        bool aSampleNative = true);
 
 struct ProfilerBacktraceDestructor
 {
@@ -346,9 +337,9 @@ PROFILER_FUNC(UniqueProfilerBacktrace profiler_get_backtrace(), nullptr)
 // Get information about the current buffer status. A no-op when the profiler
 // is inactive. Do not call this function; call profiler_get_buffer_info()
 // instead.
-PROFILER_FUNC_VOID(profiler_get_buffer_info_helper(uint32_t* aCurrentPosition,
-                                                   uint32_t* aEntries,
-                                                   uint32_t* aGeneration))
+void profiler_get_buffer_info_helper(uint32_t* aCurrentPosition,
+                                     uint32_t* aEntries,
+                                     uint32_t* aGeneration);
 
 // Get information about the current buffer status. Returns (via outparams) the
 // current write position in the buffer, the total size of the buffer, and the
@@ -415,10 +406,9 @@ PROFILER_FUNC(PseudoStack* profiler_get_pseudo_stack(), nullptr)
 // aMarkerName is copied, so the caller does not need to ensure it lives for a
 // certain length of time. A no-op if the profiler is inactive or in privacy
 // mode.
-PROFILER_FUNC_VOID(profiler_add_marker(const char* aMarkerName))
-PROFILER_FUNC_VOID(
-  profiler_add_marker(const char* aMarkerName,
-                      mozilla::UniquePtr<ProfilerMarkerPayload> aPayload))
+void profiler_add_marker(const char* aMarkerName);
+void profiler_add_marker(const char* aMarkerName,
+                         mozilla::UniquePtr<ProfilerMarkerPayload> aPayload);
 
 enum TracingKind {
   TRACING_EVENT,
@@ -429,13 +419,10 @@ enum TracingKind {
 
 // Adds a tracing marker to the PseudoStack. A no-op if the profiler is
 // inactive or in privacy mode.
-PROFILER_FUNC_VOID(profiler_tracing(const char* aCategory,
-                                    const char* aMarkerName,
-                                    TracingKind aKind))
-PROFILER_FUNC_VOID(profiler_tracing(const char* aCategory,
-                                    const char* aMarkerName,
-                                    TracingKind aKind,
-                                    UniqueProfilerBacktrace aCause))
+void profiler_tracing(const char* aCategory, const char* aMarkerName,
+                      TracingKind aKind);
+void profiler_tracing(const char* aCategory, const char* aMarkerName,
+                      TracingKind aKind, UniqueProfilerBacktrace aCause);
 
 //---------------------------------------------------------------------------
 // Output profiles
@@ -466,7 +453,7 @@ PROFILER_FUNC(
 // in a build without debugging information (a workaround for
 // http://llvm.org/bugs/show_bug.cgi?id=22211).
 extern "C" {
-PROFILER_FUNC_VOID(profiler_save_profile_to_file(const char* aFilename))
+void profiler_save_profile_to_file(const char* aFilename);
 }
 
 //---------------------------------------------------------------------------
