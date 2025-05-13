@@ -29,6 +29,8 @@
 #define PROFILER_UNREGISTER_THREAD()
 #define AUTO_PROFILER_REGISTER_THREAD(name)
 
+#define AUTO_PROFILER_THREAD_SLEEP
+
 #else // !MOZ_GECKO_PROFILER
 
 #include <functional>
@@ -213,6 +215,10 @@ void profiler_resume();
 // functions operate the same whether the profiler is active or inactive.
 void profiler_thread_sleep();
 void profiler_thread_wake();
+
+// Mark a thread as asleep within a scope.
+#define AUTO_PROFILER_THREAD_SLEEP \
+  mozilla::AutoProfilerThreadSleep PROFILER_RAII
 
 // Called by the JSRuntime's operation callback. This is used to start profiling
 // on auxiliary threads. Operates the same whether the profiler is active or
