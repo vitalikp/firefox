@@ -2835,7 +2835,7 @@ WorkerThreadPrimaryRunnable::Run()
 
       BackgroundChild::CloseForCurrentThread();
 
-      profiler_clear_js_context();
+      PROFILER_CLEAR_JS_CONTEXT();
     }
 
     // There may still be runnables on the debugger event queue that hold a

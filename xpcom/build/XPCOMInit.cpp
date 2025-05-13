@@ -946,7 +946,7 @@ ShutdownXPCOM(nsIServiceManager* aServMgr)
   // JS pseudo-stack's internal reference to the main thread JSContext,
   // duplicating the call in XPCJSContext::~XPCJSContext() in case that
   // never fired.
-  profiler_clear_js_context();
+  PROFILER_CLEAR_JS_CONTEXT();
 
   if (sInitializedJS) {
     // Shut down the JS engine.

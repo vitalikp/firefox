@@ -832,7 +832,7 @@ XPCJSContext::~XPCJSContext()
     delete rtPrivate;
     JS_SetContextPrivate(Context(), nullptr);
 
-    profiler_clear_js_context();
+    PROFILER_CLEAR_JS_CONTEXT();
 
     gTlsContext.set(nullptr);
 }
