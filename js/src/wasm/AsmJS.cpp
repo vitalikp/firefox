@@ -2703,7 +2703,7 @@ ExtractSimdValue(ModuleValidator& m, ParseNode* pn)
         MOZ_ASSERT(GetSimdLanes(type) == 4);
         int32_t val[4];
         for (size_t i = 0; i < 4; i++, arg = NextNode(arg)) {
-            uint32_t u32;
+            uint32_t u32 = 0;
             JS_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
             val[i] = int32_t(u32);
         }
@@ -2745,7 +2745,7 @@ ExtractSimdValue(ModuleValidator& m, ParseNode* pn)
         MOZ_ASSERT(GetSimdLanes(type) == 4);
         int32_t val[4];
         for (size_t i = 0; i < 4; i++, arg = NextNode(arg)) {
-            uint32_t u32;
+            uint32_t u32 = 0;
             JS_ALWAYS_TRUE(IsLiteralInt(m, arg, &u32));
             val[i] = u32 ? -1 : 0;
         }
