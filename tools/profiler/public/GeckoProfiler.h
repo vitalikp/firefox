@@ -23,6 +23,8 @@
 // following macros, which encapsulate the most common operations and thus
 // avoid the need for many #ifdefs.
 
+#define AUTO_PROFILER_INIT
+
 #else // !MOZ_GECKO_PROFILER
 
 #include <functional>
@@ -142,6 +144,9 @@ struct ProfilerFeature
 // (except profiler_start(), which will call profiler_init() if it hasn't
 // already run).
 void profiler_init(void* stackTop);
+
+#define AUTO_PROFILER_INIT \
+  mozilla::AutoProfilerInit PROFILER_RAII
 
 // Clean up the profiler module, stopping it if required. This function may
 // also save a shutdown profile if requested. No profiler calls should happen
