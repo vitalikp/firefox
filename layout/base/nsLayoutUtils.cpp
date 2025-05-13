@@ -3592,7 +3592,7 @@ nsLayoutUtils::PaintFrame(nsRenderingContext* aRenderingContext, nsIFrame* aFram
 
   {
     PROFILER_LABEL("nsLayoutUtils::PaintFrame::BuildDisplayList", GRAPHICS);
-    AutoProfilerTracing tracing("Paint", "DisplayList");
+    AUTO_PROFILER_TRACING("Paint", "DisplayList");
 
     PaintTelemetry::AutoRecord record(PaintTelemetry::Metric::DisplayList);
 

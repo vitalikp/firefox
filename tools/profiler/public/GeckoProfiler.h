@@ -45,6 +45,7 @@
 #define PROFILER_ADD_MARKER(markerName)
 
 #define PROFILER_TRACING(category, markerName, kind)
+#define AUTO_PROFILER_TRACING(category, markerName)
 
 #else // !MOZ_GECKO_PROFILER
 
@@ -470,6 +471,10 @@ void profiler_tracing(const char* aCategory, const char* aMarkerName,
                       TracingKind aKind);
 void profiler_tracing(const char* aCategory, const char* aMarkerName,
                       TracingKind aKind, UniqueProfilerBacktrace aCause);
+
+// Adds a START/END pair of tracing markers.
+#define AUTO_PROFILER_TRACING(category, markerName) \
+  mozilla::AutoProfilerTracing PROFILER_RAII(category, markerName)
 
 //---------------------------------------------------------------------------
 // Output profiles
