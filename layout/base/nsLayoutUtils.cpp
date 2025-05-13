@@ -3670,7 +3670,7 @@ nsLayoutUtils::PaintFrame(nsRenderingContext* aRenderingContext, nsIFrame* aFram
                                  startBuildDisplayList);
 
   bool profilerNeedsDisplayList =
-    profiler_feature_active(ProfilerFeature::DisplayListDump);
+    PROFILER_FEATURE_ACTIVE(ProfilerFeature::DisplayListDump);
   bool consoleNeedsDisplayList = gfxUtils::DumpDisplayList() || gfxEnv::DumpPaint();
 #ifdef MOZ_DUMP_PAINTING
   FILE* savedDumpFile = gfxUtils::sDumpPaintFile;

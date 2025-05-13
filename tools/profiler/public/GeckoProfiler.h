@@ -37,6 +37,8 @@
 #define PROFILER_SET_JS_CONTEXT(cx)
 #define PROFILER_CLEAR_JS_CONTEXT()
 
+#define PROFILER_FEATURE_ACTIVE(feature) false
+
 #else // !MOZ_GECKO_PROFILER
 
 #include <functional>
@@ -277,6 +279,7 @@ uint32_t profiler_get_available_features();
 // active. Returns false if the profiler is inactive. Note: the return value
 // can become immediately out-of-date, much like the return value of
 // profiler_is_active().
+#define PROFILER_FEATURE_ACTIVE(feature) profiler_feature_active(feature)
 bool profiler_feature_active(uint32_t aFeature);
 
 // Get the params used to start the profiler. Returns 0 and an empty vector

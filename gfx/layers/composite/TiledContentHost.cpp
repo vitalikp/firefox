@@ -632,7 +632,7 @@ TiledContentHost::PrintInfo(std::stringstream& aStream, const char* aPrefix)
 
 #ifdef MOZ_DUMP_PAINTING
   if (gfxPrefs::LayersDumpTexture() ||
-      profiler_feature_active(ProfilerFeature::LayersDump)) {
+      PROFILER_FEATURE_ACTIVE(ProfilerFeature::LayersDump)) {
     nsAutoCString pfx(aPrefix);
     pfx += "  ";
 
