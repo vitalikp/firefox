@@ -39,6 +39,9 @@
 
 #define PROFILER_FEATURE_ACTIVE(feature) false
 
+#define PROFILER_LABEL(label, category)
+#define PROFILER_LABEL_DYNAMIC(label, category, dynamicStr)
+
 #else // !MOZ_GECKO_PROFILER
 
 #include <functional>
