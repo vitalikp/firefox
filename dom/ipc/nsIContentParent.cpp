@@ -227,8 +227,7 @@ nsIContentParent::RecvSyncMessage(const nsString& aMsg,
                                   nsTArray<ipc::StructuredCloneData>* aRetvals)
 {
   NS_LossyConvertUTF16toASCII messageNameCStr(aMsg);
-  PROFILER_LABEL_DYNAMIC("nsIContentParent", "RecvSyncMessage",
-                         js::ProfileEntry::Category::EVENTS,
+  PROFILER_LABEL_DYNAMIC("nsIContentParent::RecvSyncMessage", EVENTS,
                          messageNameCStr.get());
 
   CrossProcessCpowHolder cpows(this, aCpows);
@@ -251,8 +250,7 @@ nsIContentParent::RecvRpcMessage(const nsString& aMsg,
                                  nsTArray<ipc::StructuredCloneData>* aRetvals)
 {
   NS_LossyConvertUTF16toASCII messageNameCStr(aMsg);
-  PROFILER_LABEL_DYNAMIC("nsIContentParent", "RecvRpcMessage",
-                         js::ProfileEntry::Category::EVENTS,
+  PROFILER_LABEL_DYNAMIC("nsIContentParent::RecvRpcMessage", EVENTS,
                          messageNameCStr.get());
 
   CrossProcessCpowHolder cpows(this, aCpows);
@@ -313,8 +311,7 @@ nsIContentParent::RecvAsyncMessage(const nsString& aMsg,
                                    const ClonedMessageData& aData)
 {
   NS_LossyConvertUTF16toASCII messageNameCStr(aMsg);
-  PROFILER_LABEL_DYNAMIC("nsIContentParent", "RecvAsyncMessage",
-                          js::ProfileEntry::Category::EVENTS,
+  PROFILER_LABEL_DYNAMIC("nsIContentParent::RecvAsyncMessage", EVENTS,
                           messageNameCStr.get());
 
   CrossProcessCpowHolder cpows(this, aCpows);

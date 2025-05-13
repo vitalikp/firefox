@@ -113,8 +113,7 @@ RestyleTracker::DoProcessRestyles()
       docURL = uri->GetSpecOrDefault();
     }
   }
-  PROFILER_LABEL_DYNAMIC("RestyleTracker", "ProcessRestyles",
-                         js::ProfileEntry::Category::CSS, docURL.get());
+  PROFILER_LABEL_DYNAMIC("RestyleTracker::DoProcessRestyles", CSS, docURL.get());
 
   // Create a AnimationsWithDestroyedFrame during restyling process to
   // stop animations and transitions on elements that have no frame at the end

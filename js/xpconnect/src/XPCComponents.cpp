@@ -2480,8 +2480,7 @@ nsXPCComponents_Utils::Import(const nsACString& registryLocation,
     MOZ_ASSERT(moduleloader);
 
     const nsCString& flatLocation = PromiseFlatCString(registryLocation);
-    PROFILER_LABEL_DYNAMIC("Components.utils", "import",
-                           js::ProfileEntry::Category::OTHER,
+    PROFILER_LABEL_DYNAMIC("nsXPCComponents_Utils::Import", OTHER,
                            flatLocation.get());
 
     return moduleloader->Import(registryLocation, targetObj, cx, optionalArgc, retval);

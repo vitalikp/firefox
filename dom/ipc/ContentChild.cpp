@@ -2160,8 +2160,7 @@ ContentChild::RecvAsyncMessage(const nsString& aMsg,
                                const ClonedMessageData& aData)
 {
   NS_LossyConvertUTF16toASCII messageNameCStr(aMsg);
-  PROFILER_LABEL_DYNAMIC("ContentChild", "RecvAsyncMessage",
-                        js::ProfileEntry::Category::EVENTS,
+  PROFILER_LABEL_DYNAMIC("ContentChild::RecvAsyncMessage", EVENTS,
                         messageNameCStr.get());
 
   CrossProcessCpowHolder cpows(this, aCpows);

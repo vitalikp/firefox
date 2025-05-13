@@ -1460,8 +1460,7 @@ TabParent::RecvSyncMessage(const nsString& aMessage,
                            nsTArray<StructuredCloneData>* aRetVal)
 {
   NS_LossyConvertUTF16toASCII messageNameCStr(aMessage);
-  PROFILER_LABEL_DYNAMIC("TabParent", "RecvSyncMessage",
-                         js::ProfileEntry::Category::EVENTS,
+  PROFILER_LABEL_DYNAMIC("TabParent::RecvSyncMessage", EVENTS,
                          messageNameCStr.get());
 
   StructuredCloneData data;
@@ -1482,8 +1481,7 @@ TabParent::RecvRpcMessage(const nsString& aMessage,
                           nsTArray<StructuredCloneData>* aRetVal)
 {
   NS_LossyConvertUTF16toASCII messageNameCStr(aMessage);
-  PROFILER_LABEL_DYNAMIC("TabParent", "RecvRpcMessage",
-                         js::ProfileEntry::Category::EVENTS,
+  PROFILER_LABEL_DYNAMIC("TabParent::RecvRpcMessage", EVENTS,
                          messageNameCStr.get());
 
   StructuredCloneData data;
@@ -1503,8 +1501,7 @@ TabParent::RecvAsyncMessage(const nsString& aMessage,
                             const ClonedMessageData& aData)
 {
   NS_LossyConvertUTF16toASCII messageNameCStr(aMessage);
-  PROFILER_LABEL_DYNAMIC("TabParent", "RecvAsyncMessage",
-                         js::ProfileEntry::Category::EVENTS,
+  PROFILER_LABEL_DYNAMIC("TabParent::RecvAsyncMessage", EVENTS,
                          messageNameCStr.get());
 
   StructuredCloneData data;

@@ -607,8 +607,7 @@ nsFrameMessageManager::SendMessage(const nsAString& aMessageName,
 #ifdef MOZ_GECKO_PROFILER
   if (profiler_is_active()) {
     NS_LossyConvertUTF16toASCII messageNameCStr(aMessageName);
-    PROFILER_LABEL_DYNAMIC("nsFrameMessageManager", "SendMessage",
-                            js::ProfileEntry::Category::EVENTS,
+    PROFILER_LABEL_DYNAMIC("nsFrameMessageManager::SendMessage", EVENTS,
                             messageNameCStr.get());
   }
 #endif
@@ -1499,9 +1498,7 @@ nsMessageManagerScriptExecutor::LoadScriptInternal(const nsAString& aURL,
 {
   if (profiler_is_active()) {
     NS_LossyConvertUTF16toASCII urlCStr(aURL);
-    PROFILER_LABEL_DYNAMIC("nsMessageManagerScriptExecutor",
-                           "LoadScriptInternal",
-                           js::ProfileEntry::Category::OTHER,
+    PROFILER_LABEL_DYNAMIC("nsMessageManagerScriptExecutor::LoadScriptInternal", OTHER,
                            urlCStr.get());
   }
 

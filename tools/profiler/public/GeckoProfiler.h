@@ -382,9 +382,7 @@ PROFILER_FUNC(PseudoStack* profiler_get_pseudo_stack(), nullptr)
 // Use PROFILER_LABEL_DYNAMIC if you want to add additional / dynamic
 // information to the pseudo stack frame.
 #define PROFILER_LABEL(label, category) \
-  mozilla::AutoProfilerLabel \
-  PROFILER_APPEND_LINE_NUMBER(profiler_raii)( \
-    label, nullptr, __LINE__, js::ProfileEntry::Category::category)
+  PROFILER_LABEL_DYNAMIC(label, category, nullptr)
 
 // Similar to PROFILER_LABEL, but with an additional string. The inserted RAII
 // object stores the dynamicStr pointer in a field; it does not copy the string.
@@ -402,10 +400,10 @@ PROFILER_FUNC(PseudoStack* profiler_get_pseudo_stack(), nullptr)
 // just store the raw pointers to the literal strings. Consequently,
 // PROFILER_LABEL frames take up considerably less space in the profile buffer
 // than PROFILER_LABEL_DYNAMIC frames.
-#define PROFILER_LABEL_DYNAMIC(name_space, info, category, dynamicStr) \
+#define PROFILER_LABEL_DYNAMIC(label, category, dynamicStr) \
   mozilla::AutoProfilerLabel \
-  PROFILER_APPEND_LINE_NUMBER(profiler_raii)(name_space "::" info, dynamicStr, \
-                                             __LINE__, category)
+  PROFILER_APPEND_LINE_NUMBER(profiler_raii)( \
+    label, dynamicStr, __LINE__, js::ProfileEntry::Category::category)
 
 // Insert a marker in the profile timeline. This is useful to delimit something
 // important happening such as the first paint. Unlike labels, which are only
