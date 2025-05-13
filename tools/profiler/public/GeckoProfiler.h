@@ -42,6 +42,8 @@
 #define PROFILER_LABEL(label, category)
 #define PROFILER_LABEL_DYNAMIC(label, category, dynamicStr)
 
+#define PROFILER_ADD_MARKER(markerName)
+
 #else // !MOZ_GECKO_PROFILER
 
 #include <functional>
@@ -446,6 +448,8 @@ PseudoStack* profiler_get_pseudo_stack();
 // aMarkerName is copied, so the caller does not need to ensure it lives for a
 // certain length of time. A no-op if the profiler is inactive or in privacy
 // mode.
+#define PROFILER_ADD_MARKER(markerName) \
+  profiler_add_marker(markerName)
 void profiler_add_marker(const char* aMarkerName);
 void profiler_add_marker(const char* aMarkerName,
                          mozilla::UniquePtr<ProfilerMarkerPayload> aPayload);

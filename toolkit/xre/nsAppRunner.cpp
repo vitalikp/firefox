@@ -954,7 +954,7 @@ ScopedXPCOMStartup::~ScopedXPCOMStartup()
       appStartup->DestroyHiddenWindow();
 
     gDirServiceProvider->DoShutdown();
-    profiler_add_marker("Shutdown early");
+    PROFILER_ADD_MARKER("Shutdown early");
 
     WriteConsoleLog();
 

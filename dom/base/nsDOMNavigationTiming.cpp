@@ -76,7 +76,7 @@ nsDOMNavigationTiming::NotifyNavigationStart(DocShellState aDocShellState)
   mNavigationStartHighRes = (double)PR_Now() / PR_USEC_PER_MSEC;
   mNavigationStartTimeStamp = TimeStamp::Now();
   mDocShellHasBeenActiveSinceNavigationStart = (aDocShellState == DocShellState::eActive);
-  profiler_add_marker("Navigation::Start");
+  PROFILER_ADD_MARKER("Navigation::Start");
 }
 
 void
@@ -155,7 +155,7 @@ nsDOMNavigationTiming::NotifyDOMLoading(nsIURI* aURI)
     mDOMLoading = DurationFromStart();
     mDOMLoadingSet = true;
 
-    profiler_add_marker("Navigation::DOMLoading");
+    PROFILER_ADD_MARKER("Navigation::DOMLoading");
   }
 }
 
@@ -167,7 +167,7 @@ nsDOMNavigationTiming::NotifyDOMInteractive(nsIURI* aURI)
     mDOMInteractive = DurationFromStart();
     mDOMInteractiveSet = true;
 
-    profiler_add_marker("Navigation::DOMInteractive");
+    PROFILER_ADD_MARKER("Navigation::DOMInteractive");
   }
 }
 
@@ -179,7 +179,7 @@ nsDOMNavigationTiming::NotifyDOMComplete(nsIURI* aURI)
     mDOMComplete = DurationFromStart();
     mDOMCompleteSet = true;
 
-    profiler_add_marker("Navigation::DOMComplete");
+    PROFILER_ADD_MARKER("Navigation::DOMComplete");
   }
 }
 

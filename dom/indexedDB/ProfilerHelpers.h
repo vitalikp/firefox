@@ -311,7 +311,7 @@ LoggingHelper(bool aUseProfiler, const char* aFmt, ...)
     MOZ_LOG(logModule, logLevel, ("%s", message.get()));
 
     if (aUseProfiler) {
-      profiler_add_marker(message.get());
+      PROFILER_ADD_MARKER(message.get());
     }
   }
 }
