@@ -454,7 +454,7 @@ AutoLockWatchdog::~AutoLockWatchdog()
 static void
 WatchdogMain(void* arg)
 {
-    mozilla::AutoProfilerRegisterThread registerThread("JS Watchdog");
+    AUTO_PROFILER_REGISTER_THREAD("JS Watchdog");
     NS_SetCurrentThreadName("JS Watchdog");
 
     Watchdog* self = static_cast<Watchdog*>(arg);

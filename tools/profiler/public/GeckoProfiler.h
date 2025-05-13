@@ -27,6 +27,7 @@
 
 #define PROFILER_REGISTER_THREAD(name)
 #define PROFILER_UNREGISTER_THREAD()
+#define AUTO_PROFILER_REGISTER_THREAD(name)
 
 #else // !MOZ_GECKO_PROFILER
 
@@ -192,6 +193,10 @@ void profiler_ensure_started(int aEntries, double aInterval,
   profiler_unregister_thread()
 void profiler_register_thread(const char* name, void* guessStackTop);
 void profiler_unregister_thread();
+
+// Register and unregister a thread within a scope.
+#define AUTO_PROFILER_REGISTER_THREAD(name) \
+  mozilla::AutoProfilerRegisterThread PROFILER_RAII(name)
 
 // Pause and resume the profiler. No-ops if the profiler is inactive. While
 // paused the profile will not take any samples and will not record any data

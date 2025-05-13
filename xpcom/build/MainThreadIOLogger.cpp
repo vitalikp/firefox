@@ -122,7 +122,8 @@ MainThreadIOLoggerImpl::Init()
 /* static */ void
 MainThreadIOLoggerImpl::sIOThreadFunc(void* aArg)
 {
-  AutoProfilerRegisterThread registerThread("MainThreadIOLogger");
+  AUTO_PROFILER_REGISTER_THREAD("MainThreadIOLogger");
+
   NS_SetCurrentThreadName("MainThreadIOLogger");
   MainThreadIOLoggerImpl* obj = static_cast<MainThreadIOLoggerImpl*>(aArg);
   obj->IOThreadFunc();

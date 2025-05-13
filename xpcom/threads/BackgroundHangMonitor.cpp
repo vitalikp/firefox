@@ -56,7 +56,7 @@ private:
   // Background hang monitor thread function
   static void MonitorThread(void* aData)
   {
-    AutoProfilerRegisterThread registerThread("BgHangMonitor");
+    AUTO_PROFILER_REGISTER_THREAD("BgHangMonitor");
     NS_SetCurrentThreadName("BgHangManager");
 
     /* We do not hold a reference to BackgroundHangManager here

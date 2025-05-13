@@ -391,7 +391,7 @@ const SECMODModule* SmartCardMonitoringThread::GetModule()
 // C-like calling sequence to glue into PR_CreateThread.
 void SmartCardMonitoringThread::LaunchExecute(void* arg)
 {
-  AutoProfilerRegisterThread registerThread("SmartCard");
+  AUTO_PROFILER_REGISTER_THREAD("SmartCard");
   NS_SetCurrentThreadName("SmartCard");
 
   ((SmartCardMonitoringThread*)arg)->Execute();

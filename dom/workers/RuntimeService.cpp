@@ -2758,7 +2758,7 @@ WorkerThreadPrimaryRunnable::Run()
   threadName.Append(NS_LossyConvertUTF16toASCII(mWorkerPrivate->ScriptURL()));
   threadName.Append('\'');
 
-  PROFILER_REGISTER_THREAD(threadName.get());
+  AUTO_PROFILER_REGISTER_THREAD(threadName.get());
 
   // Note: SynchronouslyCreateForCurrentThread() must be called prior to
   //       mWorkerPrivate->SetThread() in order to avoid accidentally consuming
@@ -2875,7 +2875,6 @@ WorkerThreadPrimaryRunnable::Run()
   MOZ_ALWAYS_SUCCEEDS(mainTarget->Dispatch(finishedRunnable,
                                            NS_DISPATCH_NORMAL));
 
-  PROFILER_UNREGISTER_THREAD();
   return NS_OK;
 }
 

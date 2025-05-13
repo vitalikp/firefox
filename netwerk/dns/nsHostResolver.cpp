@@ -1459,7 +1459,7 @@ nsHostResolver::ThreadFunc(void *arg)
     static nsThreadPoolNaming naming;
     nsCString name = naming.GetNextThreadName("DNS Resolver");
 
-    PROFILER_REGISTER_THREAD(name.BeginReading());
+    AUTO_PROFILER_REGISTER_THREAD(name.BeginReading());
     NS_SetCurrentThreadName(name.BeginReading());
 
 #if defined(RES_RETRY_ON_FAILURE)
@@ -1531,8 +1531,6 @@ nsHostResolver::ThreadFunc(void *arg)
     resolver->mThreadCount--;
     NS_RELEASE(resolver);
     LOG(("DNS lookup thread - queue empty, thread finished.\n"));
-
-    PROFILER_UNREGISTER_THREAD();
 }
 
 nsresult
