@@ -49,15 +49,6 @@ template <class T, size_t MinInlineCapacity, class AllocPolicy> class Vector;
 class TimeStamp;
 } // namespace mozilla
 
-// When the profiler is disabled functions declared with these macros are
-// static inline functions (with a trivial return value if they are non-void)
-// that will be optimized away during compilation.
-#ifdef MOZ_GECKO_PROFILER
-# define PROFILER_FUNC(decl, rv)  decl;
-#else
-# define PROFILER_FUNC(decl, rv)  static inline decl { return rv; }
-#endif
-
 // Macros used by the AUTO_PROFILER_* macros below.
 #define PROFILER_RAII_PASTE(id, line) id ## line
 #define PROFILER_RAII_EXPAND(id, line) PROFILER_RAII_PASTE(id, line)
@@ -226,24 +217,24 @@ void profiler_clear_js_context();
 // expensive data will end up being created but not used if another thread
 // stops the profiler between the CreateExpensiveData() and PROFILER_OPERATION
 // calls.
-PROFILER_FUNC(bool profiler_is_active(), false)
+bool profiler_is_active();
 
 // Is the profiler active and paused? Returns false if the profiler is inactive.
-PROFILER_FUNC(bool profiler_is_paused(), false)
+bool profiler_is_paused();
 
 // Is the current thread sleeping?
-PROFILER_FUNC(bool profiler_thread_is_sleeping(), false)
+bool profiler_thread_is_sleeping();
 
 // Get all the features supported by the profiler that are accepted by
 // profiler_start(). The result is the same whether the profiler is active or
 // not.
-PROFILER_FUNC(uint32_t profiler_get_available_features(), 0)
+uint32_t profiler_get_available_features();
 
 // Check if a profiler feature (specified via the ProfilerFeature type) is
 // active. Returns false if the profiler is inactive. Note: the return value
 // can become immediately out-of-date, much like the return value of
 // profiler_is_active().
-PROFILER_FUNC(bool profiler_feature_active(uint32_t aFeature), false)
+bool profiler_feature_active(uint32_t aFeature);
 
 // Get the params used to start the profiler. Returns 0 and an empty vector
 // (via outparams) if the profile is inactive. It's possible that the features
@@ -257,10 +248,10 @@ void profiler_get_start_params(int* aEntrySize, double* aInterval,
 
 // The number of milliseconds since the process started. Operates the same
 // whether the profiler is active or inactive.
-PROFILER_FUNC(double profiler_time(), 0)
+double profiler_time();
 
 // Get the current thread's ID.
-PROFILER_FUNC(int profiler_current_thread_id(), 0)
+int profiler_current_thread_id();
 
 // This is the function type of the callback passed to profiler_suspend_and_sample_thread.
 //
@@ -332,7 +323,7 @@ using UniqueProfilerBacktrace =
 
 // Immediately capture the current thread's call stack and return it. A no-op
 // if the profiler is inactive or in privacy mode.
-PROFILER_FUNC(UniqueProfilerBacktrace profiler_get_backtrace(), nullptr)
+UniqueProfilerBacktrace profiler_get_backtrace();
 
 // Get information about the current buffer status. A no-op when the profiler
 // is inactive. Do not call this function; call profiler_get_buffer_info()
@@ -360,7 +351,7 @@ static inline void profiler_get_buffer_info(uint32_t* aCurrentPosition,
 }
 
 // Get the current thread's PseudoStack.
-PROFILER_FUNC(PseudoStack* profiler_get_pseudo_stack(), nullptr)
+PseudoStack* profiler_get_pseudo_stack();
 
 //---------------------------------------------------------------------------
 // Put profiling data into the profiler (labels and markers)
@@ -432,19 +423,15 @@ void profiler_tracing(const char* aCategory, const char* aMarkerName,
 // profiler is inactive.
 // If aIsShuttingDown is true, the current time is included as the process
 // shutdown time in the JSON's "meta" object.
-PROFILER_FUNC(
-  mozilla::UniquePtr<char[]> profiler_get_profile(double aSinceTime = 0,
-                                                  bool aIsShuttingDown = false),
-  nullptr)
+mozilla::UniquePtr<char[]> profiler_get_profile(double aSinceTime = 0,
+                                                bool aIsShuttingDown = false);
 
 // Write the profile for this process (excluding subprocesses) into aWriter.
 // Returns false if the profiler is inactive.
-PROFILER_FUNC(
-  bool profiler_stream_json_for_this_process(SpliceableJSONWriter& aWriter,
-                                             double aSinceTime = 0,
-                                             bool aIsShuttingDown = false,
-                                             mozilla::TimeStamp* aOutFirstSampleTime = nullptr),
-  false)
+bool profiler_stream_json_for_this_process(SpliceableJSONWriter& aWriter,
+                                           double aSinceTime = 0,
+                                           bool aIsShuttingDown = false,
+                                           mozilla::TimeStamp* aOutFirstSampleTime = nullptr);
 
 // Get the profile and write it into a file. A no-op if the profile is
 // inactive.
