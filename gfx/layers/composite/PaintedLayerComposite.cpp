@@ -105,8 +105,7 @@ PaintedLayerComposite::RenderLayer(const gfx::IntRect& aClipRect,
   if (!mBuffer || !mBuffer->IsAttached()) {
     return;
   }
-  PROFILER_LABEL("PaintedLayerComposite", "RenderLayer",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("PaintedLayerComposite::RenderLayer", GRAPHICS);
 
   Compositor* compositor = mCompositeManager->GetCompositor();
 

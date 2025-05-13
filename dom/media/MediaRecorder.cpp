@@ -620,8 +620,7 @@ private:
     MOZ_ASSERT(NS_GetCurrentThread() == mReadThread);
     LOG(LogLevel::Debug, ("Session.Extract %p", this));
 
-    PROFILER_LABEL("MediaRecorder", "Session Extract",
-      js::ProfileEntry::Category::OTHER);
+    PROFILER_LABEL("MediaRecorder::Session::Extract", OTHER);
 
     // Pull encoded media data from MediaEncoder
     nsTArray<nsTArray<uint8_t> > encodedBuf;

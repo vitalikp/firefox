@@ -592,8 +592,7 @@ ShadowLayerForwarder::EndTransaction(const nsIntRegion& aRegionToClear,
 
   MOZ_ASSERT(aId);
 
-  PROFILER_LABEL("ShadowLayerForwarder", "EndTransaction",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("ShadowLayerForwarder::EndTransaction", GRAPHICS);
 
   RenderTraceScope rendertrace("Foward Transaction", "000091");
   MOZ_ASSERT(!mTxn->Finished(), "forgot BeginTransaction?");

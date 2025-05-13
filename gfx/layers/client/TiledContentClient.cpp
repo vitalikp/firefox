@@ -795,8 +795,7 @@ ClientMultiTiledLayerBuffer::PaintThebes(const nsIntRegion& aNewValidRegion,
   start = PR_IntervalNow();
 #endif
 
-  PROFILER_LABEL("ClientMultiTiledLayerBuffer", "PaintThebesUpdate",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("ClientMultiTiledLayerBuffer::PaintThebes", GRAPHICS);
 
   mNewValidRegion = aNewValidRegion;
   Update(aNewValidRegion, aPaintRegion, aDirtyRegion);
@@ -1043,8 +1042,7 @@ ClientMultiTiledLayerBuffer::ValidateTile(TileClient& aTile,
                                           const nsIntPoint& aTileOrigin,
                                           const nsIntRegion& aDirtyRegion)
 {
-  PROFILER_LABEL("ClientMultiTiledLayerBuffer", "ValidateTile",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("ClientMultiTiledLayerBuffer::ValidateTile", GRAPHICS);
 
 #ifdef GFX_TILEDLAYER_PREF_WARNINGS
   if (aDirtyRegion.IsComplex()) {
@@ -1206,8 +1204,7 @@ ClientMultiTiledLayerBuffer::ComputeProgressiveUpdateRegion(const nsIntRegion& a
     // non-low-precision paint, as in that situation, we're about to override
     // front-end's page/viewport metrics.
     if (!aPaintData->mFirstPaint || drawingLowPrecision) {
-      PROFILER_LABEL("ClientMultiTiledLayerBuffer", "ComputeProgressiveUpdateRegion",
-        js::ProfileEntry::Category::GRAPHICS);
+      PROFILER_LABEL("ClientMultiTiledLayerBuffer::ComputeProgressiveUpdateRegion", GRAPHICS);
 
       aRegionToPaint.SetEmpty();
       return aIsRepeated;

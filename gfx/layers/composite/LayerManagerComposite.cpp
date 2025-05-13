@@ -774,8 +774,7 @@ ClearLayerFlags(Layer* aLayer) {
 void
 LayerManagerComposite::Render(const nsIntRegion& aInvalidRegion, const nsIntRegion& aOpaqueRegion)
 {
-  PROFILER_LABEL("LayerManagerComposite", "Render",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("LayerManagerComposite::Render", GRAPHICS);
 
   if (mDestroyed || !mCompositor || mCompositor->IsDestroyed()) {
     NS_WARNING("Call on destroyed layer manager");
@@ -822,8 +821,7 @@ LayerManagerComposite::Render(const nsIntRegion& aInvalidRegion, const nsIntRegi
 #endif
 
   {
-    PROFILER_LABEL("LayerManagerComposite", "PreRender",
-      js::ProfileEntry::Category::GRAPHICS);
+    PROFILER_LABEL("LayerManagerComposite::Render:PreRender", GRAPHICS);
 
     if (!mCompositor->GetWidget()->PreRender(&widgetContext)) {
       return;
@@ -904,8 +902,7 @@ LayerManagerComposite::Render(const nsIntRegion& aInvalidRegion, const nsIntRegi
   RenderDebugOverlay(actualBounds);
 
   {
-    PROFILER_LABEL("LayerManagerComposite", "EndFrame",
-      js::ProfileEntry::Category::GRAPHICS);
+    PROFILER_LABEL("LayerManagerComposite::Render:EndFrame", GRAPHICS);
 
     mCompositor->EndFrame();
 

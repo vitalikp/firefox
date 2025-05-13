@@ -646,8 +646,7 @@ nsCSSRendering::PaintBorder(nsPresContext* aPresContext,
                             PaintBorderFlags aFlags,
                             Sides aSkipSides)
 {
-  PROFILER_LABEL("nsCSSRendering", "PaintBorder",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("nsCSSRendering::PaintBorder", GRAPHICS);
 
   nsStyleContext *styleIfVisited = aStyleContext->GetStyleIfVisited();
   const nsStyleBorder *styleBorder = aStyleContext->StyleBorder();
@@ -1818,8 +1817,7 @@ nsCSSRendering::PaintBGParams::ForSingleLayer(nsPresContext& aPresCtx,
 DrawResult
 nsCSSRendering::PaintStyleImageLayer(const PaintBGParams& aParams)
 {
-  PROFILER_LABEL("nsCSSRendering", "PaintBackground",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("nsCSSRendering::PaintStyleImageLayer", GRAPHICS);
 
   NS_PRECONDITION(aParams.frame,
                   "Frame is expected to be provided to PaintBackground");
@@ -2807,8 +2805,7 @@ nsCSSRendering::PaintGradient(nsPresContext* aPresContext,
                               const nsSize& aIntrinsicSize,
                               float aOpacity)
 {
-  PROFILER_LABEL("nsCSSRendering", "PaintGradient",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("nsCSSRendering::PaintGradient", GRAPHICS);
 
   Telemetry::AutoTimer<Telemetry::GRADIENT_DURATION, Telemetry::Microsecond> gradientTimer;
   if (aDest.IsEmpty() || aFillArea.IsEmpty()) {

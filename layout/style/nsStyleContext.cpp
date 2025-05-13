@@ -240,8 +240,7 @@ nsStyleContext::CalcStyleDifferenceInternal(StyleContextLike* aNewContext,
                                             uint32_t* aEqualStructs,
                                             uint32_t* aSamePointerStructs)
 {
-  PROFILER_LABEL("nsStyleContext", "CalcStyleDifference",
-    js::ProfileEntry::Category::CSS);
+  PROFILER_LABEL("nsStyleContext::CalcStyleDifferenceInternal", CSS);
 
   static_assert(nsStyleStructID_Length <= 32,
                 "aEqualStructs is not big enough");

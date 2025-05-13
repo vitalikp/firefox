@@ -6122,8 +6122,7 @@ FinalizeOriginEvictionOp::DoDirectoryWork(QuotaManager* aQuotaManager)
 {
   AssertIsOnIOThread();
 
-  PROFILER_LABEL("Quota", "FinalizeOriginEvictionOp::DoDirectoryWork",
-                 js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("FinalizeOriginEvictionOp::DoDirectoryWork", OTHER);
 
   for (RefPtr<DirectoryLockImpl>& lock : mLocks) {
     aQuotaManager->OriginClearCompleted(lock->GetPersistenceType().Value(),
@@ -6213,8 +6212,7 @@ SaveOriginAccessTimeOp::DoDirectoryWork(QuotaManager* aQuotaManager)
   MOZ_ASSERT(!mPersistenceType.IsNull());
   MOZ_ASSERT(mOriginScope.IsOrigin());
 
-  PROFILER_LABEL("Quota", "SaveOriginAccessTimeOp::DoDirectoryWork",
-                 js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("SaveOriginAccessTimeOp::DoDirectoryWork", OTHER);
 
   nsCOMPtr<nsIFile> file;
   nsresult rv =
@@ -6823,8 +6821,7 @@ GetUsageOp::DoDirectoryWork(QuotaManager* aQuotaManager)
 {
   AssertIsOnIOThread();
 
-  PROFILER_LABEL("Quota", "GetUsageOp::DoDirectoryWork",
-                 js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("GetUsageOp::DoDirectoryWork", OTHER);
 
   nsresult rv;
 
@@ -6911,8 +6908,7 @@ GetOriginUsageOp::DoDirectoryWork(QuotaManager* aQuotaManager)
   AssertIsOnIOThread();
   MOZ_ASSERT(mUsageInfo.TotalUsage() == 0);
 
-  PROFILER_LABEL("Quota", "GetOriginUsageOp::DoDirectoryWork",
-                 js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("GetOriginUsageOp::DoDirectoryWork", OTHER);
 
   nsresult rv;
 
@@ -7019,8 +7015,7 @@ InitOp::DoDirectoryWork(QuotaManager* aQuotaManager)
 {
   AssertIsOnIOThread();
 
-  PROFILER_LABEL("Quota", "InitOp::DoDirectoryWork",
-                 js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("InitOp::DoDirectoryWork", OTHER);
 
   aQuotaManager->AssertStorageIsInitialized();
 
@@ -7098,8 +7093,7 @@ InitOriginOp::DoDirectoryWork(QuotaManager* aQuotaManager)
   AssertIsOnIOThread();
   MOZ_ASSERT(!mPersistenceType.IsNull());
 
-  PROFILER_LABEL("Quota", "InitOriginOp::DoDirectoryWork",
-                 js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("InitOriginOp::DoDirectoryWork", OTHER);
 
   nsCOMPtr<nsIFile> directory;
   bool created;
@@ -7188,8 +7182,7 @@ ResetOrClearOp::DoDirectoryWork(QuotaManager* aQuotaManager)
 {
   AssertIsOnIOThread();
 
-  PROFILER_LABEL("Quota", "ResetOrClearOp::DoDirectoryWork",
-                 js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("ResetOrClearOp::DoDirectoryWork", OTHER);
 
   if (mClear) {
     DeleteFiles(aQuotaManager);
@@ -7334,8 +7327,7 @@ ClearRequestBase::DoDirectoryWork(QuotaManager* aQuotaManager)
 {
   AssertIsOnIOThread();
 
-  PROFILER_LABEL("Quota", "OriginClearOp::DoDirectoryWork",
-                 js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("ClearRequestBase::DoDirectoryWork", OTHER);
 
   if (mPersistenceType.IsNull()) {
     for (const PersistenceType type : kAllPersistenceTypes) {
@@ -7525,8 +7517,7 @@ PersistedOp::DoDirectoryWork(QuotaManager* aQuotaManager)
   MOZ_ASSERT(mPersistenceType.Value() == PERSISTENCE_TYPE_DEFAULT);
   MOZ_ASSERT(mOriginScope.IsOrigin());
 
-  PROFILER_LABEL("Quota", "PersistedOp::DoDirectoryWork",
-                 js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("PersistedOp::DoDirectoryWork", OTHER);
 
   Nullable<bool> persisted =
     aQuotaManager->OriginPersisted(mGroup, mOriginScope.GetOrigin());
@@ -7599,8 +7590,7 @@ PersistOp::DoDirectoryWork(QuotaManager* aQuotaManager)
   MOZ_ASSERT(mPersistenceType.Value() == PERSISTENCE_TYPE_DEFAULT);
   MOZ_ASSERT(mOriginScope.IsOrigin());
 
-  PROFILER_LABEL("Quota", "PersistOp::DoDirectoryWork",
-                 js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("PersistOp::DoDirectoryWork", OTHER);
 
   // Update directory metadata on disk first.
   nsCOMPtr<nsIFile> directory;

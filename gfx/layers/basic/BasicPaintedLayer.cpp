@@ -48,8 +48,7 @@ BasicPaintedLayer::PaintThebes(gfxContext* aContext,
                               LayerManager::DrawPaintedLayerCallback aCallback,
                               void* aCallbackData)
 {
-  PROFILER_LABEL("BasicPaintedLayer", "PaintThebes",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("BasicPaintedLayer::PaintThebes", GRAPHICS);
 
   NS_ASSERTION(BasicManager()->InDrawing(),
                "Can only draw in drawing phase");

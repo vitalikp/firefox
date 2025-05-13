@@ -1634,8 +1634,7 @@ nsJSContext::CycleCollectNow(nsICycleCollectorListener *aListener,
     return;
   }
 
-  PROFILER_LABEL("nsJSContext", "CycleCollectNow",
-    js::ProfileEntry::Category::CC);
+  PROFILER_LABEL("nsJSContext::CycleCollectNow", CC);
 
   gCCStats.PrepareForCycleCollectionSlice(aExtraForgetSkippableCalls);
   nsCycleCollector_collect(aListener);
@@ -1653,8 +1652,7 @@ nsJSContext::RunCycleCollectorSlice(TimeStamp aDeadline)
   AutoProfilerTracing
     tracing("CC", aDeadline.IsNull() ? "CCSlice" : "IdleCCSlice");
 
-  PROFILER_LABEL("nsJSContext", "RunCycleCollectorSlice",
-    js::ProfileEntry::Category::CC);
+  PROFILER_LABEL("nsJSContext::RunCycleCollectorSlice", CC);
 
   gCCStats.PrepareForCycleCollectionSlice();
 
@@ -1712,8 +1710,7 @@ nsJSContext::RunCycleCollectorWorkSlice(int64_t aWorkBudget)
     return;
   }
 
-  PROFILER_LABEL("nsJSContext", "RunCycleCollectorWorkSlice",
-    js::ProfileEntry::Category::CC);
+  PROFILER_LABEL("nsJSContext::RunCycleCollectorWorkSlice", CC);
 
   gCCStats.PrepareForCycleCollectionSlice();
 

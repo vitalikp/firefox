@@ -210,8 +210,7 @@ OpusTrackEncoder::GetPacketDuration()
 already_AddRefed<TrackMetadataBase>
 OpusTrackEncoder::GetMetadata()
 {
-  PROFILER_LABEL("OpusTrackEncoder", "GetMetadata",
-    js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("OpusTrackEncoder::GetMetadata", OTHER);
   {
     // Wait if mEncoder is not initialized.
     ReentrantMonitorAutoEnter mon(mReentrantMonitor);
@@ -254,8 +253,7 @@ OpusTrackEncoder::GetMetadata()
 nsresult
 OpusTrackEncoder::GetEncodedTrack(EncodedFrameContainer& aData)
 {
-  PROFILER_LABEL("OpusTrackEncoder", "GetEncodedTrack",
-    js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("OpusTrackEncoder::GetEncodedTrack", OTHER);
   {
     ReentrantMonitorAutoEnter mon(mReentrantMonitor);
     // Wait until initialized or cancelled.

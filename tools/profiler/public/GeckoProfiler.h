@@ -380,13 +380,18 @@ PROFILER_FUNC(PseudoStack* profiler_get_pseudo_stack(), nullptr)
 
 // Insert an RAII object in this scope to enter a pseudo stack frame. Any
 // samples collected in this scope will contain this label in their pseudo
-// stack. The name_space and info arguments must be string literals.
+// stack. The label argument must be a string literal. It is usually of the
+// form "ClassName::FunctionName". (Ideally we'd use the compiler to provide
+// that for us, but __func__ gives us the function name without the class
+// name.) If the label applies to only part of a function, you can qualify it
+// like this: "ClassName::FunctionName:PartName".
+//
 // Use PROFILER_LABEL_DYNAMIC if you want to add additional / dynamic
 // information to the pseudo stack frame.
-#define PROFILER_LABEL(name_space, info, category) \
+#define PROFILER_LABEL(label, category) \
   mozilla::AutoProfilerLabel \
-  PROFILER_APPEND_LINE_NUMBER(profiler_raii)(name_space "::" info, nullptr, \
-                                             __LINE__, category)
+  PROFILER_APPEND_LINE_NUMBER(profiler_raii)( \
+    label, nullptr, __LINE__, js::ProfileEntry::Category::category)
 
 // Similar to PROFILER_LABEL, PROFILER_LABEL_FUNC will push/pop the enclosing
 // functon name as the pseudostack label.

@@ -19,8 +19,7 @@ ClientCanvasLayer::~ClientCanvasLayer()
 void
 ClientCanvasLayer::RenderLayer()
 {
-  PROFILER_LABEL("ClientCanvasLayer", "RenderLayer",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("ClientCanvasLayer::RenderLayer", GRAPHICS);
 
   RenderMaskLayers(this);
 

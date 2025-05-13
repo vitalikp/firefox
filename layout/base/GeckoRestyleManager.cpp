@@ -3003,8 +3003,7 @@ ElementRestyler::ComputeStyleChangeFor(nsIFrame*          aFrame,
                                        nsTArray<RefPtr<nsStyleContext>>&
                                          aSwappedStructOwners)
 {
-  PROFILER_LABEL("ElementRestyler", "ComputeStyleChangeFor",
-                 js::ProfileEntry::Category::CSS);
+  PROFILER_LABEL("ElementRestyler::ComputeStyleChangeFor", CSS);
 
   nsIContent* content = aFrame->GetContent();
   if (aMinChange) {

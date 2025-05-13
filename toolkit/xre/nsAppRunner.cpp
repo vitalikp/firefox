@@ -3600,8 +3600,7 @@ XREMain::XRE_main(int argc, char* argv[], const BootstrapConfig& aConfig)
   char aLocal;
   AutoProfilerInit profilerInit(&aLocal);
 
-  PROFILER_LABEL("Startup", "XRE_Main",
-    js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("XREMain::XRE_main", OTHER);
 
   nsresult rv = NS_OK;
 

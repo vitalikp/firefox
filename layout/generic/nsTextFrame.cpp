@@ -5121,8 +5121,7 @@ nsDisplayText::GetLayerState(nsDisplayListBuilder* aBuilder,
 void
 nsDisplayText::Paint(nsDisplayListBuilder* aBuilder,
                      nsRenderingContext* aCtx) {
-  PROFILER_LABEL("nsDisplayText", "Paint",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("nsDisplayText::Paint", GRAPHICS);
 
   MOZ_ASSERT(mMergedFrames.IsEmpty());
 
@@ -6274,8 +6273,7 @@ nsTextFrame::PaintOneShadow(const PaintShadowParams& aParams,
                             nsCSSShadowItem* aShadowDetails,
                             gfxRect& aBoundingBox, uint32_t aBlurFlags)
 {
-  PROFILER_LABEL("nsTextFrame", "PaintOneShadow",
-    js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("nsTextFrame::PaintOneShadow", GRAPHICS);
 
   gfxPoint shadowOffset(aShadowDetails->mXOffset, aShadowDetails->mYOffset);
   nscoord blurRadius = std::max(aShadowDetails->mRadius, 0);

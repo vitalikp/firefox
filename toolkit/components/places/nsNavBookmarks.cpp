@@ -647,8 +647,7 @@ nsNavBookmarks::InsertBookmark(int64_t aFolder,
 NS_IMETHODIMP
 nsNavBookmarks::RemoveItem(int64_t aItemId, uint16_t aSource)
 {
-  PROFILER_LABEL("nsNavBookmarks", "RemoveItem",
-    js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("nsNavBookmarks::RemoveItem", OTHER);
 
   NS_ENSURE_ARG(!IsRoot(aItemId));
 
@@ -1133,8 +1132,7 @@ nsNavBookmarks::GetDescendantChildren(int64_t aFolderId,
 NS_IMETHODIMP
 nsNavBookmarks::RemoveFolderChildren(int64_t aFolderId, uint16_t aSource)
 {
-  PROFILER_LABEL("nsNavBookmarks", "RemoveFolderChilder",
-    js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("nsNavBookmarks::RemoveFolderChildren", OTHER);
 
   NS_ENSURE_ARG_MIN(aFolderId, 1);
   NS_ENSURE_ARG(aFolderId != mRoot);
@@ -3083,8 +3081,7 @@ nsNavBookmarks::GetURIForKeyword(const nsAString& aUserCasedKeyword,
 NS_IMETHODIMP
 nsNavBookmarks::RunInBatchMode(nsINavHistoryBatchCallback* aCallback,
                                nsISupports* aUserData) {
-  PROFILER_LABEL("nsNavBookmarks", "RunInBatchMode",
-    js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("nsNavBookmarks::RunInBatchMode", OTHER);
 
   NS_ENSURE_ARG(aCallback);
 
