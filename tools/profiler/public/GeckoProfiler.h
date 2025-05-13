@@ -263,10 +263,16 @@ PROFILER_FUNC(double profiler_time(), 0)
 // Get the current thread's ID.
 PROFILER_FUNC(int profiler_current_thread_id(), 0)
 
+// This is the function type of the callback passed to profiler_suspend_and_sample_thread.
+//
+// The callback is passed the following arguments:
+//   void** aPCs         The program counters for the target thread's stack.
+//   size_t aCount       The number of program counters in the aPCs array.
+//   bool aIsMainThread  Whether the target thread was the main thread.
+typedef void ProfilerStackCallback(void** aPCs, size_t aCount, bool aIsMainThread);
+
 // This method suspends the thread identified by aThreadId, optionally samples
-// it for its native stack, and then calls the callback. The callback is passed
-// the native stack's program counters and length as two arguments if
-// aSampleNative is true.
+// it for its native stack, and then calls the callback.
 //
 // WARNING: The target thread is suspended during the callback. Do not try to
 // allocate or acquire any locks, or you could deadlock. The target thread will
@@ -275,8 +281,7 @@ PROFILER_FUNC(int profiler_current_thread_id(), 0)
 // XXX: this function is in the process of being replaced with the other profiler_suspend_and_sample_thread() function.
 PROFILER_FUNC_VOID(
   profiler_suspend_and_sample_thread(int aThreadId,
-                                     const std::function<void(void**, size_t)>&
-                                       aCallback,
+                                     const std::function<ProfilerStackCallback>& aCallback,
                                      bool aSampleNative = true))
 
 // An object of this class is passed to profiler_suspend_and_sample_thread().

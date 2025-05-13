@@ -131,7 +131,7 @@ ThreadStackHelper::GetStacksInternal(Stack* aStack, NativeStack* aNativeStack)
   ScopedSetPtr<NativeStack> nativeStackPtr(mNativeStackToFill, aNativeStack);
 #endif
 
-  auto callback = [&, this] (void** aPCs, size_t aCount) {
+  auto callback = [&, this] (void** aPCs, size_t aCount, bool aIsMainThread) {
 #ifdef MOZ_THREADSTACKHELPER_PSEUDO
     if (mStackToFill) {
       FillStackBuffer();
