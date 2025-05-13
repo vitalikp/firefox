@@ -630,6 +630,7 @@ TiledContentHost::PrintInfo(std::stringstream& aStream, const char* aPrefix)
   aStream << aPrefix;
   aStream << nsPrintfCString("TiledContentHost (0x%p)", this).get();
 
+#ifdef MOZ_DUMP_PAINTING
   if (gfxPrefs::LayersDumpTexture() ||
       profiler_feature_active(ProfilerFeature::LayersDump)) {
     nsAutoCString pfx(aPrefix);
@@ -637,6 +638,7 @@ TiledContentHost::PrintInfo(std::stringstream& aStream, const char* aPrefix)
 
     Dump(aStream, pfx.get(), false);
   }
+#endif
 }
 
 void
