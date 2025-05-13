@@ -291,7 +291,12 @@ LoggingHelper(bool aUseProfiler, const char* aFmt, ...)
   static const mozilla::LogLevel logLevel = LogLevel::Warning;
 
   if (MOZ_LOG_TEST(logModule, logLevel) ||
-      (aUseProfiler && profiler_is_active())) {
+#ifdef MOZ_GECKO_PROFILER
+      (aUseProfiler && profiler_is_active())
+#else
+      false
+#endif
+     ) {
     nsAutoCString message;
 
     {

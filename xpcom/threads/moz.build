@@ -84,10 +84,14 @@ UNIFIED_SOURCES += [
     'SharedThreadPool.cpp',
     'SystemGroup.cpp',
     'TaskQueue.cpp',
-    'ThreadStackHelper.cpp',
     'ThrottledEventQueue.cpp',
     'TimerThread.cpp',
 ]
+
+if CONFIG['MOZ_GECKO_PROFILER']:
+    UNIFIED_SOURCES += [
+        'ThreadStackHelper.cpp',
+    ]
 
 LOCAL_INCLUDES += [
     '../build',

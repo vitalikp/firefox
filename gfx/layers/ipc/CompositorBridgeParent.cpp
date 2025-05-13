@@ -70,7 +70,9 @@
 #include "mozilla/HalTypes.h"
 #include "mozilla/StaticPtr.h"
 #include "mozilla/Telemetry.h"
-#include "ProfilerMarkerPayload.h"
+#ifdef MOZ_GECKO_PROFILER
+# include "ProfilerMarkerPayload.h"
+#endif
 #include "mozilla/VsyncDispatcher.h"
 #if defined(XP_WIN) || defined(MOZ_WIDGET_GTK)
 #include "VsyncSource.h"
@@ -1625,6 +1627,7 @@ CompositorBridgeParent::GetAPZCTreeManager(uint64_t aLayersId)
   return apzctm.forget();
 }
 
+#ifdef MOZ_GECKO_PROFILER
 static void
 InsertVsyncProfilerMarker(TimeStamp aVsyncTimestamp)
 {
@@ -1633,15 +1636,18 @@ InsertVsyncProfilerMarker(TimeStamp aVsyncTimestamp)
     "VsyncTimestamp",
     MakeUnique<VsyncMarkerPayload>(aVsyncTimestamp));
 }
+#endif
 
 /*static */ void
 CompositorBridgeParent::PostInsertVsyncProfilerMarker(TimeStamp aVsyncTimestamp)
 {
+#ifdef MOZ_GECKO_PROFILER
   // Called in the vsync thread
   if (profiler_is_active() && CompositorThreadHolder::IsActive()) {
     CompositorLoop()->PostTask(
       NewRunnableFunction(InsertVsyncProfilerMarker, aVsyncTimestamp));
   }
+#endif
 }
 
 widget::PCompositorWidgetParent*

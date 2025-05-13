@@ -78,11 +78,7 @@ private:
                              UniqueStacks& aUniqueStacks) override
 
 // If the profiler is disabled then StreamPayload() will never be called.
-#ifdef MOZ_GECKO_PROFILER
-# define DECL_STREAM_PAYLOAD DECL_STREAM_PAYLOAD_BASE ;
-#else
-# define DECL_STREAM_PAYLOAD DECL_STREAM_PAYLOAD_BASE { MOZ_CRASH(); }
-#endif
+#define DECL_STREAM_PAYLOAD DECL_STREAM_PAYLOAD_BASE ;
 
 class TracingMarkerPayload : public ProfilerMarkerPayload
 {

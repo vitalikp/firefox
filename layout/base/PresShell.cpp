@@ -4070,6 +4070,7 @@ PresShell::DoFlushPendingNotifications(mozilla::ChangesToFlush aFlush)
 
   MOZ_ASSERT(NeedFlush(flushType), "Why did we get called?");
 
+#ifdef MOZ_GECKO_PROFILER
   static const EnumeratedArray<FlushType,
                                FlushType::Count,
                                const char*> flushTypeNames = {
@@ -4084,9 +4085,9 @@ PresShell::DoFlushPendingNotifications(mozilla::ChangesToFlush aFlush)
     "Layout",
     "Display"
   };
-
   PROFILER_LABEL_DYNAMIC("PresShell::DoFlushPendingNotifications", GRAPHICS,
                          flushTypeNames[flushType]);
+#endif
 
 #ifdef ACCESSIBILITY
 #ifdef DEBUG

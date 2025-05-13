@@ -1060,8 +1060,10 @@ XRE_XPCShellMain(int argc, char** argv, char** envp,
     auto telStats =
        mozilla::MakeUnique<base::StatisticsRecorder>();
 
+#ifdef MOZ_GECKO_PROFILER
     char aLocal;
     profiler_init(&aLocal);
+#endif
 
     if (PR_GetEnv("MOZ_CHAOSMODE")) {
         ChaosFeature feature = ChaosFeature::Any;
@@ -1360,9 +1362,11 @@ XRE_XPCShellMain(int argc, char** argv, char** envp,
     dirprovider.ClearPluginDir();
     dirprovider.ClearAppFile();
 
+#ifdef MOZ_GECKO_PROFILER
     // This must precede NS_LogTerm(), otherwise xpcshell return non-zero
     // during some tests, which causes failures.
     profiler_shutdown();
+#endif
 
     NS_LogTerm();
 

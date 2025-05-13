@@ -16,6 +16,15 @@
 #ifndef GeckoProfiler_h
 #define GeckoProfiler_h
 
+#ifndef MOZ_GECKO_PROFILER
+
+// This file can be #included unconditionally. However, everything within this
+// file must be guarded by a #ifdef MOZ_GECKO_PROFILER, *except* for the
+// following macros, which encapsulate the most common operations and thus
+// avoid the need for many #ifdefs.
+
+#else // !MOZ_GECKO_PROFILER
+
 #include <functional>
 #include <signal.h>
 #include <stdarg.h>
@@ -542,30 +551,25 @@ public:
 
     // This function runs both on and off the main thread.
 
-#ifdef MOZ_GECKO_PROFILER
     mPseudoStack = sPseudoStack.get();
     if (mPseudoStack) {
       mPseudoStack->pushCppFrame(aLabel, aDynamicString, this, aLine,
                                  js::ProfileEntry::Kind::CPP_NORMAL, aCategory);
     }
-#endif
   }
 
   ~AutoProfilerLabel()
   {
     // This function runs both on and off the main thread.
 
-#ifdef MOZ_GECKO_PROFILER
     if (mPseudoStack) {
       mPseudoStack->pop();
     }
-#endif
   }
 
 private:
   MOZ_DECL_USE_GUARD_OBJECT_NOTIFIER
 
-#ifdef MOZ_GECKO_PROFILER
   // We save a PseudoStack pointer in the ctor so we don't have to redo the TLS
   // lookup in the dtor.
   PseudoStack* mPseudoStack;
@@ -573,7 +577,6 @@ private:
 public:
   // See the comment on the definition in platform.cpp for details about this.
   static MOZ_THREAD_LOCAL(PseudoStack*) sPseudoStack;
-#endif
 };
 
 class MOZ_RAII AutoProfilerTracing
@@ -613,7 +616,6 @@ protected:
 // Set MOZ_PROFILER_STARTUP* environment variables that will be inherited into
 // a child process that is about to be launched, in order to make that child
 // process start with the same profiler settings as in the current process.
-#ifdef MOZ_GECKO_PROFILER
 class MOZ_RAII AutoSetProfilerEnvVarsForChildProcess
 {
 public:
@@ -627,12 +629,9 @@ private:
   char mSetFeaturesBitfield[64];
   char mSetFilters[1024];
 };
-#else
-class AutoSetProfilerEnvVarsForChildProcess
-{
-};
-#endif
 
 } // namespace mozilla
+
+#endif // !MOZ_GECKO_PROFILER
 
 #endif  // GeckoProfiler_h

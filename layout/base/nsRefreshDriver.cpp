@@ -1848,7 +1848,9 @@ nsRefreshDriver::Tick(int64_t aNowEpoch, TimeStamp aNowTime)
       RunFrameRequestCallbacks(aNowTime);
 
       if (mPresContext && mPresContext->GetPresShell()) {
+#ifdef MOZ_GECKO_PROFILER
         Maybe<AutoProfilerTracing> tracingStyleFlush;
+#endif
         AutoTArray<nsIPresShell*, 16> observers;
         observers.AppendElements(mStyleFlushObservers);
         for (uint32_t j = observers.Length();
@@ -1859,10 +1861,12 @@ nsRefreshDriver::Tick(int64_t aNowEpoch, TimeStamp aNowTime)
           if (!mStyleFlushObservers.RemoveElement(shell))
             continue;
 
+#ifdef MOZ_GECKO_PROFILER
           if (!tracingStyleFlush) {
             tracingStyleFlush.emplace("Paint", "Styles", Move(mStyleCause));
             mStyleCause = nullptr;
           }
+#endif
 
           nsCOMPtr<nsIPresShell> shellKungFuDeathGrip(shell);
           shell->mObservingStyleFlushes = false;
@@ -1879,7 +1883,9 @@ nsRefreshDriver::Tick(int64_t aNowEpoch, TimeStamp aNowTime)
       }
     } else if  (i == 1) {
       // This is the FlushType::Layout case.
+#ifdef MOZ_GECKO_PROFILER
       Maybe<AutoProfilerTracing> tracingLayoutFlush;
+#endif
       AutoTArray<nsIPresShell*, 16> observers;
       observers.AppendElements(mLayoutFlushObservers);
       for (uint32_t j = observers.Length();
@@ -1890,10 +1896,12 @@ nsRefreshDriver::Tick(int64_t aNowEpoch, TimeStamp aNowTime)
         if (!mLayoutFlushObservers.RemoveElement(shell))
           continue;
 
+#ifdef MOZ_GECKO_PROFILER
         if (!tracingLayoutFlush) {
           tracingLayoutFlush.emplace("Paint", "Reflow", Move(mReflowCause));
           mReflowCause = nullptr;
         }
+#endif
 
         nsCOMPtr<nsIPresShell> shellKungFuDeathGrip(shell);
         shell->mObservingLayoutFlushes = false;

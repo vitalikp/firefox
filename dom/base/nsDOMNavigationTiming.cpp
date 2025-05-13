@@ -218,9 +218,10 @@ nsDOMNavigationTiming::NotifyNonBlankPaintForRootContentDocument()
   }
 
   mNonBlankPaintTimeStamp = TimeStamp::Now();
-  TimeDuration elapsed = mNonBlankPaintTimeStamp - mNavigationStartTimeStamp;
 
+#ifdef MOZ_GECKO_PROFILER
   if (profiler_is_active()) {
+  TimeDuration elapsed = mNonBlankPaintTimeStamp - mNavigationStartTimeStamp;
     nsAutoCString spec;
     if (mLoadedURI) {
       mLoadedURI->GetSpec(spec);
@@ -230,6 +231,7 @@ nsDOMNavigationTiming::NotifyNonBlankPaintForRootContentDocument()
                            mDocShellHasBeenActiveSinceNavigationStart ? "foreground tab" : "this tab was inactive some of the time between navigation start and first non-blank paint");
     profiler_add_marker(marker.get());
   }
+#endif
 
   if (mDocShellHasBeenActiveSinceNavigationStart) {
     Telemetry::AccumulateTimeDelta(Telemetry::TIME_TO_NON_BLANK_PAINT_MS,
