@@ -315,10 +315,13 @@ DecodePool::AsyncRun(IDecodingTask* aTask)
 }
 
 bool
-DecodePool::SyncRunIfPreferred(IDecodingTask* aTask)
+DecodePool::SyncRunIfPreferred(IDecodingTask* aTask, const nsCString& aURI)
 {
   MOZ_ASSERT(NS_IsMainThread());
   MOZ_ASSERT(aTask);
+
+  PROFILER_LABEL_DYNAMIC("DecodePool", "SyncRunIfPreferred",
+    js::ProfileEntry::Category::GRAPHICS, aURI.get());
 
   if (aTask->ShouldPreferSyncRun()) {
     aTask->Run();
