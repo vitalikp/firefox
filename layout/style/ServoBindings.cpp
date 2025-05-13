@@ -2316,7 +2316,7 @@ Gecko_RegisterProfilerThread(const char* name)
 void
 Gecko_UnregisterProfilerThread()
 {
-  profiler_unregister_thread();
+  PROFILER_UNREGISTER_THREAD();
 }
 
 bool

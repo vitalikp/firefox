@@ -528,7 +528,7 @@ nsThread::ThreadFunc(void* aArg)
   // Inform the threadmanager that this thread is going away
   nsThreadManager::get().UnregisterCurrentThread(*self);
 
-  profiler_unregister_thread();
+  PROFILER_UNREGISTER_THREAD();
 
   // Dispatch shutdown ACK
   NotNull<nsThreadShutdownContext*> context =

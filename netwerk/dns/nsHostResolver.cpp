@@ -1532,7 +1532,7 @@ nsHostResolver::ThreadFunc(void *arg)
     NS_RELEASE(resolver);
     LOG(("DNS lookup thread - queue empty, thread finished.\n"));
 
-    profiler_unregister_thread();
+    PROFILER_UNREGISTER_THREAD();
 }
 
 nsresult

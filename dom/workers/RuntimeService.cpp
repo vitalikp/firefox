@@ -2875,7 +2875,7 @@ WorkerThreadPrimaryRunnable::Run()
   MOZ_ALWAYS_SUCCEEDS(mainTarget->Dispatch(finishedRunnable,
                                            NS_DISPATCH_NORMAL));
 
-  profiler_unregister_thread();
+  PROFILER_UNREGISTER_THREAD();
   return NS_OK;
 }
 
