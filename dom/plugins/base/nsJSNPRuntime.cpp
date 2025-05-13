@@ -1696,7 +1696,7 @@ NPObjWrapper_Resolve(JSContext *cx, JS::Handle<JSObject*> obj, JS::Handle<jsid> 
   if (JSID_IS_SYMBOL(id))
     return true;
 
-  PROFILER_LABEL_FUNC(js::ProfileEntry::Category::JS);
+  PROFILER_LABEL("NPObjWrapper_Resolve", JS);
 
   NPObject *npobj = GetNPObject(cx, obj);
 

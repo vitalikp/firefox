@@ -201,7 +201,7 @@ SapiService::~SapiService()
 bool
 SapiService::Init()
 {
-  PROFILER_LABEL_FUNC(js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("SapiService::Init", OTHER);
 
   MOZ_ASSERT(!mInitialized);
 

@@ -393,13 +393,6 @@ PROFILER_FUNC(PseudoStack* profiler_get_pseudo_stack(), nullptr)
   PROFILER_APPEND_LINE_NUMBER(profiler_raii)( \
     label, nullptr, __LINE__, js::ProfileEntry::Category::category)
 
-// Similar to PROFILER_LABEL, PROFILER_LABEL_FUNC will push/pop the enclosing
-// functon name as the pseudostack label.
-#define PROFILER_LABEL_FUNC(category) \
-  mozilla::AutoProfilerLabel \
-  PROFILER_APPEND_LINE_NUMBER(profiler_raii)(PROFILER_FUNCTION_NAME, nullptr, \
-                                             __LINE__, category)
-
 // Similar to PROFILER_LABEL, but with an additional string. The inserted RAII
 // object stores the dynamicStr pointer in a field; it does not copy the string.
 // This means that the string you pass to this macro needs to live at least

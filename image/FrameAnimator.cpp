@@ -142,7 +142,7 @@ FrameAnimator::AdvanceFrame(AnimationState& aState, TimeStamp aTime)
 {
   NS_ASSERTION(aTime <= TimeStamp::Now(),
                "Given time appears to be in the future");
-  PROFILER_LABEL_FUNC(js::ProfileEntry::Category::GRAPHICS);
+  PROFILER_LABEL("FrameAnimator::AdvanceFrame", GRAPHICS);
 
   RefreshResult ret;
 

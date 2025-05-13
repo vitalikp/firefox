@@ -516,7 +516,7 @@ gfxDWriteFontEntry::GetFontTable(uint32_t aTag)
 nsresult
 gfxDWriteFontEntry::ReadCMAP(FontInfoData *aFontInfoData)
 {
-    PROFILER_LABEL_FUNC(js::ProfileEntry::Category::GRAPHICS);
+    PROFILER_LABEL("gfxDWriteFontEntry::ReadCMAP", GRAPHICS);
 
     // attempt this once, if errors occur leave a blank cmap
     if (mCharacterMap) {

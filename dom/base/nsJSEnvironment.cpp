@@ -1416,7 +1416,7 @@ nsJSContext::GarbageCollectNow(JS::gcreason::Reason aReason,
 static void
 FinishAnyIncrementalGC()
 {
-  PROFILER_LABEL_FUNC(js::ProfileEntry::Category::GC);
+  PROFILER_LABEL("FinishAnyIncrementalGC", GC);
 
   if (sCCLockedOut) {
     AutoJSAPI jsapi;

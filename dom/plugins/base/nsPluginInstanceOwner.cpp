@@ -1562,7 +1562,7 @@ nsPluginInstanceOwner::ResolutionMayHaveChanged()
 void
 nsPluginInstanceOwner::UpdateDocumentActiveState(bool aIsActive)
 {
-  PROFILER_LABEL_FUNC(js::ProfileEntry::Category::OTHER);
+  PROFILER_LABEL("nsPluginInstanceOwner::UpdateDocumentActiveState", OTHER);
 
   mPluginDocumentActiveState = aIsActive;
   UpdateWindowPositionAndClipRect(true);

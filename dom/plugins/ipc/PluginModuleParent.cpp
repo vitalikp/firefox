@@ -65,7 +65,7 @@ mozilla::plugins::SetupBridge(uint32_t aPluginId,
                               uint32_t* runID,
                               ipc::Endpoint<PPluginModuleParent>* aEndpoint)
 {
-    PROFILER_LABEL_FUNC(js::ProfileEntry::Category::OTHER);
+    PROFILER_LABEL("plugins::SetupBridge", OTHER);
     if (NS_WARN_IF(!rv) || NS_WARN_IF(!runID)) {
         return false;
     }

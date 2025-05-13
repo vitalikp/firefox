@@ -40,7 +40,7 @@ bool
 HandleToFilename(HANDLE aHandle, const LARGE_INTEGER& aOffset,
                  nsAString& aFilename)
 {
-  PROFILER_LABEL_FUNC(js::ProfileEntry::Category::NETWORK);
+  PROFILER_LABEL("HandleToFilename", NETWORK);
 
   aFilename.Truncate();
   // This implementation is nice because it uses fully documented APIs that
