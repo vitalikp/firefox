@@ -73,7 +73,7 @@ public:
    * run synchronously, it may recover by scheduling an async task to finish up
    * the work when the remaining data is available.
    */
-  void SyncRunIfPossible(IDecodingTask* aTask);
+  void SyncRunIfPossible(IDecodingTask* aTask, const nsCString& aURI);
 
   /**
    * Returns an event target interface to the DecodePool's I/O thread. Callers
