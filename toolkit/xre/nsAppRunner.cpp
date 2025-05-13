@@ -3597,8 +3597,7 @@ XREMain::XRE_main(int argc, char* argv[], const BootstrapConfig& aConfig)
   SandboxInfo::ThreadingCheck();
 #endif
 
-  char aLocal;
-  AutoProfilerInit profilerInit(&aLocal);
+  AutoProfilerInit profilerInit();
 
   PROFILER_LABEL("XREMain::XRE_main", OTHER);
 
