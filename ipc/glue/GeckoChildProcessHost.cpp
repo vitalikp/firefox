@@ -66,6 +66,7 @@ GeckoChildProcessHost::GeckoChildProcessHost(GeckoProcessType aProcessType,
   : mProcessType(aProcessType),
     mIsFileContent(aIsFileContent),
     mMonitor("mozilla.ipc.GeckChildProcessHost.mMonitor"),
+    mEnvVars(),
     mProcessState(CREATING_CHANNEL),
     mChildProcessHandle(0)
 {
@@ -273,15 +274,9 @@ GeckoChildProcessHost::SetAlreadyDead()
 int32_t GeckoChildProcessHost::mChildCounter = 0;
 
 void
-GeckoChildProcessHost::SetChildLogName(const char* varName, const char* origLogName,
+GeckoChildProcessHost::GetChildLogName(const char* origLogName,
                                        nsACString &buffer)
 {
-  // We currently have no portable way to launch child with environment
-  // different than parent.  So temporarily change NSPR_LOG_FILE so child
-  // inherits value we want it to have. (NSPR only looks at NSPR_LOG_FILE at
-  // startup, so it's 'safe' to play with the parent's environment this way.)
-  buffer.Assign(varName);
-
   {
     buffer.Append(origLogName);
   }
@@ -289,18 +284,15 @@ GeckoChildProcessHost::SetChildLogName(const char* varName, const char* origLogN
   // Append child-specific postfix to name
   buffer.AppendLiteral(".child-");
   buffer.AppendInt(mChildCounter);
-
-  // Passing temporary to PR_SetEnv is ok here if we keep the temporary
-  // for the time we launch the sub-process.  It's copied to the new
-  // environment.
-  PR_SetEnv(buffer.BeginReading());
 }
 
 bool
 GeckoChildProcessHost::PerformAsyncLaunch(std::vector<std::string> aExtraOpts)
 {
 #ifdef MOZ_GECKO_PROFILER
-  AutoSetProfilerEnvVarsForChildProcess profilerEnvironment;
+  GetProfilerEnvVarsForChildProcess([this](const char* key, const char* value) {
+    mEnvVars[key] = value;
+  });
 #endif
 
   const char* origNSPRLogName = PR_GetEnv("NSPR_LOG_FILE");
@@ -310,37 +302,18 @@ GeckoChildProcessHost::PerformAsyncLaunch(std::vector<std::string> aExtraOpts)
   //   or mChildCounter touched by any other thread, so this is safe.
   ++mChildCounter;
 
-  // Must keep these on the same stack where from we call PerformAsyncLaunchInternal
-  // so that PR_DuplicateEnvironment() still sees a valid memory.
-  nsAutoCString nsprLogName;
-  nsAutoCString mozLogName;
-
   if (origNSPRLogName) {
-    if (mRestoreOrigNSPRLogName.IsEmpty()) {
-      mRestoreOrigNSPRLogName.AssignLiteral("NSPR_LOG_FILE=");
-      mRestoreOrigNSPRLogName.Append(origNSPRLogName);
-    }
-    SetChildLogName("NSPR_LOG_FILE=", origNSPRLogName, nsprLogName);
+    nsAutoCString nsprLogName;
+    GetChildLogName(origNSPRLogName, nsprLogName);
+    mEnvVars["NSPR_LOG_FILE"] = nsprLogName.get();
   }
   if (origMozLogName) {
-    if (mRestoreOrigMozLogName.IsEmpty()) {
-      mRestoreOrigMozLogName.AssignLiteral("MOZ_LOG_FILE=");
-      mRestoreOrigMozLogName.Append(origMozLogName);
-    }
-    SetChildLogName("MOZ_LOG_FILE=", origMozLogName, mozLogName);
+    nsAutoCString mozLogName;
+    GetChildLogName(origMozLogName, mozLogName);
+    mEnvVars["NSPR_LOG_FILE"] = mozLogName.get();
   }
 
-  bool retval = PerformAsyncLaunchInternal(aExtraOpts);
-
-  // Revert to original value
-  if (origNSPRLogName) {
-    PR_SetEnv(mRestoreOrigNSPRLogName.get());
-  }
-  if (origMozLogName) {
-    PR_SetEnv(mRestoreOrigMozLogName.get());
-  }
-
-  return retval;
+  return PerformAsyncLaunchInternal(aExtraOpts);
 }
 
 bool
@@ -429,13 +402,10 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
   // and passing wstrings from one config to the other is unsafe.  So
   // we split the logic here.
 
-#if defined(OS_LINUX) || defined(OS_BSD) || defined(OS_SOLARIS)
-  base::environment_map newEnvVars;
-
 #if defined(MOZ_WIDGET_GTK)
   if (mProcessType == GeckoProcessType_Content) {
     // disable IM module to avoid sandbox violation
-    newEnvVars["GTK_IM_MODULE"] = "gtk-im-context-simple";
+    mEnvVars["GTK_IM_MODULE"] = "gtk-im-context-simple";
   }
 #endif
 
@@ -461,11 +431,10 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
       new_ld_lib_path.Append(':');
       new_ld_lib_path.Append(ld_library_path);
     }
-    newEnvVars["LD_LIBRARY_PATH"] = new_ld_lib_path.get();
+    mEnvVars["LD_LIBRARY_PATH"] = new_ld_lib_path.get();
 
 # endif  // OS_LINUX
   }
-#endif  // OS_LINUX
 
   FilePath exePath;
   BinaryPathType pathType = GetPathToBinary(exePath, mProcessType);
@@ -483,7 +452,7 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
     char *szptr = strchr(apws, ',');
 
     snprintf(buf, sizeof(buf), "%d%s", kMagicAndroidSystemPropFd, szptr);
-    newEnvVars["ANDROID_PROPERTY_WORKSPACE"] = buf;
+    mEnvVars["ANDROID_PROPERTY_WORKSPACE"] = buf;
   }
 #endif  // ANDROID
 
@@ -504,7 +473,7 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
     }
     // Explicitly construct the std::string to make it clear that this
     // isn't retaining a pointer to the nsCString's buffer.
-    newEnvVars["LD_PRELOAD"] = std::string(preload.get());
+    mEnvVars["LD_PRELOAD"] = std::string(preload.get());
   }
 #endif
 
@@ -559,11 +528,7 @@ GeckoChildProcessHost::PerformAsyncLaunchInternal(std::vector<std::string>& aExt
 
   childArgv.push_back(childProcessType);
 
-  base::LaunchApp(childArgv, mFileMap,
-#if defined(OS_LINUX) || defined(OS_BSD)
-                  newEnvVars,
-#endif
-                  false, &process);
+  base::LaunchApp(childArgv, mFileMap, mEnvVars, false, &process);
 
   // We're in the parent and the child was launched. Close the child FD in the
   // parent as soon as possible, which will allow the parent to detect when the
