@@ -72,13 +72,10 @@ private:
   UniqueProfilerBacktrace mStack;
 };
 
-#define DECL_STREAM_PAYLOAD_BASE  \
+#define DECL_STREAM_PAYLOAD \
   virtual void StreamPayload(SpliceableJSONWriter& aWriter, \
                              const mozilla::TimeStamp& aProcessStartTime, \
-                             UniqueStacks& aUniqueStacks) override
-
-// If the profiler is disabled then StreamPayload() will never be called.
-#define DECL_STREAM_PAYLOAD DECL_STREAM_PAYLOAD_BASE ;
+                             UniqueStacks& aUniqueStacks) override;
 
 class TracingMarkerPayload : public ProfilerMarkerPayload
 {
