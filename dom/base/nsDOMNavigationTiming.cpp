@@ -105,14 +105,14 @@ void
 nsDOMNavigationTiming::NotifyUnloadEventStart()
 {
   mUnloadStart = DurationFromStart();
-  profiler_tracing("Navigation", "Unload", TRACING_INTERVAL_START);
+  PROFILER_TRACING("Navigation", "Unload", TRACING_INTERVAL_START);
 }
 
 void
 nsDOMNavigationTiming::NotifyUnloadEventEnd()
 {
   mUnloadEnd = DurationFromStart();
-  profiler_tracing("Navigation", "Unload", TRACING_INTERVAL_END);
+  PROFILER_TRACING("Navigation", "Unload", TRACING_INTERVAL_END);
 }
 
 void
@@ -122,7 +122,7 @@ nsDOMNavigationTiming::NotifyLoadEventStart()
     mLoadEventStart = DurationFromStart();
     mLoadEventStartSet = true;
 
-    profiler_tracing("Navigation", "Load", TRACING_INTERVAL_START);
+    PROFILER_TRACING("Navigation", "Load", TRACING_INTERVAL_START);
   }
 }
 
@@ -133,7 +133,7 @@ nsDOMNavigationTiming::NotifyLoadEventEnd()
     mLoadEventEnd = DurationFromStart();
     mLoadEventEndSet = true;
 
-    profiler_tracing("Navigation", "Load", TRACING_INTERVAL_END);
+    PROFILER_TRACING("Navigation", "Load", TRACING_INTERVAL_END);
   }
 }
 
@@ -191,7 +191,7 @@ nsDOMNavigationTiming::NotifyDOMContentLoadedStart(nsIURI* aURI)
     mDOMContentLoadedEventStart = DurationFromStart();
     mDOMContentLoadedEventStartSet = true;
 
-    profiler_tracing("Navigation", "DOMContentLoaded", TRACING_INTERVAL_START);
+    PROFILER_TRACING("Navigation", "DOMContentLoaded", TRACING_INTERVAL_START);
   }
 }
 
@@ -203,7 +203,7 @@ nsDOMNavigationTiming::NotifyDOMContentLoadedEnd(nsIURI* aURI)
     mDOMContentLoadedEventEnd = DurationFromStart();
     mDOMContentLoadedEventEndSet = true;
 
-    profiler_tracing("Navigation", "DOMContentLoaded", TRACING_INTERVAL_END);
+    PROFILER_TRACING("Navigation", "DOMContentLoaded", TRACING_INTERVAL_END);
   }
 }
 

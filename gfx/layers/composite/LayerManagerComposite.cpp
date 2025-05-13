@@ -802,7 +802,7 @@ LayerManagerComposite::Render(const nsIntRegion& aInvalidRegion, const nsIntRegi
   } else if (PROFILER_FEATURE_ACTIVE(ProfilerFeature::LayersDump)) {
     std::stringstream ss;
     Dump(ss);
-    profiler_tracing("log", ss.str().c_str(), TRACING_EVENT);
+    PROFILER_TRACING("log", ss.str().c_str(), TRACING_EVENT);
   }
 
   // Dump to LayerScope Viewer

@@ -44,6 +44,8 @@
 
 #define PROFILER_ADD_MARKER(markerName)
 
+#define PROFILER_TRACING(category, markerName, kind)
+
 #else // !MOZ_GECKO_PROFILER
 
 #include <functional>
@@ -460,9 +462,10 @@ enum TracingKind {
   TRACING_INTERVAL_END,
 };
 
-
-// Adds a tracing marker to the PseudoStack. A no-op if the profiler is
-// inactive or in privacy mode.
+// Adds a tracing marker to the profile. A no-op if the profiler is inactive or
+// in privacy mode.
+#define PROFILER_TRACING(category, markerName, kind) \
+  profiler_tracing(category, markerName, kind)
 void profiler_tracing(const char* aCategory, const char* aMarkerName,
                       TracingKind aKind);
 void profiler_tracing(const char* aCategory, const char* aMarkerName,
