@@ -371,13 +371,6 @@ PROFILER_FUNC(PseudoStack* profiler_get_pseudo_stack(), nullptr)
 #define PROFILER_APPEND_LINE_NUMBER(id) \
   PROFILER_APPEND_LINE_NUMBER_EXPAND(id, __LINE__)
 
-#if defined(__GNUC__) || defined(_MSC_VER)
-# define PROFILER_FUNCTION_NAME __FUNCTION__
-#else
-  // From C99, supported by some C++ compilers. Just the raw function name.
-# define PROFILER_FUNCTION_NAME __func__
-#endif
-
 // Insert an RAII object in this scope to enter a pseudo stack frame. Any
 // samples collected in this scope will contain this label in their pseudo
 // stack. The label argument must be a string literal. It is usually of the
