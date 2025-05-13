@@ -1015,7 +1015,7 @@ XPCJSContext::Initialize(XPCJSContext* aPrimaryContext)
                            kStackQuota - kSystemCodeBuffer,
                            kStackQuota - kSystemCodeBuffer - kTrustedScriptBuffer);
 
-    profiler_set_js_context(cx);
+    PROFILER_SET_JS_CONTEXT(cx);
 
     js::SetActivityCallback(cx, ActivityCallback, this);
     JS_AddInterruptCallback(cx, InterruptCallback);

@@ -34,6 +34,8 @@
 
 #define PROFILER_JS_INTERRUPT_CALLBACK()
 
+#define PROFILER_SET_JS_CONTEXT(cx)
+
 #else // !MOZ_GECKO_PROFILER
 
 #include <functional>
@@ -232,6 +234,7 @@ void profiler_thread_wake();
 void profiler_js_interrupt_callback();
 
 // Set and clear the current thread's JSContext.
+#define PROFILER_SET_JS_CONTEXT(cx) profiler_set_js_context(cx)
 void profiler_set_js_context(JSContext* aCx);
 void profiler_clear_js_context();
 

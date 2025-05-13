@@ -2821,7 +2821,7 @@ WorkerThreadPrimaryRunnable::Run()
     }
 
     {
-      profiler_set_js_context(cx);
+      PROFILER_SET_JS_CONTEXT(cx);
 
       {
         JSAutoRequest ar(cx);
