@@ -584,7 +584,7 @@ InterruptCallback(JSContext* aCx)
   MOZ_ASSERT(worker);
 
   // Now is a good time to turn on profiling if it's pending.
-  profiler_js_interrupt_callback();
+  PROFILER_JS_INTERRUPT_CALLBACK();
 
   return worker->InterruptCallback(aCx);
 }

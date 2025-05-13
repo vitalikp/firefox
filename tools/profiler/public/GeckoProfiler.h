@@ -32,6 +32,8 @@
 #define AUTO_PROFILER_THREAD_SLEEP
 #define AUTO_PROFILER_THREAD_WAKE
 
+#define PROFILER_JS_INTERRUPT_CALLBACK()
+
 #else // !MOZ_GECKO_PROFILER
 
 #include <functional>
@@ -226,6 +228,7 @@ void profiler_thread_wake();
 // Called by the JSRuntime's operation callback. This is used to start profiling
 // on auxiliary threads. Operates the same whether the profiler is active or
 // not.
+#define PROFILER_JS_INTERRUPT_CALLBACK() profiler_js_interrupt_callback()
 void profiler_js_interrupt_callback();
 
 // Set and clear the current thread's JSContext.
