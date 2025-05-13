@@ -2310,8 +2310,7 @@ Gecko_Construct_nsStyleVariables(nsStyleVariables* ptr)
 void
 Gecko_RegisterProfilerThread(const char* name)
 {
-  char stackTop;
-  profiler_register_thread(name, &stackTop);
+  PROFILER_REGISTER_THREAD(name);
 }
 
 void

@@ -2751,8 +2751,6 @@ WorkerThreadPrimaryRunnable::Run()
 {
   using mozilla::ipc::BackgroundChild;
 
-  char stackBaseGuess;
-
   NS_SetCurrentThreadName("DOM Worker");
 
   nsAutoCString threadName;
@@ -2760,7 +2758,7 @@ WorkerThreadPrimaryRunnable::Run()
   threadName.Append(NS_LossyConvertUTF16toASCII(mWorkerPrivate->ScriptURL()));
   threadName.Append('\'');
 
-  profiler_register_thread(threadName.get(), &stackBaseGuess);
+  PROFILER_REGISTER_THREAD(threadName.get());
 
   // Note: SynchronouslyCreateForCurrentThread() must be called prior to
   //       mWorkerPrivate->SetThread() in order to avoid accidentally consuming

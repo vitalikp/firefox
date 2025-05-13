@@ -1454,15 +1454,13 @@ nsHostResolver::SizeOfIncludingThis(MallocSizeOf mallocSizeOf) const
 void
 nsHostResolver::ThreadFunc(void *arg)
 {
-    char stackTop;
-
     LOG(("DNS lookup thread - starting execution.\n"));
 
     static nsThreadPoolNaming naming;
     nsCString name = naming.GetNextThreadName("DNS Resolver");
 
+    PROFILER_REGISTER_THREAD(name.BeginReading());
     NS_SetCurrentThreadName(name.BeginReading());
-    profiler_register_thread(name.BeginReading(), &stackTop);
 
 #if defined(RES_RETRY_ON_FAILURE)
     nsResState rs;

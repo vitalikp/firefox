@@ -25,6 +25,8 @@
 
 #define AUTO_PROFILER_INIT
 
+#define PROFILER_REGISTER_THREAD(name)
+
 #else // !MOZ_GECKO_PROFILER
 
 #include <functional>
@@ -183,6 +185,8 @@ void profiler_ensure_started(int aEntries, double aInterval,
 
 // Register/unregister threads with the profiler. Both functions operate the
 // same whether the profiler is active or inactive.
+#define PROFILER_REGISTER_THREAD(name) \
+  do { char stackTop; profiler_register_thread(name, &stackTop); } while (0)
 void profiler_register_thread(const char* name, void* guessStackTop);
 void profiler_unregister_thread();
 
