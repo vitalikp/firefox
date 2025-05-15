@@ -1003,6 +1003,10 @@ enum ErrorArgumentsType {
 JSFunction*
 SelfHostedFunction(JSContext* cx, HandlePropertyName propName);
 
+/**
+ * Report an exception, using printf-style APIs to generate the error
+ * message.
+ */
 #ifdef va_start
 extern bool
 ReportErrorVA(JSContext* cx, unsigned flags, const char* format,
