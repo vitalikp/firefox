@@ -11512,7 +11512,7 @@ nsDocShell::ScrollToAnchor(bool aCurHasRef, bool aNewHasRef,
       NS_ENSURE_TRUE(mContentViewer, NS_ERROR_FAILURE);
       nsIDocument* doc = mContentViewer->GetDocument();
       NS_ENSURE_TRUE(doc, NS_ERROR_FAILURE);
-      const nsACString& aCharset = doc->GetDocumentCharacterSet();
+      const nsACString& charset = doc->GetDocumentCharacterSet();
 
       nsCOMPtr<nsITextToSubURI> textToSubURI =
         do_GetService(NS_ITEXTTOSUBURI_CONTRACTID, &rv);
@@ -11521,9 +11521,7 @@ nsDocShell::ScrollToAnchor(bool aCurHasRef, bool aNewHasRef,
       // Unescape and convert to unicode
       nsAutoString uStr;
 
-      rv = textToSubURI->UnEscapeAndConvert(PromiseFlatCString(aCharset).get(),
-                                            PromiseFlatCString(aNewHash).get(),
-                                            getter_Copies(uStr));
+      rv = textToSubURI->UnEscapeAndConvert(charset, aNewHash, uStr);
       NS_ENSURE_SUCCESS(rv, rv);
 
       // Ignore return value of GoToAnchor, since it will return an error

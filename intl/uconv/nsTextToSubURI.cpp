@@ -44,22 +44,16 @@ nsTextToSubURI::~nsTextToSubURI()
 
 NS_IMPL_ISUPPORTS(nsTextToSubURI, nsITextToSubURI)
 
-NS_IMETHODIMP  nsTextToSubURI::ConvertAndEscape(
-  const char *charset, const char16_t *text, char **_retval) 
+NS_IMETHODIMP
+nsTextToSubURI::ConvertAndEscape(const nsACString& aCharset,
+                                 const nsAString& aText,
+                                 nsACString& aOut)
 {
-  if (!_retval) {
-    return NS_ERROR_NULL_POINTER;
-  }
-  *_retval = nullptr;
   nsresult rv = NS_OK;
-  
-  if (!charset) {
-    return NS_ERROR_NULL_POINTER;
-  }
 
-  nsDependentCString label(charset);
   nsAutoCString encoding;
-  if (!EncodingUtils::FindEncodingForLabelNoReplacement(label, encoding)) {
+  if (!EncodingUtils::FindEncodingForLabelNoReplacement(aCharset, encoding)) {
+    aOut.Truncate();
     return NS_ERROR_UCONV_NOCONV;
   }
   nsCOMPtr<nsIUnicodeEncoder> encoder =
@@ -68,9 +62,10 @@ NS_IMETHODIMP  nsTextToSubURI::ConvertAndEscape(
   if (NS_SUCCEEDED(rv) ) {
     char buf[256];
     char *pBuf = buf;
-    int32_t ulen = text ? NS_strlen(text) : 0;
+    const char16_t *text = aText.BeginReading();
+    int32_t srcLen = aText.Length();
     int32_t outlen = 0;
-    if (NS_SUCCEEDED(rv = encoder->GetMaxLength(text, ulen, &outlen))) {
+    if (NS_SUCCEEDED(rv = encoder->GetMaxLength(text, srcLen, &outlen))) {
       if (outlen >= 256) {
         pBuf = (char*)moz_xmalloc(outlen+1);
       }
@@ -79,7 +74,7 @@ NS_IMETHODIMP  nsTextToSubURI::ConvertAndEscape(
         pBuf = buf;
       }
       int32_t bufLen = outlen;
-      if (NS_SUCCEEDED(rv = encoder->Convert(text,&ulen, pBuf, &outlen))) {
+      if (NS_SUCCEEDED(rv = encoder->Convert(text, &srcLen, pBuf, &outlen))) {
         // put termination characters (e.g. ESC(B of ISO-2022-JP) if necessary
         int32_t finLen = bufLen - outlen;
         if (finLen > 0) {
@@ -87,10 +82,13 @@ NS_IMETHODIMP  nsTextToSubURI::ConvertAndEscape(
             outlen += finLen;
           }
         }
-        *_retval = nsEscape(pBuf, outlen, nullptr, url_XPAlphas);
-        if (nullptr == *_retval) {
+        size_t escLen = 0;
+        char* esc = nsEscape(pBuf, outlen, &escLen, url_XPAlphas);
+        if (!esc) {
+          aOut.Truncate();
           rv = NS_ERROR_OUT_OF_MEMORY;
         }
+        aOut.Adopt(esc, escLen);
       }
     }
     if (pBuf != buf) {
@@ -101,34 +99,26 @@ NS_IMETHODIMP  nsTextToSubURI::ConvertAndEscape(
   return rv;
 }
 
-NS_IMETHODIMP  nsTextToSubURI::UnEscapeAndConvert(
-  const char *charset, const char *text, char16_t **_retval) 
+NS_IMETHODIMP
+nsTextToSubURI::UnEscapeAndConvert(const nsACString& aCharset,
+                                   const nsACString& aText,
+                                   nsAString& aOut)
 {
-  if(nullptr == _retval)
-    return NS_ERROR_NULL_POINTER;
-  if(nullptr == text) {
-    // set empty string instead of returning error
-    // due to compatibility for old version
-    text = "";
-  }
-  *_retval = nullptr;
   nsresult rv = NS_OK;
-  
-  if (!charset) {
-    return NS_ERROR_NULL_POINTER;
-  }
-
 
   // unescape the string, unescape changes the input
+  const char *text = aText.BeginReading();
   char *unescaped = NS_strdup(text);
-  if (nullptr == unescaped)
+  if (nullptr == unescaped) {
+    aOut.Truncate();
     return NS_ERROR_OUT_OF_MEMORY;
+  }
   unescaped = nsUnescape(unescaped);
   NS_ASSERTION(unescaped, "nsUnescape returned null");
 
-  nsDependentCString label(charset);
   nsAutoCString encoding;
-  if (!EncodingUtils::FindEncodingForLabelNoReplacement(label, encoding)) {
+  if (!EncodingUtils::FindEncodingForLabelNoReplacement(aCharset, encoding)) {
+    aOut.Truncate();
     return NS_ERROR_UCONV_NOCONV;
   }
   nsCOMPtr<nsIUnicodeDecoder> decoder =
@@ -139,11 +129,12 @@ NS_IMETHODIMP  nsTextToSubURI::UnEscapeAndConvert(
   if (NS_SUCCEEDED(rv = decoder->GetMaxLength(unescaped, len, &outlen))) {
     pBuf = (char16_t *) moz_xmalloc((outlen+1)*sizeof(char16_t));
     if (nullptr == pBuf) {
+      aOut.Truncate();
       rv = NS_ERROR_OUT_OF_MEMORY;
     } else {
       if (NS_SUCCEEDED(rv = decoder->Convert(unescaped, &len, pBuf, &outlen))) {
         pBuf[outlen] = 0;
-        *_retval = pBuf;
+        aOut.Adopt(pBuf, outlen);
       } else {
         free(pBuf);
       }
