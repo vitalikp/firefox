@@ -16,6 +16,8 @@
 #include "nsPrintfCString.h"            // for nsPrintfCString
 #include "nsString.h"                   // for nsAutoCString
 
+#define BIAS_TIME_MS 1.0
+
 namespace mozilla {
 
 using namespace gfx;
