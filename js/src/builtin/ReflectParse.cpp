@@ -3105,7 +3105,7 @@ ASTSerializer::objectPattern(ParseNode* pn, MutableHandleValue dst)
             RootedValue spread(cx);
             if (!pattern(propdef->pn_kid, &target))
                 return false;
-            if(!builder.spreadExpression(target, &propdef->pn_pos, &spread))
+            if (!builder.spreadExpression(target, &propdef->pn_pos, &spread))
                 return false;
             elts.infallibleAppend(spread);
             continue;
