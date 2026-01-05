@@ -718,8 +718,7 @@ class MOZ_RAII AutoSetCreatedForHelperThread
 };
 
 static JSObject*
-CreateGlobalForOffThreadParse(JSContext* cx, ParseTaskKind kind,
-                              const gc::AutoSuppressGC& nogc)
+CreateGlobalForOffThreadParse(JSContext* cx, const gc::AutoSuppressGC& nogc)
 {
     JSCompartment* currentCompartment = cx->compartment();
 
@@ -780,7 +779,7 @@ StartOffThreadParseTask(JSContext* cx, const ReadOnlyCompileOptions& options,
     gc::AutoAssertNoNurseryAlloc noNurseryAlloc;
     AutoSuppressAllocationMetadataBuilder suppressMetadata(cx);
 
-    JSObject* global = CreateGlobalForOffThreadParse(cx, kind, nogc);
+    JSObject* global = CreateGlobalForOffThreadParse(cx, nogc);
     if (!global)
         return false;
 

@@ -408,7 +408,7 @@ struct BaselineScript
         return icEntries_;
     }
 
-    void copyICEntries(JSScript* script, const BaselineICEntry* entries, MacroAssembler& masm);
+    void copyICEntries(JSScript* script, const BaselineICEntry* entries);
     void adoptFallbackStubs(FallbackICStubSpace* stubSpace);
 
     void copyYieldAndAwaitEntries(JSScript* script, Vector<uint32_t>& yieldAndAwaitOffsets);

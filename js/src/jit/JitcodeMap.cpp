@@ -717,7 +717,7 @@ JitcodeGlobalTable::verifySkiplist()
 #endif // DEBUG
 
 void
-JitcodeGlobalTable::setAllEntriesAsExpired(JSRuntime* rt)
+JitcodeGlobalTable::setAllEntriesAsExpired()
 {
     AutoSuppressProfilerSampling suppressSampling(TlsContext.get());
     for (Range r(*this); !r.empty(); r.popFront()) {

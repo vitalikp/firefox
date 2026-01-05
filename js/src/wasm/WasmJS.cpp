@@ -2237,8 +2237,8 @@ Reject(JSContext* cx, const CompileArgs& args, UniqueChars error, Handle<Promise
 }
 
 static bool
-Resolve(JSContext* cx, Module& module, const CompileArgs& compileArgs,
-        Handle<PromiseObject*> promise, bool instantiate, HandleObject importObj)
+Resolve(JSContext* cx, Module& module, Handle<PromiseObject*> promise, bool instantiate,
+        HandleObject importObj)
 {
     RootedObject proto(cx, &cx->global()->getPrototype(JSProto_WasmModule).toObject());
     RootedObject moduleObj(cx, WasmModuleObject::create(cx, module, proto));
@@ -2308,7 +2308,7 @@ struct CompileBufferTask : PromiseHelperTask
 
     bool resolve(JSContext* cx, Handle<PromiseObject*> promise) override {
         return module
-               ? Resolve(cx, *module, *compileArgs, promise, instantiate, importObj)
+               ? Resolve(cx, *module, promise, instantiate, importObj)
                : Reject(cx, *compileArgs, Move(error), promise);
     }
 };
@@ -2695,7 +2695,7 @@ class CompileStreamTask : public PromiseHelperTask, public JS::StreamConsumer
         MOZ_ASSERT(streamState_.lock() == Closed);
         MOZ_ASSERT_IF(module_, !streamFailed_ && !streamError_ && !compileError_);
         return module_
-               ? Resolve(cx, *module_, *compileArgs_, promise, instantiate_, importObj_)
+               ? Resolve(cx, *module_, promise, instantiate_, importObj_)
                : streamError_
                  ? RejectWithErrorNumber(cx, *streamError_, promise)
                  : Reject(cx, *compileArgs_, Move(compileError_), promise);

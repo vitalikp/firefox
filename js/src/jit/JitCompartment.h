@@ -446,7 +446,7 @@ class JitZone
 
   public:
     MOZ_MUST_USE bool init(JSContext* cx);
-    void sweep(FreeOp* fop);
+    void sweep();
 
     void addSizeOfIncludingThis(mozilla::MallocSizeOf mallocSizeOf,
                                 size_t* jitZone,
@@ -608,7 +608,7 @@ class JitCompartment
     // Initialize code stubs only used by Ion, not Baseline.
     MOZ_MUST_USE bool ensureIonStubsExist(JSContext* cx);
 
-    void sweep(FreeOp* fop, JSCompartment* compartment);
+    void sweep(JSCompartment* compartment);
 
     JitCode* stringConcatStubNoBarrier() const {
         return stringConcatStub_;

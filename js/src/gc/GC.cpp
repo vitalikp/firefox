@@ -768,7 +768,7 @@ GCRuntime::expireEmptyChunkPool(const AutoLockGC& lock)
 }
 
 static void
-FreeChunkPool(JSRuntime* rt, ChunkPool& pool)
+FreeChunkPool(ChunkPool& pool)
 {
     for (ChunkPool::Iter iter(pool); !iter.done();) {
         Chunk* chunk = iter.get();
@@ -781,9 +781,9 @@ FreeChunkPool(JSRuntime* rt, ChunkPool& pool)
 }
 
 void
-GCRuntime::freeEmptyChunks(JSRuntime* rt, const AutoLockGC& lock)
+GCRuntime::freeEmptyChunks(const AutoLockGC& lock)
 {
-    FreeChunkPool(rt, emptyChunks(lock));
+    FreeChunkPool(emptyChunks(lock));
 }
 
 inline void
@@ -1261,9 +1261,9 @@ GCRuntime::finish()
 
     groups().clear();
 
-    FreeChunkPool(rt, fullChunks_.ref());
-    FreeChunkPool(rt, availableChunks_.ref());
-    FreeChunkPool(rt, emptyChunks_.ref());
+    FreeChunkPool(fullChunks_.ref());
+    FreeChunkPool(availableChunks_.ref());
+    FreeChunkPool(emptyChunks_.ref());
 
     FinishTrace();
 
@@ -2441,8 +2441,7 @@ Zone::prepareForCompacting()
 void
 GCRuntime::sweepTypesAfterCompacting(Zone* zone)
 {
-    FreeOp* fop = rt->defaultFreeOp();
-    zone->beginSweepTypes(fop, rt->gc.releaseObservedTypes && !zone->isPreservingCode());
+    zone->beginSweepTypes(rt->gc.releaseObservedTypes && !zone->isPreservingCode());
 
     AutoClearTypeInferenceStateOnOOM oom(zone);
 
@@ -2466,10 +2465,10 @@ GCRuntime::sweepZoneAfterCompacting(Zone* zone)
         cache->sweep();
 
     if (jit::JitZone* jitZone = zone->jitZone())
-        jitZone->sweep(fop);
+        jitZone->sweep();
 
     for (CompartmentsInZoneIter c(zone); !c.done(); c.next()) {
-        c->objectGroups.sweep(fop);
+        c->objectGroups.sweep();
         c->sweepRegExps();
         c->sweepSavedStacks();
         c->sweepTemplateLiteralMap();
@@ -2477,7 +2476,7 @@ GCRuntime::sweepZoneAfterCompacting(Zone* zone)
         c->sweepGlobalObject();
         c->sweepSelfHostingScriptSource();
         c->sweepDebugEnvironments();
-        c->sweepJitCompartment(fop);
+        c->sweepJitCompartment();
         c->sweepNativeIterators();
         c->sweepTemplateObjects();
     }
@@ -3431,7 +3430,7 @@ js::gc::BackgroundDecommitTask::run()
     ChunkPool toFree = runtime()->gc.expireEmptyChunkPool(lock);
     if (toFree.count()) {
         AutoUnlockGC unlock(lock);
-        FreeChunkPool(runtime(), toFree);
+        FreeChunkPool(toFree);
     }
 }
 
@@ -5327,7 +5326,7 @@ static void
 SweepObjectGroups(JSRuntime* runtime)
 {
     for (SweepGroupCompartmentsIter c(runtime); !c.done(); c.next())
-        c->objectGroups.sweep(runtime->defaultFreeOp());
+        c->objectGroups.sweep();
 }
 
 static void
@@ -5456,11 +5455,11 @@ GCRuntime::sweepJitDataOnMainThread(FreeOp* fop)
         js::CancelOffThreadIonCompile(rt, JS::Zone::Sweep);
 
         for (SweepGroupCompartmentsIter c(rt); !c.done(); c.next())
-            c->sweepJitCompartment(fop);
+            c->sweepJitCompartment();
 
         for (SweepGroupZonesIter zone(rt); !zone.done(); zone.next()) {
             if (jit::JitZone* jitZone = zone->jitZone())
-                jitZone->sweep(fop);
+                jitZone->sweep();
         }
 
         // Bug 1071218: the following method has not yet been refactored to
@@ -5481,7 +5480,7 @@ GCRuntime::sweepJitDataOnMainThread(FreeOp* fop)
         gcstats::AutoPhase ap1(stats(), gcstats::PhaseKind::SWEEP_TYPES);
         gcstats::AutoPhase ap2(stats(), gcstats::PhaseKind::SWEEP_TYPES_BEGIN);
         for (SweepGroupZonesIter zone(rt); !zone.done(); zone.next())
-            zone->beginSweepTypes(fop, releaseObservedTypes && !zone->isPreservingCode());
+            zone->beginSweepTypes(releaseObservedTypes && !zone->isPreservingCode());
     }
 }
 
@@ -7714,7 +7713,7 @@ GCRuntime::onOutOfMallocMemory(const AutoLockGC& lock)
     releaseHeldRelocatedArenasWithoutUnlocking(lock);
 
     // Throw away any excess chunks we have lying around.
-    freeEmptyChunks(rt, lock);
+    freeEmptyChunks(lock);
 
     // Immediately decommit as many arenas as possible in the hopes that this
     // might let the OS scrape together enough pages to satisfy the failing

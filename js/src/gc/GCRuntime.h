@@ -511,10 +511,9 @@ class GCRuntime
     MOZ_MUST_USE bool gcIfNeededAtAllocation(JSContext* cx);
     template <typename T>
     static void checkIncrementalZoneState(JSContext* cx, T* t);
-    static TenuredCell* refillFreeListFromAnyThread(JSContext* cx, AllocKind thingKind,
-                                                    size_t thingSize);
-    static TenuredCell* refillFreeListFromActiveCooperatingThread(JSContext* cx, AllocKind thingKind,
-                                                                  size_t thingSize);
+    static TenuredCell* refillFreeListFromAnyThread(JSContext* cx, AllocKind thingKind);
+    static TenuredCell* refillFreeListFromActiveCooperatingThread(JSContext* cx,
+                                                                  AllocKind thingKind);
     static TenuredCell* refillFreeListFromHelperThread(JSContext* cx, AllocKind thingKind);
 
     /*
@@ -523,7 +522,7 @@ class GCRuntime
      */
     friend class BackgroundDecommitTask;
     ChunkPool expireEmptyChunkPool(const AutoLockGC& lock);
-    void freeEmptyChunks(JSRuntime* rt, const AutoLockGC& lock);
+    void freeEmptyChunks(const AutoLockGC& lock);
     void prepareToFreeChunk(ChunkInfo& info);
 
     friend class BackgroundAllocTask;

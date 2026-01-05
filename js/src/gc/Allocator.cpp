@@ -163,7 +163,7 @@ GCRuntime::tryNewTenuredThing(JSContext* cx, AllocKind kind, size_t thingSize)
         // Get the next available free list and allocate out of it. This may
         // acquire a new arena, which will lock the chunk list. If there are no
         // chunks available it may also allocate new memory directly.
-        t = reinterpret_cast<T*>(refillFreeListFromAnyThread(cx, kind, thingSize));
+        t = reinterpret_cast<T*>(refillFreeListFromAnyThread(cx, kind));
 
         if (MOZ_UNLIKELY(!t && allowGC && !cx->helperThread())) {
             // We have no memory available for a new chunk; perform an
@@ -280,18 +280,18 @@ GCRuntime::startBackgroundAllocTaskIfIdle()
 }
 
 /* static */ TenuredCell*
-GCRuntime::refillFreeListFromAnyThread(JSContext* cx, AllocKind thingKind, size_t thingSize)
+GCRuntime::refillFreeListFromAnyThread(JSContext* cx, AllocKind thingKind)
 {
     cx->arenas()->checkEmptyFreeList(thingKind);
 
     if (!cx->helperThread())
-        return refillFreeListFromActiveCooperatingThread(cx, thingKind, thingSize);
+        return refillFreeListFromActiveCooperatingThread(cx, thingKind);
 
     return refillFreeListFromHelperThread(cx, thingKind);
 }
 
 /* static */ TenuredCell*
-GCRuntime::refillFreeListFromActiveCooperatingThread(JSContext* cx, AllocKind thingKind, size_t thingSize)
+GCRuntime::refillFreeListFromActiveCooperatingThread(JSContext* cx, AllocKind thingKind)
 {
     // It should not be possible to allocate on the active thread while we are
     // inside a GC.

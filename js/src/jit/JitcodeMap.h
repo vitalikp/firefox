@@ -1072,7 +1072,7 @@ class JitcodeGlobalTable
     void removeEntry(JitcodeGlobalEntry& entry, JitcodeGlobalEntry** prevTower, JSRuntime* rt);
     void releaseEntry(JitcodeGlobalEntry& entry, JitcodeGlobalEntry** prevTower, JSRuntime* rt);
 
-    void setAllEntriesAsExpired(JSRuntime* rt);
+    void setAllEntriesAsExpired();
     void traceForMinorGC(JSTracer* trc);
     MOZ_MUST_USE bool markIteratively(GCMarker* marker);
     void sweep(JSRuntime* rt);

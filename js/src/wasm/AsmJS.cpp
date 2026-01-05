@@ -688,7 +688,7 @@ FunctionStatementList(ParseNode* fn)
 }
 
 static inline bool
-IsNormalObjectField(JSContext* cx, ParseNode* pn)
+IsNormalObjectField(ParseNode* pn)
 {
     return pn->isKind(ParseNodeKind::Colon) &&
            pn->getOp() == JSOP_INITPROP &&
@@ -696,17 +696,17 @@ IsNormalObjectField(JSContext* cx, ParseNode* pn)
 }
 
 static inline PropertyName*
-ObjectNormalFieldName(JSContext* cx, ParseNode* pn)
+ObjectNormalFieldName(ParseNode* pn)
 {
-    MOZ_ASSERT(IsNormalObjectField(cx, pn));
+    MOZ_ASSERT(IsNormalObjectField(pn));
     MOZ_ASSERT(BinaryLeft(pn)->isKind(ParseNodeKind::ObjectPropertyName));
     return BinaryLeft(pn)->pn_atom->asPropertyName();
 }
 
 static inline ParseNode*
-ObjectNormalFieldInitializer(JSContext* cx, ParseNode* pn)
+ObjectNormalFieldInitializer(ParseNode* pn)
 {
-    MOZ_ASSERT(IsNormalObjectField(cx, pn));
+    MOZ_ASSERT(IsNormalObjectField(pn));
     return BinaryRight(pn);
 }
 
@@ -7410,12 +7410,12 @@ CheckModuleExportObject(ModuleValidator& m, ParseNode* object)
     MOZ_ASSERT(object->isKind(ParseNodeKind::Object));
 
     for (ParseNode* pn = ListHead(object); pn; pn = NextNode(pn)) {
-        if (!IsNormalObjectField(m.cx(), pn))
+        if (!IsNormalObjectField(pn))
             return m.fail(pn, "only normal object properties may be used in the export object literal");
 
-        PropertyName* fieldName = ObjectNormalFieldName(m.cx(), pn);
+        PropertyName* fieldName = ObjectNormalFieldName(pn);
 
-        ParseNode* initNode = ObjectNormalFieldInitializer(m.cx(), pn);
+        ParseNode* initNode = ObjectNormalFieldInitializer(pn);
         if (!initNode->isKind(ParseNodeKind::Name))
             return m.fail(initNode, "initializer of exported object literal must be name of function");
 

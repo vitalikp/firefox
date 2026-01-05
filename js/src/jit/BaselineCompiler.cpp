@@ -234,7 +234,7 @@ BaselineCompiler::compile()
 
     // Copy IC entries
     if (icEntries_.length())
-        baselineScript->copyICEntries(script, &icEntries_[0], masm);
+        baselineScript->copyICEntries(script, &icEntries_[0]);
 
     // Adopt fallback stubs from the compiler into the baseline script.
     baselineScript->adoptFallbackStubs(&stubSpace_);

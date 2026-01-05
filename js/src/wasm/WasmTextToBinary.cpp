@@ -1758,7 +1758,7 @@ ParseExpr(WasmParseContext& c, bool inParens)
 }
 
 static bool
-ParseExprList(WasmParseContext& c, AstExprVector* exprs, bool inParens)
+ParseExprList(WasmParseContext& c, AstExprVector* exprs)
 {
     for (;;) {
         if (c.ts.getIf(WasmToken::OpenParen)) {
@@ -1818,7 +1818,7 @@ ParseBlock(WasmParseContext& c, Op op, bool inParens)
     if (!ParseBlockSignature(c, &type))
         return nullptr;
 
-    if (!ParseExprList(c, &exprs, inParens))
+    if (!ParseExprList(c, &exprs))
         return nullptr;
 
     if (!inParens) {
@@ -2432,7 +2432,7 @@ ParseIf(WasmParseContext& c, bool inParens)
 
     AstExprVector thenExprs(c.lifo);
     if (!inParens || c.ts.getIf(WasmToken::Then)) {
-        if (!ParseExprList(c, &thenExprs, inParens))
+        if (!ParseExprList(c, &thenExprs))
             return nullptr;
     } else {
         AstExpr* thenBranch = ParseExprInsideParens(c);
@@ -2447,7 +2447,7 @@ ParseIf(WasmParseContext& c, bool inParens)
     AstExprVector elseExprs(c.lifo);
     if (!inParens || c.ts.getIf(WasmToken::OpenParen)) {
         if (c.ts.getIf(WasmToken::Else)) {
-            if (!ParseExprList(c, &elseExprs, inParens))
+            if (!ParseExprList(c, &elseExprs))
                 return nullptr;
         } else if (inParens) {
             AstExpr* elseBranch = ParseExprInsideParens(c);
@@ -3190,7 +3190,7 @@ ParseFunc(WasmParseContext& c, AstModule* module)
             return false;
     }
 
-    if (!ParseExprList(c, &body, true))
+    if (!ParseExprList(c, &body))
         return false;
 
     if (sigRef.isInvalid()) {

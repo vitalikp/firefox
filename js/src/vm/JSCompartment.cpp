@@ -860,10 +860,10 @@ JSCompartment::sweepSelfHostingScriptSource()
 }
 
 void
-JSCompartment::sweepJitCompartment(FreeOp* fop)
+JSCompartment::sweepJitCompartment()
 {
     if (jitCompartment_)
-        jitCompartment_->sweep(fop, this);
+        jitCompartment_->sweep(this);
 }
 
 void

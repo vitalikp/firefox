@@ -743,7 +743,7 @@ BaselineScript::copyYieldAndAwaitEntries(JSScript* script, Vector<uint32_t>& yie
 }
 
 void
-BaselineScript::copyICEntries(JSScript* script, const BaselineICEntry* entries, MacroAssembler& masm)
+BaselineScript::copyICEntries(JSScript* script, const BaselineICEntry* entries)
 {
     // Fix up the return offset in the IC entries and copy them in.
     // Also write out the IC entry ptrs in any fallback stubs that were added.

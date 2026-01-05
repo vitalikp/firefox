@@ -10104,7 +10104,7 @@ CodeGenerator::link(JSContext* cx, CompilerConstraintList* constraints)
 
     // for marking during GC.
     if (safepointIndices_.length())
-        ionScript->copySafepointIndices(&safepointIndices_[0], masm);
+        ionScript->copySafepointIndices(&safepointIndices_[0]);
     if (safepoints_.size())
         ionScript->copySafepoints(&safepoints_);
 
@@ -10112,7 +10112,7 @@ CodeGenerator::link(JSContext* cx, CompilerConstraintList* constraints)
     if (bailouts_.length())
         ionScript->copyBailoutTable(&bailouts_[0]);
     if (osiIndices_.length())
-        ionScript->copyOsiIndices(&osiIndices_[0], masm);
+        ionScript->copyOsiIndices(&osiIndices_[0]);
     if (snapshots_.listSize())
         ionScript->copySnapshots(&snapshots_);
     MOZ_ASSERT_IF(snapshots_.listSize(), recovers_.size());

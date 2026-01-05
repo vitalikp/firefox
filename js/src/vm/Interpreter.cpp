@@ -1160,20 +1160,13 @@ js::UnwindEnvironmentToTryPc(JSScript* script, JSTryNote* tn)
 }
 
 static bool
-ForcedReturn(JSContext* cx, EnvironmentIter& ei, InterpreterRegs& regs, bool frameOk = true)
+ForcedReturn(JSContext* cx, InterpreterRegs& regs)
 {
-    bool ok = Debugger::onLeaveFrame(cx, regs.fp(), regs.pc, frameOk);
+    bool ok = Debugger::onLeaveFrame(cx, regs.fp(), regs.pc, true);
     // Point the frame to the end of the script, regardless of error. The
     // caller must jump to the correct continuation depending on 'ok'.
     regs.setToEndOfScript();
     return ok;
-}
-
-static bool
-ForcedReturn(JSContext* cx, InterpreterRegs& regs)
-{
-    EnvironmentIter ei(cx, regs.fp(), regs.pc);
-    return ForcedReturn(cx, ei, regs);
 }
 
 static void
@@ -1366,7 +1359,7 @@ HandleError(JSContext* cx, InterpreterRegs& regs)
 
               case JSTRAP_RETURN:
                 UnwindIteratorsForUncatchableException(cx, regs);
-                if (!ForcedReturn(cx, ei, regs))
+                if (!ForcedReturn(cx, regs))
                     return ErrorReturnContinuation;
                 return SuccessfulReturnContinuation;
 
@@ -1397,7 +1390,7 @@ HandleError(JSContext* cx, InterpreterRegs& regs)
         // callback, which cannot easily force a return.
         if (MOZ_UNLIKELY(cx->isPropagatingForcedReturn())) {
             cx->clearPropagatingForcedReturn();
-            if (!ForcedReturn(cx, ei, regs))
+            if (!ForcedReturn(cx, regs))
                 return ErrorReturnContinuation;
             return SuccessfulReturnContinuation;
         }

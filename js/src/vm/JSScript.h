@@ -1174,10 +1174,8 @@ class JSScript : public js::gc::TenuredCell
                               uint32_t nTypeSets);
 
   private:
-    static void initFromFunctionBox(JSContext* cx, js::HandleScript script,
-                                    js::frontend::FunctionBox* funbox);
-    static void initFromModuleContext(JSContext* cx, js::HandleScript script,
-                                      js::frontend::ModuleSharedContext* modulesc);
+    static void initFromFunctionBox(js::HandleScript script, js::frontend::FunctionBox* funbox);
+    static void initFromModuleContext(js::HandleScript script);
 
   public:
     static bool fullyInitFromEmitter(JSContext* cx, js::HandleScript script,
