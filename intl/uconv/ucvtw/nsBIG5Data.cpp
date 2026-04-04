@@ -7,6 +7,7 @@
  * Instead, please regenerate using intl/uconv/tools/gen-big5-data.py
  */
 
+#include "mozilla/ArrayUtils.h"
 #include "nsBIG5Data.h"
 
 static const char16_t kBig5LowBitsTable[] = {
