@@ -548,7 +548,7 @@ private:
 
   int mCapIndex;
   int mChannel;
-  MOZ_INIT_OUTSIDE_CTOR TrackID mTrackID;
+  TrackID mTrackID;
   bool mStarted;
 
   nsString mDeviceName;

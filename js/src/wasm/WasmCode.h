@@ -223,7 +223,7 @@ class ModuleSegment : public CodeSegment
 class FuncExport
 {
     Sig sig_;
-    MOZ_INIT_OUTSIDE_CTOR struct CacheablePod {
+    struct CacheablePod {
         uint32_t funcIndex_;
         uint32_t interpCodeRangeIndex_;
         uint32_t eagerInterpEntryOffset_; // Machine code offset

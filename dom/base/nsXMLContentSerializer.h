@@ -336,7 +336,7 @@ class nsXMLContentSerializer : public nsIContentSerializer {
   nsTArray<NameSpaceDecl> mNameSpaceStack;
 
   // nsIDocumentEncoder flags
-  MOZ_INIT_OUTSIDE_CTOR uint32_t  mFlags;
+  uint32_t  mFlags;
 
   // characters to use for line break
   nsString  mLineBreak;
@@ -348,20 +348,20 @@ class nsXMLContentSerializer : public nsIContentSerializer {
   uint32_t   mColPos;
 
   // true = pretty formating should be done (OutputFormated flag)
-  MOZ_INIT_OUTSIDE_CTOR bool mDoFormat;
+  bool mDoFormat;
 
   // true = no formatting,(OutputRaw flag)
   // no newline convertion and no rewrap long lines even if OutputWrap is set.
-  MOZ_INIT_OUTSIDE_CTOR bool mDoRaw;
+  bool mDoRaw;
 
   // true = wrapping should be done (OutputWrap flag)
-  MOZ_INIT_OUTSIDE_CTOR bool mDoWrap;
+  bool mDoWrap;
 
   // true = we can break lines (OutputDisallowLineBreaking flag)
-  MOZ_INIT_OUTSIDE_CTOR bool mAllowLineBreaking;
+  bool mAllowLineBreaking;
 
   // number of maximum column in a line, in the wrap mode
-  MOZ_INIT_OUTSIDE_CTOR uint32_t   mMaxColumn;
+  uint32_t   mMaxColumn;
 
   // current indent value
   nsString   mIndent;
@@ -397,7 +397,7 @@ class nsXMLContentSerializer : public nsIContentSerializer {
 
 private:
   // number of nested elements which have preformated content
-  MOZ_INIT_OUTSIDE_CTOR int32_t mPreLevel;
+  int32_t       mPreLevel;
 };
 
 nsresult

@@ -107,19 +107,19 @@ private:
 
   // If you change any of these members, update Serialize()
   nsCString mAlternateHost;
-  MOZ_INIT_OUTSIDE_CTOR int32_t mAlternatePort;
+  int32_t mAlternatePort;
 
   nsCString mOriginHost;
-  MOZ_INIT_OUTSIDE_CTOR int32_t mOriginPort;
+  int32_t mOriginPort;
 
   nsCString mUsername;
-  MOZ_INIT_OUTSIDE_CTOR bool mPrivate;
+  bool mPrivate;
 
-  MOZ_INIT_OUTSIDE_CTOR uint32_t mExpiresAt; // alt-svc mappping
+  uint32_t mExpiresAt; // alt-svc mappping
 
-  MOZ_INIT_OUTSIDE_CTOR bool mValidated;
-  MOZ_INIT_OUTSIDE_CTOR bool mHttps; // origin is https://
-  MOZ_INIT_OUTSIDE_CTOR bool mMixedScheme; // .wk allows http and https on same con
+  bool mValidated;
+  bool mHttps; // origin is https://
+  bool mMixedScheme; // .wk allows http and https on same con
 
   nsCString mNPNToken;
 

@@ -473,9 +473,9 @@ public:
         uint32_t GetStringEnd() const { return mStringEnd; }
     private:
         const gfxTextRun *mTextRun;
-        MOZ_INIT_OUTSIDE_CTOR const GlyphRun   *mGlyphRun;
-        MOZ_INIT_OUTSIDE_CTOR uint32_t    mStringStart;
-        MOZ_INIT_OUTSIDE_CTOR uint32_t    mStringEnd;
+        const GlyphRun   *mGlyphRun;
+        uint32_t    mStringStart;
+        uint32_t    mStringEnd;
         uint32_t    mNextIndex;
         uint32_t    mStartOffset;
         uint32_t    mEndOffset;

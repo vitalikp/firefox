@@ -571,19 +571,19 @@ private:
   net::ReferrerPolicy mEnvironmentReferrerPolicy;
   RequestMode mMode;
   RequestCredentials mCredentialsMode;
-  MOZ_INIT_OUTSIDE_CTOR LoadTainting mResponseTainting;
+  LoadTainting mResponseTainting;
   RequestCache mCacheMode;
   RequestRedirect mRedirectMode;
   nsString mIntegrity;
   nsCString mFragment;
-  MOZ_INIT_OUTSIDE_CTOR bool mAuthenticationFlag;
-  MOZ_INIT_OUTSIDE_CTOR bool mForceOriginHeader;
-  MOZ_INIT_OUTSIDE_CTOR bool mPreserveContentCodings;
-  MOZ_INIT_OUTSIDE_CTOR bool mSameOriginDataURL;
-  MOZ_INIT_OUTSIDE_CTOR bool mSkipServiceWorker;
-  MOZ_INIT_OUTSIDE_CTOR bool mSynchronous;
-  MOZ_INIT_OUTSIDE_CTOR bool mUnsafeRequest;
-  MOZ_INIT_OUTSIDE_CTOR bool mUseURLCredentials;
+  bool mAuthenticationFlag;
+  bool mForceOriginHeader;
+  bool mPreserveContentCodings;
+  bool mSameOriginDataURL;
+  bool mSkipServiceWorker;
+  bool mSynchronous;
+  bool mUnsafeRequest;
+  bool mUseURLCredentials;
   // This is only set when a Request object is created by a fetch event.  We
   // use it to check if Service Workers are simply fetching intercepted Request
   // objects without modifying them.

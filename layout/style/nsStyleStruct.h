@@ -738,8 +738,7 @@ struct nsStyleImageLayers {
     mozilla::Position mPosition;  // [reset]
     Size          mSize;          // [reset]
     StyleGeometryBox  mClip;      // [reset] See nsStyleConsts.h
-    MOZ_INIT_OUTSIDE_CTOR
-      StyleGeometryBox mOrigin;   // [reset] See nsStyleConsts.h
+    StyleGeometryBox  mOrigin;    // [reset] See nsStyleConsts.h
     uint8_t       mAttachment;    // [reset] See nsStyleConsts.h
                                   // background-only property
                                   // This property is used for background layer

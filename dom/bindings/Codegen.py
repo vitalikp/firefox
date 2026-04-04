@@ -10889,18 +10889,15 @@ class ClassDestructor(ClassItem):
 
 class ClassMember(ClassItem):
     def __init__(self, name, type, visibility="private", static=False,
-                 body=None, hasIgnoreInitCheckFlag=False):
+                 body=None):
         self.type = type
         self.static = static
         self.body = body
-        self.hasIgnoreInitCheckFlag = hasIgnoreInitCheckFlag;
         ClassItem.__init__(self, name, visibility)
 
     def declare(self, cgClass):
-        return '%s%s%s %s;\n' % ('static ' if self.static else '',
-                                 'MOZ_INIT_OUTSIDE_CTOR '
-                                 if self.hasIgnoreInitCheckFlag else '',
-                                 self.type, self.name)
+        return '%s%s %s;\n' % ('static ' if self.static else '',
+                               self.type, self.name)
 
     def define(self, cgClass):
         if not self.static:
@@ -13244,8 +13241,7 @@ class CGDictionary(CGThing):
         members = [ClassMember(self.makeMemberName(m[0].identifier.name),
                                self.getMemberType(m),
                                visibility="public",
-                               body=self.getMemberInitializer(m),
-                               hasIgnoreInitCheckFlag=True)
+                               body=self.getMemberInitializer(m))
                    for m in self.memberInfo]
         if d.parent:
             # We always want to init our parent with our non-initializing

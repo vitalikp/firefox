@@ -472,12 +472,6 @@
  *   declarations where an instance of the template should be considered, for
  *   static analysis purposes, to inherit any type annotations (such as
  *   MOZ_MUST_USE_TYPE and MOZ_STACK_CLASS) from its template arguments.
- * MOZ_INIT_OUTSIDE_CTOR: Applies to class member declarations. Occasionally
- *   there are class members that are not initialized in the constructor,
- *   but logic elsewhere in the class ensures they are initialized prior to use.
- *   Using this attribute on a member disables the check that this member must be
- *   initialized in constructors via list-initialization, in the constructor body,
- *   or via functions called from the constructor body.
  * MOZ_IS_CLASS_INIT: Applies to class method declarations. Occasionally the
  *   constructor doesn't initialize all of the member variables and another function
  *   is used to initialize the rest. This marker is used to make the static analysis
@@ -532,8 +526,6 @@
 #  define MOZ_INHERIT_TYPE_ANNOTATIONS_FROM_TEMPLATE_ARGS \
     __attribute__((annotate("moz_inherit_type_annotations_from_template_args")))
 #  define MOZ_NON_AUTOABLE __attribute__((annotate("moz_non_autoable")))
-#  define MOZ_INIT_OUTSIDE_CTOR \
-    __attribute__((annotate("moz_ignore_ctor_initialization")))
 #  define MOZ_IS_CLASS_INIT \
     __attribute__((annotate("moz_is_class_init")))
 #  define MOZ_NON_PARAM \
@@ -575,7 +567,6 @@
 #  define MOZ_NEEDS_MEMMOVABLE_TYPE /* nothing */
 #  define MOZ_NEEDS_MEMMOVABLE_MEMBERS /* nothing */
 #  define MOZ_INHERIT_TYPE_ANNOTATIONS_FROM_TEMPLATE_ARGS /* nothing */
-#  define MOZ_INIT_OUTSIDE_CTOR /* nothing */
 #  define MOZ_IS_CLASS_INIT /* nothing */
 #  define MOZ_NON_PARAM /* nothing */
 #  define MOZ_NON_AUTOABLE /* nothing */

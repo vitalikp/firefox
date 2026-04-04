@@ -460,9 +460,9 @@ private:
 
     int64_t mID;
     uint16_t mSource;
-    MOZ_INIT_OUTSIDE_CTOR int64_t mParent;
+    int64_t mParent;
     nsCString mTitle;
-    MOZ_INIT_OUTSIDE_CTOR int32_t mIndex;
+    int32_t mIndex;
   };
 
   // Used to enable and disable the observer notifications.

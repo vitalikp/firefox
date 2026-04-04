@@ -123,8 +123,8 @@ public:
 private:
   // Member-vars are initialized in InitStrokeGeometry.
   FallibleTArray<gfxFloat> mDashes;
-  MOZ_INIT_OUTSIDE_CTOR gfxFloat mDashOffset;
-  MOZ_INIT_OUTSIDE_CTOR gfxFloat mStrokeWidth;
+  gfxFloat mDashOffset;
+  gfxFloat mStrokeWidth;
 };
 
 /**
@@ -216,7 +216,7 @@ public:
     } mPaintDefinition;
 
     // Initialized (if needed) in SetPaintServer():
-    MOZ_INIT_OUTSIDE_CTOR nsIFrame* mFrame;
+    nsIFrame* mFrame;
     // CTM defining the user space for the pattern we will use.
     gfxMatrix mContextMatrix;
     nsStyleSVGPaintType mPaintType;

@@ -265,14 +265,14 @@ private:
    * as its SourceGraphic, or the SourceGraphic keyword index if this is the
    * first filter in a chain. Initialized in BuildPrimitives
    */
-  MOZ_INIT_OUTSIDE_CTOR int32_t mSourceGraphicIndex;
+  int32_t mSourceGraphicIndex;
 
   /**
    * The index of the FilterPrimitiveDescription that this SVG filter should use
    * as its SourceAlpha, or the SourceAlpha keyword index if this is the first
    * filter in a chain. Initialized in BuildPrimitives
    */
-  MOZ_INIT_OUTSIDE_CTOR int32_t mSourceAlphaIndex;
+  int32_t mSourceAlphaIndex;
 
   /**
    * SourceAlpha is available if GetOrCreateSourceAlphaIndex has been called.

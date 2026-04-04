@@ -180,13 +180,13 @@ protected:
     // Native value and flag indicating if the value is defined (initialized in
     // derived classes). Note, undefined native value means it is inherited
     // from root.
-    MOZ_INIT_OUTSIDE_CTOR T mNativeValue;
-    MOZ_INIT_OUTSIDE_CTOR bool mIsDefined;
+    T mNativeValue;
+    bool mIsDefined;
 
     // Native root value and flag indicating if the value is defined  (initialized
     // in derived classes).
-    MOZ_INIT_OUTSIDE_CTOR T mRootNativeValue;
-    MOZ_INIT_OUTSIDE_CTOR bool mIsRootDefined;
+    T mRootNativeValue;
+    bool mIsRootDefined;
   };
 
 

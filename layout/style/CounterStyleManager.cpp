@@ -1140,7 +1140,7 @@ private:
 
   uint8_t mSystem;
   // GetSpeakAs will ensure that private member mSpeakAs is initialized before used
-  MOZ_INIT_OUTSIDE_CTOR uint8_t mSpeakAs;
+  uint8_t mSpeakAs;
 
   enum {
     // loop detection

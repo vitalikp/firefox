@@ -191,7 +191,7 @@ private:
   uint16_t mCount;
   bool mIsStopped;
   nsString mResponse;
-  MOZ_INIT_OUTSIDE_CTOR ErrorCode mErrorCode;
+  ErrorCode mErrorCode;
   ReentrantMonitor mReentrantMonitor;
 };
 
